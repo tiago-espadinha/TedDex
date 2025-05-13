@@ -1,0 +1,222 @@
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, useLoad } from '../data/api';
+import { neighbours } from '../data/dexState';
+import { formatMultiplier, formatNo, roman } from '../data/format';
+import { TYPE_COLORS } from '../data/typeColors';
+import type { SpeciesDetail, TypeData, TypeName } from '../data/types';
+import { Icon } from '../components/Icon';
+import { TypeChip, useToast } from '../components/bits';
+
+const TABS = ['About', 'Stats', 'Moves', 'Evolution', 'Locations'] as const;
+type Tab = (typeof TABS)[number];
+const TAB_KEY = 'detail-tab';
+
+const STAT_ROWS: [keyof SpeciesDetail['stats'], string][] = [
+  ['hp', 'HP'],
+  ['atk', 'Attack'],
+  ['def', 'Defense'],
+  ['spa', 'Sp. Atk'],
+  ['spd', 'Sp. Def'],
+  ['spe', 'Speed'],
+];
+
+const statColor = (v: number) => (v >= 90 ? '#3B7D2E' : v >= 60 ? '#B88A0E' : '#B8410E');
+
+export function DetailScreen() {
+  const id = Number(useParams().id);
+  const { data: mon, error } = useLoad(() => loadSpecies(id), id);
+  const { data: typeData } = useLoad(loadTypes, 'types');
+  const [tab, setTabState] = useState<Tab>(() => (sessionStorage.getItem(TAB_KEY) as Tab) || 'Stats');
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    sessionStorage.setItem(TAB_KEY, t);
+  };
+  const navigate = useNavigate();
+  const toast = useToast();
+  const { prev, next } = neighbours(id);
+  const touch = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => window.scrollTo({ top: 0 }), [id]);
+
+  const go = (target?: number) => target && navigate(`/pokemon/${target}`, { replace: true });
+
+  function playCry() {
+    const audio = new Audio(cryUrl(id));
+    audio.play().catch(() => toast({ text: "This browser can't play the cry yet" }));
+  }
+
+  if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
+  if (!mon) return <div style={{ height: '100dvh' }} />;
+
+  const tint = TYPE_COLORS[mon.types[0]].tint;
+
+  return (
+    <>
+      <section
+        className="detail-hero"
+        style={{ background: tint, paddingTop: 'var(--safe-top)', marginTop: 'calc(-1 * var(--safe-top))' }}
+        onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+        onTouchEnd={(e) => {
+          const s = touch.current;
+          touch.current = null;
+          if (!s) return;
+          const dx = e.changedTouches[0].clientX - s.x;
+          const dy = e.changedTouches[0].clientY - s.y;
+          if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? next : prev);
+        }}
+      >
+        <div className="bar">
+          <button className="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? navigate(-1) : navigate('/'))}>
+            <Icon name="back" />
+          </button>
+          <div>
+            <button className="icon-btn" aria-label="Play cry" onClick={playCry}>
+              <Icon name="sound" />
+            </button>
+          </div>
+        </div>
+        <div className="title">
+          <div className="no">{formatNo(mon.id)}</div>
+          <h1>{mon.name}</h1>
+          <div className="types">
+            {mon.types.map((t) => (
+              <TypeChip key={t} type={t} large />
+            ))}
+          </div>
+        </div>
+        <div className="art-row">
+          <Link
+            className="nav-round"
+            to={prev ? `/pokemon/${prev}` : '#'}
+            replace
+            aria-label="Previous"
+            aria-disabled={!prev}
+          >
+            <Icon name="back" size={20} />
+          </Link>
+          <img src={artworkUrl(mon.id)} alt={mon.name} width={184} height={184} />
+          <Link className="nav-round" to={next ? `/pokemon/${next}` : '#'} replace aria-label="Next" aria-disabled={!next}>
+            <Icon name="next" size={20} />
+          </Link>
+        </div>
+      </section>
+
+      <div className="tabs" role="tablist" aria-label="Sections">
+        {TABS.map((t) => (
+          <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'About' && <About mon={mon} />}
+      {tab === 'Stats' && <Stats mon={mon} typeData={typeData} />}
+      {tab !== 'About' && tab !== 'Stats' && (
+        <div className="section">
+          <p className="coming">
+            {tab} arrives in a later phase of the roadmap. The data build will add {tab.toLowerCase()} per game.
+          </p>
+        </div>
+      )}
+      <div style={{ height: 24 }} />
+    </>
+  );
+}
+
+function About({ mon }: { mon: SpeciesDetail }) {
+  return (
+    <div className="section">
+      {mon.flavor && <p className="flavor">{mon.flavor}</p>}
+      <div className="facts">
+        <div className="fact">
+          <div className="k">Category</div>
+          <div className="v">{mon.genus || '—'}</div>
+        </div>
+        <div className="fact">
+          <div className="k">Introduced</div>
+          <div className="v">Gen {roman(mon.gen)}</div>
+        </div>
+        <div className="fact">
+          <div className="k">Height</div>
+          <div className="v">{mon.heightM} m</div>
+        </div>
+        <div className="fact">
+          <div className="k">Weight</div>
+          <div className="v">{mon.weightKg} kg</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stats({ mon, typeData }: { mon: SpeciesDetail; typeData?: TypeData }) {
+  return (
+    <>
+      <div className="section">
+        {STAT_ROWS.map(([k, label]) => {
+          const v = mon.stats[k];
+          return (
+            <div className="stat-row" key={k}>
+              <span className="label">{label}</span>
+              <span className="val">{v}</span>
+              <span className="track">
+                <span className="fill" style={{ display: 'block', width: `${Math.min(100, (v / 180) * 100)}%`, background: statColor(v) }} />
+              </span>
+            </div>
+          );
+        })}
+        <div className="stat-row total">
+          <span className="label">Total</span>
+          <span className="val">{mon.total}</span>
+          <span />
+        </div>
+      </div>
+
+      <div className="section">
+        <h2>Abilities</h2>
+        <div className="ability-row">
+          {mon.abilities.map((a) => (
+            <span className="ability" key={a.name}>
+              {a.name}
+              {a.hidden && <small>hidden</small>}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {typeData && <Matchups types={mon.types} data={typeData} />}
+    </>
+  );
+}
+
+function Matchups({ types, data }: { types: TypeName[]; data: TypeData }) {
+  const mult = defensiveMultipliers(types, data);
+  const groups: { label: string; test: (m: number) => boolean }[] = [
+    { label: 'Weak to', test: (m) => m > 1 },
+    { label: 'Resists', test: (m) => m > 0 && m < 1 },
+    { label: 'Immune to', test: (m) => m === 0 },
+  ];
+  return (
+    <div className="section">
+      <h2>Type matchups</h2>
+      {groups.map((g) => {
+        const hits = data.types.filter((t) => g.test(mult[t])).sort((a, b) => mult[b] - mult[a]);
+        if (!hits.length) return null;
+        return (
+          <div className="eff-group" key={g.label}>
+            <h3>{g.label}</h3>
+            <div className="chip-wrap">
+              {hits.map((t) => (
+                <span key={t} className="type-chip lg" style={{ background: TYPE_COLORS[t].chip }}>
+                  {t}
+                  {mult[t] !== 2 && mult[t] !== 0.5 && mult[t] !== 0 ? ` ${formatMultiplier(mult[t])}` : ''}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
