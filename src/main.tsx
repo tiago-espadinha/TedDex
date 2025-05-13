@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation } from 'react-router-dom';
 import { BottomNav, ToastProvider } from './components/bits';
 import { applyTheme, type Theme } from './data/settings';
+import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
 import './styles.css';
 
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
     element: <Shell />,
     children: [
       { path: '/', element: <DexScreen /> },
+      { path: '/pokemon/:id', element: <DetailScreen /> },
       { path: '*', element: <p className="empty">Page not found.</p> },
     ],
   },
