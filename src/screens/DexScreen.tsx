@@ -1,15 +1,16 @@
 import Fuse from 'fuse.js';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { artworkUrl, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { cap, formatNo, roman } from '../data/format';
+import { addToTeam, db } from '../data/db';
 import { saveOrder, useDexFilters } from '../data/dexState';
 import { TYPE_COLORS } from '../data/typeColors';
 import type { IndexEntry } from '../data/types';
 import { applyFilters } from '../data/filter';
 import { Icon } from '../components/Icon';
-import { TypeChip } from '../components/bits';
+import { TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
 import { useSpriteStyle } from '../data/settings';
 
@@ -30,6 +31,10 @@ export function DexScreen() {
   const { data: all, error } = useLoad(loadIndex, 'index');
   const [filters, setFilters] = useDexFilters();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [params] = useSearchParams();
+  const pickTeam = params.get('pick') ? Number(params.get('pick')) : null;
+  const navigate = useNavigate();
+  const toast = useToast();
   const cols = useColumns();
   const [spriteStyle, setSpriteStyle] = useSpriteStyle();
 
@@ -42,6 +47,15 @@ export function DexScreen() {
 
   const activeCount = filters.gens.length + filters.types.length + (filters.sort !== 'number' ? 1 : 0);
 
+  async function pick(id: number) {
+    if (pickTeam == null) return;
+    const ok = await addToTeam(pickTeam, id);
+    const team = await db.teams.get(pickTeam);
+    if (!ok) toast({ text: 'That team is already full' });
+    navigate(`/teams/${pickTeam}`, { replace: true });
+    if (ok && team) toast({ text: `Added to ${team.name}` });
+  }
+
   const genLabel = filters.gens.length ? `Gen ${filters.gens.map(roman).join(', ')}` : 'All gens';
   const typeLabel = filters.types.length ? filters.types.map(cap).join(' / ') : 'All types';
   const sortLabel = { number: 'Number', name: 'Name', total: 'Base total' }[filters.sort];
@@ -49,7 +63,7 @@ export function DexScreen() {
   return (
     <>
       <header className="dex-head">
-        <h1>Dex</h1>
+        <h1>{pickTeam != null ? 'Pick a Pokémon' : 'Dex'}</h1>
         <div>
           <button
             className="icon-btn"
@@ -91,6 +105,13 @@ export function DexScreen() {
         </button>
       </div>
 
+      {pickTeam != null && (
+        <div className="pick-banner">
+          Tap a Pokémon to add it
+          <button onClick={() => navigate(`/teams/${pickTeam}`, { replace: true })}>Cancel</button>
+        </div>
+      )}
+
       {error && <p className="empty">Couldn't load the dex data. {error.message}</p>}
       {all && list.length === 0 && <p className="empty">No Pokémon match these filters.</p>}
 
@@ -104,7 +125,7 @@ export function DexScreen() {
               style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: `translateY(${row.start}px)` }}
             >
               {items.map((m) => (
-                <MonCard key={m.id} mon={m} art={spriteStyle === 'art'} />
+                <MonCard key={m.id} mon={m} art={spriteStyle === 'art'} onPick={pickTeam != null ? () => pick(m.id) : undefined} />
               ))}
             </div>
           );
@@ -132,7 +153,7 @@ export function DexScreen() {
   );
 }
 
-function MonCard({ mon, art }: { mon: IndexEntry; art: boolean }) {
+function MonCard({ mon, art, onPick }: { mon: IndexEntry; art: boolean; onPick?: () => void }) {
   const body = (
     <>
       <div className="no">{formatNo(mon.id)}</div>
@@ -147,6 +168,12 @@ function MonCard({ mon, art }: { mon: IndexEntry; art: boolean }) {
   );
   const style = { background: TYPE_COLORS[mon.types[0]].tint };
   const cls = `mon-card ${art ? 'sprite-art' : ''}`;
+  if (onPick)
+    return (
+      <button className={cls} style={{ ...style, border: 0, textAlign: 'left', font: 'inherit', width: '100%' }} onClick={onPick}>
+        {body}
+      </button>
+    );
   return (
     <Link to={`/pokemon/${mon.id}`} className={cls} style={style}>
       {body}
