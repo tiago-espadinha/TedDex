@@ -5,7 +5,7 @@ import { BottomNav, ToastProvider } from './components/bits';
 import { applyTheme, type Theme } from './data/settings';
 import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
-import { TeamEditor, TeamsScreen } from './screens/TeamScreens';
+import { CoverageScreen, TeamEditor, TeamsScreen } from './screens/TeamScreens';
 import './styles.css';
 
 try {
@@ -37,6 +37,7 @@ const router = createBrowserRouter([
       { path: '/pokemon/:id', element: <DetailScreen /> },
       { path: '/teams', element: <TeamsScreen /> },
       { path: '/teams/:id', element: <TeamEditor /> },
+      { path: '/teams/:id/coverage', element: <CoverageScreen /> },
       { path: '*', element: <p className="empty">Page not found.</p> },
     ],
   },
