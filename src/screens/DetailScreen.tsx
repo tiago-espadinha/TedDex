@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, useLoad } from '../data/api';
+import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { formatMultiplier, formatNo, roman } from '../data/format';
 import { TYPE_COLORS } from '../data/typeColors';
@@ -41,6 +42,17 @@ export function DetailScreen() {
 
   const go = (target?: number) => target && navigate(`/pokemon/${target}`, { replace: true });
 
+  async function addToCurrentTeam() {
+    const teamId = await currentTeamId();
+    const team = await db.teams.get(teamId);
+    const ok = await addToTeam(teamId, id);
+    toast(
+      ok
+        ? { text: `Added to ${team?.name ?? 'team'}`, action: { label: 'View', href: `/teams/${teamId}` } }
+        : { text: `${team?.name ?? 'That team'} is full`, action: { label: 'Open', href: `/teams/${teamId}` } },
+    );
+  }
+
   function playCry() {
     const audio = new Audio(cryUrl(id));
     audio.play().catch(() => toast({ text: "This browser can't play the cry yet" }));
@@ -73,6 +85,9 @@ export function DetailScreen() {
           <div>
             <button className="icon-btn" aria-label="Play cry" onClick={playCry}>
               <Icon name="sound" />
+            </button>
+            <button className="icon-btn" aria-label="Add to team" onClick={addToCurrentTeam}>
+              <Icon name="plus" />
             </button>
           </div>
         </div>
