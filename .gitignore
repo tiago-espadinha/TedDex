@@ -25,3 +25,15 @@ dist-ssr
 
 # data build cache
 .cache/
+
+# --- devflow-kit ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/state/
+design/explore/
+design/shots/

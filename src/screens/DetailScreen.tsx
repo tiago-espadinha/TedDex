@@ -22,7 +22,7 @@ const STAT_ROWS: [keyof SpeciesDetail['stats'], string][] = [
   ['spe', 'Speed'],
 ];
 
-const statColor = (v: number) => (v >= 90 ? '#3B7D2E' : v >= 60 ? '#B88A0E' : '#B8410E');
+const statColor = (v: number) => (v >= 90 ? 'var(--stat-high)' : v >= 60 ? 'var(--stat-mid)' : 'var(--stat-low)');
 
 export function DetailScreen() {
   const id = Number(useParams().id);
