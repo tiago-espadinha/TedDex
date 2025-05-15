@@ -193,6 +193,8 @@ a { color: inherit; }
 .detail-hero .types { display: flex; gap: 6px; }
 .detail-hero .art-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 20px; }
 .detail-hero .art-row img { width: 184px; height: 184px; object-fit: contain; }
+.detail-hero .art-row img.sprite { image-rendering: pixelated; }
+.detail-hero .art-note { margin: -12px 0 0; padding-bottom: 16px; text-align: center; font-size: 12px; color: var(--on-tint-muted); }
 .nav-round { width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .nav-round[aria-disabled='true'] { opacity: 0.35; pointer-events: none; }
 

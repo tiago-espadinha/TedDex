@@ -163,7 +163,19 @@ function MonCard({ mon, art, onPick }: { mon: IndexEntry; art: boolean; onPick?:
           <TypeChip key={t} type={t} />
         ))}
       </div>
-      <img src={art ? artworkUrl(mon.id) : spriteUrl(mon.id)} alt="" loading="lazy" decoding="async" width={84} height={84} />
+      <img
+        src={art ? artworkUrl(mon.id) : spriteUrl(mon.id)}
+        onError={(e) => {
+          // Artwork that was never viewed isn't cached offline: show the precached sprite instead.
+          const sprite = spriteUrl(mon.id);
+          if (!e.currentTarget.src.endsWith(sprite)) e.currentTarget.src = sprite;
+        }}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        width={84}
+        height={84}
+      />
     </>
   );
   const style = { background: TYPE_COLORS[mon.types[0]].tint };

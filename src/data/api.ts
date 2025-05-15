@@ -41,13 +41,11 @@ export function useLoad<T>(loader: () => Promise<T>, key: unknown): { data?: T; 
   return state.key === key ? state : {};
 }
 
-// ---- media (hot-linked from PokeAPI's sprite/cry repos, cached by the SW) ----
-// TODO(phase 0 data build): mirror these into /media as WebP and M4A at build time.
-const SPRITES = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
-export const spriteUrl = (id: number) => `${SPRITES}/${id}.png`;
-export const artworkUrl = (id: number) => `${SPRITES}/other/official-artwork/${id}.png`;
-export const cryUrl = (id: number) =>
-  `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`;
+// ---- media (mirrored into /media by `npm run media`) ----
+// Sprites are precached; artwork and cries are cached the first time they are seen.
+export const spriteUrl = (id: number) => `/media/sprites/${id}.webp`;
+export const artworkUrl = (id: number) => `/media/artwork/${id}.webp`;
+export const cryUrl = (id: number) => `/media/cries/${id}.m4a`;
 
 // ---- type maths ----
 export function defensiveMultipliers(defTypes: TypeName[], data: TypeData): Record<TypeName, number> {

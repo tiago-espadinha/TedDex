@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, useLoad } from '../data/api';
+import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { formatMultiplier, formatNo, roman } from '../data/format';
@@ -39,6 +39,14 @@ export function DetailScreen() {
   const touch = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => window.scrollTo({ top: 0 }), [id]);
+  // Fetch the whole cry once so the service worker caches it: Safari's own audio requests are
+  // byte ranges, which aren't cacheable. Offline before first view is fine, the cry button toasts.
+  const monId = mon?.id;
+  useEffect(() => {
+    if (monId) fetch(cryUrl(monId)).catch(() => {});
+  }, [monId]);
+  // Offline, artwork that was never viewed isn't cached: show the precached sprite and say so.
+  const [noArtworkFor, setNoArtworkFor] = useState<number>();
 
   const go = (target?: number) => target && navigate(`/pokemon/${target}`, { replace: true });
 
@@ -55,7 +63,9 @@ export function DetailScreen() {
 
   function playCry() {
     const audio = new Audio(cryUrl(id));
-    audio.play().catch(() => toast({ text: "This browser can't play the cry yet" }));
+    audio.play().catch(() =>
+      toast({ text: navigator.onLine ? "This browser can't play the cry" : "This cry isn't saved offline yet" }),
+    );
   }
 
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
@@ -110,11 +120,16 @@ export function DetailScreen() {
           >
             <Icon name="back" size={20} />
           </Link>
-          <img src={artworkUrl(mon.id)} alt={mon.name} width={184} height={184} />
+          {noArtworkFor === mon.id ? (
+            <img className="sprite" src={spriteUrl(mon.id)} alt={mon.name} width={184} height={184} />
+          ) : (
+            <img src={artworkUrl(mon.id)} onError={() => setNoArtworkFor(mon.id)} alt={mon.name} width={184} height={184} />
+          )}
           <Link className="nav-round" to={next ? `/pokemon/${next}` : '#'} replace aria-label="Next" aria-disabled={!next}>
             <Icon name="next" size={20} />
           </Link>
         </div>
+        {noArtworkFor === mon.id && <p className="art-note">Artwork isn't saved offline yet</p>}
       </section>
 
       <div className="tabs" role="tablist" aria-label="Sections">
