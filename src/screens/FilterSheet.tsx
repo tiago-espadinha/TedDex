@@ -79,7 +79,7 @@ export function FilterSheet({
                 aria-pressed={on}
                 disabled={!on && draft.types.length >= 2}
                 onClick={() => toggleType(t)}
-                style={{ borderColor: c, background: on ? c : undefined, color: on ? '#fff' : c }}
+                style={{ borderColor: c, background: on ? c : undefined, color: on ? 'var(--on-type)' : c }}
               >
                 {t}
               </button>

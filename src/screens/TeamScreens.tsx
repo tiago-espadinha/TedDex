@@ -89,7 +89,7 @@ export function TeamEditor() {
         <button
           className="icon-btn"
           aria-label={confirmDelete ? 'Confirm delete team' : 'Delete team'}
-          style={confirmDelete ? { color: '#B3261E' } : undefined}
+          style={confirmDelete ? { color: 'var(--danger)' } : undefined}
           onClick={async () => {
             if (!confirmDelete) return setConfirmDelete(true);
             await db.teams.delete(id);
