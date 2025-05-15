@@ -25,19 +25,24 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // App shell + every data file is precached, so the dex works fully offline.
-        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],
+        // App shell, every data file and every sprite are precached, so the dex works fully offline.
+        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}', 'media/sprites/*.webp'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
-            // Sprites, artwork and cries are cached the first time they are seen.
-            urlPattern: ({ url }) => url.hostname === 'raw.githubusercontent.com',
+            // Artwork and cries (~31 MB in total) are cached the first time they are seen.
+            // Range support lets Safari play a cached cry, since it requests audio in byte ranges.
+            // Up to 2100 entries: artwork + cry for each of the 1025 species, with headroom.
+            // Files never change, so ignore Vary (the warm-up fetch and Safari's audio request differ).
+            urlPattern: ({ url }) => /^\/media\/(artwork|cries)\//.test(url.pathname),
             handler: 'CacheFirst',
             options: {
               cacheName: 'media',
-              expiration: { maxEntries: 4000, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
+              rangeRequests: true,
+              matchOptions: { ignoreVary: true },
+              expiration: { maxEntries: 2100, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [200] },
             },
           },
           {
