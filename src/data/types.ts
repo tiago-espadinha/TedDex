@@ -81,3 +81,6 @@ export interface EvolutionMember {
   /** English condition text, one entry per distinct method. Empty for the base. */
   conditions: string[];
 }
+
+/** items.json: held item id → English name. */
+export type ItemTable = Record<number, string>;

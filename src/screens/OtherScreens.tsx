@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { exportTeams, importTeams } from '../data/db';
+import { BackupError, exportTeams, importTeams } from '../data/db';
 import { applyTheme, useSpriteStyle, useTheme, type Theme } from '../data/settings';
 import { useToast } from '../components/bits';
 
@@ -44,8 +44,8 @@ export function MoreScreen() {
     try {
       const n = await importTeams(await file.text());
       toast({ text: `Imported ${n} team${n === 1 ? '' : 's'}` });
-    } catch {
-      toast({ text: "That file isn't a team backup" });
+    } catch (err) {
+      toast({ text: err instanceof BackupError ? err.message : "Couldn't import that file" });
     }
   }
 

@@ -1,17 +1,24 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { defensiveMultipliers, loadIndex, loadTypes, spriteUrl, useLoad } from '../data/api';
-import { TEAM_SIZE, createTeam, db, removeFromTeam } from '../data/db';
+import { defensiveMultipliers, loadIndex, loadItems, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { TEAM_SIZE, createTeam, db, removeFromTeam, type TeamMember } from '../data/db';
 import { cap, formatMultiplier, formatNo } from '../data/format';
 import { TYPE_COLORS } from '../data/typeColors';
-import type { IndexEntry, TypeName } from '../data/types';
+import type { IndexEntry, ItemTable, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { TypeChip } from '../components/bits';
 
 function useSpeciesMap() {
   const { data } = useLoad(loadIndex, 'index');
   return useMemo(() => new Map((data ?? []).map((m) => [m.id, m])), [data]);
+}
+
+/** "Adamant · Life Orb · 3 moves", or a prompt when nothing is set yet. */
+function memberSummary(m: TeamMember, items?: ItemTable) {
+  const moves = m.moves?.length ?? 0;
+  const parts = [m.nature, m.item && items?.[m.item], moves && `${moves} move${moves === 1 ? '' : 's'}`].filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'Set ability, nature, item and moves';
 }
 
 // ---------------- saved teams ----------------
@@ -55,6 +62,7 @@ export function TeamEditor() {
   const id = Number(useParams().id);
   const team = useLiveQuery(() => db.teams.get(id), [id]);
   const species = useSpeciesMap();
+  const { data: items } = useLoad(loadItems, 'items');
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -110,12 +118,12 @@ export function TeamEditor() {
           const mon = species.get(m.speciesId);
           return (
             <div key={`${m.speciesId}-${i}`} className="slot" style={{ background: mon ? TYPE_COLORS[mon.types[0]].tint : 'var(--surface)' }}>
-              <Link to={`/pokemon/${m.speciesId}`}>
+              <Link to={`/teams/${id}/member/${i}`}>
                 <img src={spriteUrl(m.speciesId)} alt="" width={64} height={64} />
                 <div style={{ minWidth: 0 }}>
                   <div className="name">{mon?.name ?? formatNo(m.speciesId)}</div>
                   <div className="chips">{mon?.types.map((t) => <TypeChip key={t} type={t} />)}</div>
-                  <div className="meta">Moveset editing: phase 2</div>
+                  <div className="meta">{memberSummary(m, items)}</div>
                 </div>
               </Link>
               <button className="icon-btn" aria-label={`Remove ${mon?.name ?? 'member'}`} onClick={() => removeFromTeam(id, i)}>

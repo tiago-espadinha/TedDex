@@ -12,6 +12,7 @@
  *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP
  *   versions.json         main-series version groups that have learnsets, oldest first
  *   evolution/<chain>.json  evolution chain members with English condition text, loaded by the Evolution tab
+ *   items.json            held items a team member can carry: item id -> English name
  *   meta.json             data version + build time
  */
 import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
@@ -42,6 +43,15 @@ const FORM_LABELS: Record<string, string> = {
   paldea: 'Paldean',
   'white-striped': 'White-Striped',
 };
+/**
+ * item_categories identifiers whose items are battle held items. The holdable flags in item_flag_map
+ * are missing for most items from Gen 5 on (Assault Vest, Eviolite), so categories decide instead.
+ */
+const HELD_ITEM_CATEGORIES = new Set([
+  'held-items', 'choice', 'type-enhancement', 'plates', 'species-specific', 'bad-held-items',
+  'effort-training', 'training', 'jewels', 'mega-stones', 'memories', 'z-crystals',
+  'medicine', 'picky-healing', 'in-a-pinch', 'type-protection', 'other',
+]);
 const TIMES: Record<string, string> = { day: 'during the day', night: 'at night', dusk: 'at dusk', 'full-moon': 'under a full moon' };
 
 type Row = Record<string, string>;
@@ -138,6 +148,8 @@ async function main() {
     locationNames,
     typeNames,
     triggerProse,
+    items,
+    itemCategories,
   ] = await Promise.all(
       [
         'pokemon_species',
@@ -162,6 +174,8 @@ async function main() {
         'location_names',
         'type_names',
         'evolution_trigger_prose',
+        'items',
+        'item_categories',
       ].map(load),
     );
 
@@ -428,15 +442,25 @@ async function main() {
     await writeFile(join(OUT, 'evolution', `${chainId}.json`), JSON.stringify(out));
   }
 
+  // --- held items ---
+  const heldCategories = new Set(itemCategories.filter((c) => HELD_ITEM_CATEGORIES.has(c.identifier)).map((c) => c.id));
+  const itemTable: Record<string, string> = {};
+  for (const it of items) {
+    const name = itemName.get(it.id);
+    if (!name || !heldCategories.has(it.category_id)) continue;
+    itemTable[it.id] = name;
+  }
+
   const version = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   await writeFile(join(OUT, 'index.json'), JSON.stringify(index));
   await writeFile(join(OUT, 'types.json'), JSON.stringify({ types: battleTypes.map((t) => t.identifier), matrix }));
   await writeFile(join(OUT, 'moves.json'), JSON.stringify(moveTable));
   await writeFile(join(OUT, 'versions.json'), JSON.stringify(versionList));
+  await writeFile(join(OUT, 'items.json'), JSON.stringify(itemTable));
   await writeFile(join(OUT, 'meta.json'), JSON.stringify({ version, builtAt: new Date().toISOString(), species: index.length }));
   console.log(
     `Done: ${index.length} species, ${battleTypes.length} types, ${usedMoves.size} moves, ` +
-      `${versionList.length} games, ${chains.size} evolution chains → public/data (version ${version})`,
+      `${versionList.length} games, ${chains.size} evolution chains, ${Object.keys(itemTable).length} items → public/data (version ${version})`,
   );
 }
 

@@ -277,6 +277,28 @@ a.evo-member:active { background: var(--surface-2); }
 .slot .icon-btn { color: var(--on-tint-2); }
 .add-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .add-slot { height: 56px; border-radius: var(--radius-card); border: 1.5px dashed var(--outline); background: transparent; font-size: 14px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+.member-hero { text-decoration: none; padding-right: 12px; }
+.member-hero > div { flex: 1; }
+
+/* ---------- member editor ---------- */
+button.ability { text-align: left; min-height: 44px; }
+.ability[aria-checked='true'] { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); }
+.ability[aria-checked='true'] small { color: inherit; }
+.game-select .sr-only + select { padding-left: 0; }
+.pick-field { display: flex; align-items: center; gap: 4px; }
+button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
+.game-select .v { flex: 1; min-width: 0; padding-right: 24px; font-size: 15px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-select .v.none, .game-select select.none { color: var(--muted); font-weight: 600; }
+.move-slots { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.move-slots .move-row { padding: 0 4px 0 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.move-slots .add-slot { width: 100%; }
+.move-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 4px 8px 12px; border: 0; background: transparent; text-align: left; border-radius: 16px; }
+.sheet .search { margin: 12px 0 10px; }
+.picker-list { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.picker-list li + li { border-top: 1px solid var(--line); }
+.picker-list .move-row { width: 100%; border: 0; background: transparent; text-align: left; }
+.picker-list .move-row:active { background: var(--surface-2); }
+.picker-list .move-row:focus-visible { outline-offset: -2px; }
 .name-input { font-size: 22px; font-weight: 800; border: 0; background: transparent; padding: 0; width: 100%; outline: none; color: var(--ink); }
 .name-input:focus { border-bottom: 2px solid var(--primary); }
 .bottom-cta { padding: 16px; }
