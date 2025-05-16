@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { IndexEntry, Learnsets, MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup } from './types';
+import type { EvolutionMember, IndexEntry, Learnsets, MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup } from './types';
 
 /**
  * Data access. Everything is static JSON under /data (precached by the
@@ -26,6 +26,7 @@ export const loadSpecies = (id: number) => getJson<SpeciesDetail>(`/data/species
 export const loadLearnsets = (id: number) => getJson<Learnsets>(`/data/learnsets/${id}.json`);
 export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
+export const loadEvolution = (chainId: number) => getJson<EvolutionMember[]>(`/data/evolution/${chainId}.json`);
 
 /** Small hook: resolves a promise-returning loader, re-running when `key` changes. */
 export function useLoad<T>(loader: () => Promise<T>, key: unknown): { data?: T; error?: Error } {

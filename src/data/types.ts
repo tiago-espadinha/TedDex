@@ -72,3 +72,12 @@ export interface Learnset {
 
 /** learnsets/<id>.json: version group id → learnset (only games the species is in). */
 export type Learnsets = Record<number, Learnset>;
+
+/** evolution/<chainId>.json: chain members in tree order (each parent before its children). */
+export interface EvolutionMember {
+  id: number;
+  /** Species it evolves from; null for the chain's base. */
+  from: number | null;
+  /** English condition text, one entry per distinct method. Empty for the base. */
+  conditions: string[];
+}

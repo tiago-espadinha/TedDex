@@ -11,6 +11,7 @@
  *   learnsets/<id>.json   moves per version group (level-up, TM, tutor, egg), loaded by the Moves tab
  *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP
  *   versions.json         main-series version groups that have learnsets, oldest first
+ *   evolution/<chain>.json  evolution chain members with English condition text, loaded by the Evolution tab
  *   meta.json             data version + build time
  */
 import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
@@ -33,6 +34,15 @@ const LEARN_METHODS: Record<string, 'level' | 'machine' | 'tutor' | 'egg'> = {
   '4': 'machine',
 };
 const DAMAGE_CLASSES: Record<string, string> = { '1': 'status', '2': 'physical', '3': 'special' };
+/** Labels for the forms an evolution can be limited to (other form differences, like Vivillon's, are cosmetic). */
+const FORM_LABELS: Record<string, string> = {
+  alola: 'Alolan',
+  galar: 'Galarian',
+  hisui: 'Hisuian',
+  paldea: 'Paldean',
+  'white-striped': 'White-Striped',
+};
+const TIMES: Record<string, string> = { day: 'during the day', night: 'at night', dusk: 'at dusk', 'full-moon': 'under a full moon' };
 
 type Row = Record<string, string>;
 
@@ -122,6 +132,12 @@ async function main() {
     versionGroups,
     versions,
     versionNames,
+    evolutions,
+    pokemonForms,
+    itemNames,
+    locationNames,
+    typeNames,
+    triggerProse,
   ] = await Promise.all(
       [
         'pokemon_species',
@@ -140,6 +156,12 @@ async function main() {
         'version_groups',
         'versions',
         'version_names',
+        'pokemon_evolution',
+        'pokemon_forms',
+        'item_names',
+        'location_names',
+        'type_names',
+        'evolution_trigger_prose',
       ].map(load),
     );
 
@@ -294,6 +316,118 @@ async function main() {
       gen: Number(g.generation_id),
     }));
 
+  // --- evolution chains ---
+  const english = (rows: Row[], key: string) =>
+    new Map(rows.filter((r) => Number(r.local_language_id) === ENGLISH).map((r) => [r[key], r.name]));
+  const itemName = english(itemNames, 'item_id');
+  const locationName = english(locationNames, 'location_id');
+  const typeLabel = english(typeNames, 'type_id');
+  const triggerName = english(triggerProse, 'evolution_trigger_id');
+  const speciesName = (id: string) => names.get(id)?.name ?? `#${id}`;
+  const formById = new Map(pokemonForms.map((f) => [f.id, f]));
+  /** A form id is "default" when it belongs to a species' default Pokémon and is its default form. */
+  const isDefaultForm = (id: string) => {
+    const f = formById.get(id);
+    return !id || !f || (f.is_default === '1' && defaultPokemonIds.has(f.pokemon_id));
+  };
+
+  function conditionText(e: Row): string {
+    const parts: string[] = [];
+    const level = Number(e.minimum_level);
+    // Trigger ids from evolution_triggers.csv; the rest fall back to their English prose.
+    switch (e.evolution_trigger_id) {
+      case '1': // level up
+        parts.push(level ? `Lv. ${level}` : 'Level up');
+        break;
+      case '10': // level up in battle
+        parts.push(level ? `Lv. ${level}` : 'Level up', 'in battle');
+        break;
+      case '2': // trade
+        parts.push(e.held_item_id ? `Trade holding ${itemName.get(e.held_item_id)}` : 'Trade');
+        if (e.trade_species_id) parts.push(`for ${speciesName(e.trade_species_id)}`);
+        break;
+      case '3': // use item
+        parts.push(`Use ${itemName.get(e.trigger_item_id) ?? 'an item'}`);
+        break;
+      case '4': // shed (Shedinja)
+        parts.push(`Lv. ${level || 20}, with a free party slot and a Poké Ball`);
+        break;
+      case '11': // use move in agile style
+      case '12': // use move in strong style
+      case '14': {
+        // use move
+        const times = Number(e.minimum_move_count);
+        parts.push(`Use ${moveName.get(e.used_move_id) ?? 'a move'}${times ? ` ${times} times` : ''}`);
+        if (e.evolution_trigger_id !== '14') parts.push(e.evolution_trigger_id === '11' ? 'agile style' : 'strong style');
+        break;
+      }
+      default:
+        parts.push(triggerName.get(e.evolution_trigger_id) ?? 'Special');
+        if (level) parts.push(`Lv. ${level}`);
+    }
+    if (e.held_item_id && e.evolution_trigger_id !== '2') parts.push(`holding ${itemName.get(e.held_item_id)}`);
+    if (e.minimum_happiness) parts.push('high friendship');
+    if (e.minimum_beauty) parts.push('high beauty');
+    if (e.minimum_affection) parts.push('high affection');
+    if (e.known_move_id) parts.push(`knowing ${moveName.get(e.known_move_id)}`);
+    if (e.known_move_type_id) parts.push(`knowing a ${typeLabel.get(e.known_move_type_id)}-type move`);
+    if (e.gender_id === '1') parts.push('female');
+    if (e.gender_id === '2') parts.push('male');
+    if (e.time_of_day) parts.push(TIMES[e.time_of_day] ?? e.time_of_day);
+    if (e.location_id) parts.push(`at ${locationName.get(e.location_id)}`);
+    else if (e.near_special_rock === '1') parts.push('near a special rock');
+    if (e.party_species_id) parts.push(`with ${speciesName(e.party_species_id)} in the party`);
+    if (e.party_type_id) parts.push(`with a ${typeLabel.get(e.party_type_id)}-type in the party`);
+    const rel = e.relative_physical_stats;
+    if (rel) parts.push(rel === '1' ? 'Attack > Defense' : rel === '-1' ? 'Attack < Defense' : 'Attack = Defense');
+    if (e.needs_overworld_rain === '1') parts.push('in rain');
+    if (e.turn_upside_down === '1') parts.push('console held upside down');
+    if (e.needs_multiplayer === '1') parts.push('in Union Circle');
+    if (e.minimum_steps) parts.push(`after ${Number(e.minimum_steps).toLocaleString('en')} steps`);
+    if (e.minimum_damage_taken && e.evolution_trigger_id !== '9') parts.push(`after losing ${e.minimum_damage_taken} HP`);
+    if (e.nature_bitmask) parts.push('certain natures');
+    // A chance that only picks the form (Maushold, Dudunsparce) isn't a condition of evolving.
+    if (e.percentage_chance && !e.evolved_pokemon_form_id) parts.push(`${e.percentage_chance}% chance`);
+    return parts.join(' · ');
+  }
+
+  /** Conditions per evolved species: current-game default-form rows, else any default-form rows,
+   *  else (evolves only from one form) every row, prefixed with the form. */
+  const evoRows = groupBy(evolutions, (e) => e.evolved_species_id);
+  function conditionsFor(speciesId: string): string[] {
+    const rows = evoRows.get(speciesId) ?? [];
+    const plain = rows.filter((e) => isDefaultForm(e.required_pokemon_form_id) && isDefaultForm(e.evolved_pokemon_form_id));
+    const latest = (list: Row[]) => {
+      const current = list.filter((e) => e.is_default === '1');
+      return current.length ? current : list;
+    };
+    const texts = plain.length
+      ? latest(plain).map(conditionText)
+      : latest(rows).map((e) => {
+          const form = FORM_LABELS[formById.get(e.required_pokemon_form_id)?.form_identifier ?? ''];
+          return [form && `${form} form`, conditionText(e)].filter(Boolean).join(' · ');
+        });
+    return [...new Set(texts)];
+  }
+
+  await mkdir(join(OUT, 'evolution'), { recursive: true });
+  const shipped = new Set(index.map((m) => String(m.id)));
+  const chains = groupBy(
+    species.filter((s) => s.evolution_chain_id && shipped.has(s.id)),
+    (s) => s.evolution_chain_id,
+  );
+  for (const [chainId, members] of chains) {
+    const children = groupBy(members, (s) => s.evolves_from_species_id);
+    const out: { id: number; from: number | null; conditions: string[] }[] = [];
+    const walk = (s: Row) => {
+      const from = Number(s.evolves_from_species_id) || null;
+      out.push({ id: Number(s.id), from, conditions: from ? conditionsFor(s.id) : [] });
+      for (const c of (children.get(s.id) ?? []).sort((a, b) => Number(a.id) - Number(b.id))) walk(c);
+    };
+    for (const root of members.filter((s) => !s.evolves_from_species_id)) walk(root);
+    await writeFile(join(OUT, 'evolution', `${chainId}.json`), JSON.stringify(out));
+  }
+
   const version = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   await writeFile(join(OUT, 'index.json'), JSON.stringify(index));
   await writeFile(join(OUT, 'types.json'), JSON.stringify({ types: battleTypes.map((t) => t.identifier), matrix }));
@@ -302,7 +436,7 @@ async function main() {
   await writeFile(join(OUT, 'meta.json'), JSON.stringify({ version, builtAt: new Date().toISOString(), species: index.length }));
   console.log(
     `Done: ${index.length} species, ${battleTypes.length} types, ${usedMoves.size} moves, ` +
-      `${versionList.length} games → public/data (version ${version})`,
+      `${versionList.length} games, ${chains.size} evolution chains → public/data (version ${version})`,
   );
 }
 
