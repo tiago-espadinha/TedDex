@@ -40,3 +40,44 @@ export interface TypeData {
   /** matrix[attacker][defender] = damage factor (0, 0.5, 1, 2) */
   matrix: Record<TypeName, Record<TypeName, number>>;
 }
+
+export type MoveCategory = 'physical' | 'special' | 'status';
+
+export interface MoveInfo {
+  name: string;
+  type: TypeName;
+  category: MoveCategory;
+  power: number | null;
+  accuracy: number | null;
+  pp: number | null;
+}
+
+/** moves.json: move id → move. */
+export type MoveTable = Record<number, MoveInfo>;
+
+/** versions.json: main-series version groups with learnsets, oldest first. */
+export interface VersionGroup {
+  id: number;
+  label: string;
+  gen: number;
+}
+
+/** One game's learnset. Level 0 means "learned on evolution". */
+export interface Learnset {
+  level: [moveId: number, level: number][];
+  machine: number[];
+  tutor: number[];
+  egg: number[];
+}
+
+/** learnsets/<id>.json: version group id → learnset (only games the species is in). */
+export type Learnsets = Record<number, Learnset>;
+
+/** evolution/<chainId>.json: chain members in tree order (each parent before its children). */
+export interface EvolutionMember {
+  id: number;
+  /** Species it evolves from; null for the chain's base. */
+  from: number | null;
+  /** English condition text, one entry per distinct method. Empty for the base. */
+  conditions: string[];
+}
