@@ -8,6 +8,9 @@
  *   index.json            one row per species (default form): grid, search, filters
  *   types.json            18 types + full damage matrix (attacker -> defender -> factor)
  *   species/<id>.json     detail page data, loaded on demand
+ *   learnsets/<id>.json   moves per version group (level-up, TM, tutor, egg), loaded by the Moves tab
+ *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP
+ *   versions.json         main-series version groups that have learnsets, oldest first
  *   meta.json             data version + build time
  */
 import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
@@ -20,6 +23,16 @@ const CACHE = join(ROOT, '.cache', 'csv');
 const OUT = join(ROOT, 'public', 'data');
 const ENGLISH = 9;
 const FRESH = process.argv.includes('--fresh');
+/** Version groups left out of the game picker: Colosseum, XD, Japan-only Red/Green/Blue, Champions. */
+const SKIPPED_VERSION_GROUPS = new Set(['12', '13', '28', '29', '32']);
+/** pokemon_move_methods ids the Moves tab shows. */
+const LEARN_METHODS: Record<string, 'level' | 'machine' | 'tutor' | 'egg'> = {
+  '1': 'level',
+  '2': 'egg',
+  '3': 'tutor',
+  '4': 'machine',
+};
+const DAMAGE_CLASSES: Record<string, string> = { '1': 'status', '2': 'physical', '3': 'special' };
 
 type Row = Record<string, string>;
 
@@ -82,11 +95,34 @@ const groupBy = <T,>(rows: T[], key: (r: T) => string | number) => {
 
 const clean = (s: string) => s.replace(/[\f\n\r]+/g, ' ').replace(/­/g, '').replace(/\s+/g, ' ').trim();
 
+interface Learnset {
+  level: [number, number][];
+  machine: number[];
+  tutor: number[];
+  egg: number[];
+}
+
 async function main() {
   await mkdir(CACHE, { recursive: true });
   console.log('Loading CSVs…');
-  const [species, pokemon, types, pokemonTypes, pokemonStats, pokemonAbilities, abilityNames, efficacy, speciesNames, flavor] =
-    await Promise.all(
+  const [
+    species,
+    pokemon,
+    types,
+    pokemonTypes,
+    pokemonStats,
+    pokemonAbilities,
+    abilityNames,
+    efficacy,
+    speciesNames,
+    flavor,
+    pokemonMoves,
+    moves,
+    moveNames,
+    versionGroups,
+    versions,
+    versionNames,
+  ] = await Promise.all(
       [
         'pokemon_species',
         'pokemon',
@@ -98,6 +134,12 @@ async function main() {
         'type_efficacy',
         'pokemon_species_names',
         'pokemon_species_flavor_text',
+        'pokemon_moves',
+        'moves',
+        'move_names',
+        'version_groups',
+        'versions',
+        'version_names',
       ].map(load),
     );
 
@@ -134,10 +176,25 @@ async function main() {
     if (!prev || v > prev.v) flavorBySpecies.set(f.species_id, { v, text: clean(f.flavor_text) });
   }
 
+  // --- learnsets: default forms, main-series games, the four methods the Moves tab shows ---
+  const defaultPokemonIds = new Set([...defaultPokemon.values()].map((p) => p.id));
+  const movesByPokemon = groupBy(
+    pokemonMoves.filter(
+      (r) =>
+        defaultPokemonIds.has(r.pokemon_id) &&
+        !SKIPPED_VERSION_GROUPS.has(r.version_group_id) &&
+        LEARN_METHODS[r.pokemon_move_method_id],
+    ),
+    (r) => r.pokemon_id,
+  );
+  const usedMoves = new Set<string>();
+  const usedVersionGroups = new Set<string>();
+
   const STAT_KEYS = ['', 'hp', 'atk', 'def', 'spa', 'spd', 'spe'] as const;
 
   await rm(OUT, { recursive: true, force: true });
   await mkdir(join(OUT, 'species'), { recursive: true });
+  await mkdir(join(OUT, 'learnsets'), { recursive: true });
 
   const index = [];
   const ordered = [...species].sort((a, b) => Number(a.id) - Number(b.id));
@@ -185,13 +242,68 @@ async function main() {
       evolutionChainId: Number(s.evolution_chain_id) || null,
     };
     await writeFile(join(OUT, 'species', `${id}.json`), JSON.stringify(detail));
+
+    const learnset: Record<string, Learnset> = {};
+    const rows = (movesByPokemon.get(p.id) ?? []).sort(
+      (a, b) => Number(a.level) - Number(b.level) || Number(a.order || 0) - Number(b.order || 0),
+    );
+    for (const r of rows) {
+      const set = (learnset[r.version_group_id] ??= { level: [], machine: [], tutor: [], egg: [] });
+      const method = LEARN_METHODS[r.pokemon_move_method_id];
+      const move = Number(r.move_id);
+      if (method === 'level') {
+        if (!set.level.some(([m, l]) => m === move && l === Number(r.level))) set.level.push([move, Number(r.level)]);
+      } else if (!set[method].includes(move)) set[method].push(move);
+      usedMoves.add(r.move_id);
+      usedVersionGroups.add(r.version_group_id);
+    }
+    await writeFile(join(OUT, 'learnsets', `${id}.json`), JSON.stringify(learnset));
   }
+
+  // --- moves referenced by any learnset ---
+  const moveName = new Map(
+    moveNames.filter((n) => Number(n.local_language_id) === ENGLISH).map((n) => [n.move_id, n.name]),
+  );
+  const moveTable: Record<string, unknown> = {};
+  for (const m of moves) {
+    if (!usedMoves.has(m.id)) continue;
+    moveTable[m.id] = {
+      name: moveName.get(m.id) ?? m.identifier,
+      type: typeName.get(m.type_id) ?? 'normal',
+      category: DAMAGE_CLASSES[m.damage_class_id] ?? 'status',
+      power: m.power ? Number(m.power) : null,
+      accuracy: m.accuracy ? Number(m.accuracy) : null,
+      pp: m.pp ? Number(m.pp) : null,
+    };
+  }
+
+  // --- version groups, labelled from their versions' English names ---
+  const versionName = new Map(
+    versionNames.filter((n) => Number(n.local_language_id) === ENGLISH).map((n) => [n.version_id, n.name]),
+  );
+  const versionsByGroup = groupBy(versions, (v) => v.version_group_id);
+  const versionList = versionGroups
+    .filter((g) => usedVersionGroups.has(g.id))
+    .sort((a, b) => Number(a.order) - Number(b.order))
+    .map((g) => ({
+      id: Number(g.id),
+      label: (versionsByGroup.get(g.id) ?? [])
+        .sort((a, b) => Number(a.id) - Number(b.id))
+        .map((v) => versionName.get(v.id) ?? v.identifier)
+        .join(' / '),
+      gen: Number(g.generation_id),
+    }));
 
   const version = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   await writeFile(join(OUT, 'index.json'), JSON.stringify(index));
   await writeFile(join(OUT, 'types.json'), JSON.stringify({ types: battleTypes.map((t) => t.identifier), matrix }));
+  await writeFile(join(OUT, 'moves.json'), JSON.stringify(moveTable));
+  await writeFile(join(OUT, 'versions.json'), JSON.stringify(versionList));
   await writeFile(join(OUT, 'meta.json'), JSON.stringify({ version, builtAt: new Date().toISOString(), species: index.length }));
-  console.log(`Done: ${index.length} species, ${battleTypes.length} types → public/data (version ${version})`);
+  console.log(
+    `Done: ${index.length} species, ${battleTypes.length} types, ${usedMoves.size} moves, ` +
+      `${versionList.length} games → public/data (version ${version})`,
+  );
 }
 
 main().catch((err) => {

@@ -8,6 +8,7 @@ import { TYPE_COLORS } from '../data/typeColors';
 import type { SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { TypeChip, useToast } from '../components/bits';
+import { MovesTab } from './MovesTab';
 
 const TABS = ['About', 'Stats', 'Moves', 'Evolution', 'Locations'] as const;
 type Tab = (typeof TABS)[number];
@@ -38,7 +39,9 @@ export function DetailScreen() {
   const { prev, next } = neighbours(id);
   const touch = useRef<{ x: number; y: number } | null>(null);
 
-  useEffect(() => window.scrollTo({ top: 0 }), [id]);
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [id]);
   // Fetch the whole cry once so the service worker caches it: Safari's own audio requests are
   // byte ranges, which aren't cacheable. Offline before first view is fine, the cry button toasts.
   const monId = mon?.id;
@@ -142,7 +145,8 @@ export function DetailScreen() {
 
       {tab === 'About' && <About mon={mon} />}
       {tab === 'Stats' && <Stats mon={mon} typeData={typeData} />}
-      {tab !== 'About' && tab !== 'Stats' && (
+      {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
+      {(tab === 'Evolution' || tab === 'Locations') && (
         <div className="section">
           <p className="coming">
             {tab} arrives in a later phase of the roadmap. The data build will add {tab.toLowerCase()} per game.
