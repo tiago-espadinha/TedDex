@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { loadLearnsets, loadMoves, loadVersions, useLoad } from '../data/api';
-import type { Learnset, MoveTable, SpeciesDetail } from '../data/types';
+import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types';
 import { Icon } from '../components/Icon';
 import { TypeChip } from '../components/bits';
 
@@ -98,22 +98,29 @@ function MoveRow({ move, moves, level }: { move: number; moves: MoveTable; level
           )}
         </span>
       )}
-      <span className="body">
-        <span className="name">{m.name}</span>
-        <span className="meta">
-          {[
-            m.category,
-            m.category !== 'status' && `Pow ${m.power ?? '—'}`,
-            `Acc ${m.accuracy ? `${m.accuracy}%` : '—'}`,
-            m.pp && `PP ${m.pp}`,
-          ]
-            .filter(Boolean)
-            .map((part, i) => (
-              <span key={i}>{part}</span>
-            ))}
-        </span>
-      </span>
+      <MoveBody move={m} />
       <TypeChip type={m.type} />
     </li>
+  );
+}
+
+/** Name plus category, power, accuracy and PP; shared with the team member editor. */
+export function MoveBody({ move: m }: { move: MoveInfo }) {
+  return (
+    <span className="body">
+      <span className="name">{m.name}</span>
+      <span className="meta">
+        {[
+          m.category,
+          m.category !== 'status' && `Pow ${m.power ?? '—'}`,
+          `Acc ${m.accuracy ? `${m.accuracy}%` : '—'}`,
+          m.pp && `PP ${m.pp}`,
+        ]
+          .filter(Boolean)
+          .map((part, i) => (
+            <span key={i}>{part}</span>
+          ))}
+      </span>
+    </span>
   );
 }

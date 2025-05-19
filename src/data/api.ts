@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { EvolutionMember, IndexEntry, Learnsets, MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup } from './types';
+import type { EvolutionMember, IndexEntry, ItemTable, Learnsets, MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup } from './types';
 
 /**
  * Data access. Everything is static JSON under /data (precached by the
@@ -26,6 +26,7 @@ export const loadSpecies = (id: number) => getJson<SpeciesDetail>(`/data/species
 export const loadLearnsets = (id: number) => getJson<Learnsets>(`/data/learnsets/${id}.json`);
 export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
+export const loadItems = () => getJson<ItemTable>('/data/items.json');
 export const loadEvolution = (chainId: number) => getJson<EvolutionMember[]>(`/data/evolution/${chainId}.json`);
 
 /** Small hook: resolves a promise-returning loader, re-running when `key` changes. */
@@ -60,3 +61,20 @@ export function defensiveMultipliers(defTypes: TypeName[], data: TypeData): Reco
   return out;
 }
 
+
+/**
+ * Best factor any of `attackTypes` gets against each single defending type (0 when there are none).
+ * Plain type chart: no special cases like Freeze-Dry.
+ */
+export function offensiveMultipliers(attackTypes: TypeName[], data: TypeData): Record<TypeName, number> {
+  const out = {} as Record<TypeName, number>;
+  for (const def of data.types) {
+    out[def] = Math.max(0, ...attackTypes.map((atk) => data.matrix[atk]?.[def] ?? 1));
+  }
+  return out;
+}
+
+/** Types of a member's damaging moves; status moves don't count. */
+export function attackingTypes(moveIds: number[] | undefined, moves: MoveTable): TypeName[] {
+  return [...new Set((moveIds ?? []).map((id) => moves[id]).filter((m) => m && m.category !== 'status').map((m) => m.type))];
+}

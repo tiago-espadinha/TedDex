@@ -6,6 +6,7 @@ import { applyTheme, type Theme } from './data/settings';
 import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
 import { MoreScreen, ReferenceScreen } from './screens/OtherScreens';
+import { MemberEditor } from './screens/MemberEditor';
 import { CoverageScreen, TeamEditor, TeamsScreen } from './screens/TeamScreens';
 import './styles.css';
 
@@ -18,7 +19,7 @@ try {
 /** Screens pushed on top of a tab hide the bottom nav, like a native stack. */
 function Shell() {
   const { pathname } = useLocation();
-  const pushed = pathname.startsWith('/pokemon/') || /^\/teams\/\d+\/coverage/.test(pathname);
+  const pushed = pathname.startsWith('/pokemon/') || /^\/teams\/\d+\/(coverage|member)/.test(pathname);
   return (
     <ToastProvider>
       <div className={pushed ? 'app no-nav' : 'app'}>
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
       { path: '/pokemon/:id', element: <DetailScreen /> },
       { path: '/teams', element: <TeamsScreen /> },
       { path: '/teams/:id', element: <TeamEditor /> },
+      { path: '/teams/:id/member/:index', element: <MemberEditor /> },
       { path: '/teams/:id/coverage', element: <CoverageScreen /> },
       { path: '/reference', element: <ReferenceScreen /> },
       { path: '/more', element: <MoreScreen /> },
