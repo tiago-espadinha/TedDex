@@ -7,7 +7,7 @@ import { cap, formatMultiplier, formatNo } from '../data/format';
 import { TYPE_COLORS } from '../data/typeColors';
 import type { IndexEntry, ItemTable, MoveTable, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { TypeChip } from '../components/bits';
+import { Loading, TypeChip } from '../components/bits';
 
 function useSpeciesMap() {
   const { data } = useLoad(loadIndex, 'index');
@@ -33,6 +33,7 @@ export function TeamsScreen() {
         <h1>Teams</h1>
       </header>
       <div className="list">
+        {!teams && <Loading />}
         {teams?.length === 0 && <p className="empty">No teams yet. Create one, or tap + on any Pokémon.</p>}
         {teams?.map((t) => (
           <Link key={t.id} to={`/teams/${t.id}`} className="team-row">
@@ -60,14 +61,14 @@ export function TeamsScreen() {
 // ---------------- team editor ----------------
 export function TeamEditor() {
   const id = Number(useParams().id);
-  const team = useLiveQuery(() => db.teams.get(id), [id]);
+  const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
   const species = useSpeciesMap();
   const { data: items } = useLoad(loadItems, 'items');
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  if (team === undefined) return null;
-  if (team === null || !team) return <p className="empty">This team no longer exists.</p>;
+  if (team === undefined) return <Loading />;
+  if (!team) return <p className="empty">This team no longer exists.</p>;
 
   const empty = TEAM_SIZE - team.members.length;
 
@@ -107,11 +108,13 @@ export function TeamEditor() {
           <Icon name="trash" />
         </button>
       </header>
-      {confirmDelete && (
-        <p className="hint" style={{ padding: '0 20px' }}>
-          Tap the bin again to delete this team.
-        </p>
-      )}
+      <div role="status">
+        {confirmDelete && (
+          <p className="hint" style={{ padding: '0 20px' }}>
+            Tap the bin again to delete this team.
+          </p>
+        )}
+      </div>
 
       <div className="list">
         {team.members.map((m, i) => {
@@ -159,7 +162,7 @@ type Mode = 'defensive' | 'offensive';
 
 export function CoverageScreen() {
   const id = Number(useParams().id);
-  const team = useLiveQuery(() => db.teams.get(id), [id]);
+  const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
   const species = useSpeciesMap();
   const { data: typeData } = useLoad(loadTypes, 'types');
   const { data: moves } = useLoad(loadMoves, 'moves');
@@ -168,7 +171,8 @@ export function CoverageScreen() {
   const members = (team?.members ?? [])
     .map((m) => ({ member: m, mon: species.get(m.speciesId) }))
     .filter((x): x is { member: TeamMember; mon: IndexEntry } => !!x.mon);
-  if (!team || !typeData || !moves || !members.length) return null;
+  if (team === undefined || !typeData || !moves || !species.size) return <Loading />;
+  if (!team) return <p className="empty">This team no longer exists.</p>;
 
   return (
     <>
@@ -183,17 +187,23 @@ export function CoverageScreen() {
           </div>
         </div>
       </header>
-      <div className="segmented cov-mode" role="radiogroup" aria-label="Coverage">
-        {(['defensive', 'offensive'] as Mode[]).map((m) => (
-          <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}>
-            {cap(m)}
-          </button>
-        ))}
-      </div>
-      {mode === 'defensive' ? (
-        <DefensiveView mons={members.map((x) => x.mon)} typeData={typeData} />
+      {!members.length ? (
+        <p className="empty">Add Pokémon to this team to see its coverage.</p>
       ) : (
-        <OffensiveView members={members} typeData={typeData} moves={moves} />
+        <>
+          <div className="segmented cov-mode" role="radiogroup" aria-label="Coverage">
+            {(['defensive', 'offensive'] as Mode[]).map((m) => (
+              <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}>
+                {cap(m)}
+              </button>
+            ))}
+          </div>
+          {mode === 'defensive' ? (
+            <DefensiveView mons={members.map((x) => x.mon)} typeData={typeData} />
+          ) : (
+            <OffensiveView members={members} typeData={typeData} moves={moves} />
+          )}
+        </>
       )}
     </>
   );

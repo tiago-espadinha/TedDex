@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { loadItems, loadLearnsets, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
 import { MOVE_SLOTS, db, updateMember, type TeamMember } from '../data/db';
@@ -7,7 +7,7 @@ import { NATURES, natureLabel } from '../data/natures';
 import { TYPE_COLORS } from '../data/typeColors';
 import type { Learnsets, MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
-import { TypeChip } from '../components/bits';
+import { Loading, TypeChip, useModalSheet } from '../components/bits';
 import { MoveBody } from './MovesTab';
 
 const loadAll = (id: number) => Promise.all([loadSpecies(id), loadLearnsets(id), loadMoves(), loadItems()]);
@@ -28,7 +28,7 @@ export function MemberEditor() {
   const params = useParams();
   const teamId = Number(params.id);
   const index = Number(params.index);
-  const team = useLiveQuery(() => db.teams.get(teamId), [teamId]);
+  const team = useLiveQuery(() => db.teams.get(teamId).then((t) => t ?? null), [teamId]);
   const member = team?.members[index];
   const { data, error } = useLoad(() => (member ? loadAll(member.speciesId) : Promise.resolve(undefined)), member?.speciesId);
   const [picking, setPicking] = useState<Picking>();
@@ -38,10 +38,10 @@ export function MemberEditor() {
     [data],
   );
 
-  if (team === undefined) return null;
+  if (team === undefined) return <Loading />;
   if (!member) return <p className="empty">This team member no longer exists.</p>;
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
-  if (!data) return <div aria-busy="true" />;
+  if (!data) return <Loading />;
 
   const [mon, , moves, items] = data;
   const chosen = (member.moves ?? []).filter((id) => moves[id]);
@@ -227,22 +227,7 @@ function PickerSheet({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState('');
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
-
-  // Give focus back to the control that opened the sheet.
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    return () => opener?.focus();
-  }, []);
+  const sheet = useModalSheet<HTMLElement>(onClose);
 
   const q = query.trim().toLowerCase();
   const shown = q ? options.filter((o) => o.name.toLowerCase().includes(q)) : options;
@@ -250,7 +235,7 @@ function PickerSheet({
   return (
     <>
       <div className="scrim" onClick={onClose} />
-      <section className="sheet picker" role="dialog" aria-modal="true" aria-label={title}>
+      <section ref={sheet} tabIndex={-1} className="sheet picker" role="dialog" aria-modal="true" aria-label={title}>
         <div className="handle" />
         <div className="sheet-head">
           <h2>{title}</h2>
@@ -261,7 +246,7 @@ function PickerSheet({
         <label className="search">
           <Icon name="search" size={20} />
           <span className="sr-only">Search</span>
-          <input type="search" autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
+          <input type="search" data-autofocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
         </label>
         <ul className="picker-list">
           {shown.map((o) => (

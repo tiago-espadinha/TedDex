@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { loadLearnsets, loadMoves, loadVersions, useLoad } from '../data/api';
 import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types';
 import { Icon } from '../components/Icon';
-import { TypeChip } from '../components/bits';
+import { Loading, TypeChip } from '../components/bits';
 
 const GROUPS: { key: Exclude<keyof Learnset, 'level'>; title: string }[] = [
   { key: 'machine', title: 'TM' },
@@ -17,7 +17,7 @@ export function MovesTab({ mon }: { mon: SpeciesDetail }) {
   const [pick, setPick] = useState<number>();
 
   if (error) return <Note>Couldn't load moves. {error.message}</Note>;
-  if (!data) return <div className="section" style={{ minHeight: 320 }} aria-busy="true" />;
+  if (!data) return <Loading minHeight={320} />;
 
   const [learnsets, moves, versions] = data;
   const games = versions.filter((v) => learnsets[v.id]);

@@ -4,7 +4,7 @@ import { loadEvolution, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { formatNo } from '../data/format';
 import { TYPE_COLORS } from '../data/typeColors';
 import type { EvolutionMember, IndexEntry, SpeciesDetail } from '../data/types';
-import { TypeChip } from '../components/bits';
+import { Loading, TypeChip } from '../components/bits';
 
 const loadAll = (chainId: number) => Promise.all([loadEvolution(chainId), loadIndex()]);
 
@@ -13,7 +13,7 @@ export function EvolutionTab({ mon }: { mon: SpeciesDetail }) {
   const { data, error } = useLoad(() => (chainId ? loadAll(chainId) : Promise.resolve(undefined)), chainId);
 
   if (error) return <Note>Couldn't load the evolution chain. {error.message}</Note>;
-  if (chainId && !data) return <div className="section" style={{ minHeight: 240 }} aria-busy="true" />;
+  if (chainId && !data) return <Loading minHeight={240} />;
   if (!data || data[0].length < 2) return <Note>{mon.name} does not evolve.</Note>;
 
   const [chain, index] = data;

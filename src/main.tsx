@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation } from 'react-router-dom';
 import { BottomNav, ToastProvider } from './components/bits';
@@ -20,11 +20,18 @@ try {
 function Shell() {
   const { pathname } = useLocation();
   const pushed = pathname.startsWith('/pokemon/') || /^\/teams\/\d+\/(coverage|member)/.test(pathname);
+  const main = useRef<HTMLElement>(null);
+  // When navigation removes the focused control, start keyboard and screen reader users at the
+  // top of the new screen. Controls that survive (prev/next on detail) keep focus.
+  useEffect(() => {
+    const at = document.activeElement;
+    if (!at || at === document.body || !at.isConnected) main.current?.focus({ preventScroll: true });
+  }, [pathname]);
   return (
     <ToastProvider>
-      <div className={pushed ? 'app no-nav' : 'app'}>
+      <main ref={main} tabIndex={-1} className={pushed ? 'app no-nav' : 'app'}>
         <Outlet />
-      </div>
+      </main>
       {!pushed && <BottomNav />}
       <ScrollRestoration getKey={(loc) => loc.pathname + loc.search} />
     </ToastProvider>

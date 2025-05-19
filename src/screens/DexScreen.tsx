@@ -10,7 +10,7 @@ import { TYPE_COLORS } from '../data/typeColors';
 import type { IndexEntry } from '../data/types';
 import { applyFilters } from '../data/filter';
 import { Icon } from '../components/Icon';
-import { TypeChip, useToast } from '../components/bits';
+import { Loading, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
 import { useSpriteStyle } from '../data/settings';
 
@@ -113,6 +113,7 @@ export function DexScreen() {
       )}
 
       {error && <p className="empty">Couldn't load the dex data. {error.message}</p>}
+      {!all && !error && <Loading />}
       {all && list.length === 0 && <p className="empty">No Pokémon match these filters.</p>}
 
       <div style={{ height: virtual.getTotalSize(), position: 'relative' }}>
@@ -132,9 +133,17 @@ export function DexScreen() {
         })}
       </div>
 
-      <button className="fab" aria-label="Filter and sort" onClick={() => setSheetOpen(true)}>
+      <button
+        className="fab"
+        aria-label={activeCount ? `Filter and sort, ${activeCount} active` : 'Filter and sort'}
+        onClick={() => setSheetOpen(true)}
+      >
         <Icon name="filter" size={24} />
-        {activeCount > 0 && <span className="badge">{activeCount}</span>}
+        {activeCount > 0 && (
+          <span className="badge" aria-hidden="true">
+            {activeCount}
+          </span>
+        )}
       </button>
 
       {sheetOpen && (
