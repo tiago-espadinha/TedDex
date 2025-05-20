@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { TYPE_COLORS } from '../data/typeColors';
 import type { TypeName } from '../data/types';
@@ -31,6 +31,68 @@ export function BottomNav() {
         </NavLink>
       ))}
     </nav>
+  );
+}
+
+// ---------- modal sheet ----------
+const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Modal behaviour for a bottom sheet: Escape closes, the page behind doesn't scroll,
+ * focus moves in (to a `data-autofocus` field, else the sheet), Tab stays inside, and
+ * focus goes back to the opener on close (or to <main> if the opener is gone).
+ */
+export function useModalSheet<T extends HTMLElement>(onClose: () => void) {
+  const ref = useRef<T>(null);
+  const close = useRef(onClose);
+  useEffect(() => {
+    close.current = onClose;
+  });
+
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const sheet = ref.current;
+    (sheet?.querySelector<HTMLElement>('[data-autofocus]') ?? sheet)?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return close.current();
+      if (e.key !== 'Tab' || !sheet) return;
+      const items = [...sheet.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const at = document.activeElement;
+      if (e.shiftKey && (at === first || at === sheet)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (at === last || !sheet.contains(at))) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+      (opener?.isConnected ? opener : document.querySelector('main'))?.focus();
+    };
+  }, []);
+
+  return ref;
+}
+
+// ---------- loading ----------
+/** Screen reader status straight away; the visible text only if loading takes a moment. */
+export function Loading({ minHeight }: { minHeight?: CSSProperties['minHeight'] }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 300);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="loading" role="status" style={{ minHeight }}>
+      <span className={visible ? undefined : 'sr-only'}>Loading…</span>
+    </div>
   );
 }
 

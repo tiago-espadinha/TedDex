@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useModalSheet } from '../components/bits';
 import { DEFAULT_FILTERS, type DexFilters, type SortKey } from '../data/dexState';
 import { TYPE_COLORS } from '../data/typeColors';
 import type { TypeName } from '../data/types';
@@ -24,16 +25,7 @@ export function FilterSheet({
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState(value);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
+  const sheet = useModalSheet<HTMLElement>(onClose);
 
   const toggleGen = (g: number) =>
     setDraft({ ...draft, gens: draft.gens.includes(g) ? draft.gens.filter((x) => x !== g) : [...draft.gens, g].sort() });
@@ -47,10 +39,10 @@ export function FilterSheet({
   return (
     <>
       <div className="scrim" onClick={onClose} />
-      <section className="sheet" role="dialog" aria-modal="true" aria-label="Filter and sort">
+      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="filter-title">
         <div className="handle" />
         <div className="sheet-head">
-          <h2>Filter &amp; sort</h2>
+          <h2 id="filter-title">Filter &amp; sort</h2>
           <button className="text-btn" onClick={() => setDraft({ ...DEFAULT_FILTERS, query: draft.query })}>
             Reset
           </button>
@@ -79,7 +71,7 @@ export function FilterSheet({
                 aria-pressed={on}
                 disabled={!on && draft.types.length >= 2}
                 onClick={() => toggleType(t)}
-                style={{ borderColor: c, background: on ? c : undefined, color: on ? 'var(--on-type)' : c }}
+                style={{ borderColor: c, background: on ? c : undefined, color: on ? 'var(--on-type)' : 'var(--ink)' }}
               >
                 {t}
               </button>

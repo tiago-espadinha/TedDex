@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { addToTeam, currentTeamId, db } from '../data/db';
@@ -7,7 +7,7 @@ import { formatMultiplier, formatNo, roman } from '../data/format';
 import { TYPE_COLORS } from '../data/typeColors';
 import type { SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { TypeChip, useToast } from '../components/bits';
+import { Loading, TypeChip, useToast } from '../components/bits';
 import { EvolutionTab } from './EvolutionTab';
 import { MovesTab } from './MovesTab';
 
@@ -54,6 +54,17 @@ export function DetailScreen() {
 
   const go = (target?: number) => target && navigate(`/pokemon/${target}`, { replace: true });
 
+  /** Arrow keys, Home and End move between tabs (ARIA tabs pattern, selection follows focus). */
+  function onTabKey(e: KeyboardEvent) {
+    const i = TABS.indexOf(tab);
+    const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: TABS.length - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    const t = TABS[(to + TABS.length) % TABS.length];
+    setTab(t);
+    document.getElementById(`tab-${t}`)?.focus();
+  }
+
   async function addToCurrentTeam() {
     const teamId = await currentTeamId();
     const team = await db.teams.get(teamId);
@@ -73,7 +84,7 @@ export function DetailScreen() {
   }
 
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
-  if (!mon) return <div style={{ height: '100dvh' }} />;
+  if (!mon) return <Loading minHeight="100dvh" />;
 
   const tint = TYPE_COLORS[mon.types[0]].tint;
 
@@ -115,48 +126,63 @@ export function DetailScreen() {
           </div>
         </div>
         <div className="art-row">
-          <Link
-            className="nav-round"
-            to={prev ? `/pokemon/${prev}` : '#'}
-            replace
-            aria-label="Previous"
-            aria-disabled={!prev}
-          >
-            <Icon name="back" size={20} />
-          </Link>
+          <StepLink to={prev} label="Previous" icon="back" />
           {noArtworkFor === mon.id ? (
             <img className="sprite" src={spriteUrl(mon.id)} alt={mon.name} width={184} height={184} />
           ) : (
             <img src={artworkUrl(mon.id)} onError={() => setNoArtworkFor(mon.id)} alt={mon.name} width={184} height={184} />
           )}
-          <Link className="nav-round" to={next ? `/pokemon/${next}` : '#'} replace aria-label="Next" aria-disabled={!next}>
-            <Icon name="next" size={20} />
-          </Link>
+          <StepLink to={next} label="Next" icon="next" />
         </div>
         {noArtworkFor === mon.id && <p className="art-note">Artwork isn't saved offline yet</p>}
       </section>
 
-      <div className="tabs" role="tablist" aria-label="Sections">
+      <div className="tabs" role="tablist" aria-label="Sections" onKeyDown={onTabKey}>
         {TABS.map((t) => (
-          <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
+          <button
+            key={t}
+            id={`tab-${t}`}
+            role="tab"
+            aria-selected={tab === t}
+            aria-controls="tab-panel"
+            tabIndex={tab === t ? 0 : -1}
+            onClick={() => setTab(t)}
+          >
             {t}
           </button>
         ))}
       </div>
 
-      {tab === 'About' && <About mon={mon} />}
-      {tab === 'Stats' && <Stats mon={mon} typeData={typeData} />}
-      {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
-      {tab === 'Evolution' && <EvolutionTab mon={mon} />}
-      {tab === 'Locations' && (
-        <div className="section">
-          <p className="coming">
-            Locations arrives in a later phase of the roadmap. The data build will add locations per game.
-          </p>
-        </div>
-      )}
+      <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
+        {tab === 'About' && <About mon={mon} />}
+        {tab === 'Stats' && <Stats mon={mon} typeData={typeData} />}
+        {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
+        {tab === 'Evolution' && <EvolutionTab mon={mon} />}
+        {tab === 'Locations' && (
+          <div className="section">
+            <p className="coming">
+              Locations arrives in a later phase of the roadmap. The data build will add locations per game.
+            </p>
+          </div>
+        )}
+      </div>
       <div style={{ height: 24 }} />
     </>
+  );
+}
+
+/** Prev/next arrow; at either end of the list it is shown dimmed and leaves the tab order. */
+function StepLink({ to, label, icon }: { to?: number; label: string; icon: 'back' | 'next' }) {
+  if (!to)
+    return (
+      <span className="nav-round" aria-disabled="true" aria-hidden="true">
+        <Icon name={icon} size={20} />
+      </span>
+    );
+  return (
+    <Link className="nav-round" to={`/pokemon/${to}`} replace aria-label={label}>
+      <Icon name={icon} size={20} />
+    </Link>
   );
 }
 

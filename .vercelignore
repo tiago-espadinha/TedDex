@@ -1,0 +1,9 @@
+.claude/
+.cache/
+design/
+docs/
+dist/
+node_modules/
+.env
+.env.*
+CLAUDE.local.md
