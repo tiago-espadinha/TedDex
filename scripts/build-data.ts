@@ -7,7 +7,7 @@
  * Output (all under public/data/):
  *   index.json            one row per species (default form): grid, search, filters
  *   types.json            18 types + full damage matrix (attacker -> defender -> factor)
- *   species/<id>.json     detail page data, loaded on demand
+ *   species/<id>.json     detail page data, loaded on demand; `forms` lists battle forms (regional, mega, gmax…)
  *   learnsets/<id>.json   moves per version group (level-up, TM, tutor, egg), loaded by the Moves tab
  *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP
  *   versions.json         main-series version groups that have learnsets, oldest first
@@ -144,6 +144,7 @@ async function main() {
     versionNames,
     evolutions,
     pokemonForms,
+    formNames,
     itemNames,
     locationNames,
     typeNames,
@@ -170,6 +171,7 @@ async function main() {
         'version_names',
         'pokemon_evolution',
         'pokemon_forms',
+        'pokemon_form_names',
         'item_names',
         'location_names',
         'type_names',
@@ -193,6 +195,15 @@ async function main() {
   // --- lookups ---
   const defaultPokemon = new Map(
     pokemon.filter((p) => p.is_default === '1').map((p) => [p.species_id, p]),
+  );
+  const altPokemon = groupBy(
+    pokemon.filter((p) => p.is_default === '0' && !p.identifier.includes('totem')),
+    (p) => p.species_id,
+  );
+  /** English names of each Pokémon's default form, e.g. "Alolan Form" / "Alolan Vulpix". */
+  const defaultFormOf = new Map(pokemonForms.filter((f) => f.is_default === '1').map((f) => [f.pokemon_id, f]));
+  const formName = new Map(
+    formNames.filter((n) => Number(n.local_language_id) === ENGLISH).map((n) => [n.pokemon_form_id, n]),
   );
   const typesByPokemon = groupBy(pokemonTypes, (r) => r.pokemon_id);
   const statsByPokemon = groupBy(pokemonStats, (r) => r.pokemon_id);
@@ -232,12 +243,9 @@ async function main() {
   await mkdir(join(OUT, 'species'), { recursive: true });
   await mkdir(join(OUT, 'learnsets'), { recursive: true });
 
-  const index = [];
-  const ordered = [...species].sort((a, b) => Number(a.id) - Number(b.id));
-  for (const s of ordered) {
-    const p = defaultPokemon.get(s.id);
-    if (!p) continue;
-    const t = (typesByPokemon.get(p.id) ?? [])
+  /** What a Pokémon (default or form) brings to battle, plus its size. */
+  function battleData(p: Row) {
+    const types = (typesByPokemon.get(p.id) ?? [])
       .sort((a, b) => Number(a.slot) - Number(b.slot))
       .map((r) => typeName.get(r.type_id))
       .filter((x): x is string => !!x);
@@ -246,9 +254,68 @@ async function main() {
       const key = STAT_KEYS[Number(r.stat_id)];
       if (key) stats[key] = Number(r.base_stat);
     }
-    const total = Object.values(stats).reduce((a, b) => a + b, 0);
+    return {
+      types,
+      stats,
+      total: Object.values(stats).reduce((a, b) => a + b, 0),
+      abilities: (abilitiesByPokemon.get(p.id) ?? [])
+        .sort((a, b) => Number(a.slot) - Number(b.slot))
+        .map((a) => ({ name: abilityName.get(a.ability_id) ?? `#${a.ability_id}`, hidden: a.is_hidden === '1' })),
+      heightM: Number(p.height) / 10,
+      weightKg: Number(p.weight) / 10,
+    };
+  }
+
+  const titleCase = (key: string) => key.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+  /** Form key (unique in its species), chip label and full name, e.g. "mega-x" / "Mega X" / "Mega Charizard X". */
+  function formLabels(p: Row, s: Row, speciesName: string) {
+    const f = defaultFormOf.get(p.id);
+    const fullName = (f && formName.get(f.id)?.pokemon_name) || '';
+    const key = p.identifier.replace(`${s.identifier}-`, '');
+    const label =
+      fullName.replace(speciesName, '').replace(/\s+/g, ' ').trim() ||
+      (p.is_default === '1' ? speciesName : titleCase(key));
+    return { key: p.is_default === '1' ? '' : key, label, name: fullName || speciesName };
+  }
+
+  /** Battle forms: alternate Pokémon whose types, stats or abilities differ, plus every Gigantamax. */
+  function formsOf(s: Row, p: Row, speciesName: string) {
+    const base = battleData(p);
+    const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+    const alts = (altPokemon.get(s.id) ?? [])
+      .sort((a, b) => Number(a.id) - Number(b.id))
+      .map((alt) => ({ alt, data: battleData(alt), labels: formLabels(alt, s, speciesName) }))
+      .filter(
+        ({ data, labels }) =>
+          labels.key.endsWith('gmax') ||
+          !same(data.types, base.types) || !same(data.stats, base.stats) || !same(data.abilities, base.abilities),
+      );
+    if (!alts.length) return undefined;
+    const first = { pokemonId: Number(p.id), ...formLabels(p, s, speciesName), ...base };
+    const forms = [first, ...alts.map(({ alt, data, labels }) => ({ pokemonId: Number(alt.id), ...labels, ...data }))];
+    // Forms sharing a label: name the ability when that tells them apart (Zygarde 10% with Power Construct),
+    // else spell out the key (Meowstic "Male Mega" / "Female Mega").
+    for (const group of groupBy(forms, (f) => f.label).values()) {
+      if (group.length < 2) continue;
+      const abilities = group.map((f) => f.abilities[0]?.name);
+      const distinct = abilities.every(Boolean) && new Set(abilities).size === group.length;
+      for (const f of group) f.label = distinct ? `${f.label} (${f.abilities[0].name})` : titleCase(f.key) || f.label;
+    }
+    return forms;
+  }
+
+  const index = [];
+  let formCount = 0;
+  const ordered = [...species].sort((a, b) => Number(a.id) - Number(b.id));
+  for (const s of ordered) {
+    const p = defaultPokemon.get(s.id);
+    if (!p) continue;
+    const { types: t, stats, total, abilities, heightM, weightKg } = battleData(p);
     const n = names.get(s.id);
     const id = Number(s.id);
+    const forms = formsOf(s, p, n?.name ?? s.identifier);
+    formCount += forms ? forms.length - 1 : 0;
 
     index.push({
       id,
@@ -265,17 +332,16 @@ async function main() {
       genus: n?.genus ?? '',
       types: t,
       gen: Number(s.generation_id),
-      heightM: Number(p.height) / 10,
-      weightKg: Number(p.weight) / 10,
+      heightM,
+      weightKg,
       stats,
       total,
-      abilities: (abilitiesByPokemon.get(p.id) ?? [])
-        .sort((a, b) => Number(a.slot) - Number(b.slot))
-        .map((a) => ({ name: abilityName.get(a.ability_id) ?? `#${a.ability_id}`, hidden: a.is_hidden === '1' })),
+      abilities,
       flavor: flavorBySpecies.get(s.id)?.text ?? '',
       legendary: s.is_legendary === '1',
       mythical: s.is_mythical === '1',
       evolutionChainId: Number(s.evolution_chain_id) || null,
+      ...(forms && { forms }),
     };
     await writeFile(join(OUT, 'species', `${id}.json`), JSON.stringify(detail));
 
@@ -460,7 +526,8 @@ async function main() {
   await writeFile(join(OUT, 'meta.json'), JSON.stringify({ version, builtAt: new Date().toISOString(), species: index.length }));
   console.log(
     `Done: ${index.length} species, ${battleTypes.length} types, ${usedMoves.size} moves, ` +
-      `${versionList.length} games, ${chains.size} evolution chains, ${Object.keys(itemTable).length} items → public/data (version ${version})`,
+      `${versionList.length} games, ${chains.size} evolution chains, ${Object.keys(itemTable).length} items, ` +
+      `${formCount} forms → public/data (version ${version})`,
   );
 }
 

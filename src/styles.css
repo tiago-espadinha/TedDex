@@ -26,6 +26,7 @@
   --on-tint-muted: #5e5b66;
   --on-tint-soft: #4f5a4a;
   --tint-glass: rgba(255, 255, 255, 0.75);
+  --tint-selected-ink: #ffffff;
   --tint-press: rgba(255, 255, 255, 0.5);
   --stat-high: #3b7d2e;
   --stat-mid: #b88a0e;
@@ -206,6 +207,10 @@ main:focus, .sheet:focus { outline: none; }
 .detail-hero .art-row img { width: 184px; height: 184px; object-fit: contain; }
 .detail-hero .art-row img.sprite { image-rendering: pixelated; }
 .detail-hero .art-note { margin: -12px 0 0; padding-bottom: 16px; text-align: center; font-size: 12px; color: var(--on-tint-muted); }
+.form-row { display: flex; gap: 8px; padding: 12px 24px 0; overflow-x: auto; scrollbar-width: none; }
+.form-row::-webkit-scrollbar { display: none; }
+.form-btn { flex: none; min-height: 44px; padding: 0 16px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.form-btn[aria-pressed='true'] { background: var(--on-tint); color: var(--tint-selected-ink); }
 .nav-round { width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .nav-round[aria-disabled='true'] { opacity: 0.35; pointer-events: none; }
 

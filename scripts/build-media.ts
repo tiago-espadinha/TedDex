@@ -5,12 +5,13 @@
  *   npm run media             # download missing sources (cached in .cache/media/) and convert
  *   npm run media -- --fresh  # re-download and re-convert everything
  *
- * Reads the species list from public/data/index.json, so run `npm run data` first.
+ * Reads the species list from public/data/index.json and their forms from species/<id>.json,
+ * so run `npm run data` first.
  *
- * Output (all under public/media/):
- *   sprites/<id>.webp   96 px front sprite, lossless WebP (precached by the service worker)
- *   artwork/<id>.webp   475 px official artwork, WebP q80 (cached on first view)
- *   cries/<id>.m4a      latest cry, AAC 64 kbps mono (iOS Safari can't reliably play OGG)
+ * Output (all under public/media/; forms use their Pokémon id, e.g. 10034 for Mega Charizard X):
+ *   sprites/<id>.webp   96 px front sprite, lossless WebP (precached by the service worker); species and forms
+ *   artwork/<id>.webp   475 px official artwork, WebP q80 (cached on first view); species and forms
+ *   cries/<id>.m4a      latest cry, AAC 64 kbps mono (iOS Safari can't reliably play OGG); species only
  */
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -34,21 +35,25 @@ type Kind = {
   source: (id: number) => string;
   ext: string;
   ffmpeg: string[];
+  /** Also mirror each form's file (forms share their species' cry). */
+  forms: boolean;
 };
 
 const KINDS: Kind[] = [
-  { dir: 'sprites', source: (id) => `${SPRITES}/${id}.png`, ext: 'webp', ffmpeg: ['-c:v', 'libwebp', '-lossless', '1'] },
+  { dir: 'sprites', source: (id) => `${SPRITES}/${id}.png`, ext: 'webp', ffmpeg: ['-c:v', 'libwebp', '-lossless', '1'], forms: true },
   {
     dir: 'artwork',
     source: (id) => `${SPRITES}/other/official-artwork/${id}.png`,
     ext: 'webp',
     ffmpeg: ['-c:v', 'libwebp', '-quality', '80'],
+    forms: true,
   },
   {
     dir: 'cries',
     source: (id) => `${CRIES}/${id}.ogg`,
     ext: 'm4a',
     ffmpeg: ['-vn', '-c:a', 'aac', '-b:a', '64k', '-ac', '1', '-movflags', '+faststart'],
+    forms: false,
   },
 ];
 
@@ -90,6 +95,13 @@ async function main() {
   });
   const index = JSON.parse(await readFile(join(ROOT, 'public', 'data', 'index.json'), 'utf8')) as { id: number }[];
   const ids = index.map((s) => s.id);
+  const formIds: number[] = [];
+  for (const id of ids) {
+    const detail = JSON.parse(await readFile(join(ROOT, 'public', 'data', 'species', `${id}.json`), 'utf8')) as {
+      forms?: { pokemonId: number }[];
+    };
+    for (const f of detail.forms?.slice(1) ?? []) formIds.push(f.pokemonId);
+  }
 
   for (const kind of KINDS) {
     await mkdir(join(CACHE, kind.dir), { recursive: true });
@@ -100,7 +112,7 @@ async function main() {
     let done = 0;
     let skipped = 0;
     const missing: number[] = [];
-    await pool(ids, async (id) => {
+    await pool(kind.forms ? [...ids, ...formIds] : ids, async (id) => {
       const result = await convert(kind, id);
       if (result === 'done') done++;
       else if (result === 'skipped') skipped++;

@@ -33,7 +33,18 @@ export interface SpeciesDetail extends IndexEntry {
   legendary: boolean;
   mythical: boolean;
   evolutionChainId: number | null;
+  /** Battle forms, default first (key ''); absent when the species has none. */
+  forms?: FormVariant[];
 }
+
+/** One form of a species: what changes in battle, plus the Pokémon id its media is stored under. */
+export type FormVariant = Pick<SpeciesDetail, 'name' | 'types' | 'stats' | 'total' | 'abilities' | 'heightM' | 'weightKg'> & {
+  pokemonId: number;
+  /** Unique within the species, used in `?form=`; '' for the default form. */
+  key: string;
+  /** Short chip label, e.g. "Mega X". */
+  label: string;
+};
 
 export interface TypeData {
   types: TypeName[];
