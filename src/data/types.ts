@@ -95,3 +95,15 @@ export interface EvolutionMember {
 
 /** items.json: held item id → English name. */
 export type ItemTable = Record<number, string>;
+
+/** reference/moves/<id>.json: what a move does and the species that learn it in any game. */
+export interface MoveReference {
+  effect: string;
+  species: number[];
+}
+
+/** reference/abilities.json: ability id → name, effect and the species that have it (any form). */
+export type AbilityTable = Record<number, { name: string; effect: string; species: number[] }>;
+
+/** reference/items.json: held item id → effect and the species that hold it in the wild. */
+export type ItemReferenceTable = Record<number, { effect: string; species: number[] }>;

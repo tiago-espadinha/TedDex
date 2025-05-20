@@ -13,6 +13,9 @@
  *   versions.json         main-series version groups that have learnsets, oldest first
  *   evolution/<chain>.json  evolution chain members with English condition text, loaded by the Evolution tab
  *   items.json            held items a team member can carry: item id -> English name
+ *   reference/abilities.json  ability id -> name, short effect, species that have it (any form)
+ *   reference/items.json      held item id -> short effect, species that hold it in the wild
+ *   reference/moves/<id>.json move short effect + species that learn it in any game (default forms)
  *   meta.json             data version + build time
  */
 import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
@@ -151,6 +154,14 @@ async function main() {
     triggerProse,
     items,
     itemCategories,
+    abilities,
+    abilityProse,
+    abilityFlavor,
+    moveEffectProse,
+    moveFlavor,
+    itemProse,
+    itemFlavor,
+    pokemonItems,
   ] = await Promise.all(
       [
         'pokemon_species',
@@ -178,6 +189,14 @@ async function main() {
         'evolution_trigger_prose',
         'items',
         'item_categories',
+        'abilities',
+        'ability_prose',
+        'ability_flavor_text',
+        'move_effect_prose',
+        'move_flavor_text',
+        'item_prose',
+        'item_flavor_text',
+        'pokemon_items',
       ].map(load),
     );
 
@@ -235,6 +254,8 @@ async function main() {
     (r) => r.pokemon_id,
   );
   const usedMoves = new Set<string>();
+  /** move id -> species ids that learn it, filled while writing learnsets. */
+  const learnersByMove = new Map<string, Set<number>>();
   const usedVersionGroups = new Set<string>();
 
   const STAT_KEYS = ['', 'hp', 'atk', 'def', 'spa', 'spd', 'spe'] as const;
@@ -357,6 +378,7 @@ async function main() {
         if (!set.level.some(([m, l]) => m === move && l === Number(r.level))) set.level.push([move, Number(r.level)]);
       } else if (!set[method].includes(move)) set[method].push(move);
       usedMoves.add(r.move_id);
+      learnersByMove.set(r.move_id, (learnersByMove.get(r.move_id) ?? new Set()).add(id));
       usedVersionGroups.add(r.version_group_id);
     }
     await writeFile(join(OUT, 'learnsets', `${id}.json`), JSON.stringify(learnset));
@@ -517,12 +539,63 @@ async function main() {
     itemTable[it.id] = name;
   }
 
+  // --- reference: effect text, plus the species each move, ability and held item belongs to ---
+  /** English short effect by id, else the newest English flavor text. */
+  function effectText(prose: Row[], proseKey: string, flavorRows: Row[], flavorKey: string) {
+    const out = new Map<string, string>();
+    const newest = new Map<string, number>();
+    for (const f of flavorRows) {
+      const vg = Number(f.version_group_id);
+      if (Number(f.language_id) !== ENGLISH || vg <= (newest.get(f[flavorKey]) ?? 0)) continue;
+      newest.set(f[flavorKey], vg);
+      out.set(f[flavorKey], clean(f.flavor_text));
+    }
+    for (const p of prose) {
+      if (Number(p.local_language_id) === ENGLISH && p.short_effect) out.set(p[proseKey], clean(p.short_effect));
+    }
+    return out;
+  }
+  const speciesOfPokemon = new Map(pokemon.map((p) => [p.id, Number(p.species_id)]));
+  /** Species ids (sorted, deduplicated) for rows keyed by Pokémon id; forms count as their species. */
+  const speciesIds = (rows: Row[]) =>
+    [...new Set(rows.map((r) => speciesOfPokemon.get(r.pokemon_id)).filter((id): id is number => !!id && id <= index.length))]
+      .sort((a, b) => a - b);
+
+  await mkdir(join(OUT, 'reference', 'moves'), { recursive: true });
+  const moveProseIds = new Map<string, string>();
+  for (const p of moveEffectProse) if (Number(p.local_language_id) === ENGLISH) moveProseIds.set(p.move_effect_id, clean(p.short_effect));
+  const moveFlavorText = effectText([], '', moveFlavor, 'move_id');
+  for (const m of moves) {
+    if (!usedMoves.has(m.id)) continue;
+    const effect = moveProseIds.get(m.effect_id) || moveFlavorText.get(m.id) || '';
+    const learners = [...(learnersByMove.get(m.id) ?? [])].sort((a, b) => a - b);
+    await writeFile(join(OUT, 'reference', 'moves', `${m.id}.json`), JSON.stringify({ effect, species: learners }));
+  }
+
+  const abilityEffect = effectText(abilityProse, 'ability_id', abilityFlavor, 'ability_id');
+  const holdersByAbility = groupBy(pokemonAbilities, (r) => r.ability_id);
+  const abilityTable: Record<string, unknown> = {};
+  for (const a of abilities) {
+    const holders = speciesIds(holdersByAbility.get(a.id) ?? []);
+    if (a.is_main_series !== '1' || !holders.length) continue;
+    abilityTable[a.id] = { name: abilityName.get(a.id) ?? a.identifier, effect: abilityEffect.get(a.id) ?? '', species: holders };
+  }
+
+  const itemEffect = effectText(itemProse, 'item_id', itemFlavor, 'item_id');
+  const wildHolders = groupBy(pokemonItems, (r) => r.item_id);
+  const itemReference: Record<string, unknown> = {};
+  for (const id of Object.keys(itemTable)) {
+    itemReference[id] = { effect: itemEffect.get(id) ?? '', species: speciesIds(wildHolders.get(id) ?? []) };
+  }
+
   const version = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   await writeFile(join(OUT, 'index.json'), JSON.stringify(index));
   await writeFile(join(OUT, 'types.json'), JSON.stringify({ types: battleTypes.map((t) => t.identifier), matrix }));
   await writeFile(join(OUT, 'moves.json'), JSON.stringify(moveTable));
   await writeFile(join(OUT, 'versions.json'), JSON.stringify(versionList));
   await writeFile(join(OUT, 'items.json'), JSON.stringify(itemTable));
+  await writeFile(join(OUT, 'reference', 'abilities.json'), JSON.stringify(abilityTable));
+  await writeFile(join(OUT, 'reference', 'items.json'), JSON.stringify(itemReference));
   await writeFile(join(OUT, 'meta.json'), JSON.stringify({ version, builtAt: new Date().toISOString(), species: index.length }));
   console.log(
     `Done: ${index.length} species, ${battleTypes.length} types, ${usedMoves.size} moves, ` +

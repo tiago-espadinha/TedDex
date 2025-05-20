@@ -5,7 +5,8 @@ import { BottomNav, ToastProvider } from './components/bits';
 import { applyTheme, type Theme } from './data/settings';
 import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
-import { MoreScreen, ReferenceScreen } from './screens/OtherScreens';
+import { MoreScreen } from './screens/OtherScreens';
+import { ReferenceEntry, ReferenceList, ReferenceScreen } from './screens/ReferenceScreens';
 import { MemberEditor } from './screens/MemberEditor';
 import { CoverageScreen, TeamEditor, TeamsScreen } from './screens/TeamScreens';
 import './styles.css';
@@ -19,7 +20,8 @@ try {
 /** Screens pushed on top of a tab hide the bottom nav, like a native stack. */
 function Shell() {
   const { pathname } = useLocation();
-  const pushed = pathname.startsWith('/pokemon/') || /^\/teams\/\d+\/(coverage|member)/.test(pathname);
+  const pushed =
+    pathname.startsWith('/pokemon/') || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
   const main = useRef<HTMLElement>(null);
   // When navigation removes the focused control, start keyboard and screen reader users at the
   // top of the new screen. Controls that survive (prev/next on detail) keep focus.
@@ -49,6 +51,8 @@ const router = createBrowserRouter([
       { path: '/teams/:id/member/:index', element: <MemberEditor /> },
       { path: '/teams/:id/coverage', element: <CoverageScreen /> },
       { path: '/reference', element: <ReferenceScreen /> },
+      { path: '/reference/:kind', element: <ReferenceList /> },
+      { path: '/reference/:kind/:id', element: <ReferenceEntry /> },
       { path: '/more', element: <MoreScreen /> },
       { path: '*', element: <p className="empty">Page not found.</p> },
     ],

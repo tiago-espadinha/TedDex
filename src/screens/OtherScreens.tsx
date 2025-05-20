@@ -3,18 +3,6 @@ import { BackupError, exportTeams, importTeams } from '../data/db';
 import { applyTheme, useSpriteStyle, useTheme, type Theme } from '../data/settings';
 import { useToast } from '../components/bits';
 
-export function ReferenceScreen() {
-  return (
-    <div className="placeholder">
-      <h1>Reference</h1>
-      <p className="coming">
-        Moves, Abilities, Items, Natures and the Type chart land here in phase 3 of the roadmap, each with an entry
-        page that links back to the Pokémon who learn or have it.
-      </p>
-    </div>
-  );
-}
-
 export function MoreScreen() {
   const [theme, setTheme] = useTheme();
   const [sprite, setSprite] = useSpriteStyle();
