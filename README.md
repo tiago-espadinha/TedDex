@@ -28,8 +28,19 @@ then **Share › Add to Home Screen**. The service worker (offline mode) only ru
 
 ## Deploy
 
-Any static host with HTTPS works. Cloudflare Pages or Vercel: build command `npm run build`, output `dist`,
-and a single-page-app fallback to `/index.html` (both detect Vite automatically).
+Hosted on Vercel's free tier. `vercel.json` sets the build (`npm run build` → `dist`), the single-page-app
+fallback to `/index.html` (except `/assets`, `/data`, `/media`, `/icons`, so a missing file stays a 404) and
+a long immutable cache on the hashed `/assets`. Everything else keeps Vercel's default `max-age=0,
+must-revalidate`, so `sw.js` and `index.html` are always checked and installed apps pick up updates.
+`.vercelignore` keeps local-only folders out of the upload.
+
+1. `npx vercel login`, then `npx vercel` in the project root: link a new project, accept the detected settings.
+2. `npx vercel --prod` and note the `*.vercel.app` URL. (Or import the Git repo in the Vercel dashboard.)
+3. Check the URL: `/` and a deep link such as `/pokemon/25` load; reload a deep link; at 375, 768 and 1280 px.
+4. On the iPhone: open the URL in Safari, **Share › Add to Home Screen**, open it once online, browse a few
+   Pokémon, then switch on airplane mode and reopen it: the Dex, a detail page and teams still work.
+
+Any other static host with HTTPS works with the same build, fallback and headers.
 
 ## Project layout
 
