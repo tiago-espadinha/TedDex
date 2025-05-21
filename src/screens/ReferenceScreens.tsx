@@ -73,6 +73,13 @@ export function ReferenceScreen() {
             <Icon name="next" size={20} />
           </Link>
         ))}
+        <Link to="/reference/league" className="team-row ref-kind">
+          <div>
+            <div className="name">Elite Four &amp; Champion</div>
+            <div className="meta">Every game's league teams and movesets</div>
+          </div>
+          <Icon name="next" size={20} />
+        </Link>
       </nav>
     </>
   );
