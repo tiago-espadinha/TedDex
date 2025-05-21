@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
+import { applyForm } from '../data/forms';
 import { formatMultiplier, formatNo, roman } from '../data/format';
 import { TYPE_COLORS } from '../data/typeColors';
-import type { SpeciesDetail, TypeData, TypeName } from '../data/types';
+import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useToast } from '../components/bits';
 import { EvolutionTab } from './EvolutionTab';
+import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
 
 const TABS = ['About', 'Stats', 'Moves', 'Evolution', 'Locations'] as const;
@@ -28,6 +30,7 @@ const statColor = (v: number) => (v >= 90 ? 'var(--stat-high)' : v >= 60 ? 'var(
 
 export function DetailScreen() {
   const id = Number(useParams().id);
+  const [params, setParams] = useSearchParams();
   const { data: mon, error } = useLoad(() => loadSpecies(id), id);
   const { data: typeData } = useLoad(loadTypes, 'types');
   const [tab, setTabState] = useState<Tab>(() => (sessionStorage.getItem(TAB_KEY) as Tab) || 'Stats');
@@ -53,6 +56,7 @@ export function DetailScreen() {
   const [noArtworkFor, setNoArtworkFor] = useState<number>();
 
   const go = (target?: number) => target && navigate(`/pokemon/${target}`, { replace: true });
+  const pickForm = (key: string) => setParams(key ? { form: key } : {}, { replace: true });
 
   /** Arrow keys, Home and End move between tabs (ARIA tabs pattern, selection follows focus). */
   function onTabKey(e: KeyboardEvent) {
@@ -86,7 +90,9 @@ export function DetailScreen() {
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
   if (!mon) return <Loading minHeight="100dvh" />;
 
-  const tint = TYPE_COLORS[mon.types[0]].tint;
+  // Moves and Evolution stay species-level; the hero, About and Stats follow the chosen form.
+  const { view, form, mediaId } = applyForm(mon, params.get('form'));
+  const tint = TYPE_COLORS[view.types[0]].tint;
 
   return (
     <>
@@ -118,23 +124,24 @@ export function DetailScreen() {
         </div>
         <div className="title">
           <div className="no">{formatNo(mon.id)}</div>
-          <h1>{mon.name}</h1>
+          <h1>{view.name}</h1>
           <div className="types">
-            {mon.types.map((t) => (
+            {view.types.map((t) => (
               <TypeChip key={t} type={t} large />
             ))}
           </div>
         </div>
+        {mon.forms && <FormPicker forms={mon.forms} current={form?.key ?? ''} onPick={pickForm} />}
         <div className="art-row">
           <StepLink to={prev} label="Previous" icon="back" />
-          {noArtworkFor === mon.id ? (
-            <img className="sprite" src={spriteUrl(mon.id)} alt={mon.name} width={184} height={184} />
+          {noArtworkFor === mediaId ? (
+            <img className="sprite" src={spriteUrl(mediaId)} alt={view.name} width={184} height={184} />
           ) : (
-            <img src={artworkUrl(mon.id)} onError={() => setNoArtworkFor(mon.id)} alt={mon.name} width={184} height={184} />
+            <img src={artworkUrl(mediaId)} onError={() => setNoArtworkFor(mediaId)} alt={view.name} width={184} height={184} />
           )}
           <StepLink to={next} label="Next" icon="next" />
         </div>
-        {noArtworkFor === mon.id && <p className="art-note">Artwork isn't saved offline yet</p>}
+        {noArtworkFor === mediaId && <p className="art-note">Artwork isn't saved offline yet</p>}
       </section>
 
       <div className="tabs" role="tablist" aria-label="Sections" onKeyDown={onTabKey}>
@@ -154,17 +161,11 @@ export function DetailScreen() {
       </div>
 
       <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
-        {tab === 'About' && <About mon={mon} />}
-        {tab === 'Stats' && <Stats mon={mon} typeData={typeData} />}
+        {tab === 'About' && <About mon={view} />}
+        {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
         {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
         {tab === 'Evolution' && <EvolutionTab mon={mon} />}
-        {tab === 'Locations' && (
-          <div className="section">
-            <p className="coming">
-              Locations arrives in a later phase of the roadmap. The data build will add locations per game.
-            </p>
-          </div>
-        )}
+        {tab === 'Locations' && <LocationsTab key={mon.id} mon={mon} />}
       </div>
       <div style={{ height: 24 }} />
     </>
@@ -183,6 +184,19 @@ function StepLink({ to, label, icon }: { to?: number; label: string; icon: 'back
     <Link className="nav-round" to={`/pokemon/${to}`} replace aria-label={label}>
       <Icon name={icon} size={20} />
     </Link>
+  );
+}
+
+/** One toggle button per form; the default form has the empty key. */
+function FormPicker({ forms, current, onPick }: { forms: FormVariant[]; current: string; onPick: (key: string) => void }) {
+  return (
+    <div className="form-row" role="group" aria-label="Forms">
+      {forms.map((f) => (
+        <button key={f.key} type="button" className="form-btn" aria-pressed={f.key === current} onClick={() => onPick(f.key)}>
+          {f.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -238,6 +252,7 @@ function Stats({ mon, typeData }: { mon: SpeciesDetail; typeData?: TypeData }) {
       <div className="section">
         <h2>Abilities</h2>
         <div className="ability-row">
+          {!mon.abilities.length && <p className="hint">Not in the data yet</p>}
           {mon.abilities.map((a) => (
             <span className="ability" key={a.name}>
               {a.name}

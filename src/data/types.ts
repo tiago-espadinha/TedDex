@@ -33,7 +33,18 @@ export interface SpeciesDetail extends IndexEntry {
   legendary: boolean;
   mythical: boolean;
   evolutionChainId: number | null;
+  /** Battle forms, default first (key ''); absent when the species has none. */
+  forms?: FormVariant[];
 }
+
+/** One form of a species: what changes in battle, plus the Pokémon id its media is stored under. */
+export type FormVariant = Pick<SpeciesDetail, 'name' | 'types' | 'stats' | 'total' | 'abilities' | 'heightM' | 'weightKg'> & {
+  pokemonId: number;
+  /** Unique within the species, used in `?form=`; '' for the default form. */
+  key: string;
+  /** Short chip label, e.g. "Mega X". */
+  label: string;
+};
 
 export interface TypeData {
   types: TypeName[];
@@ -84,3 +95,34 @@ export interface EvolutionMember {
 
 /** items.json: held item id → English name. */
 export type ItemTable = Record<number, string>;
+
+/** reference/moves/<id>.json: what a move does and the species that learn it in any game. */
+export interface MoveReference {
+  effect: string;
+  species: number[];
+}
+
+/** reference/abilities.json: ability id → name, effect and the species that have it (any form). */
+export type AbilityTable = Record<number, { name: string; effect: string; species: number[] }>;
+
+/** reference/items.json: held item id → effect and the species that hold it in the wild. */
+export type ItemReferenceTable = Record<number, { effect: string; species: number[] }>;
+
+/** games.json: games (versions, not version groups) with encounter data, oldest first. */
+export interface Game {
+  id: number;
+  label: string;
+  gen: number;
+}
+
+/**
+ * One area and method in one game. Text fields are indexes into `Locations.strings` (0 = none);
+ * `rate` is the chance in percent under the best conditions (0 when unknown), and `upTo` is 1 when it depends on them.
+ */
+export type EncounterRow = [area: number, method: number, min: number, max: number, rate: number, upTo: 0 | 1, note: number, form: number];
+
+/** locations/<id>.json: wild encounters per game id (only games the species appears in). */
+export interface Locations {
+  strings: string[];
+  games: Record<number, EncounterRow[]>;
+}
