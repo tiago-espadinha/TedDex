@@ -1,12 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeChip } from '../data/typeColors';
 import type { TypeName } from '../data/types';
 import { Icon, type IconName } from './Icon';
 
 export function TypeChip({ type, large }: { type: TypeName; large?: boolean }) {
   return (
-    <span className={large ? 'type-chip lg' : 'type-chip'} style={{ background: TYPE_COLORS[type].chip }}>
+    <span className={large ? 'type-chip lg' : 'type-chip'} style={{ backgroundColor: typeChip(type) }}>
       {type}
     </span>
   );

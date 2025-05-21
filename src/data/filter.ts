@@ -1,7 +1,7 @@
 import type Fuse from 'fuse.js';
 import type { DexFilters } from './dexState';
-import { TYPE_COLORS } from './typeColors';
-import type { IndexEntry, TypeName } from './types';
+import { isTypeName } from './typeColors';
+import type { IndexEntry } from './types';
 
 /** Search + generation/type filters + sort, in that order. Pure, so it's easy to test. */
 export function applyFilters(all: IndexEntry[], fuse: Fuse<IndexEntry> | null, f: DexFilters): IndexEntry[] {
@@ -11,8 +11,8 @@ export function applyFilters(all: IndexEntry[], fuse: Fuse<IndexEntry> | null, f
     const asNumber = q.replace(/^#/, '');
     if (/^\d+$/.test(asNumber)) {
       list = list.filter((m) => String(m.id).startsWith(String(Number(asNumber))));
-    } else if (q in TYPE_COLORS) {
-      list = list.filter((m) => m.types.includes(q as TypeName));
+    } else if (isTypeName(q)) {
+      list = list.filter((m) => m.types.includes(q));
     } else if (fuse) {
       const hits = new Set(fuse.search(q).map((r) => r.item.id));
       list = list.filter((m) => hits.has(m.id));

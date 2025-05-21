@@ -7,7 +7,7 @@ import {
 import { cap, formatNo } from '../data/format';
 import { NATURES } from '../data/natures';
 import { searchByName } from '../data/reference';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeTint } from '../data/typeColors';
 import type { IndexEntry, MoveInfo, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
@@ -133,7 +133,7 @@ export function ReferenceList() {
               <Link
                 to={`/reference/${k.kind}/${e.id}`}
                 className={e.type ? 'move-row tinted' : 'move-row'}
-                style={e.type && { background: TYPE_COLORS[e.type].tint }}
+                style={e.type && { backgroundColor: typeTint(e.type) }}
               >
                 <EntryBody entry={e} />
               </Link>
@@ -204,7 +204,7 @@ function EntryFrame({ one, name, error, loaded, tint, children }: FrameProps) {
   else if (!name) body = <p className="empty">This {one.toLowerCase()} isn't in the data.</p>;
   return (
     <>
-      <header className={tint ? 'topbar tinted' : 'topbar'} style={tint && { background: TYPE_COLORS[tint].tint }}>
+      <header className={tint ? 'topbar tinted' : 'topbar'} style={tint && { backgroundColor: typeTint(tint) }}>
         <button className="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? navigate(-1) : navigate('/reference'))}>
           <Icon name="back" />
         </button>
@@ -391,7 +391,7 @@ function SpeciesList({ title, ids, index, none }: { title: string; ids: number[]
           {mons.map((m) => (
             <li key={m.id}>
               <Link className="evo-member" to={`/pokemon/${m.id}`}>
-                <img src={spriteUrl(m.id)} alt="" width={56} height={56} loading="lazy" style={{ background: TYPE_COLORS[m.types[0]].tint }} />
+                <img src={spriteUrl(m.id)} alt="" width={56} height={56} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
                 <span className="body">
                   <span className="name">
                     <span className="no">{formatNo(m.id)}</span> {m.name}

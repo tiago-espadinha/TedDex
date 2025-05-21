@@ -5,7 +5,7 @@ import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { formatMultiplier, formatNo, roman } from '../data/format';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useToast } from '../components/bits';
@@ -92,13 +92,13 @@ export function DetailScreen() {
 
   // Moves and Evolution stay species-level; the hero, About and Stats follow the chosen form.
   const { view, form, mediaId } = applyForm(mon, params.get('form'));
-  const tint = TYPE_COLORS[view.types[0]].tint;
+  const tint = typeTint(view.types[0]);
 
   return (
     <>
       <section
         className="detail-hero"
-        style={{ background: tint, paddingTop: 'var(--safe-top)', marginTop: 'calc(-1 * var(--safe-top))' }}
+        style={{ backgroundColor: tint, paddingTop: 'var(--safe-top)', marginTop: 'calc(-1 * var(--safe-top))' }}
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
         onTouchEnd={(e) => {
           const s = touch.current;
@@ -285,7 +285,7 @@ function Matchups({ types, data }: { types: TypeName[]; data: TypeData }) {
             <h3>{g.label}</h3>
             <div className="chip-wrap">
               {hits.map((t) => (
-                <span key={t} className="type-chip lg" style={{ background: TYPE_COLORS[t].chip }}>
+                <span key={t} className="type-chip lg" style={{ backgroundColor: typeChip(t) }}>
                   {t}
                   {mult[t] !== 2 && mult[t] !== 0.5 && mult[t] !== 0 ? ` ${formatMultiplier(mult[t])}` : ''}
                 </span>

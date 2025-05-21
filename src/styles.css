@@ -44,6 +44,25 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --font: Manrope, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Type palette, fixed in both themes: chips carry --on-type, tints carry --on-tint. */
+  --type-normal-chip: #6b6b55;   --type-normal-tint: #efefe8;
+  --type-fire-chip: #b8410e;     --type-fire-tint: #fbe4d6;
+  --type-water-chip: #1f62ad;    --type-water-tint: #dce8f7;
+  --type-grass-chip: #3b7d2e;    --type-grass-tint: #e3f0dd;
+  --type-electric-chip: #8f6e00; --type-electric-tint: #faf0c8;
+  --type-ice-chip: #2b7f8c;      --type-ice-tint: #ddf1f2;
+  --type-fighting-chip: #a3302a; --type-fighting-tint: #f6dedb;
+  --type-poison-chip: #7b3fa0;   --type-poison-tint: #efe3f5;
+  --type-ground-chip: #82612a;   --type-ground-tint: #f3e9d6;
+  --type-flying-chip: #4a64b0;   --type-flying-tint: #e3e9f8;
+  --type-psychic-chip: #b0336a;  --type-psychic-tint: #f8dfea;
+  --type-bug-chip: #5b7512;      --type-bug-tint: #ecf1d6;
+  --type-rock-chip: #756628;     --type-rock-tint: #efebd8;
+  --type-ghost-chip: #5a4a8a;    --type-ghost-tint: #e7e3f2;
+  --type-dragon-chip: #4e3bb0;   --type-dragon-tint: #e4e0f8;
+  --type-dark-chip: #4e4038;     --type-dark-tint: #e8e3df;
+  --type-steel-chip: #5a6676;    --type-steel-tint: #e4e8ec;
+  --type-fairy-chip: #a3437a;    --type-fairy-tint: #f7e0ec;
   color-scheme: light;
 }
 

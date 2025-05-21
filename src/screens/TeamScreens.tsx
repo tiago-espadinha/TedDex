@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { attackingTypes, defensiveMultipliers, loadIndex, loadItems, loadMoves, loadTypes, offensiveMultipliers, spriteUrl, useLoad } from '../data/api';
 import { TEAM_SIZE, createTeam, db, removeFromTeam, type TeamMember } from '../data/db';
 import { cap, formatMultiplier, formatNo } from '../data/format';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemTable, MoveTable, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
@@ -120,7 +120,7 @@ export function TeamEditor() {
         {team.members.map((m, i) => {
           const mon = species.get(m.speciesId);
           return (
-            <div key={`${m.speciesId}-${i}`} className="slot" style={{ background: mon ? TYPE_COLORS[mon.types[0]].tint : 'var(--surface)' }}>
+            <div key={`${m.speciesId}-${i}`} className="slot" style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}>
               <Link to={`/teams/${id}/member/${i}`}>
                 <img src={spriteUrl(m.speciesId)} alt="" width={64} height={64} />
                 <div style={{ minWidth: 0 }}>

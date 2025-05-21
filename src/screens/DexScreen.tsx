@@ -6,7 +6,7 @@ import { artworkUrl, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { cap, formatNo, roman } from '../data/format';
 import { addToTeam, db } from '../data/db';
 import { saveOrder, useDexFilters } from '../data/dexState';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeTint } from '../data/typeColors';
 import type { IndexEntry } from '../data/types';
 import { applyFilters } from '../data/filter';
 import { Icon } from '../components/Icon';
@@ -187,7 +187,7 @@ function MonCard({ mon, art, onPick }: { mon: IndexEntry; art: boolean; onPick?:
       />
     </>
   );
-  const style = { background: TYPE_COLORS[mon.types[0]].tint };
+  const style = { backgroundColor: typeTint(mon.types[0]) };
   const cls = `mon-card ${art ? 'sprite-art' : ''}`;
   if (onPick)
     return (
