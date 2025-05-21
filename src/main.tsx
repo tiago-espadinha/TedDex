@@ -5,6 +5,7 @@ import { BottomNav, ToastProvider } from './components/bits';
 import { applyTheme, type Theme } from './data/settings';
 import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
+import { LeagueGameScreen, LeagueList } from './screens/LeagueScreens';
 import { MoreScreen } from './screens/OtherScreens';
 import { ReferenceEntry, ReferenceList, ReferenceScreen } from './screens/ReferenceScreens';
 import { MemberEditor } from './screens/MemberEditor';
@@ -51,6 +52,8 @@ const router = createBrowserRouter([
       { path: '/teams/:id/member/:index', element: <MemberEditor /> },
       { path: '/teams/:id/coverage', element: <CoverageScreen /> },
       { path: '/reference', element: <ReferenceScreen /> },
+      { path: '/reference/league', element: <LeagueList /> },
+      { path: '/reference/league/:game', element: <LeagueGameScreen /> },
       { path: '/reference/:kind', element: <ReferenceList /> },
       { path: '/reference/:kind/:id', element: <ReferenceEntry /> },
       { path: '/more', element: <MoreScreen /> },

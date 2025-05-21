@@ -1,0 +1,931 @@
+{
+ "games": [
+  {
+   "id": "red-blue",
+   "label": "Red / Blue",
+   "region": "Kanto",
+   "versionGroups": [
+    1
+   ],
+   "trainers": [
+    {
+     "name": "Lorelei",
+     "role": "Elite Four",
+     "type": "ice",
+     "page": "Lorelei",
+     "game": "RGB"
+    },
+    {
+     "name": "Bruno",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Bruno",
+     "game": "RGB"
+    },
+    {
+     "name": "Agatha",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Agatha",
+     "game": "RGB"
+    },
+    {
+     "name": "Lance",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Lance",
+     "game": "RGB"
+    },
+    {
+     "name": "Blue",
+     "role": "Champion",
+     "page": "Blue (game)",
+     "game": "RGB",
+     "heading": "Champion battle"
+    }
+   ]
+  },
+  {
+   "id": "yellow",
+   "label": "Yellow",
+   "region": "Kanto",
+   "versionGroups": [
+    2
+   ],
+   "trainers": [
+    {
+     "name": "Lorelei",
+     "role": "Elite Four",
+     "type": "ice",
+     "page": "Lorelei",
+     "game": "Y"
+    },
+    {
+     "name": "Bruno",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Bruno",
+     "game": "Y"
+    },
+    {
+     "name": "Agatha",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Agatha",
+     "game": "Y"
+    },
+    {
+     "name": "Lance",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Lance",
+     "game": "Y"
+    },
+    {
+     "name": "Blue",
+     "role": "Champion",
+     "page": "Blue (game)",
+     "game": [
+      "Y",
+      "Yellow"
+     ],
+     "heading": "Champion battle"
+    }
+   ]
+  },
+  {
+   "id": "gold-silver-crystal",
+   "label": "Gold / Silver / Crystal",
+   "region": "Johto",
+   "versionGroups": [
+    3,
+    4
+   ],
+   "trainers": [
+    {
+     "name": "Will",
+     "role": "Elite Four",
+     "type": "psychic",
+     "page": "Will",
+     "game": "GSC"
+    },
+    {
+     "name": "Koga",
+     "role": "Elite Four",
+     "type": "poison",
+     "page": "Koga",
+     "game": "GSC"
+    },
+    {
+     "name": "Bruno",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Bruno",
+     "game": "GSC"
+    },
+    {
+     "name": "Karen",
+     "role": "Elite Four",
+     "type": "dark",
+     "page": "Karen",
+     "game": "GSC"
+    },
+    {
+     "name": "Lance",
+     "role": "Champion",
+     "type": "dragon",
+     "page": "Lance",
+     "game": "GSC"
+    }
+   ]
+  },
+  {
+   "id": "ruby-sapphire",
+   "label": "Ruby / Sapphire",
+   "region": "Hoenn",
+   "versionGroups": [
+    5
+   ],
+   "trainers": [
+    {
+     "name": "Sidney",
+     "role": "Elite Four",
+     "type": "dark",
+     "page": "Sidney",
+     "game": "RS"
+    },
+    {
+     "name": "Phoebe",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Phoebe",
+     "game": "RS"
+    },
+    {
+     "name": "Glacia",
+     "role": "Elite Four",
+     "type": "ice",
+     "page": "Glacia",
+     "game": "RS"
+    },
+    {
+     "name": "Drake",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Drake",
+     "game": "RS"
+    },
+    {
+     "name": "Steven",
+     "role": "Champion",
+     "type": "steel",
+     "page": "Steven Stone",
+     "game": "RS"
+    }
+   ]
+  },
+  {
+   "id": "emerald",
+   "label": "Emerald",
+   "region": "Hoenn",
+   "versionGroups": [
+    6
+   ],
+   "trainers": [
+    {
+     "name": "Sidney",
+     "role": "Elite Four",
+     "type": "dark",
+     "page": "Sidney",
+     "game": "E"
+    },
+    {
+     "name": "Phoebe",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Phoebe",
+     "game": "E"
+    },
+    {
+     "name": "Glacia",
+     "role": "Elite Four",
+     "type": "ice",
+     "page": "Glacia",
+     "game": "E"
+    },
+    {
+     "name": "Drake",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Drake",
+     "game": "E"
+    },
+    {
+     "name": "Wallace",
+     "role": "Champion",
+     "type": "water",
+     "page": "Wallace",
+     "game": "E"
+    }
+   ]
+  },
+  {
+   "id": "firered-leafgreen",
+   "label": "FireRed / LeafGreen",
+   "region": "Kanto",
+   "versionGroups": [
+    7
+   ],
+   "trainers": [
+    {
+     "name": "Lorelei",
+     "role": "Elite Four",
+     "type": "ice",
+     "page": "Lorelei",
+     "game": "FRLG",
+     "heading": "First battle"
+    },
+    {
+     "name": "Bruno",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Bruno",
+     "game": "FRLG",
+     "heading": "First battle"
+    },
+    {
+     "name": "Agatha",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Agatha",
+     "game": "FRLG",
+     "heading": "First battle"
+    },
+    {
+     "name": "Lance",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Lance",
+     "game": "FRLG",
+     "heading": "First battle"
+    },
+    {
+     "name": "Blue",
+     "role": "Champion",
+     "page": "Blue (game)",
+     "game": "FRLG",
+     "heading": "Champion battle"
+    }
+   ]
+  },
+  {
+   "id": "diamond-pearl",
+   "label": "Diamond / Pearl",
+   "region": "Sinnoh",
+   "versionGroups": [
+    8
+   ],
+   "trainers": [
+    {
+     "name": "Aaron",
+     "role": "Elite Four",
+     "type": "bug",
+     "page": "Aaron",
+     "game": "DP"
+    },
+    {
+     "name": "Bertha",
+     "role": "Elite Four",
+     "type": "ground",
+     "page": "Bertha",
+     "game": "DP"
+    },
+    {
+     "name": "Flint",
+     "role": "Elite Four",
+     "type": "fire",
+     "page": "Flint",
+     "game": "DP"
+    },
+    {
+     "name": "Lucian",
+     "role": "Elite Four",
+     "type": "psychic",
+     "page": "Lucian",
+     "game": "DP"
+    },
+    {
+     "name": "Cynthia",
+     "role": "Champion",
+     "page": "Cynthia",
+     "game": "DP"
+    }
+   ]
+  },
+  {
+   "id": "platinum",
+   "label": "Platinum",
+   "region": "Sinnoh",
+   "versionGroups": [
+    9
+   ],
+   "trainers": [
+    {
+     "name": "Aaron",
+     "role": "Elite Four",
+     "type": "bug",
+     "page": "Aaron",
+     "game": "Pt"
+    },
+    {
+     "name": "Bertha",
+     "role": "Elite Four",
+     "type": "ground",
+     "page": "Bertha",
+     "game": "Pt"
+    },
+    {
+     "name": "Flint",
+     "role": "Elite Four",
+     "type": "fire",
+     "page": "Flint",
+     "game": "Pt"
+    },
+    {
+     "name": "Lucian",
+     "role": "Elite Four",
+     "type": "psychic",
+     "page": "Lucian",
+     "game": "Pt"
+    },
+    {
+     "name": "Cynthia",
+     "role": "Champion",
+     "page": "Cynthia",
+     "game": "Pt",
+     "heading": "Before [[Stark Mountain]]"
+    }
+   ]
+  },
+  {
+   "id": "heartgold-soulsilver",
+   "label": "HeartGold / SoulSilver",
+   "region": "Johto",
+   "versionGroups": [
+    10
+   ],
+   "trainers": [
+    {
+     "name": "Will",
+     "role": "Elite Four",
+     "type": "psychic",
+     "page": "Will",
+     "game": "HGSS",
+     "heading": "First battle"
+    },
+    {
+     "name": "Koga",
+     "role": "Elite Four",
+     "type": "poison",
+     "page": "Koga",
+     "game": "HGSS",
+     "heading": "First battle"
+    },
+    {
+     "name": "Bruno",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Bruno",
+     "game": "HGSS",
+     "heading": "First battle"
+    },
+    {
+     "name": "Karen",
+     "role": "Elite Four",
+     "type": "dark",
+     "page": "Karen",
+     "game": "HGSS",
+     "heading": "First battle"
+    },
+    {
+     "name": "Lance",
+     "role": "Champion",
+     "type": "dragon",
+     "page": "Lance",
+     "game": "HGSS",
+     "heading": "First battle"
+    }
+   ]
+  },
+  {
+   "id": "black-white",
+   "label": "Black / White",
+   "region": "Unova",
+   "versionGroups": [
+    11
+   ],
+   "note": "On the first visit, N and Ghetsis take the Champion's place; Alder is battled after the story.",
+   "trainers": [
+    {
+     "name": "Shauntal",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Shauntal",
+     "game": "BW",
+     "heading": "First battle"
+    },
+    {
+     "name": "Grimsley",
+     "role": "Elite Four",
+     "type": "dark",
+     "page": "Grimsley",
+     "game": "BW",
+     "heading": "First battle"
+    },
+    {
+     "name": "Caitlin",
+     "role": "Elite Four",
+     "type": "psychic",
+     "page": "Caitlin",
+     "game": "BW",
+     "heading": "First battle"
+    },
+    {
+     "name": "Marshal",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Marshal",
+     "game": "BW",
+     "heading": "First battle"
+    },
+    {
+     "name": "Alder",
+     "role": "Champion",
+     "page": "Alder",
+     "game": "BW"
+    }
+   ]
+  },
+  {
+   "id": "black2-white2",
+   "label": "Black 2 / White 2",
+   "region": "Unova",
+   "versionGroups": [
+    14
+   ],
+   "note": "Levels are for Normal Mode.",
+   "trainers": [
+    {
+     "name": "Shauntal",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Shauntal",
+     "game": "B2W2",
+     "heading": "First battle (Easy Mode/Normal Mode)"
+    },
+    {
+     "name": "Grimsley",
+     "role": "Elite Four",
+     "type": "dark",
+     "page": "Grimsley",
+     "game": "B2W2",
+     "heading": "First battle (Easy Mode/Normal Mode)"
+    },
+    {
+     "name": "Caitlin",
+     "role": "Elite Four",
+     "type": "psychic",
+     "page": "Caitlin",
+     "game": "B2W2",
+     "heading": "First battle (Easy Mode/Normal Mode)"
+    },
+    {
+     "name": "Marshal",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Marshal",
+     "game": "B2W2",
+     "heading": "First battle (Easy Mode/Normal Mode)"
+    },
+    {
+     "name": "Iris",
+     "role": "Champion",
+     "type": "dragon",
+     "page": "Iris",
+     "game": "B2W2",
+     "heading": "Initial battle (Easy Mode/Normal Mode)"
+    }
+   ]
+  },
+  {
+   "id": "x-y",
+   "label": "X / Y",
+   "region": "Kalos",
+   "versionGroups": [
+    15
+   ],
+   "trainers": [
+    {
+     "name": "Malva",
+     "role": "Elite Four",
+     "type": "fire",
+     "page": "Malva",
+     "game": "XY",
+     "heading": "Pokémon League"
+    },
+    {
+     "name": "Siebold",
+     "role": "Elite Four",
+     "type": "water",
+     "page": "Siebold",
+     "game": "XY",
+     "heading": "Pokémon League"
+    },
+    {
+     "name": "Wikstrom",
+     "role": "Elite Four",
+     "type": "steel",
+     "page": "Wikstrom",
+     "game": "XY",
+     "heading": "Pokémon League"
+    },
+    {
+     "name": "Drasna",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Drasna",
+     "game": "XY",
+     "heading": "Pokémon League"
+    },
+    {
+     "name": "Diantha",
+     "role": "Champion",
+     "page": "Diantha",
+     "game": "XY",
+     "heading": "Pokémon League"
+    }
+   ]
+  },
+  {
+   "id": "omega-ruby-alpha-sapphire",
+   "label": "Omega Ruby / Alpha Sapphire",
+   "region": "Hoenn",
+   "versionGroups": [
+    16
+   ],
+   "trainers": [
+    {
+     "name": "Sidney",
+     "role": "Elite Four",
+     "type": "dark",
+     "page": "Sidney",
+     "game": "ORAS",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Phoebe",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Phoebe",
+     "game": "ORAS",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Glacia",
+     "role": "Elite Four",
+     "type": "ice",
+     "page": "Glacia",
+     "game": "ORAS",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Drake",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Drake",
+     "game": "ORAS",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Steven",
+     "role": "Champion",
+     "type": "steel",
+     "page": "Steven Stone",
+     "game": "ORAS",
+     "heading": "Champion battle"
+    }
+   ]
+  },
+  {
+   "id": "sun-moon",
+   "label": "Sun / Moon",
+   "region": "Alola",
+   "versionGroups": [
+    17
+   ],
+   "trainers": [
+    {
+     "name": "Hala",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Hala",
+     "game": "SM",
+     "heading": "Pokémon League battle"
+    },
+    {
+     "name": "Olivia",
+     "role": "Elite Four",
+     "type": "rock",
+     "page": "Olivia",
+     "game": "SM",
+     "heading": "Pokémon League battle"
+    },
+    {
+     "name": "Acerola",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Acerola",
+     "game": "SM",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Kahili",
+     "role": "Elite Four",
+     "type": "flying",
+     "page": "Kahili",
+     "game": "SM",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Kukui",
+     "role": "Champion",
+     "page": "Professor Kukui",
+     "game": "SM",
+     "heading": "Champion battle"
+    }
+   ]
+  },
+  {
+   "id": "ultra-sun-ultra-moon",
+   "label": "Ultra Sun / Ultra Moon",
+   "region": "Alola",
+   "versionGroups": [
+    18
+   ],
+   "levelTag": "Ultra Sun",
+   "trainers": [
+    {
+     "name": "Molayne",
+     "role": "Elite Four",
+     "type": "steel",
+     "page": "Molayne",
+     "game": "USUM",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Olivia",
+     "role": "Elite Four",
+     "type": "rock",
+     "page": "Olivia",
+     "game": "USUM",
+     "heading": "Pokémon League battle"
+    },
+    {
+     "name": "Acerola",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Acerola",
+     "game": "USUM",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Kahili",
+     "role": "Elite Four",
+     "type": "flying",
+     "page": "Kahili",
+     "game": "USUM",
+     "heading": "Initial battle"
+    },
+    {
+     "name": "Hau",
+     "role": "Champion",
+     "page": "Hau",
+     "game": "USUM",
+     "heading": "Champion battle"
+    }
+   ]
+  },
+  {
+   "id": "lets-go",
+   "label": "Let’s Go, Pikachu! / Let’s Go, Eevee!",
+   "region": "Kanto",
+   "versionGroups": [
+    19
+   ],
+   "trainers": [
+    {
+     "name": "Lorelei",
+     "role": "Elite Four",
+     "type": "ice",
+     "page": "Lorelei",
+     "game": "PE",
+     "heading": "First battle"
+    },
+    {
+     "name": "Bruno",
+     "role": "Elite Four",
+     "type": "fighting",
+     "page": "Bruno",
+     "game": "PE",
+     "heading": "First battle"
+    },
+    {
+     "name": "Agatha",
+     "role": "Elite Four",
+     "type": "ghost",
+     "page": "Agatha",
+     "game": "PE",
+     "heading": "First battle"
+    },
+    {
+     "name": "Lance",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Lance",
+     "game": "PE",
+     "heading": "First battle"
+    },
+    {
+     "name": "Trace",
+     "role": "Champion",
+     "page": "Trace (game)",
+     "game": "LGE",
+     "heading": "Champion battle"
+    }
+   ]
+  },
+  {
+   "id": "sword-shield",
+   "label": "Sword / Shield",
+   "region": "Galar",
+   "versionGroups": [
+    20
+   ],
+   "note": "Galar has no Elite Four: the Champion Cup semifinals and finals come before the Champion.",
+   "trainers": [
+    {
+     "name": "Marnie",
+     "role": "Semifinal",
+     "type": "dark",
+     "page": "Marnie",
+     "game": "SwSh",
+     "heading": "Third battle"
+    },
+    {
+     "name": "Hop",
+     "role": "Semifinal",
+     "page": "Hop/Sword and Shield",
+     "game": "SwSh",
+     "heading": "Eighth battle"
+    },
+    {
+     "name": "Nessa",
+     "role": "Final",
+     "type": "water",
+     "page": "Nessa",
+     "game": "SwSh",
+     "heading": "Second battle"
+    },
+    {
+     "name": "Bea",
+     "role": "Final · Sword",
+     "type": "fighting",
+     "page": "Bea",
+     "game": "Sw",
+     "heading": "Champion Cup Finals"
+    },
+    {
+     "name": "Allister",
+     "role": "Final · Shield",
+     "type": "ghost",
+     "page": "Allister",
+     "game": "Sh",
+     "heading": "Champion Cup"
+    },
+    {
+     "name": "Raihan",
+     "role": "Final",
+     "type": "dragon",
+     "page": "Raihan",
+     "game": "SwSh",
+     "heading": "Second battle"
+    },
+    {
+     "name": "Leon",
+     "role": "Champion",
+     "page": "Leon",
+     "game": "SwSh",
+     "heading": "Championship Match"
+    }
+   ]
+  },
+  {
+   "id": "brilliant-diamond-shining-pearl",
+   "label": "Brilliant Diamond / Shining Pearl",
+   "region": "Sinnoh",
+   "versionGroups": [
+    23
+   ],
+   "trainers": [
+    {
+     "name": "Aaron",
+     "role": "Elite Four",
+     "type": "bug",
+     "page": "Aaron",
+     "game": "BDSP",
+     "heading": "First match"
+    },
+    {
+     "name": "Bertha",
+     "role": "Elite Four",
+     "type": "ground",
+     "page": "Bertha",
+     "game": "BDSP",
+     "heading": "First match"
+    },
+    {
+     "name": "Flint",
+     "role": "Elite Four",
+     "type": "fire",
+     "page": "Flint",
+     "game": "BDSP",
+     "heading": "First match"
+    },
+    {
+     "name": "Lucian",
+     "role": "Elite Four",
+     "type": "psychic",
+     "page": "Lucian",
+     "game": "BDSP",
+     "heading": "First match"
+    },
+    {
+     "name": "Cynthia",
+     "role": "Champion",
+     "page": "Cynthia",
+     "game": "BDSP",
+     "heading": "Champion battle"
+    }
+   ]
+  },
+  {
+   "id": "scarlet-violet",
+   "label": "Scarlet / Violet",
+   "region": "Paldea",
+   "versionGroups": [
+    25
+   ],
+   "trainers": [
+    {
+     "name": "Rika",
+     "role": "Elite Four",
+     "type": "ground",
+     "page": "Rika",
+     "game": "SV",
+     "heading": "Champion Assessment"
+    },
+    {
+     "name": "Poppy",
+     "role": "Elite Four",
+     "type": "steel",
+     "page": "Poppy",
+     "game": "SV",
+     "heading": "Champion Assessment"
+    },
+    {
+     "name": "Larry",
+     "role": "Elite Four",
+     "type": "flying",
+     "page": "Larry",
+     "game": "SV",
+     "heading": "Champion Assessment"
+    },
+    {
+     "name": "Hassel",
+     "role": "Elite Four",
+     "type": "dragon",
+     "page": "Hassel",
+     "game": "SV",
+     "heading": "Champion Assessment"
+    },
+    {
+     "name": "Geeta",
+     "role": "Champion",
+     "page": "Geeta",
+     "game": "SV",
+     "heading": "Paldea battles"
+    }
+   ]
+  }
+ ]
+}

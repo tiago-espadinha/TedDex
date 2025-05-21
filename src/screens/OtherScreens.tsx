@@ -85,15 +85,10 @@ export function MoreScreen() {
           }}
         />
 
-        <h2 style={{ marginTop: 22 }}>Coming next</h2>
-        <p className="coming" style={{ marginTop: 0 }}>
-          Elite Four &amp; Champion teams (phase 3).
-        </p>
-
         <h2 style={{ marginTop: 22 }}>About</h2>
         <p className="hint" style={{ fontSize: 13, lineHeight: 1.5 }}>
           An unofficial, non-commercial fan project. Pokémon names, images and sounds are © Nintendo, Game Freak and
-          The Pokémon Company. Data from PokeAPI.
+          The Pokémon Company. Data from PokeAPI; Elite Four and Champion teams from Bulbapedia (CC BY-NC-SA).
           {dataVersion && (
             <>
               <br />

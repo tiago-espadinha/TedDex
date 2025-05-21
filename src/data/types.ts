@@ -126,3 +126,48 @@ export interface Locations {
   strings: string[];
   games: Record<number, EncounterRow[]>;
 }
+
+/** league/index.json: games with Elite Four and Champion teams, oldest first. */
+export interface LeagueSummary {
+  id: string;
+  label: string;
+  region: string;
+  gen: number;
+}
+
+/** One Pokémon on a league trainer's team. Ids point into the shared tables (index, abilities, items, moves). */
+export interface LeagueMember {
+  id: number;
+  /** Form key as in `SpeciesDetail.forms` (regional and other battle forms); absent for the default form. */
+  form?: string;
+  level: number;
+  ability?: number;
+  /** items.json id. */
+  item?: number;
+  moves: number[];
+  tera?: TypeName;
+  /** Form key it changes into during the battle: Mega Evolution or Gigantamax. */
+  battleForm?: string;
+}
+
+/** A trainer's team; `label` names the condition when the team depends on the player's choices. */
+export interface LeagueTeam {
+  label?: string;
+  members: LeagueMember[];
+}
+
+export interface LeagueTrainer {
+  name: string;
+  /** "Elite Four", "Champion", or the Champion Cup round. */
+  role: string;
+  type?: TypeName;
+  /** Bulbapedia page the team comes from. */
+  source: string;
+  teams: LeagueTeam[];
+}
+
+/** league/<id>.json: one game's Elite Four and Champion in battle order. */
+export interface LeagueGame extends LeagueSummary {
+  note?: string;
+  trainers: LeagueTrainer[];
+}

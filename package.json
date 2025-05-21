@@ -10,7 +10,8 @@
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "preview": "vite preview",
     "data": "tsx scripts/build-data.ts",
-    "media": "tsx scripts/build-media.ts"
+    "media": "tsx scripts/build-media.ts",
+    "league": "tsx scripts/build-league.ts"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.14.19",

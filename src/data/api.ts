@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type {
-  AbilityTable, EvolutionMember, Game, IndexEntry, ItemReferenceTable, ItemTable, Learnsets, Locations, MoveReference,
-  MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup,
+  AbilityTable, EvolutionMember, Game, IndexEntry, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary, Learnsets, Locations,
+  MoveReference, MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from './types';
 
 /**
@@ -36,6 +36,8 @@ export const loadGames = () => getJson<Game[]>('/data/games.json');
 export const loadMoveReference = (id: number) => getJson<MoveReference>(`/data/reference/moves/${id}.json`);
 export const loadAbilities = () => getJson<AbilityTable>('/data/reference/abilities.json');
 export const loadItemReference = () => getJson<ItemReferenceTable>('/data/reference/items.json');
+export const loadLeagues = () => getJson<LeagueSummary[]>('/data/league/index.json');
+export const loadLeague = (id: string) => getJson<LeagueGame>(`/data/league/${id}.json`);
 
 /** Small hook: resolves a promise-returning loader, re-running when `key` changes. */
 export function useLoad<T>(loader: () => Promise<T>, key: unknown): { data?: T; error?: Error } {
