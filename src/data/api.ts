@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type {
-  AbilityTable, EvolutionMember, IndexEntry, ItemReferenceTable, ItemTable, Learnsets, MoveReference, MoveTable,
-  SpeciesDetail, TypeData, TypeName, VersionGroup,
+  AbilityTable, EvolutionMember, Game, IndexEntry, ItemReferenceTable, ItemTable, Learnsets, Locations, MoveReference,
+  MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from './types';
 
 /**
@@ -31,6 +31,8 @@ export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
 export const loadItems = () => getJson<ItemTable>('/data/items.json');
 export const loadEvolution = (chainId: number) => getJson<EvolutionMember[]>(`/data/evolution/${chainId}.json`);
+export const loadLocations = (id: number) => getJson<Locations>(`/data/locations/${id}.json`);
+export const loadGames = () => getJson<Game[]>('/data/games.json');
 export const loadMoveReference = (id: number) => getJson<MoveReference>(`/data/reference/moves/${id}.json`);
 export const loadAbilities = () => getJson<AbilityTable>('/data/reference/abilities.json');
 export const loadItemReference = () => getJson<ItemReferenceTable>('/data/reference/items.json');

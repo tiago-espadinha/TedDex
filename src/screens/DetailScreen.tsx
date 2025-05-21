@@ -10,6 +10,7 @@ import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/typ
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useToast } from '../components/bits';
 import { EvolutionTab } from './EvolutionTab';
+import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
 
 const TABS = ['About', 'Stats', 'Moves', 'Evolution', 'Locations'] as const;
@@ -164,13 +165,7 @@ export function DetailScreen() {
         {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
         {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
         {tab === 'Evolution' && <EvolutionTab mon={mon} />}
-        {tab === 'Locations' && (
-          <div className="section">
-            <p className="coming">
-              Locations arrives in a later phase of the roadmap. The data build will add locations per game.
-            </p>
-          </div>
-        )}
+        {tab === 'Locations' && <LocationsTab key={mon.id} mon={mon} />}
       </div>
       <div style={{ height: 24 }} />
     </>

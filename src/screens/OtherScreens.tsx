@@ -87,7 +87,7 @@ export function MoreScreen() {
 
         <h2 style={{ marginTop: 22 }}>Coming next</h2>
         <p className="coming" style={{ marginTop: 0 }}>
-          Locations by game and Elite Four &amp; Champion teams (phase 3).
+          Elite Four &amp; Champion teams (phase 3).
         </p>
 
         <h2 style={{ marginTop: 22 }}>About</h2>

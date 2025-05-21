@@ -107,3 +107,22 @@ export type AbilityTable = Record<number, { name: string; effect: string; specie
 
 /** reference/items.json: held item id → effect and the species that hold it in the wild. */
 export type ItemReferenceTable = Record<number, { effect: string; species: number[] }>;
+
+/** games.json: games (versions, not version groups) with encounter data, oldest first. */
+export interface Game {
+  id: number;
+  label: string;
+  gen: number;
+}
+
+/**
+ * One area and method in one game. Text fields are indexes into `Locations.strings` (0 = none);
+ * `rate` is the chance in percent under the best conditions (0 when unknown), and `upTo` is 1 when it depends on them.
+ */
+export type EncounterRow = [area: number, method: number, min: number, max: number, rate: number, upTo: 0 | 1, note: number, form: number];
+
+/** locations/<id>.json: wild encounters per game id (only games the species appears in). */
+export interface Locations {
+  strings: string[];
+  games: Record<number, EncounterRow[]>;
+}
