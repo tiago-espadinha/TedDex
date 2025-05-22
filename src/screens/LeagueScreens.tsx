@@ -1,7 +1,7 @@
 import { useId, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { loadAbilities, loadIndex, loadItems, loadLeague, loadLeagues, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeChip, typeTint } from '../data/typeColors';
 import type { AbilityTable, FormVariant, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTrainer, MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
@@ -172,7 +172,7 @@ function MemberRow({ member: m, tables }: { member: LeagueMember; tables: Tables
           width={56}
           height={56}
           loading="lazy"
-          style={types[0] && { background: TYPE_COLORS[types[0]].tint }}
+          style={types[0] && { backgroundColor: typeTint(types[0]) }}
         />
         <span className="body">
           <span className="name">{name}</span>
@@ -204,7 +204,7 @@ function MemberRow({ member: m, tables }: { member: LeagueMember; tables: Tables
             const move = tables.moves[id];
             return (
               <li key={`${id}-${i}`}>
-                <Link to={`/reference/moves/${id}`} style={move && { borderLeftColor: TYPE_COLORS[move.type].chip }}>
+                <Link to={`/reference/moves/${id}`} style={move && { borderLeftColor: typeChip(move.type) }}>
                   {move?.name ?? `Move ${id}`}
                   {move && <span className="sr-only">, {move.type}</span>}
                 </Link>

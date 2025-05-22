@@ -18,8 +18,9 @@
  *   reference/moves/<id>.json move short effect + species that learn it in any game (default forms)
  *   locations/<id>.json   wild encounters per game (version id) as tuples into a string table, any form
  *   games.json            games (versions) with encounter data, oldest first
- *   meta.json             data version + build time
+ *   meta.json             data version + build time (the HEAD commit date, so it never postdates the history)
  */
+import { execFileSync } from 'node:child_process';
 import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -31,6 +32,22 @@ const CACHE = join(ROOT, '.cache', 'csv');
 const OUT = join(ROOT, 'public', 'data');
 const ENGLISH = 9;
 const FRESH = process.argv.includes('--fresh');
+
+/** Build time for meta.json: the HEAD commit date; now when git or a commit is missing. */
+function buildTime(): Date {
+  try {
+    const date = new Date(execFileSync('git', ['log', '-1', '--format=%cI'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim());
+    if (!Number.isNaN(date.getTime())) return date;
+  } catch {
+    // no git, or no commits
+  }
+  return new Date();
+}
+
 /** Version groups left out of the game picker: Colosseum, XD, Japan-only Red/Green/Blue, Champions. */
 const SKIPPED_VERSION_GROUPS = new Set(['12', '13', '28', '29', '32']);
 /** Let's Go Pikachu/Eevee: PokeAPI gives every slot 100%, so the Locations tab shows no chance there. */
@@ -782,7 +799,8 @@ async function main() {
       gen: Number(versionGroupById.get(v.version_group_id)?.generation_id),
     }));
 
-  const version = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const builtAt = buildTime().toISOString();
+  const version = builtAt.slice(0, 10).replace(/-/g, '');
   await writeFile(join(OUT, 'index.json'), JSON.stringify(index));
   await writeFile(join(OUT, 'types.json'), JSON.stringify({ types: battleTypes.map((t) => t.identifier), matrix }));
   await writeFile(join(OUT, 'moves.json'), JSON.stringify(moveTable));
@@ -791,7 +809,7 @@ async function main() {
   await writeFile(join(OUT, 'games.json'), JSON.stringify(gameList));
   await writeFile(join(OUT, 'reference', 'abilities.json'), JSON.stringify(abilityTable));
   await writeFile(join(OUT, 'reference', 'items.json'), JSON.stringify(itemReference));
-  await writeFile(join(OUT, 'meta.json'), JSON.stringify({ version, builtAt: new Date().toISOString(), species: index.length }));
+  await writeFile(join(OUT, 'meta.json'), JSON.stringify({ version, builtAt, species: index.length }));
   console.log(
     `Done: ${index.length} species, ${battleTypes.length} types, ${usedMoves.size} moves, ` +
       `${versionList.length} games, ${chains.size} evolution chains, ${Object.keys(itemTable).length} items, ` +

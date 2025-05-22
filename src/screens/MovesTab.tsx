@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { loadLearnsets, loadMoves, loadVersions, useLoad } from '../data/api';
 import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types';
+import { typeChip } from '../data/typeColors';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
 
@@ -84,7 +85,7 @@ function MoveRow({ move, moves, level }: { move: number; moves: MoveTable; level
   return (
     <li className="move-row">
       {level !== undefined && (
-        <span className="lv">
+        <span className="lv" style={{ borderColor: typeChip(m.type) }}>
           {level === 0 ? (
             <>
               <span aria-hidden="true">Evo</span>

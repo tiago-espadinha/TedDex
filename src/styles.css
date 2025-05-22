@@ -37,6 +37,7 @@
   --toast-ink: #f4eff4;
   --toast-link: #cbc3ff;
   --scrim: rgba(20, 18, 28, 0.45);
+  --sheet: var(--bg);
   --shadow-fab: 0 4px 12px rgba(46, 38, 137, 0.35);
   --shadow-toast: 0 6px 18px rgba(0, 0, 0, 0.25);
   --radius-card: 20px;
@@ -44,6 +45,25 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --font: Manrope, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Type palette, fixed in both themes: chips carry --on-type, tints carry --on-tint. */
+  --type-normal-chip: #6b6b55;   --type-normal-tint: #efefe8;
+  --type-fire-chip: #b8410e;     --type-fire-tint: #fbe4d6;
+  --type-water-chip: #1f62ad;    --type-water-tint: #dce8f7;
+  --type-grass-chip: #3b7d2e;    --type-grass-tint: #e3f0dd;
+  --type-electric-chip: #8f6e00; --type-electric-tint: #faf0c8;
+  --type-ice-chip: #2b7f8c;      --type-ice-tint: #ddf1f2;
+  --type-fighting-chip: #a3302a; --type-fighting-tint: #f6dedb;
+  --type-poison-chip: #7b3fa0;   --type-poison-tint: #efe3f5;
+  --type-ground-chip: #82612a;   --type-ground-tint: #f3e9d6;
+  --type-flying-chip: #4a64b0;   --type-flying-tint: #e3e9f8;
+  --type-psychic-chip: #b0336a;  --type-psychic-tint: #f8dfea;
+  --type-bug-chip: #5b7512;      --type-bug-tint: #ecf1d6;
+  --type-rock-chip: #756628;     --type-rock-tint: #efebd8;
+  --type-ghost-chip: #5a4a8a;    --type-ghost-tint: #e7e3f2;
+  --type-dragon-chip: #4e3bb0;   --type-dragon-tint: #e4e0f8;
+  --type-dark-chip: #4e4038;     --type-dark-tint: #e8e3df;
+  --type-steel-chip: #5a6676;    --type-steel-tint: #e4e8ec;
+  --type-fairy-chip: #a3437a;    --type-fairy-tint: #f7e0ec;
   color-scheme: light;
 }
 
@@ -70,6 +90,8 @@
     --on-danger: #690005;
     --immune-bg: #34313c;
     --neutral-cell: #24222a;
+    --sheet: var(--surface);
+    --scrim: rgba(0, 0, 0, 0.6);
     color-scheme: dark;
   }
 }
@@ -95,6 +117,70 @@
   --on-danger: #690005;
   --immune-bg: #34313c;
   --neutral-cell: #24222a;
+  --sheet: var(--surface);
+  --scrim: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+/* Design B — dark only, plum bar on near-black, muted type tones. Comes last so it wins over any theme. */
+:root[data-design='b'] {
+  --bg: #121316;
+  --surface: #1d1e22;
+  --surface-2: #2b2c31;
+  --nav: #18191c;
+  --bar: #43384f;
+  --ink: #f4f3f6;
+  --ink-2: #d5d2db;
+  --muted: #a9a7b0;
+  --line: #2e2f34;
+  --outline: #55535c;
+  --primary: #c9bdf0;
+  --primary-ink: #231a3a;
+  --primary-soft: #43384f;
+  --primary-soft-ink: #ece6fb;
+  --weak-bg: #4a2a1c;
+  --weak-ink: #ffc9ae;
+  --resist-bg: #233a1e;
+  --resist-ink: #b9e3a8;
+  --immune-bg: #2e2f34;
+  --neutral-cell: #222327;
+  --sheet: var(--bg);
+  --scrim: rgba(20, 18, 28, 0.45);
+  --danger: #ffb4ab;
+  --on-danger: #690005;
+  --on-tint: #f4f3f6;
+  --on-tint-2: #d5d2db;
+  --on-tint-muted: #b9b6c0;
+  --on-tint-soft: #c9c4d6;
+  --tint-glass: rgba(0, 0, 0, 0.28);
+  --tint-selected-ink: #1d1e22;
+  --tint-press: rgba(255, 255, 255, 0.12);
+  --shadow-fab: 0 3px 8px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --toast-bg: #3a3b41;
+  --stat-high: #5f9a52;
+  --stat-mid: #a8883a;
+  --stat-low: #c4644a;
+  --radius-card: 4px;
+  --font: Poppins, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --type-normal-chip: #6c6b5a;   --type-normal-tint: #3b3b37;
+  --type-fire-chip: #a34a22;     --type-fire-tint: #502f22;
+  --type-water-chip: #2f5d94;    --type-water-tint: #24364d;
+  --type-grass-chip: #3f6f35;    --type-grass-tint: #2a3d29;
+  --type-electric-chip: #85681a; --type-electric-tint: #453a1f;
+  --type-ice-chip: #2f7378;      --type-ice-tint: #243e43;
+  --type-fighting-chip: #973532; --type-fighting-tint: #4b2728;
+  --type-poison-chip: #74407f;   --type-poison-tint: #3e2b45;
+  --type-ground-chip: #7d6236;   --type-ground-tint: #41382a;
+  --type-flying-chip: #5a5ba6;   --type-flying-tint: #343554;
+  --type-psychic-chip: #a33b5c;  --type-psychic-tint: #502938;
+  --type-bug-chip: #5b6c22;      --type-bug-tint: #353c22;
+  --type-rock-chip: #6f6332;     --type-rock-tint: #3c3828;
+  --type-ghost-chip: #5d4d84;    --type-ghost-tint: #353047;
+  --type-dragon-chip: #5141a0;   --type-dragon-tint: #312b52;
+  --type-dark-chip: #54473f;     --type-dark-tint: #322e2d;
+  --type-steel-chip: #56616e;    --type-steel-tint: #33373f;
+  --type-fairy-chip: #9a4c74;    --type-fairy-tint: #4c2f41;
   color-scheme: dark;
 }
 
@@ -161,6 +247,8 @@ main:focus, .sheet:focus { outline: none; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
 
+/* Room under the last grid row so it can scroll clear of the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
+.dex-list { margin-bottom: 88px; }
 .fab { position: fixed; right: max(16px, calc((100vw - 720px) / 2 + 16px)); bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); z-index: 15; width: 56px; height: 56px; border-radius: 16px; border: 0; background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); }
 .fab .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
@@ -169,24 +257,34 @@ main:focus, .sheet:focus { outline: none; }
 
 /* ---------- sheet ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); animation: fade 160ms ease; }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-width: 720px; margin: 0 auto; max-height: 88dvh; overflow-y: auto; background: var(--bg); border-radius: 28px 28px 0 0; padding: 10px 20px calc(20px + var(--safe-bottom)); animation: rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-width: 720px; margin: 0 auto; max-height: 88dvh; overflow-y: auto; background: var(--sheet); border-radius: 28px 28px 0 0; padding: 10px 20px calc(20px + var(--safe-bottom)); animation: rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .sheet .handle { width: 36px; height: 4px; border-radius: 2px; background: var(--outline); margin: 0 auto 14px; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; }
 .sheet-head h2 { margin: 0; font-size: 22px; font-weight: 800; }
 .text-btn { min-height: 40px; padding: 0 12px; border: 0; background: transparent; font-size: 14px; font-weight: 700; color: var(--primary); }
 .sheet h3 { margin: 18px 0 8px; font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: 0.4px; text-transform: uppercase; }
-.gen-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.gen-row { display: flex; flex-wrap: wrap; gap: 8px 6px; }
 .gen-btn { min-width: 40px; height: 36px; border-radius: 10px; border: 1px solid var(--outline); background: var(--surface); color: var(--ink-2); font-size: 13px; font-weight: 700; }
 .gen-btn[aria-pressed='true'] { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); }
-.type-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.type-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 6px; }
 .type-toggle { height: 34px; border-radius: 999px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; background: var(--surface); border: 2px solid; }
 .type-toggle:disabled { opacity: 0.4; }
-.segmented { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border: 1px solid var(--outline); border-radius: 20px; overflow: hidden; height: 40px; }
+.segmented { --seg-r: 20px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border: 1px solid var(--outline); border-radius: var(--seg-r); height: 40px; }
+/* No overflow clip (it would cut the buttons' hit areas), so the end buttons round themselves. */
+.segmented button:first-child { border-radius: calc(var(--seg-r) - 1px) 0 0 calc(var(--seg-r) - 1px); }
+.segmented button:last-child { border-radius: 0 calc(var(--seg-r) - 1px) calc(var(--seg-r) - 1px) 0; }
 .segmented button { border: 0; background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .segmented button + button { border-left: 1px solid var(--outline); }
 .segmented button[aria-checked='true'] { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 800; }
+.segmented button:disabled { opacity: 0.45; cursor: default; }
 .primary-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--primary); color: var(--primary-ink); font-size: 16px; font-weight: 800; text-decoration: none; }
 .hint { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
+
+/* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
+:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button) { position: relative; }
+:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button)::after {
+  content: ''; position: absolute; inset: min(0px, 50% - 22px);
+}
 
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { transform: translateY(40%); opacity: 0.4; } }
@@ -214,8 +312,12 @@ main:focus, .sheet:focus { outline: none; }
 .nav-round { width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .nav-round[aria-disabled='true'] { opacity: 0.35; pointer-events: none; }
 
-.tabs { display: flex; gap: 4px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; }
+.tabs { display: flex; gap: 4px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 40px; }
 .tabs::-webkit-scrollbar { display: none; }
+/* Fade the edge that has more tabs past it (set from DetailScreen); the mask reads alpha only. */
+.tabs[data-more='end'] { mask-image: linear-gradient(to right, var(--ink) calc(100% - 40px), transparent); }
+.tabs[data-more='start'] { mask-image: linear-gradient(to left, var(--ink) calc(100% - 40px), transparent); }
+.tabs[data-more='both'] { mask-image: linear-gradient(to right, transparent, var(--ink) 40px, var(--ink) calc(100% - 40px), transparent); }
 .tabs button { height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: transparent; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; }
 .tabs button[aria-selected='true'] { background: var(--ink); color: var(--bg); font-weight: 700; }
 
@@ -387,3 +489,39 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 
 .placeholder { padding: 24px; }
 .placeholder h1 { font-size: 28px; font-weight: 800; margin: 8px 0 12px; }
+
+/* ---------- Design B: same layout, flatter and squarer ---------- */
+[data-design='b'] .type-chip { min-width: 64px; border-radius: 2px; font-weight: 500; letter-spacing: 0; text-align: center; text-transform: none; }
+[data-design='b'] .type-chip.lg { min-width: 76px; }
+[data-design='b'] .type-toggle { border-radius: 4px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+[data-design='b'] :is(.dex-head, .topbar:not(.tinted)) { margin: 4px 6px 0; border-radius: 4px; background: var(--bar); box-shadow: var(--shadow-card); }
+[data-design='b'] .dex-head h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
+[data-design='b'] :is(.topbar h1, .sheet-head h2, .placeholder h1, .name-input) { font-weight: 600; }
+[data-design='b'] .search:not(.sheet .search) { margin: 8px 6px 0; }
+[data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
+[data-design='b'] :is(.mon-card, .slot) { box-shadow: var(--shadow-card); }
+[data-design='b'] .mon-card { background-image: linear-gradient(180deg, transparent 0%, var(--surface) 85%); }
+[data-design='b'] .slot { background-image: linear-gradient(90deg, transparent 34%, var(--surface) 72%); }
+[data-design='b'] :is(.mon-card .name, .slot .name, .team-row .name) { font-weight: 500; }
+[data-design='b'] :is(.detail-hero, .topbar.tinted) { border-radius: 0; }
+[data-design='b'] .detail-hero h1 { font-weight: 600; letter-spacing: 0; }
+[data-design='b'] .segmented { --seg-r: 4px; }
+[data-design='b'] .tabs button { border-radius: 4px; }
+[data-design='b'] .tabs button[aria-selected='true'] { background: var(--bar); color: var(--ink); }
+[data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
+[data-design='b'] .bottom-nav .pill { border-radius: 4px; }
+[data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
+[data-design='b'] :is(.search, .segmented, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .league-team, .picker-list,
+  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves a, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
+/* Lists become separate shadowed strips, like the B mockups. */
+[data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
+[data-design='b'] :is(.ref-list li, .move-group .move-row, .ref-species .evo-member) { border-top: 0; background: var(--surface); box-shadow: var(--shadow-card); }
+/* Level badge: a circle ringed in the move's type colour (the ring colour is set inline). */
+[data-design='b'] .move-row .lv { border-radius: 50%; border-width: 2px; border-style: solid; background: var(--bg); color: var(--ink); font-weight: 500; }
+/* Poppins runs wider and heavier than Manrope: lighter small text, muted plum actions. */
+[data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .team-row .meta, .hint) { font-weight: 400; }
+[data-design='b'] .topbar:not(.tinted) .sub { color: var(--ink-2); }
+[data-design='b'] :is(.section h2, .move-group h2, .eff-group h3) { font-weight: 600; }
+[data-design='b'] .ref-list .name { font-weight: 500; }
+[data-design='b'] .form-btn { border-radius: 4px; font-weight: 500; }
+[data-design='b'] :is(.fab, .primary-btn) { border-radius: 4px; background: var(--bar); color: var(--ink); box-shadow: var(--shadow-fab); font-weight: 500; letter-spacing: 0.5px; }

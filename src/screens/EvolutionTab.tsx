@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { loadEvolution, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { formatNo } from '../data/format';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeTint } from '../data/typeColors';
 import type { EvolutionMember, IndexEntry, SpeciesDetail } from '../data/types';
 import { Loading, TypeChip } from '../components/bits';
 
@@ -45,7 +45,7 @@ export function EvolutionTab({ mon }: { mon: SpeciesDetail }) {
 function EvoMember({ member, species, current }: { member: EvolutionMember; species: IndexEntry; current: boolean }) {
   const content = (
     <>
-      <img src={spriteUrl(species.id)} alt="" width={56} height={56} style={{ background: TYPE_COLORS[species.types[0]].tint }} />
+      <img src={spriteUrl(species.id)} alt="" width={56} height={56} style={{ backgroundColor: typeTint(species.types[0]) }} />
       <span className="body">
         {member.conditions.map((c) => (
           <span className="cond" key={c}>

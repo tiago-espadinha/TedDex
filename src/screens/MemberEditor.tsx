@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { loadItems, loadLearnsets, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
 import { MOVE_SLOTS, db, updateMember, type TeamMember } from '../data/db';
 import { NATURES, natureLabel } from '../data/natures';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeTint } from '../data/typeColors';
 import type { Learnsets, MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useModalSheet } from '../components/bits';
@@ -67,7 +67,7 @@ export function MemberEditor() {
       </header>
 
       <div className="list">
-        <Link to={`/pokemon/${mon.id}`} className="slot member-hero" style={{ background: TYPE_COLORS[mon.types[0]].tint }}>
+        <Link to={`/pokemon/${mon.id}`} className="slot member-hero" style={{ backgroundColor: typeTint(mon.types[0]) }}>
           <img src={spriteUrl(mon.id)} alt="" width={64} height={64} />
           <div style={{ minWidth: 0 }}>
             <div className="chips">{mon.types.map((t) => <TypeChip key={t} type={t} />)}</div>

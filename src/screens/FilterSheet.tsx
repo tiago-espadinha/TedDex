@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
 import { DEFAULT_FILTERS, type DexFilters, type SortKey } from '../data/dexState';
-import { TYPE_COLORS } from '../data/typeColors';
+import { TYPE_NAMES, typeChip } from '../data/typeColors';
 import type { TypeName } from '../data/types';
 import { roman } from '../data/format';
 
 const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-const TYPES = Object.keys(TYPE_COLORS) as TypeName[];
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'number', label: 'Number' },
   { key: 'name', label: 'Name' },
@@ -61,9 +60,9 @@ export function FilterSheet({
           Type <span style={{ fontWeight: 600, textTransform: 'none' }}>· {draft.types.length} of 2</span>
         </h3>
         <div className="type-grid">
-          {TYPES.map((t) => {
+          {TYPE_NAMES.map((t) => {
             const on = draft.types.includes(t);
-            const c = TYPE_COLORS[t].chip;
+            const c = typeChip(t);
             return (
               <button
                 key={t}
@@ -71,7 +70,7 @@ export function FilterSheet({
                 aria-pressed={on}
                 disabled={!on && draft.types.length >= 2}
                 onClick={() => toggleType(t)}
-                style={{ borderColor: c, background: on ? c : undefined, color: on ? 'var(--on-type)' : 'var(--ink)' }}
+                style={{ borderColor: c, backgroundColor: on ? c : undefined, color: on ? 'var(--on-type)' : 'var(--ink)' }}
               >
                 {t}
               </button>

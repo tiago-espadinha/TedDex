@@ -5,7 +5,7 @@ import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { formatMultiplier, formatNo, roman } from '../data/format';
-import { TYPE_COLORS } from '../data/typeColors';
+import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useToast } from '../components/bits';
@@ -66,7 +66,10 @@ export function DetailScreen() {
     e.preventDefault();
     const t = TABS[(to + TABS.length) % TABS.length];
     setTab(t);
-    document.getElementById(`tab-${t}`)?.focus();
+    const el = document.getElementById(`tab-${t}`);
+    el?.focus();
+    // focus() alone leaves a tab scrolled out of the overflowing row at 375 px.
+    el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 
   async function addToCurrentTeam() {
@@ -92,13 +95,13 @@ export function DetailScreen() {
 
   // Moves and Evolution stay species-level; the hero, About and Stats follow the chosen form.
   const { view, form, mediaId } = applyForm(mon, params.get('form'));
-  const tint = TYPE_COLORS[view.types[0]].tint;
+  const tint = typeTint(view.types[0]);
 
   return (
     <>
       <section
         className="detail-hero"
-        style={{ background: tint, paddingTop: 'var(--safe-top)', marginTop: 'calc(-1 * var(--safe-top))' }}
+        style={{ backgroundColor: tint, paddingTop: 'var(--safe-top)', marginTop: 'calc(-1 * var(--safe-top))' }}
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
         onTouchEnd={(e) => {
           const s = touch.current;
@@ -144,7 +147,7 @@ export function DetailScreen() {
         {noArtworkFor === mediaId && <p className="art-note">Artwork isn't saved offline yet</p>}
       </section>
 
-      <div className="tabs" role="tablist" aria-label="Sections" onKeyDown={onTabKey}>
+      <div className="tabs" ref={trackScrollEdges} role="tablist" aria-label="Sections" onKeyDown={onTabKey}>
         {TABS.map((t) => (
           <button
             key={t}
@@ -170,6 +173,29 @@ export function DetailScreen() {
       <div style={{ height: 24 }} />
     </>
   );
+}
+
+/**
+ * Ref callback for a horizontal scroller: sets `data-more` to the end(s) with content scrolled out
+ * of view ('start', 'end' or 'both'), so CSS can fade that edge. Observes the children too, since a
+ * late web font widens them without resizing the scroller.
+ */
+function trackScrollEdges(el: HTMLElement | null) {
+  if (!el) return;
+  const update = () => {
+    const start = el.scrollLeft > 1;
+    const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    if (start || end) el.dataset.more = start && end ? 'both' : start ? 'start' : 'end';
+    else delete el.dataset.more;
+  };
+  const observer = new ResizeObserver(update);
+  observer.observe(el);
+  for (const child of el.children) observer.observe(child);
+  el.addEventListener('scroll', update, { passive: true });
+  return () => {
+    observer.disconnect();
+    el.removeEventListener('scroll', update);
+  };
 }
 
 /** Prev/next arrow; at either end of the list it is shown dimmed and leaves the tab order. */
@@ -285,7 +311,7 @@ function Matchups({ types, data }: { types: TypeName[]; data: TypeData }) {
             <h3>{g.label}</h3>
             <div className="chip-wrap">
               {hits.map((t) => (
-                <span key={t} className="type-chip lg" style={{ background: TYPE_COLORS[t].chip }}>
+                <span key={t} className="type-chip lg" style={{ backgroundColor: typeChip(t) }}>
                   {t}
                   {mult[t] !== 2 && mult[t] !== 0.5 && mult[t] !== 0 ? ` ${formatMultiplier(mult[t])}` : ''}
                 </span>
