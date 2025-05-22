@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackupError, exportTeams, importTeams } from '../data/db';
-import { applyTheme, useSpriteStyle, useTheme, type Theme } from '../data/settings';
+import { applyDesign, applyTheme, useDesign, useSpriteStyle, useTheme, type Theme } from '../data/settings';
 import { useToast } from '../components/bits';
 
 export function MoreScreen() {
+  const [design, setDesign] = useDesign();
   const [theme, setTheme] = useTheme();
   const [sprite, setSprite] = useSpriteStyle();
   const [dataVersion, setDataVersion] = useState<string>();
   const fileInput = useRef<HTMLInputElement>(null);
   const toast = useToast();
 
+  useEffect(() => applyDesign(design), [design]);
   useEffect(() => applyTheme(theme), [theme]);
   useEffect(() => {
     fetch('/data/meta.json')
@@ -42,10 +44,25 @@ export function MoreScreen() {
       <h1>More</h1>
 
       <div className="section" style={{ padding: 0 }}>
-        <h2>Theme</h2>
-        <div className="segmented" role="radiogroup" aria-label="Theme">
+        <h2>Design</h2>
+        <div className="segmented" role="radiogroup" aria-label="Design">
+          <button role="radio" aria-checked={design === 'a'} onClick={() => setDesign('a')}>
+            A: Material
+          </button>
+          <button role="radio" aria-checked={design === 'b'} onClick={() => setDesign('b')}>
+            B: Dark
+          </button>
+        </div>
+
+        <h2 style={{ marginTop: 22 }}>Theme</h2>
+        {design === 'b' && (
+          <p id="theme-hint" className="hint" style={{ marginBottom: 10 }}>
+            Design B is dark only. Switch to Design A to choose a theme.
+          </p>
+        )}
+        <div className="segmented" role="radiogroup" aria-label="Theme" aria-describedby={design === 'b' ? 'theme-hint' : undefined}>
           {(['system', 'light', 'dark'] as Theme[]).map((t) => (
-            <button key={t} role="radio" aria-checked={theme === t} onClick={() => setTheme(t)}>
+            <button key={t} role="radio" aria-checked={theme === t} disabled={design === 'b'} onClick={() => setTheme(t)}>
               {t[0].toUpperCase() + t.slice(1)}
             </button>
           ))}

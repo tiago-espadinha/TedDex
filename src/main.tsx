@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation } from 'react-router-dom';
 import { BottomNav, ToastProvider } from './components/bits';
-import { applyTheme, type Theme } from './data/settings';
+import { applyDesign, applyTheme, type Design, type Theme } from './data/settings';
 import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
 import { LeagueGameScreen, LeagueList } from './screens/LeagueScreens';
@@ -14,6 +14,7 @@ import './styles.css';
 
 try {
   applyTheme((localStorage.getItem('theme') as Theme) ?? 'system');
+  applyDesign((localStorage.getItem('design') as Design) ?? 'a');
 } catch {
   /* storage unavailable */
 }

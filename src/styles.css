@@ -117,6 +117,66 @@
   color-scheme: dark;
 }
 
+/* Design B — dark only, plum bar on near-black, muted type tones. Comes last so it wins over any theme. */
+:root[data-design='b'] {
+  --bg: #121316;
+  --surface: #1d1e22;
+  --surface-2: #2b2c31;
+  --nav: #18191c;
+  --bar: #43384f;
+  --ink: #f4f3f6;
+  --ink-2: #d5d2db;
+  --muted: #a9a7b0;
+  --line: #2e2f34;
+  --outline: #55535c;
+  --primary: #c9bdf0;
+  --primary-ink: #231a3a;
+  --primary-soft: #43384f;
+  --primary-soft-ink: #ece6fb;
+  --weak-bg: #4a2a1c;
+  --weak-ink: #ffc9ae;
+  --resist-bg: #233a1e;
+  --resist-ink: #b9e3a8;
+  --immune-bg: #2e2f34;
+  --neutral-cell: #222327;
+  --danger: #ffb4ab;
+  --on-danger: #690005;
+  --on-tint: #f4f3f6;
+  --on-tint-2: #d5d2db;
+  --on-tint-muted: #b9b6c0;
+  --on-tint-soft: #c9c4d6;
+  --tint-glass: rgba(0, 0, 0, 0.28);
+  --tint-selected-ink: #1d1e22;
+  --tint-press: rgba(255, 255, 255, 0.12);
+  --shadow-fab: 0 3px 8px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --toast-bg: #3a3b41;
+  --stat-high: #5f9a52;
+  --stat-mid: #a8883a;
+  --stat-low: #c4644a;
+  --radius-card: 4px;
+  --font: Poppins, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --type-normal-chip: #6c6b5a;   --type-normal-tint: #3b3b37;
+  --type-fire-chip: #a34a22;     --type-fire-tint: #502f22;
+  --type-water-chip: #2f5d94;    --type-water-tint: #24364d;
+  --type-grass-chip: #3f6f35;    --type-grass-tint: #2a3d29;
+  --type-electric-chip: #85681a; --type-electric-tint: #453a1f;
+  --type-ice-chip: #2f7378;      --type-ice-tint: #243e43;
+  --type-fighting-chip: #973532; --type-fighting-tint: #4b2728;
+  --type-poison-chip: #74407f;   --type-poison-tint: #3e2b45;
+  --type-ground-chip: #7d6236;   --type-ground-tint: #41382a;
+  --type-flying-chip: #5a5ba6;   --type-flying-tint: #343554;
+  --type-psychic-chip: #a33b5c;  --type-psychic-tint: #502938;
+  --type-bug-chip: #5b6c22;      --type-bug-tint: #353c22;
+  --type-rock-chip: #6f6332;     --type-rock-tint: #3c3828;
+  --type-ghost-chip: #5d4d84;    --type-ghost-tint: #353047;
+  --type-dragon-chip: #5141a0;   --type-dragon-tint: #312b52;
+  --type-dark-chip: #54473f;     --type-dark-tint: #322e2d;
+  --type-steel-chip: #56616e;    --type-steel-tint: #33373f;
+  --type-fairy-chip: #9a4c74;    --type-fairy-tint: #4c2f41;
+  color-scheme: dark;
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
 body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
@@ -204,6 +264,7 @@ main:focus, .sheet:focus { outline: none; }
 .segmented button { border: 0; background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .segmented button + button { border-left: 1px solid var(--outline); }
 .segmented button[aria-checked='true'] { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 800; }
+.segmented button:disabled { opacity: 0.45; cursor: default; }
 .primary-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--primary); color: var(--primary-ink); font-size: 16px; font-weight: 800; text-decoration: none; }
 .hint { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
 
@@ -406,3 +467,38 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 
 .placeholder { padding: 24px; }
 .placeholder h1 { font-size: 28px; font-weight: 800; margin: 8px 0 12px; }
+
+/* ---------- Design B: same layout, flatter and squarer ---------- */
+[data-design='b'] .type-chip { min-width: 64px; border-radius: 2px; font-weight: 500; letter-spacing: 0; text-align: center; text-transform: none; }
+[data-design='b'] .type-chip.lg { min-width: 76px; }
+[data-design='b'] .type-toggle { border-radius: 4px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+[data-design='b'] :is(.dex-head, .topbar:not(.tinted)) { margin: 4px 6px 0; border-radius: 4px; background: var(--bar); box-shadow: var(--shadow-card); }
+[data-design='b'] .dex-head h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
+[data-design='b'] :is(.topbar h1, .sheet-head h2, .placeholder h1, .name-input) { font-weight: 600; }
+[data-design='b'] .search:not(.sheet .search) { margin: 8px 6px 0; }
+[data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
+[data-design='b'] :is(.mon-card, .slot) { box-shadow: var(--shadow-card); }
+[data-design='b'] .mon-card { background-image: linear-gradient(180deg, transparent 0%, var(--surface) 85%); }
+[data-design='b'] .slot { background-image: linear-gradient(90deg, transparent 34%, var(--surface) 72%); }
+[data-design='b'] :is(.mon-card .name, .slot .name, .team-row .name) { font-weight: 500; }
+[data-design='b'] :is(.detail-hero, .topbar.tinted) { border-radius: 0; }
+[data-design='b'] .detail-hero h1 { font-weight: 600; letter-spacing: 0; }
+[data-design='b'] .tabs button { border-radius: 4px; }
+[data-design='b'] .tabs button[aria-selected='true'] { background: var(--bar); color: var(--ink); }
+[data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
+[data-design='b'] .bottom-nav .pill { border-radius: 4px; }
+[data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
+[data-design='b'] :is(.search, .segmented, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .league-team, .picker-list,
+  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves a, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
+/* Lists become separate shadowed strips, like the B mockups. */
+[data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
+[data-design='b'] :is(.ref-list li, .move-group .move-row, .ref-species .evo-member) { border-top: 0; background: var(--surface); box-shadow: var(--shadow-card); }
+/* Level badge: a circle ringed in the move's type colour (the ring colour is set inline). */
+[data-design='b'] .move-row .lv { border-radius: 50%; border-width: 2px; border-style: solid; background: var(--bg); color: var(--ink); font-weight: 500; }
+/* Poppins runs wider and heavier than Manrope: lighter small text, muted plum actions. */
+[data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .team-row .meta, .hint) { font-weight: 400; }
+[data-design='b'] .topbar:not(.tinted) .sub { color: var(--ink-2); }
+[data-design='b'] :is(.section h2, .move-group h2, .eff-group h3) { font-weight: 600; }
+[data-design='b'] .ref-list .name { font-weight: 500; }
+[data-design='b'] .form-btn { border-radius: 4px; font-weight: 500; }
+[data-design='b'] :is(.fab, .primary-btn) { border-radius: 4px; background: var(--bar); color: var(--ink); box-shadow: var(--shadow-fab); font-weight: 500; letter-spacing: 0.5px; }

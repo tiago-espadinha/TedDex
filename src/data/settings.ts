@@ -34,3 +34,13 @@ export function applyTheme(theme: Theme) {
   if (theme === 'system') root.removeAttribute('data-theme');
   else root.setAttribute('data-theme', theme);
 }
+
+/** Design B is a dark-only look on the same layout; it overrides the theme while on. */
+export type Design = 'a' | 'b';
+export const useDesign = () => usePref<Design>('design', 'a');
+
+export function applyDesign(design: Design) {
+  const root = document.documentElement;
+  if (design === 'b') root.setAttribute('data-design', 'b');
+  else root.removeAttribute('data-design');
+}
