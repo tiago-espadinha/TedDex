@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import Fuse from 'fuse.js';
 import { DEFAULT_FILTERS, type DexFilters } from '../src/data/dexState';
-import { applyFilters } from '../src/data/filter';
+import { FUSE_OPTIONS, applyFilters } from '../src/data/filter';
 import type { IndexEntry } from '../src/data/types';
 
 const ALL: IndexEntry[] = [
@@ -13,8 +13,7 @@ const ALL: IndexEntry[] = [
   { id: 255, name: 'Torchic', types: ['fire'], gen: 3, total: 310 },
   { id: 315, name: 'Roselia', types: ['grass', 'poison'], gen: 3, total: 400 },
 ];
-// Same options as DexScreen.
-const fuse = new Fuse(ALL, { keys: ['name'], threshold: 0.3, ignoreLocation: true });
+const fuse = new Fuse(ALL, FUSE_OPTIONS);
 
 const ids = (f: Partial<DexFilters>) => applyFilters(ALL, fuse, { ...DEFAULT_FILTERS, ...f }).map((m) => m.id);
 
@@ -54,6 +53,14 @@ describe('applyFilters', () => {
   test('two types are an exact dual-type match, in any order', () => {
     assert.deepEqual(ids({ types: ['flying', 'fire'] }), [6, 250]);
     assert.deepEqual(ids({ types: ['fire', 'grass'] }), []);
+  });
+
+  test('a type word combines with type filters', () => {
+    assert.deepEqual(ids({ query: 'fire', types: ['flying'] }), [6, 250]);
+    assert.deepEqual(ids({ query: 'fire', types: ['fire'] }), [6, 250, 255]);
+    assert.deepEqual(ids({ query: 'fire', types: ['fire', 'flying'] }), [6, 250]);
+    assert.deepEqual(ids({ query: 'fire', types: ['grass'] }), []);
+    assert.deepEqual(ids({ query: 'grass', types: ['poison'], gens: [3] }), [315]);
   });
 
   test('search, generation and type filters combine', () => {

@@ -1,11 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { attackingTypes, defensiveMultipliers, loadIndex, loadItems, loadMoves, loadTypes, offensiveMultipliers, spriteUrl, useLoad } from '../data/api';
+import { attackingTypes, loadIndex, loadItems, loadMoves, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
 import { TEAM_SIZE, createTeam, db, removeFromTeam, type TeamMember } from '../data/db';
 import { cap, formatMultiplier, formatNo } from '../data/format';
 import { typeTint } from '../data/typeColors';
-import type { IndexEntry, ItemTable, MoveTable, TypeData, TypeName } from '../data/types';
+import type { IndexEntry, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
 
@@ -210,16 +211,7 @@ export function CoverageScreen() {
 }
 
 function DefensiveView({ mons, typeData }: { mons: IndexEntry[]; typeData: TypeData }) {
-  const perMon = mons.map((m) => defensiveMultipliers(m.types, typeData));
-  const rows = typeData.types.map((atk) => {
-    const mults = perMon.map((m) => m[atk]);
-    return { type: atk, mults, count: mults.filter((x) => x > 1).length, resist: mults.filter((x) => x < 1).length };
-  });
-  // Most members weak to it; ties broken by fewer members resisting it.
-  const threat = rows.reduce((a, b) => (b.count > a.count || (b.count === a.count && b.resist < a.resist) ? b : a));
-  const hit = typeData.types.filter((def) =>
-    mons.some((m) => m.types.some((atk: TypeName) => (typeData.matrix[atk]?.[def] ?? 1) > 1)),
-  ).length;
+  const { rows, threat, stabHits } = defensiveCoverage(mons.map((m) => m.types), typeData);
 
   return (
     <>
@@ -228,7 +220,7 @@ function DefensiveView({ mons, typeData }: { mons: IndexEntry[]; typeData: TypeD
           {threat.count ? `${cap(threat.type)} · ${threat.count} of ${mons.length} weak` : 'No shared weakness'}
         </Tile>
         <Tile label="STAB COVERAGE" tone="resist">
-          {hit} of 18 types hit 2×
+          {stabHits} of 18 types hit 2×
         </Tile>
       </div>
       <CoverageTable mons={mons} rows={rows} lead="ATTACK" countLabel="WEAK" cell={defensiveCell} alarm={(n) => n >= 3}>
@@ -251,23 +243,16 @@ function OffensiveView({
   if (attacks.every((a) => !a.length)) {
     return <p className="empty">No damaging moves yet. Give your team members moves to see what they hit.</p>;
   }
-  const perMember = attacks.map((a) => offensiveMultipliers(a, typeData));
-  const rows = typeData.types.map((def) => {
-    const mults = perMember.map((m, i) => (attacks[i].length ? m[def] : null));
-    return { type: def, mults, count: mults.filter((x) => x !== null && x > 1).length };
-  });
-  const best = (r: (typeof rows)[number]) => Math.max(...r.mults.map((x) => x ?? 0));
-  const hit = rows.filter((r) => r.count > 0).length;
-  const walls = rows.filter((r) => best(r) < 1);
+  const { rows, hits, walls } = offensiveCoverage(attacks, typeData);
 
   return (
     <>
       <div className="summary">
         <Tile label="MOVE COVERAGE" tone="resist">
-          {hit} of 18 types hit 2×
+          {hits} of 18 types hit 2×
         </Tile>
         <Tile label="WALLED BY" tone={walls.length ? 'weak' : 'resist'}>
-          {walls.length ? walls.map((r) => cap(r.type)).join(', ') : 'Nothing'}
+          {walls.length ? walls.map(cap).join(', ') : 'Nothing'}
         </Tile>
       </div>
       <CoverageTable mons={members.map((x) => x.mon)} rows={rows} lead="DEFEND" countLabel="HIT 2×" cell={offensiveCell}>
@@ -299,7 +284,7 @@ function CoverageTable({
   children,
 }: {
   mons: IndexEntry[];
-  rows: { type: TypeName; mults: (number | null)[]; count: number }[];
+  rows: CoverageRow[];
   lead: string;
   countLabel: string;
   cell: (m: number | null) => CSSProperties;

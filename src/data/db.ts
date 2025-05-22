@@ -155,7 +155,7 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
 }
 
 /** Rejects move and item ids that aren't in this app's data (the editor would have nothing to show). */
-function checkKnownIds(teams: Omit<Team, 'id'>[], moves: MoveTable, items: ItemTable) {
+export function checkKnownIds(teams: Omit<Team, 'id'>[], moves: MoveTable, items: ItemTable) {
   teams.forEach((t, i) =>
     t.members.forEach((m, j) => {
       const where = `Team ${i + 1} in the file: member ${j + 1}`;
