@@ -37,6 +37,7 @@
   --toast-ink: #f4eff4;
   --toast-link: #cbc3ff;
   --scrim: rgba(20, 18, 28, 0.45);
+  --sheet: var(--bg);
   --shadow-fab: 0 4px 12px rgba(46, 38, 137, 0.35);
   --shadow-toast: 0 6px 18px rgba(0, 0, 0, 0.25);
   --radius-card: 20px;
@@ -89,6 +90,8 @@
     --on-danger: #690005;
     --immune-bg: #34313c;
     --neutral-cell: #24222a;
+    --sheet: var(--surface);
+    --scrim: rgba(0, 0, 0, 0.6);
     color-scheme: dark;
   }
 }
@@ -114,6 +117,8 @@
   --on-danger: #690005;
   --immune-bg: #34313c;
   --neutral-cell: #24222a;
+  --sheet: var(--surface);
+  --scrim: rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 
@@ -139,6 +144,8 @@
   --resist-ink: #b9e3a8;
   --immune-bg: #2e2f34;
   --neutral-cell: #222327;
+  --sheet: var(--bg);
+  --scrim: rgba(20, 18, 28, 0.45);
   --danger: #ffb4ab;
   --on-danger: #690005;
   --on-tint: #f4f3f6;
@@ -240,6 +247,8 @@ main:focus, .sheet:focus { outline: none; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
 
+/* Room under the last grid row so it can scroll clear of the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
+.dex-list { margin-bottom: 88px; }
 .fab { position: fixed; right: max(16px, calc((100vw - 720px) / 2 + 16px)); bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); z-index: 15; width: 56px; height: 56px; border-radius: 16px; border: 0; background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); }
 .fab .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
@@ -248,25 +257,34 @@ main:focus, .sheet:focus { outline: none; }
 
 /* ---------- sheet ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); animation: fade 160ms ease; }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-width: 720px; margin: 0 auto; max-height: 88dvh; overflow-y: auto; background: var(--bg); border-radius: 28px 28px 0 0; padding: 10px 20px calc(20px + var(--safe-bottom)); animation: rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-width: 720px; margin: 0 auto; max-height: 88dvh; overflow-y: auto; background: var(--sheet); border-radius: 28px 28px 0 0; padding: 10px 20px calc(20px + var(--safe-bottom)); animation: rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .sheet .handle { width: 36px; height: 4px; border-radius: 2px; background: var(--outline); margin: 0 auto 14px; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; }
 .sheet-head h2 { margin: 0; font-size: 22px; font-weight: 800; }
 .text-btn { min-height: 40px; padding: 0 12px; border: 0; background: transparent; font-size: 14px; font-weight: 700; color: var(--primary); }
 .sheet h3 { margin: 18px 0 8px; font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: 0.4px; text-transform: uppercase; }
-.gen-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.gen-row { display: flex; flex-wrap: wrap; gap: 8px 6px; }
 .gen-btn { min-width: 40px; height: 36px; border-radius: 10px; border: 1px solid var(--outline); background: var(--surface); color: var(--ink-2); font-size: 13px; font-weight: 700; }
 .gen-btn[aria-pressed='true'] { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); }
-.type-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.type-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 6px; }
 .type-toggle { height: 34px; border-radius: 999px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; background: var(--surface); border: 2px solid; }
 .type-toggle:disabled { opacity: 0.4; }
-.segmented { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border: 1px solid var(--outline); border-radius: 20px; overflow: hidden; height: 40px; }
+.segmented { --seg-r: 20px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border: 1px solid var(--outline); border-radius: var(--seg-r); height: 40px; }
+/* No overflow clip (it would cut the buttons' hit areas), so the end buttons round themselves. */
+.segmented button:first-child { border-radius: calc(var(--seg-r) - 1px) 0 0 calc(var(--seg-r) - 1px); }
+.segmented button:last-child { border-radius: 0 calc(var(--seg-r) - 1px) calc(var(--seg-r) - 1px) 0; }
 .segmented button { border: 0; background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
 .segmented button + button { border-left: 1px solid var(--outline); }
 .segmented button[aria-checked='true'] { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 800; }
 .segmented button:disabled { opacity: 0.45; cursor: default; }
 .primary-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--primary); color: var(--primary-ink); font-size: 16px; font-weight: 800; text-decoration: none; }
 .hint { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
+
+/* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
+:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button) { position: relative; }
+:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button)::after {
+  content: ''; position: absolute; inset: min(0px, 50% - 22px);
+}
 
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { transform: translateY(40%); opacity: 0.4; } }
@@ -294,8 +312,12 @@ main:focus, .sheet:focus { outline: none; }
 .nav-round { width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .nav-round[aria-disabled='true'] { opacity: 0.35; pointer-events: none; }
 
-.tabs { display: flex; gap: 4px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; }
+.tabs { display: flex; gap: 4px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 40px; }
 .tabs::-webkit-scrollbar { display: none; }
+/* Fade the edge that has more tabs past it (set from DetailScreen); the mask reads alpha only. */
+.tabs[data-more='end'] { mask-image: linear-gradient(to right, var(--ink) calc(100% - 40px), transparent); }
+.tabs[data-more='start'] { mask-image: linear-gradient(to left, var(--ink) calc(100% - 40px), transparent); }
+.tabs[data-more='both'] { mask-image: linear-gradient(to right, transparent, var(--ink) 40px, var(--ink) calc(100% - 40px), transparent); }
 .tabs button { height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: transparent; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; }
 .tabs button[aria-selected='true'] { background: var(--ink); color: var(--bg); font-weight: 700; }
 
@@ -483,6 +505,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] :is(.mon-card .name, .slot .name, .team-row .name) { font-weight: 500; }
 [data-design='b'] :is(.detail-hero, .topbar.tinted) { border-radius: 0; }
 [data-design='b'] .detail-hero h1 { font-weight: 600; letter-spacing: 0; }
+[data-design='b'] .segmented { --seg-r: 4px; }
 [data-design='b'] .tabs button { border-radius: 4px; }
 [data-design='b'] .tabs button[aria-selected='true'] { background: var(--bar); color: var(--ink); }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }

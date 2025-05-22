@@ -116,7 +116,7 @@ export function DexScreen() {
       {!all && !error && <Loading />}
       {all && list.length === 0 && <p className="empty">No Pokémon match these filters.</p>}
 
-      <div style={{ height: virtual.getTotalSize(), position: 'relative' }}>
+      <div className="dex-list" style={{ height: virtual.getTotalSize(), position: 'relative' }}>
         {virtual.getVirtualItems().map((row) => {
           const items = list.slice(row.index * cols, row.index * cols + cols);
           return (
