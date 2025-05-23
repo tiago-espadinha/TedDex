@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon-180.png'],
       manifest: {
-        name: 'Material Dex',
-        short_name: 'Dex',
+        name: 'TedDex',
+        short_name: 'TedDex',
         description: 'An offline-first dex and team builder.',
         start_url: '/',
         scope: '/',
