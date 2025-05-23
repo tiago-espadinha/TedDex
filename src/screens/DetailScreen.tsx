@@ -72,10 +72,11 @@ export function DetailScreen() {
     el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 
-  async function addToCurrentTeam() {
+  /** Adds this species, in the form shown (`formKey`), to the most recently edited team. */
+  async function addToCurrentTeam(formKey?: string) {
     const teamId = await currentTeamId();
     const team = await db.teams.get(teamId);
-    const ok = await addToTeam(teamId, id);
+    const ok = await addToTeam(teamId, id, formKey);
     toast(
       ok
         ? { text: `Added to ${team?.name ?? 'team'}`, action: { label: 'View', href: `/teams/${teamId}` } }
@@ -120,7 +121,7 @@ export function DetailScreen() {
             <button className="icon-btn" aria-label="Play cry" onClick={playCry}>
               <Icon name="sound" />
             </button>
-            <button className="icon-btn" aria-label="Add to team" onClick={addToCurrentTeam}>
+            <button className="icon-btn" aria-label="Add to team" onClick={() => addToCurrentTeam(form?.key)}>
               <Icon name="plus" />
             </button>
           </div>

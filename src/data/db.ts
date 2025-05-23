@@ -1,11 +1,15 @@
 import Dexie, { type EntityTable } from 'dexie';
-import { loadItems, loadMoves } from './api';
+import { loadItems, loadMoves, loadSpecies } from './api';
 import { NATURES } from './natures';
-import type { ItemTable, MoveTable } from './types';
+import type { ItemTable, MoveTable, SpeciesDetail } from './types';
 
-/** A team slot. `nature` is a name from NATURES, `item` an items.json id, `moves` moves.json ids. */
+/**
+ * A team slot. `formKey` is a key from the species' `forms` (absent for the default form), `nature`
+ * a name from NATURES, `item` an items.json id, `moves` moves.json ids.
+ */
 export interface TeamMember {
   speciesId: number;
+  formKey?: string;
   ability?: string;
   nature?: string;
   item?: number;
@@ -47,6 +51,8 @@ class DexDB extends Dexie {
             });
           }),
       );
+    // v3: members may have a formKey. Every v2 member is a valid v3 member, so nothing to upgrade.
+    this.version(3).stores({ teams: '++id, updatedAt' });
   }
 }
 
@@ -62,12 +68,12 @@ export async function createTeam(name?: string): Promise<number> {
   return db.teams.add({ name: name ?? `Team ${count + 1}`, members: [], updatedAt: Date.now() });
 }
 
-/** Adds a species to a team. Returns false when the team is full. */
-export async function addToTeam(teamId: number, speciesId: number): Promise<boolean> {
+/** Adds a species, in form `formKey` ('' or absent for the default), to a team. Returns false when the team is full. */
+export async function addToTeam(teamId: number, speciesId: number, formKey?: string): Promise<boolean> {
   return db.transaction('rw', db.teams, async () => {
     const team = await db.teams.get(teamId);
     if (!team || team.members.length >= TEAM_SIZE) return false;
-    await db.teams.update(teamId, { members: [...team.members, { speciesId }], updatedAt: Date.now() });
+    await db.teams.update(teamId, { members: [...team.members, formKey ? { speciesId, formKey } : { speciesId }], updatedAt: Date.now() });
     return true;
   });
 }
@@ -98,7 +104,7 @@ export async function currentTeamId(): Promise<number> {
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
 export async function exportTeams(): Promise<string> {
   const teams = await db.teams.toArray();
-  return JSON.stringify({ app: 'material-dex', version: 2, teams }, null, 2);
+  return JSON.stringify({ app: 'material-dex', version: 3, teams }, null, 2);
 }
 
 /** Thrown by parseBackup; the message is shown to the user as is. */
@@ -111,8 +117,9 @@ const NATURE_NAMES = new Set(NATURES.map((n) => n.name));
 /** What is wrong with a member, or null. Abilities and moves are checked for shape, not per species. */
 function memberProblem(m: unknown): string | null {
   if (typeof m !== 'object' || m === null) return 'is not a Pokémon';
-  const { speciesId, ability, nature, item, moves } = m as Record<string, unknown>;
+  const { speciesId, formKey, ability, nature, item, moves } = m as Record<string, unknown>;
   if (!isSpecies(speciesId)) return 'is not a known Pokémon';
+  if (formKey !== undefined && (typeof formKey !== 'string' || formKey.length > 40)) return 'has an invalid form';
   if (ability !== undefined && (typeof ability !== 'string' || ability.length > 40)) return 'has an invalid ability';
   if (nature !== undefined && !NATURE_NAMES.has(nature as string)) return 'has an unknown nature';
   if (item !== undefined && !(isInt(item) && item > 0)) return 'has an invalid item';
@@ -124,7 +131,7 @@ function memberProblem(m: unknown): string | null {
 }
 
 /**
- * Validates an exported backup (version 1 or 2). Throws BackupError on the first problem, so a bad
+ * Validates an exported backup (version 1 to 3). Throws BackupError on the first problem, so a bad
  * file writes nothing. Teams without a name get "Team N" numbered after `existing`.
  */
 export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
@@ -148,7 +155,14 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
     });
     return {
       name: typeof name === 'string' && name.trim() ? name.trim() : `Team ${existing + i + 1}`,
-      members: (members as TeamMember[]).map(({ speciesId, ability, nature, item, moves }) => ({ speciesId, ability, nature, item, moves })),
+      members: (members as TeamMember[]).map(({ speciesId, formKey, ability, nature, item, moves }) => ({
+        speciesId,
+        formKey: formKey || undefined,
+        ability,
+        nature,
+        item,
+        moves,
+      })),
       updatedAt: Date.now(),
     };
   });
@@ -165,10 +179,23 @@ export function checkKnownIds(teams: Omit<Team, 'id'>[], moves: MoveTable, items
   );
 }
 
+/** Rejects form keys the species doesn't have. `species` holds the species file of every member with a form. */
+export function checkKnownForms(teams: Omit<Team, 'id'>[], species: Map<number, SpeciesDetail>) {
+  teams.forEach((t, i) =>
+    t.members.forEach((m, j) => {
+      if (m.formKey && !species.get(m.speciesId)?.forms?.some((f) => f.key === m.formKey)) {
+        throw new BackupError(`Team ${i + 1} in the file: member ${j + 1} has an unknown form`);
+      }
+    }),
+  );
+}
+
 export async function importTeams(json: string): Promise<number> {
   const teams = parseBackup(json, await db.teams.count());
-  const [moves, items] = await Promise.all([loadMoves(), loadItems()]);
+  const formed = new Set(teams.flatMap((t) => t.members.filter((m) => m.formKey).map((m) => m.speciesId)));
+  const [moves, items, details] = await Promise.all([loadMoves(), loadItems(), Promise.all([...formed].map(loadSpecies))]);
   checkKnownIds(teams, moves, items);
+  checkKnownForms(teams, new Map(details.map((d) => [d.id, d])));
   await db.teams.bulkAdd(teams);
   return teams.length;
 }

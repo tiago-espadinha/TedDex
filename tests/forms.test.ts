@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { applyForm } from '../src/data/forms';
-import type { FormVariant, SpeciesDetail } from '../src/data/types';
+import { applyForm, memberView } from '../src/data/forms';
+import type { FormVariant, IndexEntry, SpeciesDetail } from '../src/data/types';
 
 const stats = (n: number) => ({ hp: n, atk: n, def: n, spa: n, spd: n, spe: n });
 const variant = (over: Partial<FormVariant>): FormVariant => ({
@@ -75,5 +75,28 @@ describe('applyForm', () => {
       assert.equal(mediaId, 6);
     }
     assert.equal(applyForm({ ...charizard, forms: undefined }, 'mega-x').view.name, 'Charizard');
+  });
+});
+
+describe('memberView', () => {
+  const grid: IndexEntry = { id: 6, name: 'Charizard', types: ['fire', 'flying'], gen: 1, total: 534 };
+
+  test("uses the form's name, types and media id when the member has a form", () => {
+    assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-x' }, grid, charizard), {
+      name: 'Mega Charizard X',
+      types: ['fire', 'dragon'],
+      mediaId: 10034,
+    });
+  });
+
+  test('uses the grid row for the default form, or while the species file is not loaded', () => {
+    const plain = { name: 'Charizard', types: ['fire', 'flying'], mediaId: 6 };
+    assert.deepEqual(memberView({ speciesId: 6 }, grid, charizard), plain);
+    assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-x' }, grid), plain);
+    assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-z' }, grid, charizard), plain);
+  });
+
+  test('is undefined for a species it knows nothing about', () => {
+    assert.equal(memberView({ speciesId: 6 }), undefined);
   });
 });

@@ -1,4 +1,4 @@
-import type { FormVariant, SpeciesDetail } from './types';
+import type { FormVariant, IndexEntry, SpeciesDetail, TypeName } from './types';
 
 /**
  * The species as seen in form `key`: its name, types, stats, abilities and size replaced by the
@@ -9,4 +9,23 @@ export function applyForm(mon: SpeciesDetail, key: string | null): { view: Speci
   if (!form) return { view: mon, mediaId: mon.id };
   const { name, types, stats, total, abilities, heightM, weightKg } = form;
   return { view: { ...mon, name, types, stats, total, abilities, heightM, weightKg }, form, mediaId: form.pokemonId };
+}
+
+/** What a team slot shows for a member: its name, types and the id its sprite uses. */
+export interface MemberView {
+  name: string;
+  types: TypeName[];
+  mediaId: number;
+}
+
+/**
+ * A team member in its form when it has one and `detail` (its species file) is loaded, else as its
+ * grid row. Undefined when neither is known.
+ */
+export function memberView(member: { speciesId: number; formKey?: string }, row?: IndexEntry, detail?: SpeciesDetail): MemberView | undefined {
+  if (member.formKey && detail) {
+    const { view, mediaId } = applyForm(detail, member.formKey);
+    return { name: view.name, types: view.types, mediaId };
+  }
+  return row && { name: row.name, types: row.types, mediaId: row.id };
 }
