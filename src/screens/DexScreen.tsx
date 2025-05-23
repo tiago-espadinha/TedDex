@@ -8,7 +8,7 @@ import { addToTeam, db } from '../data/db';
 import { saveOrder, useDexFilters } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
 import type { IndexEntry } from '../data/types';
-import { applyFilters } from '../data/filter';
+import { FUSE_OPTIONS, applyFilters } from '../data/filter';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
@@ -38,7 +38,7 @@ export function DexScreen() {
   const cols = useColumns();
   const [spriteStyle, setSpriteStyle] = useSpriteStyle();
 
-  const fuse = useMemo(() => (all ? new Fuse(all, { keys: ['name'], threshold: 0.3, ignoreLocation: true }) : null), [all]);
+  const fuse = useMemo(() => (all ? new Fuse(all, FUSE_OPTIONS) : null), [all]);
   const list = useMemo(() => (all ? applyFilters(all, fuse, filters) : []), [all, fuse, filters]);
   useEffect(() => saveOrder(list.map((m) => m.id)), [list]);
 

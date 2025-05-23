@@ -1,17 +1,30 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { attackingTypes, defensiveMultipliers, loadIndex, loadItems, loadMoves, loadTypes, offensiveMultipliers, spriteUrl, useLoad } from '../data/api';
+import { attackingTypes, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
 import { TEAM_SIZE, createTeam, db, removeFromTeam, type TeamMember } from '../data/db';
 import { cap, formatMultiplier, formatNo } from '../data/format';
+import { memberView, type MemberView } from '../data/forms';
 import { typeTint } from '../data/typeColors';
-import type { IndexEntry, ItemTable, MoveTable, TypeData, TypeName } from '../data/types';
+import type { ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
 
-function useSpeciesMap() {
-  const { data } = useLoad(loadIndex, 'index');
-  return useMemo(() => new Map((data ?? []).map((m) => [m.id, m])), [data]);
+/**
+ * Resolves members to how their slot looks, loading the species file of each member that has a form.
+ * `view` is undefined until the grid index loads; until the species files load (`formsReady`), or if
+ * any fails to load, members with a form show their default form.
+ */
+function useMemberViews(members: TeamMember[] = []) {
+  const { data: index } = useLoad(loadIndex, 'index');
+  const rows = useMemo(() => new Map((index ?? []).map((m) => [m.id, m])), [index]);
+  const formed = [...new Set(members.filter((m) => m.formKey).map((m) => m.speciesId))].sort((a, b) => a - b);
+  const { data: details, error } = useLoad(() => Promise.all(formed.map(loadSpecies)), formed.join());
+  if (!index) return {};
+  const species = new Map((details ?? []).map((d) => [d.id, d]));
+  const view = (m: TeamMember) => memberView(m, rows.get(m.speciesId), species.get(m.speciesId));
+  return { view, formsReady: !!details || !!error };
 }
 
 /** "Adamant · Life Orb · 3 moves", or a prompt when nothing is set yet. */
@@ -24,7 +37,7 @@ function memberSummary(m: TeamMember, items?: ItemTable) {
 // ---------------- saved teams ----------------
 export function TeamsScreen() {
   const teams = useLiveQuery(() => db.teams.orderBy('updatedAt').reverse().toArray(), []);
-  const species = useSpeciesMap();
+  const { view } = useMemberViews(teams?.flatMap((t) => t.members));
   const navigate = useNavigate();
 
   return (
@@ -44,9 +57,10 @@ export function TeamsScreen() {
               </div>
             </div>
             <div className="minis" aria-hidden="true">
-              {t.members.map((m, i) => (
-                <img key={i} src={spriteUrl(m.speciesId)} alt="" title={species.get(m.speciesId)?.name} />
-              ))}
+              {t.members.map((m, i) => {
+                const mon = view?.(m);
+                return <img key={i} src={spriteUrl(mon?.mediaId ?? m.speciesId)} alt="" title={mon?.name} />;
+              })}
             </div>
           </Link>
         ))}
@@ -62,7 +76,7 @@ export function TeamsScreen() {
 export function TeamEditor() {
   const id = Number(useParams().id);
   const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
-  const species = useSpeciesMap();
+  const { view } = useMemberViews(team?.members);
   const { data: items } = useLoad(loadItems, 'items');
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -118,11 +132,11 @@ export function TeamEditor() {
 
       <div className="list">
         {team.members.map((m, i) => {
-          const mon = species.get(m.speciesId);
+          const mon = view?.(m);
           return (
             <div key={`${m.speciesId}-${i}`} className="slot" style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}>
               <Link to={`/teams/${id}/member/${i}`}>
-                <img src={spriteUrl(m.speciesId)} alt="" width={64} height={64} />
+                <img src={spriteUrl(mon?.mediaId ?? m.speciesId)} alt="" width={64} height={64} />
                 <div style={{ minWidth: 0 }}>
                   <div className="name">{mon?.name ?? formatNo(m.speciesId)}</div>
                   <div className="chips">{mon?.types.map((t) => <TypeChip key={t} type={t} />)}</div>
@@ -163,15 +177,16 @@ type Mode = 'defensive' | 'offensive';
 export function CoverageScreen() {
   const id = Number(useParams().id);
   const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
-  const species = useSpeciesMap();
+  // Coverage waits for the forms' types; slots elsewhere show the default form meanwhile.
+  const { view, formsReady } = useMemberViews(team?.members);
   const { data: typeData } = useLoad(loadTypes, 'types');
   const { data: moves } = useLoad(loadMoves, 'moves');
   const [mode, setMode] = useState<Mode>('defensive');
 
   const members = (team?.members ?? [])
-    .map((m) => ({ member: m, mon: species.get(m.speciesId) }))
-    .filter((x): x is { member: TeamMember; mon: IndexEntry } => !!x.mon);
-  if (team === undefined || !typeData || !moves || !species.size) return <Loading />;
+    .map((m) => ({ member: m, mon: view?.(m) }))
+    .filter((x): x is { member: TeamMember; mon: MemberView } => !!x.mon);
+  if (team === undefined || !typeData || !moves || !view || !formsReady) return <Loading />;
   if (!team) return <p className="empty">This team no longer exists.</p>;
 
   return (
@@ -209,17 +224,8 @@ export function CoverageScreen() {
   );
 }
 
-function DefensiveView({ mons, typeData }: { mons: IndexEntry[]; typeData: TypeData }) {
-  const perMon = mons.map((m) => defensiveMultipliers(m.types, typeData));
-  const rows = typeData.types.map((atk) => {
-    const mults = perMon.map((m) => m[atk]);
-    return { type: atk, mults, count: mults.filter((x) => x > 1).length, resist: mults.filter((x) => x < 1).length };
-  });
-  // Most members weak to it; ties broken by fewer members resisting it.
-  const threat = rows.reduce((a, b) => (b.count > a.count || (b.count === a.count && b.resist < a.resist) ? b : a));
-  const hit = typeData.types.filter((def) =>
-    mons.some((m) => m.types.some((atk: TypeName) => (typeData.matrix[atk]?.[def] ?? 1) > 1)),
-  ).length;
+function DefensiveView({ mons, typeData }: { mons: MemberView[]; typeData: TypeData }) {
+  const { rows, threat, stabHits } = defensiveCoverage(mons.map((m) => m.types), typeData);
 
   return (
     <>
@@ -228,7 +234,7 @@ function DefensiveView({ mons, typeData }: { mons: IndexEntry[]; typeData: TypeD
           {threat.count ? `${cap(threat.type)} · ${threat.count} of ${mons.length} weak` : 'No shared weakness'}
         </Tile>
         <Tile label="STAB COVERAGE" tone="resist">
-          {hit} of 18 types hit 2×
+          {stabHits} of 18 types hit 2×
         </Tile>
       </div>
       <CoverageTable mons={mons} rows={rows} lead="ATTACK" countLabel="WEAK" cell={defensiveCell} alarm={(n) => n >= 3}>
@@ -243,7 +249,7 @@ function OffensiveView({
   typeData,
   moves,
 }: {
-  members: { member: TeamMember; mon: IndexEntry }[];
+  members: { member: TeamMember; mon: MemberView }[];
   typeData: TypeData;
   moves: MoveTable;
 }) {
@@ -251,23 +257,16 @@ function OffensiveView({
   if (attacks.every((a) => !a.length)) {
     return <p className="empty">No damaging moves yet. Give your team members moves to see what they hit.</p>;
   }
-  const perMember = attacks.map((a) => offensiveMultipliers(a, typeData));
-  const rows = typeData.types.map((def) => {
-    const mults = perMember.map((m, i) => (attacks[i].length ? m[def] : null));
-    return { type: def, mults, count: mults.filter((x) => x !== null && x > 1).length };
-  });
-  const best = (r: (typeof rows)[number]) => Math.max(...r.mults.map((x) => x ?? 0));
-  const hit = rows.filter((r) => r.count > 0).length;
-  const walls = rows.filter((r) => best(r) < 1);
+  const { rows, hits, walls } = offensiveCoverage(attacks, typeData);
 
   return (
     <>
       <div className="summary">
         <Tile label="MOVE COVERAGE" tone="resist">
-          {hit} of 18 types hit 2×
+          {hits} of 18 types hit 2×
         </Tile>
         <Tile label="WALLED BY" tone={walls.length ? 'weak' : 'resist'}>
-          {walls.length ? walls.map((r) => cap(r.type)).join(', ') : 'Nothing'}
+          {walls.length ? walls.map(cap).join(', ') : 'Nothing'}
         </Tile>
       </div>
       <CoverageTable mons={members.map((x) => x.mon)} rows={rows} lead="DEFEND" countLabel="HIT 2×" cell={offensiveCell}>
@@ -298,8 +297,8 @@ function CoverageTable({
   alarm,
   children,
 }: {
-  mons: IndexEntry[];
-  rows: { type: TypeName; mults: (number | null)[]; count: number }[];
+  mons: MemberView[];
+  rows: CoverageRow[];
   lead: string;
   countLabel: string;
   cell: (m: number | null) => CSSProperties;
@@ -314,7 +313,7 @@ function CoverageTable({
             <th scope="col">{lead}</th>
             {mons.map((m, i) => (
               <th scope="col" key={i}>
-                <img src={spriteUrl(m.id)} alt="" />
+                <img src={spriteUrl(m.mediaId)} alt="" />
                 <span className="sr-only">{m.name}</span>
               </th>
             ))}

@@ -3,6 +3,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { loadItems, loadLearnsets, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
 import { MOVE_SLOTS, db, updateMember, type TeamMember } from '../data/db';
+import { applyForm } from '../data/forms';
 import { NATURES, natureLabel } from '../data/natures';
 import { typeTint } from '../data/typeColors';
 import type { Learnsets, MoveTable } from '../data/types';
@@ -43,7 +44,9 @@ export function MemberEditor() {
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
   if (!data) return <Loading />;
 
-  const [mon, , moves, items] = data;
+  const [species, , moves, items] = data;
+  // Learnsets stay species-level; name, types and abilities follow the member's form.
+  const { view: mon, form, mediaId } = applyForm(species, member.formKey ?? null);
   const chosen = (member.moves ?? []).filter((id) => moves[id]);
   const save = (patch: Partial<TeamMember>) => updateMember(teamId, index, (m) => ({ ...m, ...patch }));
   const setMove = (slot: number, move?: number) =>
@@ -52,6 +55,12 @@ export function MemberEditor() {
       if (move === undefined) next.splice(slot, 1);
       else if (!next.includes(move) && slot < MOVE_SLOTS) next[Math.min(slot, next.length)] = move;
       return { ...m, moves: next };
+    });
+  /** Switches form, dropping the chosen ability if the new form doesn't have it. */
+  const setForm = (key: string) =>
+    updateMember(teamId, index, (m) => {
+      const keep = applyForm(species, key).view.abilities.some((a) => a.name === m.ability);
+      return { ...m, formKey: key || undefined, ability: keep ? m.ability : undefined };
     });
 
   return (
@@ -67,8 +76,8 @@ export function MemberEditor() {
       </header>
 
       <div className="list">
-        <Link to={`/pokemon/${mon.id}`} className="slot member-hero" style={{ backgroundColor: typeTint(mon.types[0]) }}>
-          <img src={spriteUrl(mon.id)} alt="" width={64} height={64} />
+        <Link to={`/pokemon/${mon.id}${form?.key ? `?${new URLSearchParams({ form: form.key })}` : ''}`} className="slot member-hero" style={{ backgroundColor: typeTint(mon.types[0]) }}>
+          <img src={spriteUrl(mediaId)} alt="" width={64} height={64} />
           <div style={{ minWidth: 0 }}>
             <div className="chips">{mon.types.map((t) => <TypeChip key={t} type={t} />)}</div>
             <div className="meta">View in Dex</div>
@@ -76,6 +85,18 @@ export function MemberEditor() {
           <Icon name="next" size={20} />
         </Link>
       </div>
+
+      {species.forms && (
+        <Field title="Form">
+          <div className="ability-row" role="radiogroup" aria-label="Form">
+            {species.forms.map((f) => (
+              <button key={f.key} className="ability" role="radio" aria-checked={f.key === (form?.key ?? '')} onClick={() => setForm(f.key)}>
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
 
       <Field title="Ability">
         <div className="ability-row" role="radiogroup" aria-label="Ability">

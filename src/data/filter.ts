@@ -1,7 +1,11 @@
 import type Fuse from 'fuse.js';
+import type { IFuseOptions } from 'fuse.js';
 import type { DexFilters } from './dexState';
 import { isTypeName } from './typeColors';
 import type { IndexEntry } from './types';
+
+/** Name search options, shared by DexScreen and the tests. */
+export const FUSE_OPTIONS: IFuseOptions<IndexEntry> = { keys: ['name'], threshold: 0.3, ignoreLocation: true };
 
 /** Search + generation/type filters + sort, in that order. Pure, so it's easy to test. */
 export function applyFilters(all: IndexEntry[], fuse: Fuse<IndexEntry> | null, f: DexFilters): IndexEntry[] {
