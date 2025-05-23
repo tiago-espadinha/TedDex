@@ -1,4 +1,4 @@
-# Material Dex Web
+# TedDex
 
 An offline-first, installable web app (PWA) dex and team builder, built mobile-first for iPhone.
 Unofficial, non-commercial fan project. Data from [PokeAPI](https://pokeapi.co).
@@ -24,7 +24,7 @@ then **Share › Add to Home Screen**. The service worker (offline mode) only ru
 | `npm run data` | Rebuild `public/data/` from PokeAPI's CSV dump (cached in `.cache/`; `-- --fresh` to re-download) |
 | `npm run media` | Rebuild `public/media/` (WebP sprites/artwork, M4A cries) from PokeAPI's repos; needs `ffmpeg` |
 | `npm run lint` | oxlint |
-| `python3 scripts/make-icons.py public/icons` | Re-render the PNG app icons (needs Pillow) |
+| `python3 scripts/make-icons.py public/icons` | Re-render the app icons and favicon from `public/teddex.svg` (needs Inkscape) |
 
 ## Deploy
 

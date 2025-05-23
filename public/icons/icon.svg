@@ -1,7 +1,77 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="0" fill="#4A3FC0"/>
-  <rect x="120" y="120" width="124" height="124" rx="34" fill="#FFFFFF"/>
-  <rect x="268" y="120" width="124" height="124" rx="34" fill="#DDD8F7"/>
-  <rect x="120" y="268" width="124" height="124" rx="34" fill="#DDD8F7"/>
-  <rect x="268" y="268" width="124" height="124" rx="62" fill="#FFFFFF"/>
+<rect width="512" height="512" fill="#DDD8F7"/>
+<g transform="translate(-59.95 -43.52) scale(1.2638)">
+    <circle
+       cx="150"
+       cy="140"
+       r="58"
+       fill="#1c262b"
+       id="circle1" />
+    <circle
+       cx="350"
+       cy="140"
+       r="58"
+       fill="#1c262b"
+       id="circle2" />
+    <path
+       d="M250 120 C335 120 385 175 385 250 C385 275 400 290 392 302 C380 300 372 310 368 322 C350 365 305 392 250 392 C195 392 150 365 132 322 C128 310 120 300 108 302 C100 290 115 275 115 250 C115 175 165 120 250 120 Z"
+       fill="#1c262b"
+       id="path4" />
+    <g
+       id="layer1"
+      >
+      <circle
+         cx="250"
+         cy="195"
+         fill="#33424a"
+         id="circle4-5"
+         r="65"
+         style="fill:#6b7f8c" />
+      <circle
+         cx="273"
+         cy="189"
+         fill="#ffffff"
+         id="circle5-6"
+         style="fill:#1c262b"
+         r="45" />
+    </g>
+    <circle
+       cx="150"
+       cy="140"
+       r="30"
+       fill="#33424a"
+       id="circle3" />
+    <circle
+       cx="350"
+       cy="140"
+       fill="#33424a"
+       id="circle4"
+       r="30" />
+    <circle
+       cx="195"
+       cy="250"
+       r="20"
+       fill="#ffffff"
+       id="circle5" />
+    <circle
+       cx="304.99994"
+       cy="250"
+       r="20"
+       fill="#ffffff"
+       id="circle6" />
+    <path
+       d="m 249.82117,268 c -53.64992,0 -87.53407,25.25926 -90.35775,59.7037 -2.82368,36.74074 36.70783,62 90.35775,64.2963 z"
+       fill="#6b7f8c"
+       id="path6"
+       style="stroke-width:1.27319" />
+    <path
+       d="m 250,268 c 53.64991,0 87.53408,25.25926 90.35775,59.7037 2.82368,36.74074 -36.70784,62 -90.35775,64.2963 z"
+       fill="#4e5d66"
+       id="path7"
+       style="stroke-width:1.27319" />
+    <path
+       d="M226 288 C226 276 274 276 274 288 C274 302 260 312 250 314 C240 312 226 302 226 288 Z"
+       fill="#1c262b"
+       id="path8" />
+  </g>
 </svg>

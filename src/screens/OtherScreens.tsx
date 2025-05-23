@@ -25,7 +25,7 @@ export function MoreScreen() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `material-dex-teams-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `teddex-teams-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -104,7 +104,7 @@ export function MoreScreen() {
 
         <h2 style={{ marginTop: 22 }}>About</h2>
         <p className="hint" style={{ fontSize: 13, lineHeight: 1.5 }}>
-          An unofficial, non-commercial fan project. Pokémon names, images and sounds are © Nintendo, Game Freak and
+          TedDex is an unofficial, non-commercial fan project. Pokémon names, images and sounds are © Nintendo, Game Freak and
           The Pokémon Company. Data from PokeAPI; Elite Four and Champion teams from Bulbapedia (CC BY-NC-SA).
           {dataVersion && (
             <>
