@@ -1,17 +1,48 @@
 import { useCallback, useState } from 'react';
-import type { TypeName } from './types';
+import type { Category, StatBlock, TypeName } from './types';
 
 /** Dex list filters. Kept in sessionStorage so they survive opening a detail page. */
-export type SortKey = 'number' | 'name' | 'total';
+export type SortKey = 'number' | 'name' | 'total' | keyof StatBlock | 'height' | 'weight';
+
+/** Sort options in the order the filter sheet shows them. */
+export const SORT_LABELS: Record<SortKey, string> = {
+  number: 'Number',
+  name: 'Name',
+  total: 'Base total',
+  hp: 'HP',
+  atk: 'Attack',
+  def: 'Defense',
+  spa: 'Sp. Atk',
+  spd: 'Sp. Def',
+  spe: 'Speed',
+  height: 'Height',
+  weight: 'Weight',
+};
+
+/** Quick categories in the order the chip bar shows them. */
+export const CATEGORY_LABELS: Record<Category, string> = {
+  starter: 'Starters',
+  mega: 'Megas',
+  fossil: 'Fossils',
+  eeveelution: 'Eeveelutions',
+  legendary: 'Legendaries',
+  mythical: 'Mythicals',
+  regional: 'Regional forms',
+  baby: 'Babies',
+  paradox: 'Paradox',
+  stone: 'Stone evolutions',
+};
 
 export interface DexFilters {
   query: string;
   gens: number[];
   types: TypeName[];
   sort: SortKey;
+  /** One quick category at a time, combined with the other filters. */
+  category: Category | null;
 }
 
-export const DEFAULT_FILTERS: DexFilters = { query: '', gens: [], types: [], sort: 'number' };
+export const DEFAULT_FILTERS: DexFilters = { query: '', gens: [], types: [], sort: 'number', category: null };
 
 const KEY = 'dex-filters';
 const ORDER_KEY = 'dex-order';

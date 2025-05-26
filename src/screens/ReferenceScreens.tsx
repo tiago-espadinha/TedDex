@@ -10,7 +10,7 @@ import { searchByName } from '../data/reference';
 import { typeTint } from '../data/typeColors';
 import type { IndexEntry, MoveInfo, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip } from '../components/bits';
+import { Loading, SearchField, TypeChip } from '../components/bits';
 import { MoveBody } from './MovesTab';
 
 type Kind = 'moves' | 'abilities' | 'items' | 'natures' | 'types';
@@ -101,28 +101,17 @@ export function ReferenceList() {
         <Link to="/reference" className="icon-btn" aria-label="Back to Reference">
           <Icon name="back" />
         </Link>
-        <div className="grow">
+        <div className="head-title">
           <h1>{k.title}</h1>
           {data && <div className="sub">{data.length} in the data</div>}
         </div>
-      </header>
-      <label className="search">
-        <Icon name="search" size={20} />
-        <span className="sr-only">Search {k.title.toLowerCase()}</span>
-        <input
-          type="search"
-          inputMode="search"
-          autoComplete="off"
+        <SearchField
+          label={`Search ${k.title.toLowerCase()}`}
+          placeholder="Search"
           value={query}
-          onChange={(e) => setParams(e.target.value ? { q: e.target.value } : {}, { replace: true })}
-          placeholder={`Search ${k.title.toLowerCase()}`}
+          onChange={(q) => setParams(q ? { q } : {}, { replace: true })}
         />
-        {query && (
-          <button className="icon-btn" style={{ width: 32, height: 32 }} aria-label="Clear search" onClick={() => setParams({}, { replace: true })}>
-            <Icon name="close" size={18} />
-          </button>
-        )}
-      </label>
+      </header>
       {error && <p className="empty">Couldn't load {k.title.toLowerCase()}. {error.message}</p>}
       {!data && !error && <Loading />}
       {data && !shown.length && <p className="empty">No {k.title.toLowerCase()} match “{query}”.</p>}

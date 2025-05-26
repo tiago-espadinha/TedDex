@@ -26,6 +26,10 @@ function usePref<T extends string>(key: string, fallback: T) {
 export type SpriteStyle = 'sprite' | 'art';
 export const useSpriteStyle = () => usePref<SpriteStyle>('sprite-style', 'sprite');
 
+/** The Dex as a grid of cards or a dense list of rows. */
+export type DexView = 'grid' | 'list';
+export const useDexView = () => usePref<DexView>('dex-view', 'grid');
+
 export type Theme = 'system' | 'light' | 'dark';
 export const useTheme = () => usePref<Theme>('theme', 'system');
 

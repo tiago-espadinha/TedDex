@@ -34,6 +34,46 @@ export function BottomNav() {
   );
 }
 
+// ---------- search ----------
+/**
+ * Search field that sits in a screen's header row, next to its title. `trailing` goes inside the
+ * field on the right (after the clear button), like the Dex grid/list toggle.
+ */
+export function SearchField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  trailing,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  trailing?: ReactNode;
+}) {
+  return (
+    <label className="search in-head">
+      <Icon name="search" size={20} />
+      <span className="sr-only">{label}</span>
+      <input
+        type="search"
+        inputMode="search"
+        autoComplete="off"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {value && (
+        <button className="icon-btn sm" aria-label="Clear search" onClick={() => onChange('')}>
+          <Icon name="close" size={18} />
+        </button>
+      )}
+      {trailing}
+    </label>
+  );
+}
+
 // ---------- modal sheet ----------
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])';
 

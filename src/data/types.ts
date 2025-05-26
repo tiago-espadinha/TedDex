@@ -5,12 +5,21 @@ export type TypeName =
   | 'bug' | 'ghost' | 'steel' | 'fire' | 'water' | 'grass'
   | 'electric' | 'psychic' | 'ice' | 'dragon' | 'dark' | 'fairy';
 
+/** Quick categories on the Dex chip bar. */
+export type Category =
+  | 'starter' | 'mega' | 'fossil' | 'eeveelution' | 'legendary' | 'mythical' | 'regional' | 'baby' | 'paradox' | 'stone';
+
 export interface IndexEntry {
   id: number;
   name: string;
   types: TypeName[];
   gen: number;
   total: number;
+  stats: StatBlock;
+  heightM: number;
+  weightKg: number;
+  /** Absent when the species is in no category. */
+  tags?: Category[];
 }
 
 export interface StatBlock {
@@ -25,9 +34,6 @@ export interface StatBlock {
 export interface SpeciesDetail extends IndexEntry {
   slug: string;
   genus: string;
-  heightM: number;
-  weightKg: number;
-  stats: StatBlock;
   abilities: { name: string; hidden: boolean }[];
   flavor: string;
   legendary: boolean;
