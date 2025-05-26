@@ -245,11 +245,13 @@ main:focus, .sheet:focus { outline: none; }
 
 .mon-card { position: relative; display: block; height: 108px; border-radius: var(--radius-card); padding: 12px 12px 12px 14px; color: var(--on-tint); text-decoration: none; overflow: hidden; transition: transform 120ms ease; }
 .mon-card:active { transform: scale(0.97); }
-.mon-card .no { font-size: 12px; font-weight: 700; color: var(--on-tint-muted); }
+/* Fixed line heights: two stacked type chips fit above the 12 px bottom padding in both designs' fonts. */
+.mon-card .no { font-size: 12px; line-height: 16px; font-weight: 700; color: var(--on-tint-muted); }
 .mon-card .no, .mon-card .name, .mon-card .types { position: relative; z-index: 1; }
 .mon-card .sort-val { font-weight: 800; color: var(--on-tint); }
-.mon-card .name { font-size: 15px; font-weight: 800; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mon-card .types { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 8px; }
+.mon-card .name { font-size: 15px; line-height: 20px; font-weight: 800; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mon-card .types { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 6px; }
+.mon-card .type-chip { line-height: 14px; }
 .mon-card img { position: absolute; z-index: 0; right: 2px; bottom: 0; width: 80px; height: 80px; image-rendering: pixelated; }
 .mon-card.sprite-art img { image-rendering: auto; }
 /* List view: one line per species, sprite on the left. */
@@ -261,8 +263,13 @@ main:focus, .sheet:focus { outline: none; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
 
-/* Room under the last grid row so it can scroll clear of the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
-.dex-list { margin-bottom: 88px; }
+/* Room under the last grid row so it can scroll clear of the category bar (48 px) and the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
+.dex-list { margin-bottom: 136px; }
+/* Quick categories, docked above the bottom nav. */
+.cat-bar { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-bottom)); z-index: 14; max-width: 720px; margin: 0 auto; display: flex; gap: 8px; padding: 8px 16px; overflow-x: auto; scrollbar-width: none; background: var(--bg); border-top: 1px solid var(--line); }
+.cat-bar::-webkit-scrollbar { display: none; }
+.cat-bar .filter-chip:not(.on) { background: var(--surface); }
+.cat-bar ~ .fab { bottom: calc(var(--nav-h) + var(--safe-bottom) + 64px); }
 .fab { position: fixed; right: max(16px, calc((100vw - 720px) / 2 + 16px)); bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); z-index: 15; width: 56px; height: 56px; border-radius: 16px; border: 0; background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); }
 .fab .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
@@ -512,6 +519,8 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .type-chip.lg { min-width: 76px; }
 [data-design='b'] .type-toggle { border-radius: 4px; font-weight: 500; letter-spacing: 0; text-transform: none; }
 [data-design='b'] :is(.dex-head, .topbar:not(.tinted)) { margin: 4px 6px 0; border-radius: 4px; background: var(--bar); box-shadow: var(--shadow-card); }
+/* The header is a bar here: the chip row under it gets as much space above as below. */
+[data-design='b'] .chip-row { padding-top: 12px; }
 [data-design='b'] .dex-head h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
 [data-design='b'] :is(.topbar h1, .sheet-head h2, .placeholder h1, .name-input) { font-weight: 600; }
 [data-design='b'] .search:not(.sheet .search, .in-head) { margin: 8px 6px 0; }

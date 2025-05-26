@@ -24,7 +24,7 @@ export function sortValue(m: IndexEntry, sort: SortKey): number | undefined {
   }
 }
 
-/** Search + generation/type filters + sort, in that order. Types match any of the chosen ones. Pure, so it's easy to test. */
+/** Search + category/generation/type filters + sort, in that order. Types match any of the chosen ones. Pure, so it's easy to test. */
 export function applyFilters(all: IndexEntry[], fuse: Fuse<IndexEntry> | null, f: DexFilters): IndexEntry[] {
   let list = all;
   const q = f.query.trim().toLowerCase();
@@ -39,6 +39,7 @@ export function applyFilters(all: IndexEntry[], fuse: Fuse<IndexEntry> | null, f
       list = list.filter((m) => hits.has(m.id));
     }
   }
+  if (f.category) list = list.filter((m) => m.tags?.includes(f.category!));
   if (f.gens.length) list = list.filter((m) => f.gens.includes(m.gen));
   if (f.types.length) list = list.filter((m) => f.types.some((t) => m.types.includes(t)));
   if (f.sort === 'name') return [...list].sort((a, b) => a.name.localeCompare(b.name));

@@ -5,9 +5,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { artworkUrl, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { cap, formatNo, roman } from '../data/format';
 import { addToTeam, db } from '../data/db';
-import { SORT_LABELS, saveOrder, useDexFilters, type SortKey } from '../data/dexState';
+import { CATEGORY_LABELS, SORT_LABELS, saveOrder, useDexFilters, type SortKey } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
-import type { IndexEntry } from '../data/types';
+import type { Category, IndexEntry } from '../data/types';
 import { FUSE_OPTIONS, applyFilters, sortValue } from '../data/filter';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
@@ -16,6 +16,7 @@ import { useDexView, useSpriteStyle } from '../data/settings';
 
 const ROW_H = 118; // card 108 + gap 10
 const LIST_ROW_H = 72; // row 64 + gap 8
+const CATEGORIES = Object.entries(CATEGORY_LABELS) as [Category, string][];
 
 function useColumns() {
   const get = () => (window.innerWidth >= 600 ? 3 : 2);
@@ -131,6 +132,25 @@ export function DexScreen() {
                 />
               ))}
             </div>
+          );
+        })}
+      </div>
+
+      <div className="cat-bar" role="group" aria-label="Quick categories">
+        {CATEGORIES.map(([c, label]) => {
+          const on = filters.category === c;
+          return (
+            <button
+              key={c}
+              className={on ? 'filter-chip on' : 'filter-chip'}
+              aria-pressed={on}
+              onClick={() => {
+                setFilters({ ...filters, category: on ? null : c });
+                window.scrollTo({ top: 0 });
+              }}
+            >
+              {label}
+            </button>
           );
         })}
       </div>

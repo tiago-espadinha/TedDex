@@ -11,11 +11,11 @@ const mon = (id: number, name: string, types: IndexEntry['types'], gen: number, 
 });
 
 const ALL: IndexEntry[] = [
-  mon(1, 'Bulbasaur', ['grass', 'poison'], 1, 318, 49, 6.9),
-  mon(6, 'Charizard', ['fire', 'flying'], 1, 534, 84, 90.5),
+  { ...mon(1, 'Bulbasaur', ['grass', 'poison'], 1, 318, 49, 6.9), tags: ['starter'] },
+  { ...mon(6, 'Charizard', ['fire', 'flying'], 1, 534, 84, 90.5), tags: ['mega'] },
   mon(25, 'Pikachu', ['electric'], 1, 320, 55, 6),
-  mon(250, 'Ho-Oh', ['fire', 'flying'], 2, 680, 130, 199),
-  mon(255, 'Torchic', ['fire'], 3, 310, 60, 2.5),
+  { ...mon(250, 'Ho-Oh', ['fire', 'flying'], 2, 680, 130, 199), tags: ['legendary'] },
+  { ...mon(255, 'Torchic', ['fire'], 3, 310, 60, 2.5), tags: ['starter'] },
   mon(315, 'Roselia', ['grass', 'poison'], 3, 400, 60, 2),
 ];
 const fuse = new Fuse(ALL, FUSE_OPTIONS);
@@ -71,6 +71,12 @@ describe('applyFilters', () => {
 
   test('search, generation and type filters combine', () => {
     assert.deepEqual(ids({ query: '25', gens: [2, 3], types: ['fire'] }), [250, 255]);
+  });
+
+  test('a category keeps only its species and combines with the other filters', () => {
+    assert.deepEqual(ids({ category: 'starter' }), [1, 255]);
+    assert.deepEqual(ids({ category: 'starter', types: ['fire'] }), [255]);
+    assert.deepEqual(ids({ category: 'baby' }), []);
   });
 
   test('sort by name', () => {

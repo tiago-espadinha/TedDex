@@ -146,6 +146,30 @@ const CONDITION_LABELS: Record<string, string> = {
   'honey-tree-group-b': 'Honey tree group B',
   'honey-tree-group-c': 'Honey tree group C',
 };
+/** Hand-picked categories PokeAPI has no flag for, by species identifier (the build fails on an unknown one). */
+const STARTERS = [
+  'bulbasaur', 'charmander', 'squirtle', 'chikorita', 'cyndaquil', 'totodile', 'treecko', 'torchic', 'mudkip',
+  'turtwig', 'chimchar', 'piplup', 'snivy', 'tepig', 'oshawott', 'chespin', 'fennekin', 'froakie',
+  'rowlet', 'litten', 'popplio', 'grookey', 'scorbunny', 'sobble', 'sprigatito', 'fuecoco', 'quaxly',
+];
+/** Revived from fossils, with their evolutions. */
+const FOSSILS = [
+  'omanyte', 'omastar', 'kabuto', 'kabutops', 'aerodactyl', 'lileep', 'cradily', 'anorith', 'armaldo',
+  'cranidos', 'rampardos', 'shieldon', 'bastiodon', 'tirtouga', 'carracosta', 'archen', 'archeops',
+  'tyrunt', 'tyrantrum', 'amaura', 'aurorus', 'dracozolt', 'arctozolt', 'dracovish', 'arctovish',
+];
+const PARADOX = [
+  'great-tusk', 'scream-tail', 'brute-bonnet', 'flutter-mane', 'slither-wing', 'sandy-shocks', 'roaring-moon',
+  'walking-wake', 'gouging-fire', 'raging-bolt', 'iron-treads', 'iron-bundle', 'iron-hands', 'iron-jugulis',
+  'iron-moth', 'iron-thorns', 'iron-valiant', 'iron-leaves', 'iron-boulder', 'iron-crown',
+];
+const EVOLUTION_STONES = new Set([
+  'fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone', 'sun-stone', 'shiny-stone', 'dusk-stone',
+  'dawn-stone', 'ice-stone',
+]);
+const EEVEE_CHAIN = '67';
+/** Form keys of regional variants: "alola", "galar-zen", "paldea-aqua-breed"… */
+const REGIONAL_FORM = /^(alola|galar|hisui|paldea)\b/;
 const TIMES: Record<string, string> = { day: 'during the day', night: 'at night', dusk: 'at dusk', 'full-moon': 'under a full moon' };
 
 type Row = Record<string, string>;
@@ -437,6 +461,38 @@ async function main() {
     return forms;
   }
 
+  // --- quick categories (Dex chip bar) ---
+  const speciesByIdentifier = new Map(species.map((s) => [s.identifier, s.id]));
+  const handPicked = (list: string[], label: string) =>
+    new Set(
+      list.map((identifier) => {
+        const id = speciesByIdentifier.get(identifier);
+        if (!id) throw new Error(`${label}: no species "${identifier}"`);
+        return id;
+      }),
+    );
+  const starters = handPicked(STARTERS, 'STARTERS');
+  const fossils = handPicked(FOSSILS, 'FOSSILS');
+  const paradox = handPicked(PARADOX, 'PARADOX');
+  const stoneItems = new Set(items.filter((it) => EVOLUTION_STONES.has(it.identifier)).map((it) => it.id));
+  if (stoneItems.size !== EVOLUTION_STONES.size) throw new Error('EVOLUTION_STONES: an item is missing from items.csv');
+  const stoneEvolved = new Set(evolutions.filter((e) => stoneItems.has(e.trigger_item_id)).map((e) => e.evolved_species_id));
+  /** Categories a species belongs to, from its flags, forms and evolution. */
+  function tagsOf(s: Row, forms: { key: string }[] = []) {
+    const tags: string[] = [];
+    if (starters.has(s.id)) tags.push('starter');
+    if (forms.some((f) => f.key.startsWith('mega'))) tags.push('mega');
+    if (fossils.has(s.id)) tags.push('fossil');
+    if (s.evolution_chain_id === EEVEE_CHAIN) tags.push('eeveelution');
+    if (s.is_legendary === '1') tags.push('legendary');
+    if (s.is_mythical === '1') tags.push('mythical');
+    if (forms.some((f) => REGIONAL_FORM.test(f.key))) tags.push('regional');
+    if (s.is_baby === '1') tags.push('baby');
+    if (paradox.has(s.id)) tags.push('paradox');
+    if (stoneEvolved.has(s.id)) tags.push('stone');
+    return tags;
+  }
+
   const index = [];
   let formCount = 0;
   const ordered = [...species].sort((a, b) => Number(a.id) - Number(b.id));
@@ -448,6 +504,7 @@ async function main() {
     const id = Number(s.id);
     const forms = formsOf(s, p, n?.name ?? s.identifier);
     formCount += forms ? forms.length - 1 : 0;
+    const tags = tagsOf(s, forms);
 
     index.push({
       id,
@@ -458,6 +515,7 @@ async function main() {
       stats,
       heightM,
       weightKg,
+      ...(tags.length && { tags }),
     });
 
     const detail = {
