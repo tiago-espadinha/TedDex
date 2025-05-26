@@ -10,11 +10,12 @@ import { typeTint } from '../data/typeColors';
 import type { IndexEntry } from '../data/types';
 import { FUSE_OPTIONS, applyFilters } from '../data/filter';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip, useToast } from '../components/bits';
+import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
-import { useSpriteStyle } from '../data/settings';
+import { useDexView, useSpriteStyle } from '../data/settings';
 
 const ROW_H = 118; // card 108 + gap 10
+const LIST_ROW_H = 72; // row 64 + gap 8
 
 function useColumns() {
   const get = () => (window.innerWidth >= 600 ? 3 : 2);
@@ -36,14 +37,19 @@ export function DexScreen() {
   const navigate = useNavigate();
   const toast = useToast();
   const cols = useColumns();
-  const [spriteStyle, setSpriteStyle] = useSpriteStyle();
+  const [spriteStyle] = useSpriteStyle();
+  const [view, setView] = useDexView();
+  const perRow = view === 'list' ? 1 : cols;
 
   const fuse = useMemo(() => (all ? new Fuse(all, FUSE_OPTIONS) : null), [all]);
   const list = useMemo(() => (all ? applyFilters(all, fuse, filters) : []), [all, fuse, filters]);
   useEffect(() => saveOrder(list.map((m) => m.id)), [list]);
 
-  const rows = Math.ceil(list.length / cols);
-  const virtual = useWindowVirtualizer({ count: rows, estimateSize: () => ROW_H, overscan: 4 });
+  const rows = Math.ceil(list.length / perRow);
+  const rowHeight = view === 'list' ? LIST_ROW_H : ROW_H;
+  const virtual = useWindowVirtualizer({ count: rows, estimateSize: () => rowHeight, overscan: 4 });
+  // Row heights differ between the views: measure again when switching.
+  useEffect(() => virtual.measure(), [virtual, rowHeight]);
 
   const activeCount = filters.gens.length + filters.types.length + (filters.sort !== 'number' ? 1 : 0);
 
@@ -63,35 +69,24 @@ export function DexScreen() {
   return (
     <>
       <header className="dex-head">
-        <h1>{pickTeam != null ? 'Pick a Pokémon' : 'Dex'}</h1>
-        <div>
-          <button
-            className="icon-btn"
-            aria-label={spriteStyle === 'sprite' ? 'Show artwork' : 'Show sprites'}
-            onClick={() => setSpriteStyle(spriteStyle === 'sprite' ? 'art' : 'sprite')}
-          >
-            <Icon name="grid" />
-          </button>
-        </div>
-      </header>
-
-      <label className="search">
-        <Icon name="search" size={20} />
-        <span className="sr-only">Search</span>
-        <input
-          type="search"
-          inputMode="search"
-          autoComplete="off"
-          placeholder="Search name, number or type"
+        <h1>Dex</h1>
+        <SearchField
+          label="Search Pokémon"
+          placeholder="Name, number, type"
           value={filters.query}
-          onChange={(e) => setFilters({ ...filters, query: e.target.value })}
+          onChange={(query) => setFilters({ ...filters, query })}
+          trailing={
+            <button
+              className="icon-btn sm"
+              aria-label="List view"
+              aria-pressed={view === 'list'}
+              onClick={() => setView(view === 'list' ? 'grid' : 'list')}
+            >
+              <Icon name={view === 'list' ? 'grid' : 'list'} size={20} />
+            </button>
+          }
         />
-        {filters.query && (
-          <button className="icon-btn" style={{ width: 32, height: 32 }} aria-label="Clear search" onClick={() => setFilters({ ...filters, query: '' })}>
-            <Icon name="close" size={18} />
-          </button>
-        )}
-      </label>
+      </header>
 
       <div className="chip-row">
         <button className={`filter-chip ${filters.gens.length ? 'on' : ''}`} onClick={() => setSheetOpen(true)}>
@@ -118,15 +113,21 @@ export function DexScreen() {
 
       <div className="dex-list" style={{ height: virtual.getTotalSize(), position: 'relative' }}>
         {virtual.getVirtualItems().map((row) => {
-          const items = list.slice(row.index * cols, row.index * cols + cols);
+          const items = list.slice(row.index * perRow, row.index * perRow + perRow);
           return (
             <div
               key={row.key}
-              className="grid-row"
+              className={view === 'list' ? 'list-row' : 'grid-row'}
               style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: `translateY(${row.start}px)` }}
             >
               {items.map((m) => (
-                <MonCard key={m.id} mon={m} art={spriteStyle === 'art'} onPick={pickTeam != null ? () => pick(m.id) : undefined} />
+                <MonCard
+                  key={m.id}
+                  mon={m}
+                  art={spriteStyle === 'art'}
+                  row={view === 'list'}
+                  onPick={pickTeam != null ? () => pick(m.id) : undefined}
+                />
               ))}
             </div>
           );
@@ -162,7 +163,8 @@ export function DexScreen() {
   );
 }
 
-function MonCard({ mon, art, onPick }: { mon: IndexEntry; art: boolean; onPick?: () => void }) {
+/** A species in the grid (card) or in list view (`row`: sprite on the left, one line). */
+function MonCard({ mon, art, row, onPick }: { mon: IndexEntry; art: boolean; row: boolean; onPick?: () => void }) {
   const body = (
     <>
       <div className="no">{formatNo(mon.id)}</div>
@@ -182,13 +184,13 @@ function MonCard({ mon, art, onPick }: { mon: IndexEntry; art: boolean; onPick?:
         alt=""
         loading="lazy"
         decoding="async"
-        width={84}
-        height={84}
+        width={row ? 56 : 84}
+        height={row ? 56 : 84}
       />
     </>
   );
   const style = { backgroundColor: typeTint(mon.types[0]) };
-  const cls = `mon-card ${art ? 'sprite-art' : ''}`;
+  const cls = ['mon-card', row && 'row', art && 'sprite-art'].filter(Boolean).join(' ');
   if (onPick)
     return (
       <button className={cls} style={{ ...style, border: 0, textAlign: 'left', font: 'inherit', width: '100%' }} onClick={onPick}>

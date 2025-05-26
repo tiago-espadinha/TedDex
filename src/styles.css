@@ -216,6 +216,8 @@ main:focus, .sheet:focus { outline: none; }
 .topbar h1 { margin: 0; font-size: 22px; font-weight: 800; }
 .topbar .sub { font-size: 13px; font-weight: 600; color: var(--muted); }
 .topbar .grow { flex: 1; min-width: 0; }
+.topbar .head-title { flex: none; max-width: 45%; margin-right: 8px; }
+.topbar .head-title h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- chips ---------- */
 .type-chip { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.3px; color: var(--on-type); padding: 2px 9px; border-radius: 999px; text-transform: uppercase; }
@@ -224,17 +226,22 @@ main:focus, .sheet:focus { outline: none; }
 .filter-chip.on { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 700; }
 
 /* ---------- dex ---------- */
-.dex-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 4px 20px; }
+.dex-head { display: flex; align-items: center; gap: 12px; padding: 8px 16px 4px 20px; }
 .dex-head h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
 .search { margin: 4px 16px 0; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; border-radius: 24px; background: var(--surface-2); color: var(--ink-2); }
 .search input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 16px; color: var(--ink); outline: none; }
 .search:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
 .search input::-webkit-search-cancel-button { display: none; }
+/* In a header row, next to the title: fills the rest of the row; buttons inside sit at the right edge. */
+.search.in-head { flex: 1; min-width: 0; margin: 0; height: 44px; padding: 0 4px 0 14px; gap: 8px; }
+.icon-btn.sm { width: 36px; height: 36px; }
+.icon-btn[aria-pressed='true'] { background: var(--primary-soft); color: var(--primary-soft-ink); }
 .chip-row { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; }
 .chip-row::-webkit-scrollbar { display: none; }
 
 .grid-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0 16px; }
 @media (min-width: 600px) { .grid-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.list-row { padding: 0 16px; }
 
 .mon-card { position: relative; display: block; height: 108px; border-radius: var(--radius-card); padding: 12px 12px 12px 14px; color: var(--on-tint); text-decoration: none; overflow: hidden; transition: transform 120ms ease; }
 .mon-card:active { transform: scale(0.97); }
@@ -244,6 +251,12 @@ main:focus, .sheet:focus { outline: none; }
 .mon-card .types { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 8px; }
 .mon-card img { position: absolute; z-index: 0; right: 2px; bottom: 0; width: 80px; height: 80px; image-rendering: pixelated; }
 .mon-card.sprite-art img { image-rendering: auto; }
+/* List view: one line per species, sprite on the left. */
+.mon-card.row { height: 64px; display: flex; align-items: center; gap: 12px; padding: 4px 14px 4px 4px; border-radius: 16px; }
+.mon-card.row img { position: static; order: -1; flex: none; width: 56px; height: 56px; }
+.mon-card.row .no { flex: none; width: 46px; }
+.mon-card.row .name { flex: 1; min-width: 0; margin: 0; }
+.mon-card.row .types { flex-direction: row; margin: 0; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
 
@@ -497,8 +510,10 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] :is(.dex-head, .topbar:not(.tinted)) { margin: 4px 6px 0; border-radius: 4px; background: var(--bar); box-shadow: var(--shadow-card); }
 [data-design='b'] .dex-head h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
 [data-design='b'] :is(.topbar h1, .sheet-head h2, .placeholder h1, .name-input) { font-weight: 600; }
-[data-design='b'] .search:not(.sheet .search) { margin: 8px 6px 0; }
+[data-design='b'] .search:not(.sheet .search, .in-head) { margin: 8px 6px 0; }
 [data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
+[data-design='b'] .list-row { padding: 0 6px; }
+[data-design='b'] .mon-card.row { background-image: linear-gradient(90deg, transparent 20%, var(--surface) 70%); }
 [data-design='b'] :is(.mon-card, .slot) { box-shadow: var(--shadow-card); }
 [data-design='b'] .mon-card { background-image: linear-gradient(180deg, transparent 0%, var(--surface) 85%); }
 [data-design='b'] .slot { background-image: linear-gradient(90deg, transparent 34%, var(--surface) 72%); }
