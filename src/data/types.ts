@@ -11,6 +11,9 @@ export interface IndexEntry {
   types: TypeName[];
   gen: number;
   total: number;
+  stats: StatBlock;
+  heightM: number;
+  weightKg: number;
 }
 
 export interface StatBlock {
@@ -25,9 +28,6 @@ export interface StatBlock {
 export interface SpeciesDetail extends IndexEntry {
   slug: string;
   genus: string;
-  heightM: number;
-  weightKg: number;
-  stats: StatBlock;
   abilities: { name: string; hidden: boolean }[];
   flavor: string;
   legendary: boolean;

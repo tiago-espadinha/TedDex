@@ -5,7 +5,7 @@
  *   npm run data -- --fresh   # ignore the cache and re-download
  *
  * Output (all under public/data/):
- *   index.json            one row per species (default form): grid, search, filters
+ *   index.json            one row per species (default form): grid, search, filters, sorting by stat and size
  *   types.json            18 types + full damage matrix (attacker -> defender -> factor)
  *   species/<id>.json     detail page data, loaded on demand; `forms` lists battle forms (regional, mega, gmax…)
  *   learnsets/<id>.json   moves per version group (level-up, TM, tutor, egg), loaded by the Moves tab
@@ -455,6 +455,9 @@ async function main() {
       types: t,
       gen: Number(s.generation_id),
       total,
+      stats,
+      heightM,
+      weightKg,
     });
 
     const detail = {

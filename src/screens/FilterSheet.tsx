@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
-import { DEFAULT_FILTERS, type DexFilters, type SortKey } from '../data/dexState';
+import { DEFAULT_FILTERS, SORT_LABELS, type DexFilters, type SortKey } from '../data/dexState';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
 import type { TypeName } from '../data/types';
 import { roman } from '../data/format';
 
 const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'number', label: 'Number' },
-  { key: 'name', label: 'Name' },
-  { key: 'total', label: 'Base total' },
-];
+const SORTS = Object.entries(SORT_LABELS) as [SortKey, string][];
+
+/** Adds `x` to the list, or takes it out if it is there. */
+const toggle = <T,>(list: T[], x: T) => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
 
 export function FilterSheet({
   value,
@@ -25,14 +24,6 @@ export function FilterSheet({
 }) {
   const [draft, setDraft] = useState(value);
   const sheet = useModalSheet<HTMLElement>(onClose);
-
-  const toggleGen = (g: number) =>
-    setDraft({ ...draft, gens: draft.gens.includes(g) ? draft.gens.filter((x) => x !== g) : [...draft.gens, g].sort() });
-  const toggleType = (t: TypeName) => {
-    if (draft.types.includes(t)) setDraft({ ...draft, types: draft.types.filter((x) => x !== t) });
-    else if (draft.types.length < 2) setDraft({ ...draft, types: [...draft.types, t] });
-  };
-
   const count = countFor(draft);
 
   return (
@@ -42,25 +33,36 @@ export function FilterSheet({
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="filter-title">Filter &amp; sort</h2>
-          <button className="text-btn" onClick={() => setDraft({ ...DEFAULT_FILTERS, query: draft.query })}>
+          <button className="text-btn" onClick={() => setDraft((d) => ({ ...DEFAULT_FILTERS, query: d.query }))}>
             Reset
           </button>
         </div>
 
-        <h3>Generation</h3>
-        <div className="gen-row">
+        <ToggleAllHeading
+          title="Generation"
+          all={draft.gens.length === GENS.length}
+          onToggle={(all) => setDraft((d) => ({ ...d, gens: all ? [] : GENS }))}
+        />
+        <div className="gen-grid">
           {GENS.map((g) => (
-            <button key={g} className="gen-btn" aria-pressed={draft.gens.includes(g)} onClick={() => toggleGen(g)}>
-              {roman(g)}
+            <button
+              key={g}
+              className="gen-btn"
+              aria-pressed={draft.gens.includes(g)}
+              onClick={() => setDraft((d) => ({ ...d, gens: toggle(d.gens, g).sort() }))}
+            >
+              Gen {roman(g)}
             </button>
           ))}
         </div>
 
-        <h3>
-          Type <span style={{ fontWeight: 600, textTransform: 'none' }}>· {draft.types.length} of 2</span>
-        </h3>
+        <ToggleAllHeading
+          title="Type"
+          all={draft.types.length === TYPE_NAMES.length}
+          onToggle={(all) => setDraft((d) => ({ ...d, types: all ? [] : [...TYPE_NAMES] }))}
+        />
         <div className="type-grid">
-          {TYPE_NAMES.map((t) => {
+          {TYPE_NAMES.map((t: TypeName) => {
             const on = draft.types.includes(t);
             const c = typeChip(t);
             return (
@@ -68,8 +70,7 @@ export function FilterSheet({
                 key={t}
                 className="type-toggle"
                 aria-pressed={on}
-                disabled={!on && draft.types.length >= 2}
-                onClick={() => toggleType(t)}
+                onClick={() => setDraft((d) => ({ ...d, types: toggle(d.types, t) }))}
                 style={{ borderColor: c, backgroundColor: on ? c : undefined, color: on ? 'var(--on-type)' : 'var(--ink)' }}
               >
                 {t}
@@ -77,13 +78,13 @@ export function FilterSheet({
             );
           })}
         </div>
-        <p className="hint">Pick two types to find that exact dual-type combination.</p>
+        <p className="hint">Shows Pokémon with any of the chosen types.</p>
 
         <h3>Sort by</h3>
-        <div className="segmented" role="radiogroup" aria-label="Sort by">
-          {SORTS.map((s) => (
-            <button key={s.key} role="radio" aria-checked={draft.sort === s.key} onClick={() => setDraft({ ...draft, sort: s.key })}>
-              {s.label}
+        <div className="sort-grid" role="radiogroup" aria-label="Sort by">
+          {SORTS.map(([key, label]) => (
+            <button key={key} className="gen-btn" role="radio" aria-checked={draft.sort === key} onClick={() => setDraft((d) => ({ ...d, sort: key }))}>
+              {label}
             </button>
           ))}
         </div>
@@ -94,5 +95,17 @@ export function FilterSheet({
         </button>
       </section>
     </>
+  );
+}
+
+/** A section heading that selects every option, or clears them when all are selected. */
+export function ToggleAllHeading({ title, all, onToggle }: { title: string; all: boolean; onToggle: (all: boolean) => void }) {
+  return (
+    <h3>
+      <button className="head-toggle" aria-pressed={all} onClick={() => onToggle(all)}>
+        {title}
+        <span className="act">{all ? 'Clear' : 'Select all'}</span>
+      </button>
+    </h3>
   );
 }

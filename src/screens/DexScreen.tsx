@@ -5,10 +5,10 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { artworkUrl, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { cap, formatNo, roman } from '../data/format';
 import { addToTeam, db } from '../data/db';
-import { saveOrder, useDexFilters } from '../data/dexState';
+import { SORT_LABELS, saveOrder, useDexFilters, type SortKey } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
 import type { IndexEntry } from '../data/types';
-import { FUSE_OPTIONS, applyFilters } from '../data/filter';
+import { FUSE_OPTIONS, applyFilters, sortValue } from '../data/filter';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
@@ -62,9 +62,11 @@ export function DexScreen() {
     if (ok && team) toast({ text: `Added to ${team.name}` });
   }
 
-  const genLabel = filters.gens.length ? `Gen ${filters.gens.map(roman).join(', ')}` : 'All gens';
-  const typeLabel = filters.types.length ? filters.types.map(cap).join(' / ') : 'All types';
-  const sortLabel = { number: 'Number', name: 'Name', total: 'Base total' }[filters.sort];
+  const chips = [
+    filters.gens.length > 0 && (filters.gens.length > 3 ? `${filters.gens.length} gens` : `Gen ${filters.gens.map(roman).join(', ')}`),
+    filters.types.length > 0 && (filters.types.length > 2 ? `${filters.types.length} types` : filters.types.map(cap).join(' or ')),
+    filters.sort !== 'number' && `Sort: ${SORT_LABELS[filters.sort]}`,
+  ].filter((c): c is string => !!c);
 
   return (
     <>
@@ -88,17 +90,15 @@ export function DexScreen() {
         />
       </header>
 
-      <div className="chip-row">
-        <button className={`filter-chip ${filters.gens.length ? 'on' : ''}`} onClick={() => setSheetOpen(true)}>
-          {genLabel}
-        </button>
-        <button className={`filter-chip ${filters.types.length ? 'on' : ''}`} onClick={() => setSheetOpen(true)}>
-          {typeLabel}
-        </button>
-        <button className={`filter-chip ${filters.sort !== 'number' ? 'on' : ''}`} onClick={() => setSheetOpen(true)}>
-          Sort: {sortLabel}
-        </button>
-      </div>
+      {chips.length > 0 && (
+        <div className="chip-row">
+          {chips.map((c) => (
+            <button key={c} className="filter-chip on" onClick={() => setSheetOpen(true)}>
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
 
       {pickTeam != null && (
         <div className="pick-banner">
@@ -126,6 +126,7 @@ export function DexScreen() {
                   mon={m}
                   art={spriteStyle === 'art'}
                   row={view === 'list'}
+                  value={sortedBy(m, filters.sort)}
                   onPick={pickTeam != null ? () => pick(m.id) : undefined}
                 />
               ))}
@@ -163,11 +164,23 @@ export function DexScreen() {
   );
 }
 
+/** What the card shows for the current sort, e.g. "Attack 84" or "90.5 kg"; nothing for number and name. */
+function sortedBy(m: IndexEntry, sort: SortKey): string | undefined {
+  const v = sortValue(m, sort);
+  if (v === undefined) return undefined;
+  if (sort === 'height') return `${v} m`;
+  if (sort === 'weight') return `${v} kg`;
+  return `${SORT_LABELS[sort]} ${v}`;
+}
+
 /** A species in the grid (card) or in list view (`row`: sprite on the left, one line). */
-function MonCard({ mon, art, row, onPick }: { mon: IndexEntry; art: boolean; row: boolean; onPick?: () => void }) {
+function MonCard({ mon, art, row, value, onPick }: { mon: IndexEntry; art: boolean; row: boolean; value?: string; onPick?: () => void }) {
   const body = (
     <>
-      <div className="no">{formatNo(mon.id)}</div>
+      <div className="no">
+        {formatNo(mon.id)}
+        {value && <span className="sort-val"> · {value}</span>}
+      </div>
       <div className="name">{mon.name}</div>
       <div className="types">
         {mon.types.map((t) => (

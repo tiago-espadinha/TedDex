@@ -1,8 +1,23 @@
 import { useCallback, useState } from 'react';
-import type { TypeName } from './types';
+import type { StatBlock, TypeName } from './types';
 
 /** Dex list filters. Kept in sessionStorage so they survive opening a detail page. */
-export type SortKey = 'number' | 'name' | 'total';
+export type SortKey = 'number' | 'name' | 'total' | keyof StatBlock | 'height' | 'weight';
+
+/** Sort options in the order the filter sheet shows them. */
+export const SORT_LABELS: Record<SortKey, string> = {
+  number: 'Number',
+  name: 'Name',
+  total: 'Base total',
+  hp: 'HP',
+  atk: 'Attack',
+  def: 'Defense',
+  spa: 'Sp. Atk',
+  spd: 'Sp. Def',
+  spe: 'Speed',
+  height: 'Height',
+  weight: 'Weight',
+};
 
 export interface DexFilters {
   query: string;

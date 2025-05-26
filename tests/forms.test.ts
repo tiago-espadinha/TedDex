@@ -79,7 +79,7 @@ describe('applyForm', () => {
 });
 
 describe('memberView', () => {
-  const grid: IndexEntry = { id: 6, name: 'Charizard', types: ['fire', 'flying'], gen: 1, total: 534 };
+  const grid: IndexEntry = { id: 6, name: 'Charizard', types: ['fire', 'flying'], gen: 1, total: 534, stats: stats(89), heightM: 1.7, weightKg: 90.5 };
 
   test("uses the form's name, types and media id when the member has a form", () => {
     assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-x' }, grid, charizard), {
