@@ -248,19 +248,19 @@ function PickerSheet({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState('');
-  const sheet = useModalSheet<HTMLElement>(onClose);
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
 
   const q = query.trim().toLowerCase();
   const shown = q ? options.filter((o) => o.name.toLowerCase().includes(q)) : options;
 
   return (
     <>
-      <div className="scrim" onClick={onClose} />
+      <div className="scrim" onClick={() => close()} />
       <section ref={sheet} tabIndex={-1} className="sheet picker" role="dialog" aria-modal="true" aria-label={title}>
         <div className="handle" />
         <div className="sheet-head">
           <h2>{title}</h2>
-          <button className="text-btn" onClick={onClose}>
+          <button className="text-btn" onClick={() => close()}>
             Cancel
           </button>
         </div>
@@ -276,7 +276,7 @@ function PickerSheet({
                 className="move-row"
                 onClick={() => {
                   onPick(o.id);
-                  onClose();
+                  close();
                 }}
               >
                 {render(o)}

@@ -63,6 +63,16 @@ const router = createBrowserRouter([
   },
 ]);
 
+// Screen changes animate with the View Transitions API (no-op where unsupported). Wrapping navigate
+// covers every <Link> and navigate() call; only path changes animate, so typing in a search box
+// (search params) doesn't, and Back replays the transition of the forward step.
+const navigate = router.navigate;
+router.navigate = ((to: Parameters<typeof navigate>[0], opts?: Parameters<typeof navigate>[1]) => {
+  if (typeof to === 'number') return navigate(to);
+  const path = typeof to === 'string' ? new URL(to, location.href).pathname : to?.pathname;
+  return navigate(to, { ...opts, viewTransition: opts?.viewTransition ?? (path != null && path !== location.pathname) });
+}) as typeof navigate;
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RouterProvider router={router} />

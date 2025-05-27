@@ -84,11 +84,16 @@ export function DetailScreen() {
     );
   }
 
+  const [playing, setPlaying] = useState(false);
   function playCry() {
     const audio = new Audio(cryUrl(id));
-    audio.play().catch(() =>
-      toast({ text: navigator.onLine ? "This browser can't play the cry" : "This cry isn't saved offline yet" }),
-    );
+    const stop = () => setPlaying(false);
+    audio.addEventListener('ended', stop);
+    setPlaying(true);
+    audio.play().catch(() => {
+      stop();
+      toast({ text: navigator.onLine ? "This browser can't play the cry" : "This cry isn't saved offline yet" });
+    });
   }
 
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
@@ -118,7 +123,7 @@ export function DetailScreen() {
             <Icon name="back" />
           </button>
           <div>
-            <button className="icon-btn" aria-label="Play cry" onClick={playCry}>
+            <button className={playing ? 'icon-btn playing' : 'icon-btn'} aria-label={playing ? 'Playing cry' : 'Play cry'} onClick={playCry}>
               <Icon name="sound" />
             </button>
             <button className="icon-btn" aria-label="Add to team" onClick={() => addToCurrentTeam(form?.key)}>
