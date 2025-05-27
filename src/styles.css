@@ -397,7 +397,10 @@ main:focus, .sheet:focus { outline: none; }
 .move-group { margin-top: 14px; }
 .move-group ul { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; }
-.move-row + .move-row { border-top: 1px solid var(--line); }
+.move-row + .move-row, .move-group li + li > .move-row { border-top: 1px solid var(--line); }
+.move-group a.move-row { color: var(--ink); text-decoration: none; }
+.move-group a.move-row:active { background: var(--surface-2); }
+.move-group a.move-row:focus-visible { outline-offset: -2px; }
 .move-row .lv { flex: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 12px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; font-weight: 800; }
 .move-row .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .move-row .name { font-size: 15px; font-weight: 700; }
@@ -498,6 +501,8 @@ a.move-row.tinted { color: var(--on-tint); }
 
 /* ---------- member editor ---------- */
 button.ability { text-align: left; min-height: 44px; }
+a.ability { color: inherit; text-decoration: none; min-height: 44px; display: flex; align-items: center; }
+.method-pick { margin-top: 12px; }
 .ability[aria-checked='true'] { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); }
 .ability[aria-checked='true'] small { color: inherit; }
 .game-select .sr-only + select { padding-left: 0; }

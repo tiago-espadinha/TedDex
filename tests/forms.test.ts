@@ -12,7 +12,7 @@ const variant = (over: Partial<FormVariant>): FormVariant => ({
   types: ['fire', 'flying'],
   stats: stats(89),
   total: 534,
-  abilities: [{ name: 'Blaze', hidden: false }],
+  abilities: [{ id: 66, name: 'Blaze', hidden: false }],
   heightM: 1.7,
   weightKg: 90.5,
   evYield: { spa: 3 },
@@ -26,7 +26,7 @@ const megaX = variant({
   types: ['fire', 'dragon'],
   stats: stats(105),
   total: 634,
-  abilities: [{ name: 'Tough Claws', hidden: false }],
+  abilities: [{ id: 181, name: 'Tough Claws', hidden: false }],
   weightKg: 110.5,
 });
 const charizard: SpeciesDetail = {
@@ -40,7 +40,7 @@ const charizard: SpeciesDetail = {
   weightKg: 90.5,
   stats: stats(89),
   total: 534,
-  abilities: [{ name: 'Blaze', hidden: false }],
+  abilities: [{ id: 66, name: 'Blaze', hidden: false }],
   flavor: 'Spits fire.',
   catchRate: 45,
   evYield: { spa: 3 },
@@ -61,7 +61,7 @@ describe('applyForm', () => {
     assert.equal(view.name, 'Mega Charizard X');
     assert.deepEqual(view.types, ['fire', 'dragon']);
     assert.equal(view.total, 634);
-    assert.deepEqual(view.abilities, [{ name: 'Tough Claws', hidden: false }]);
+    assert.deepEqual(view.abilities, [{ id: 181, name: 'Tough Claws', hidden: false }]);
     assert.equal(view.weightKg, 110.5);
   });
 

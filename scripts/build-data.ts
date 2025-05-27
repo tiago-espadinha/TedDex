@@ -448,7 +448,7 @@ async function main() {
       total: Object.values(stats).reduce((a, b) => a + b, 0),
       abilities: (abilitiesByPokemon.get(p.id) ?? [])
         .sort((a, b) => Number(a.slot) - Number(b.slot))
-        .map((a) => ({ name: abilityName.get(a.ability_id) ?? `#${a.ability_id}`, hidden: a.is_hidden === '1' })),
+        .map((a) => ({ id: Number(a.ability_id), name: abilityName.get(a.ability_id) ?? `#${a.ability_id}`, hidden: a.is_hidden === '1' })),
       heightM: Number(p.height) / 10,
       weightKg: Number(p.weight) / 10,
       evYield,

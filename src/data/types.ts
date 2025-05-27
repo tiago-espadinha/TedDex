@@ -34,7 +34,8 @@ export interface StatBlock {
 export interface SpeciesDetail extends IndexEntry {
   slug: string;
   genus: string;
-  abilities: { name: string; hidden: boolean }[];
+  /** `id` is the reference/abilities.json id. */
+  abilities: { id: number; name: string; hidden: boolean }[];
   flavor: string;
   catchRate: number;
   /** Effort values a defeated Pokémon gives; only the stats it gives any in. */

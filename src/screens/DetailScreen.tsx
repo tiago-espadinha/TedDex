@@ -44,7 +44,9 @@ export function DetailScreen() {
   const navigate = useNavigate();
   const toast = useToast();
   const { prev, next } = neighbours(id);
-  const touch = useRef<{ x: number; y: number } | null>(null);
+  // A sideways swipe on the hero steps through species, on the panel below through the tabs.
+  const touch = useRef<Point | null>(null);
+  const panelTouch = useRef<Point | null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -113,12 +115,9 @@ export function DetailScreen() {
         style={{ backgroundColor: tint, paddingTop: 'var(--safe-top)', marginTop: 'calc(-1 * var(--safe-top))' }}
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
         onTouchEnd={(e) => {
-          const s = touch.current;
+          const step = swipeStep(touch.current, e.changedTouches[0]);
           touch.current = null;
-          if (!s) return;
-          const dx = e.changedTouches[0].clientX - s.x;
-          const dy = e.changedTouches[0].clientY - s.y;
-          if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? next : prev);
+          if (step) go(step > 0 ? next : prev);
         }}
       >
         <div className="bar">
@@ -175,7 +174,18 @@ export function DetailScreen() {
         ))}
       </div>
 
-      <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
+      <div
+        id="tab-panel"
+        role="tabpanel"
+        aria-labelledby={`tab-${tab}`}
+        onTouchStart={(e) => (panelTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+        onTouchEnd={(e) => {
+          const step = swipeStep(panelTouch.current, e.changedTouches[0]);
+          panelTouch.current = null;
+          const to = TABS[TABS.indexOf(tab) + step];
+          if (step && to) setTab(to);
+        }}
+      >
         {tab === 'About' && <About mon={view} species={mon} />}
         {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
         {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
@@ -183,6 +193,20 @@ export function DetailScreen() {
       <div style={{ height: 24 }} />
     </>
   );
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+/** 1 for a swipe to the left (next), -1 to the right (previous), 0 when the gesture is mostly vertical or short. */
+function swipeStep(start: Point | null, end: { clientX: number; clientY: number }): number {
+  if (!start) return 0;
+  const dx = end.clientX - start.x;
+  const dy = end.clientY - start.y;
+  if (Math.abs(dx) <= 60 || Math.abs(dx) <= Math.abs(dy) * 1.5) return 0;
+  return dx < 0 ? 1 : -1;
 }
 
 /**
@@ -297,10 +321,10 @@ function Stats({ mon, typeData }: { mon: SpeciesDetail; typeData?: TypeData }) {
         <div className="ability-row">
           {!mon.abilities.length && <p className="hint">Not in the data yet</p>}
           {mon.abilities.map((a) => (
-            <span className="ability" key={a.name}>
+            <Link className="ability link" key={a.name} to={`/reference/abilities/${a.id}`}>
               {a.name}
               {a.hidden && <small>hidden</small>}
-            </span>
+            </Link>
           ))}
         </div>
       </div>
