@@ -11,3 +11,20 @@ export function formatMultiplier(m: number): string {
   if (m === 1) return '';
   return `${m}×`;
 }
+
+const STAT_SHORT = { hp: 'HP', atk: 'Atk', def: 'Def', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' } as const;
+
+/** { spa: 1 } → "1 Sp. Atk"; { atk: 2, spe: 1 } → "2 Atk, 1 Speed"; {} → "None". */
+export function evYieldText(ev: Partial<Record<keyof typeof STAT_SHORT, number>>): string {
+  const parts = (Object.keys(STAT_SHORT) as (keyof typeof STAT_SHORT)[]).filter((k) => ev[k]).map((k) => `${ev[k]} ${STAT_SHORT[k]}`);
+  return parts.length ? parts.join(', ') : 'None';
+}
+
+/** Female share in eighths (-1 genderless) → "87.5% ♂ · 12.5% ♀", "100% ♂", "Genderless". */
+export function genderText(rate: number): string {
+  if (rate < 0) return 'Genderless';
+  const female = (rate / 8) * 100;
+  if (female === 0) return '100% ♂';
+  if (female === 100) return '100% ♀';
+  return `${100 - female}% ♂ · ${female}% ♀`;
+}

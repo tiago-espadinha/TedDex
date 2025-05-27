@@ -4,7 +4,7 @@ import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, sprit
 import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { formatMultiplier, formatNo, roman } from '../data/format';
+import { evYieldText, formatMultiplier, formatNo, genderText } from '../data/format';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
@@ -13,7 +13,7 @@ import { EvolutionTab } from './EvolutionTab';
 import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
 
-const TABS = ['About', 'Stats', 'Moves', 'Evolution', 'Locations'] as const;
+const TABS = ['About', 'Stats', 'Moves'] as const;
 type Tab = (typeof TABS)[number];
 const TAB_KEY = 'detail-tab';
 
@@ -33,7 +33,10 @@ export function DetailScreen() {
   const [params, setParams] = useSearchParams();
   const { data: mon, error } = useLoad(() => loadSpecies(id), id);
   const { data: typeData } = useLoad(loadTypes, 'types');
-  const [tab, setTabState] = useState<Tab>(() => (sessionStorage.getItem(TAB_KEY) as Tab) || 'Stats');
+  const [tab, setTabState] = useState<Tab>(() => {
+    const saved = sessionStorage.getItem(TAB_KEY) as Tab;
+    return TABS.includes(saved) ? saved : 'Stats';
+  });
   const setTab = (t: Tab) => {
     setTabState(t);
     sessionStorage.setItem(TAB_KEY, t);
@@ -41,7 +44,9 @@ export function DetailScreen() {
   const navigate = useNavigate();
   const toast = useToast();
   const { prev, next } = neighbours(id);
-  const touch = useRef<{ x: number; y: number } | null>(null);
+  // A sideways swipe on the hero steps through species, on the panel below through the tabs.
+  const touch = useRef<Point | null>(null);
+  const panelTouch = useRef<Point | null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -84,11 +89,16 @@ export function DetailScreen() {
     );
   }
 
+  const [playing, setPlaying] = useState(false);
   function playCry() {
     const audio = new Audio(cryUrl(id));
-    audio.play().catch(() =>
-      toast({ text: navigator.onLine ? "This browser can't play the cry" : "This cry isn't saved offline yet" }),
-    );
+    const stop = () => setPlaying(false);
+    audio.addEventListener('ended', stop);
+    setPlaying(true);
+    audio.play().catch(() => {
+      stop();
+      toast({ text: navigator.onLine ? "This browser can't play the cry" : "This cry isn't saved offline yet" });
+    });
   }
 
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
@@ -105,12 +115,9 @@ export function DetailScreen() {
         style={{ backgroundColor: tint, paddingTop: 'var(--safe-top)', marginTop: 'calc(-1 * var(--safe-top))' }}
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
         onTouchEnd={(e) => {
-          const s = touch.current;
+          const step = swipeStep(touch.current, e.changedTouches[0]);
           touch.current = null;
-          if (!s) return;
-          const dx = e.changedTouches[0].clientX - s.x;
-          const dy = e.changedTouches[0].clientY - s.y;
-          if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? next : prev);
+          if (step) go(step > 0 ? next : prev);
         }}
       >
         <div className="bar">
@@ -118,7 +125,7 @@ export function DetailScreen() {
             <Icon name="back" />
           </button>
           <div>
-            <button className="icon-btn" aria-label="Play cry" onClick={playCry}>
+            <button className={playing ? 'icon-btn playing' : 'icon-btn'} aria-label={playing ? 'Playing cry' : 'Play cry'} onClick={playCry}>
               <Icon name="sound" />
             </button>
             <button className="icon-btn" aria-label="Add to team" onClick={() => addToCurrentTeam(form?.key)}>
@@ -134,6 +141,9 @@ export function DetailScreen() {
               <TypeChip key={t} type={t} large />
             ))}
           </div>
+          <p className="hero-facts">
+            {[view.genus, `${view.heightM} m`, `${view.weightKg} kg`].filter(Boolean).join(' · ')}
+          </p>
         </div>
         {mon.forms && <FormPicker forms={mon.forms} current={form?.key ?? ''} onPick={pickForm} />}
         <div className="art-row">
@@ -164,16 +174,39 @@ export function DetailScreen() {
         ))}
       </div>
 
-      <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
-        {tab === 'About' && <About mon={view} />}
+      <div
+        id="tab-panel"
+        role="tabpanel"
+        aria-labelledby={`tab-${tab}`}
+        onTouchStart={(e) => (panelTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+        onTouchEnd={(e) => {
+          const step = swipeStep(panelTouch.current, e.changedTouches[0]);
+          panelTouch.current = null;
+          const to = TABS[TABS.indexOf(tab) + step];
+          if (step && to) setTab(to);
+        }}
+      >
+        {tab === 'About' && <About mon={view} species={mon} />}
         {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
         {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
-        {tab === 'Evolution' && <EvolutionTab mon={mon} />}
-        {tab === 'Locations' && <LocationsTab key={mon.id} mon={mon} />}
       </div>
       <div style={{ height: 24 }} />
     </>
   );
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+/** 1 for a swipe to the left (next), -1 to the right (previous), 0 when the gesture is mostly vertical or short. */
+function swipeStep(start: Point | null, end: { clientX: number; clientY: number }): number {
+  if (!start) return 0;
+  const dx = end.clientX - start.x;
+  const dy = end.clientY - start.y;
+  if (Math.abs(dx) <= 60 || Math.abs(dx) <= Math.abs(dy) * 1.5) return 0;
+  return dx < 0 ? 1 : -1;
 }
 
 /**
@@ -227,29 +260,36 @@ function FormPicker({ forms, current, onPick }: { forms: FormVariant[]; current:
   );
 }
 
-function About({ mon }: { mon: SpeciesDetail }) {
+/** Description, evolution and locations, then training and breeding facts. Evolution and locations stay species-level. */
+function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail }) {
+  const facts: [string, string][] = [
+    ['Catch rate', String(mon.catchRate)],
+    ['EV yield', evYieldText(mon.evYield)],
+    ['Leveling rate', mon.growthRate],
+    ['Egg groups', mon.eggGroups.join(', ')],
+    ['Gender ratio', genderText(mon.genderRate)],
+  ];
   return (
-    <div className="section">
-      {mon.flavor && <p className="flavor">{mon.flavor}</p>}
-      <div className="facts">
-        <div className="fact">
-          <div className="k">Category</div>
-          <div className="v">{mon.genus || '—'}</div>
+    <>
+      {mon.flavor && (
+        <div className="section">
+          <p className="flavor">{mon.flavor}</p>
         </div>
-        <div className="fact">
-          <div className="k">Introduced</div>
-          <div className="v">Gen {roman(mon.gen)}</div>
-        </div>
-        <div className="fact">
-          <div className="k">Height</div>
-          <div className="v">{mon.heightM} m</div>
-        </div>
-        <div className="fact">
-          <div className="k">Weight</div>
-          <div className="v">{mon.weightKg} kg</div>
+      )}
+      <EvolutionTab mon={species} />
+      <LocationsTab key={species.id} mon={species} />
+      <div className="section">
+        <h2>Training and breeding</h2>
+        <div className="facts">
+          {facts.map(([k, v]) => (
+            <div className="fact" key={k}>
+              <div className="k">{k}</div>
+              <div className="v">{v}</div>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -281,10 +321,10 @@ function Stats({ mon, typeData }: { mon: SpeciesDetail; typeData?: TypeData }) {
         <div className="ability-row">
           {!mon.abilities.length && <p className="hint">Not in the data yet</p>}
           {mon.abilities.map((a) => (
-            <span className="ability" key={a.name}>
+            <Link className="ability link" key={a.name} to={`/reference/abilities/${a.id}`}>
               {a.name}
               {a.hidden && <small>hidden</small>}
-            </span>
+            </Link>
           ))}
         </div>
       </div>

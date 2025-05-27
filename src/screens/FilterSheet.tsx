@@ -23,12 +23,12 @@ export function FilterSheet({
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState(value);
-  const sheet = useModalSheet<HTMLElement>(onClose);
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
 
   return (
     <>
-      <div className="scrim" onClick={onClose} />
+      <div className="scrim" onClick={() => close()} />
       <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="filter-title">
         <div className="handle" />
         <div className="sheet-head">
@@ -90,7 +90,7 @@ export function FilterSheet({
         </div>
 
         <div style={{ height: 24 }} />
-        <button className="primary-btn" onClick={() => onApply(draft)} disabled={count === 0}>
+        <button className="primary-btn" onClick={() => close(() => onApply(draft))} disabled={count === 0}>
           {count === 0 ? 'No results' : `Show ${count} result${count === 1 ? '' : 's'}`}
         </button>
       </section>

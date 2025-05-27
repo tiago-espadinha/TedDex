@@ -16,19 +16,20 @@ export function LocationsTab({ mon }: { mon: SpeciesDetail }) {
   if (error) {
     return (
       <div className="section">
-        <p className="empty">Couldn't load locations. {error.message}</p>
+        <h2>Locations</h2>
+        <p className="hint">Couldn't load locations. {error.message}</p>
       </div>
     );
   }
-  if (!data) return <Loading minHeight={320} />;
+  if (!data) return <Loading minHeight={160} />;
 
   const [locations, allGames] = data;
   const games = allGames.filter((g) => locations.games[g.id]);
   if (!games.length) {
     return (
       <div className="section">
-        <p className="empty">{mon.name} has no wild encounters, gifts or in-game trades on record.</p>
-        <p className="hint">{COVERAGE}</p>
+        <h2>Locations</h2>
+        <p className="hint">{mon.name} has no wild encounters, gifts or in-game trades on record. {COVERAGE}</p>
       </div>
     );
   }
@@ -37,6 +38,7 @@ export function LocationsTab({ mon }: { mon: SpeciesDetail }) {
 
   return (
     <div className="section">
+      <h2>Locations</h2>
       <label className="game-select">
         <span className="k">Game</span>
         <select value={game} onChange={(e) => setPick(Number(e.target.value))}>

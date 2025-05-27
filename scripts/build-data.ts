@@ -7,7 +7,8 @@
  * Output (all under public/data/):
  *   index.json            one row per species (default form): grid, search, filters, sorting by stat and size
  *   types.json            18 types + full damage matrix (attacker -> defender -> factor)
- *   species/<id>.json     detail page data, loaded on demand; `forms` lists battle forms (regional, mega, gmax…)
+ *   species/<id>.json     detail page data (incl. catch rate, EV yield, growth rate, egg groups, gender), loaded on demand;
+ *                         `forms` lists battle forms (regional, mega, gmax…)
  *   learnsets/<id>.json   moves per version group (level-up, TM, tutor, egg), loaded by the Moves tab
  *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP
  *   versions.json         main-series version groups that have learnsets, oldest first
@@ -168,6 +169,16 @@ const EVOLUTION_STONES = new Set([
   'dawn-stone', 'ice-stone',
 ]);
 const EEVEE_CHAIN = '67';
+/** The games' names for growth_rates and egg_groups identifiers (PokeAPI uses the internal ones). */
+const GROWTH_RATES: Record<string, string> = {
+  slow: 'Slow', medium: 'Medium Fast', fast: 'Fast', 'medium-slow': 'Medium Slow',
+  'slow-then-very-fast': 'Erratic', 'fast-then-very-slow': 'Fluctuating',
+};
+const EGG_GROUPS: Record<string, string> = {
+  monster: 'Monster', water1: 'Water 1', bug: 'Bug', flying: 'Flying', ground: 'Field', fairy: 'Fairy', plant: 'Grass',
+  humanshape: 'Human-Like', water3: 'Water 3', mineral: 'Mineral', indeterminate: 'Amorphous', water2: 'Water 2',
+  ditto: 'Ditto', dragon: 'Dragon', 'no-eggs': 'Undiscovered',
+};
 /** Form keys of regional variants: "alola", "galar-zen", "paldea-aqua-breed"… */
 const REGIONAL_FORM = /^(alola|galar|hisui|paldea)\b/;
 const TIMES: Record<string, string> = { day: 'during the day', night: 'at night', dusk: 'at dusk', 'full-moon': 'under a full moon' };
@@ -287,6 +298,9 @@ async function main() {
     locations,
     locationAreas,
     locationAreaProse,
+    growthRates,
+    eggGroups,
+    pokemonEggGroups,
   ] = await Promise.all(
       [
         'pokemon_species',
@@ -332,6 +346,9 @@ async function main() {
         'locations',
         'location_areas',
         'location_area_prose',
+        'growth_rates',
+        'egg_groups',
+        'pokemon_egg_groups',
       ].map(load),
     );
 
@@ -394,6 +411,18 @@ async function main() {
   const usedVersionGroups = new Set<string>();
 
   const STAT_KEYS = ['', 'hp', 'atk', 'def', 'spa', 'spd', 'spe'] as const;
+  /** Game name for an identifier from one of the tables above; fails on one the table lacks. */
+  const gameName = (table: Record<string, string>, rows: Row[], label: string) => {
+    const byId = new Map(rows.map((r) => [r.id, r.identifier]));
+    return (id: string) => {
+      const name = table[byId.get(id) ?? ''];
+      if (!name) throw new Error(`${label}: no name for id ${id}`);
+      return name;
+    };
+  };
+  const growthName = gameName(GROWTH_RATES, growthRates, 'GROWTH_RATES');
+  const eggGroupName = gameName(EGG_GROUPS, eggGroups, 'EGG_GROUPS');
+  const eggGroupsBySpecies = groupBy(pokemonEggGroups, (r) => r.species_id);
 
   await rm(OUT, { recursive: true, force: true });
   await mkdir(join(OUT, 'species'), { recursive: true });
@@ -406,9 +435,12 @@ async function main() {
       .map((r) => typeName.get(r.type_id))
       .filter((x): x is string => !!x);
     const stats: Record<string, number> = {};
+    const evYield: Record<string, number> = {};
     for (const r of statsByPokemon.get(p.id) ?? []) {
       const key = STAT_KEYS[Number(r.stat_id)];
-      if (key) stats[key] = Number(r.base_stat);
+      if (!key) continue;
+      stats[key] = Number(r.base_stat);
+      if (Number(r.effort)) evYield[key] = Number(r.effort);
     }
     return {
       types,
@@ -416,9 +448,10 @@ async function main() {
       total: Object.values(stats).reduce((a, b) => a + b, 0),
       abilities: (abilitiesByPokemon.get(p.id) ?? [])
         .sort((a, b) => Number(a.slot) - Number(b.slot))
-        .map((a) => ({ name: abilityName.get(a.ability_id) ?? `#${a.ability_id}`, hidden: a.is_hidden === '1' })),
+        .map((a) => ({ id: Number(a.ability_id), name: abilityName.get(a.ability_id) ?? `#${a.ability_id}`, hidden: a.is_hidden === '1' })),
       heightM: Number(p.height) / 10,
       weightKg: Number(p.weight) / 10,
+      evYield,
     };
   }
 
@@ -499,7 +532,7 @@ async function main() {
   for (const s of ordered) {
     const p = defaultPokemon.get(s.id);
     if (!p) continue;
-    const { types: t, stats, total, abilities, heightM, weightKg } = battleData(p);
+    const { types: t, stats, total, abilities, heightM, weightKg, evYield } = battleData(p);
     const n = names.get(s.id);
     const id = Number(s.id);
     const forms = formsOf(s, p, n?.name ?? s.identifier);
@@ -531,6 +564,11 @@ async function main() {
       total,
       abilities,
       flavor: flavorBySpecies.get(s.id)?.text ?? '',
+      catchRate: Number(s.capture_rate),
+      evYield,
+      growthRate: growthName(s.growth_rate_id),
+      eggGroups: (eggGroupsBySpecies.get(s.id) ?? []).map((r) => eggGroupName(r.egg_group_id)),
+      genderRate: Number(s.gender_rate),
       legendary: s.is_legendary === '1',
       mythical: s.is_mythical === '1',
       evolutionChainId: Number(s.evolution_chain_id) || null,

@@ -13,7 +13,7 @@ export function EvolutionTab({ mon }: { mon: SpeciesDetail }) {
   const { data, error } = useLoad(() => (chainId ? loadAll(chainId) : Promise.resolve(undefined)), chainId);
 
   if (error) return <Note>Couldn't load the evolution chain. {error.message}</Note>;
-  if (chainId && !data) return <Loading minHeight={240} />;
+  if (chainId && !data) return <Loading minHeight={160} />;
   if (!data || data[0].length < 2) return <Note>{mon.name} does not evolve.</Note>;
 
   const [chain, index] = data;
@@ -36,7 +36,7 @@ export function EvolutionTab({ mon }: { mon: SpeciesDetail }) {
 
   return (
     <div className="section">
-      <h2>Evolution chain</h2>
+      <h2>Evolution</h2>
       <ul className="evo-list">{branch(null)}</ul>
     </div>
   );
@@ -77,7 +77,8 @@ function EvoMember({ member, species, current }: { member: EvolutionMember; spec
 function Note({ children }: { children: ReactNode }) {
   return (
     <div className="section">
-      <p className="empty">{children}</p>
+      <h2>Evolution</h2>
+      <p className="hint">{children}</p>
     </div>
   );
 }

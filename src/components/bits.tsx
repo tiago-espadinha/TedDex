@@ -75,26 +75,36 @@ export function SearchField({
 }
 
 // ---------- modal sheet ----------
+/** Length of the `.sheet.closing` animation in styles.css. */
+const SHEET_CLOSE_MS = 180;
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Modal behaviour for a bottom sheet: Escape closes, the page behind doesn't scroll,
  * focus moves in (to a `data-autofocus` field, else the sheet), Tab stays inside, and
  * focus goes back to the opener on close (or to <main> if the opener is gone).
+ * Returns the sheet's ref and `close(then?)`, which plays the closing animation and then
+ * calls `then` (default: `onClose`).
  */
 export function useModalSheet<T extends HTMLElement>(onClose: () => void) {
   const ref = useRef<T>(null);
-  const close = useRef(onClose);
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    close.current = onClose;
+    onCloseRef.current = onClose;
   });
+  const close = useCallback((then?: () => void) => {
+    const done = then ?? onCloseRef.current;
+    if (!ref.current || matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
+    ref.current.classList.add('closing');
+    setTimeout(done, SHEET_CLOSE_MS);
+  }, []);
 
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     const sheet = ref.current;
     (sheet?.querySelector<HTMLElement>('[data-autofocus]') ?? sheet)?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') return close.current();
+      if (e.key === 'Escape') return close();
       if (e.key !== 'Tab' || !sheet) return;
       const items = [...sheet.querySelectorAll<HTMLElement>(FOCUSABLE)];
       if (!items.length) return;
@@ -116,9 +126,9 @@ export function useModalSheet<T extends HTMLElement>(onClose: () => void) {
       document.body.style.overflow = '';
       (opener?.isConnected ? opener : document.querySelector('main'))?.focus();
     };
-  }, []);
+  }, [close]);
 
-  return ref;
+  return [ref, close] as const;
 }
 
 // ---------- loading ----------
