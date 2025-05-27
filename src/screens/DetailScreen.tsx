@@ -4,7 +4,7 @@ import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, sprit
 import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { formatMultiplier, formatNo, roman } from '../data/format';
+import { evYieldText, formatMultiplier, formatNo, genderText } from '../data/format';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
@@ -13,7 +13,7 @@ import { EvolutionTab } from './EvolutionTab';
 import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
 
-const TABS = ['About', 'Stats', 'Moves', 'Evolution', 'Locations'] as const;
+const TABS = ['About', 'Stats', 'Moves'] as const;
 type Tab = (typeof TABS)[number];
 const TAB_KEY = 'detail-tab';
 
@@ -33,7 +33,10 @@ export function DetailScreen() {
   const [params, setParams] = useSearchParams();
   const { data: mon, error } = useLoad(() => loadSpecies(id), id);
   const { data: typeData } = useLoad(loadTypes, 'types');
-  const [tab, setTabState] = useState<Tab>(() => (sessionStorage.getItem(TAB_KEY) as Tab) || 'Stats');
+  const [tab, setTabState] = useState<Tab>(() => {
+    const saved = sessionStorage.getItem(TAB_KEY) as Tab;
+    return TABS.includes(saved) ? saved : 'Stats';
+  });
   const setTab = (t: Tab) => {
     setTabState(t);
     sessionStorage.setItem(TAB_KEY, t);
@@ -139,6 +142,9 @@ export function DetailScreen() {
               <TypeChip key={t} type={t} large />
             ))}
           </div>
+          <p className="hero-facts">
+            {[view.genus, `${view.heightM} m`, `${view.weightKg} kg`].filter(Boolean).join(' · ')}
+          </p>
         </div>
         {mon.forms && <FormPicker forms={mon.forms} current={form?.key ?? ''} onPick={pickForm} />}
         <div className="art-row">
@@ -170,11 +176,9 @@ export function DetailScreen() {
       </div>
 
       <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
-        {tab === 'About' && <About mon={view} />}
+        {tab === 'About' && <About mon={view} species={mon} />}
         {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
         {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
-        {tab === 'Evolution' && <EvolutionTab mon={mon} />}
-        {tab === 'Locations' && <LocationsTab key={mon.id} mon={mon} />}
       </div>
       <div style={{ height: 24 }} />
     </>
@@ -232,29 +236,36 @@ function FormPicker({ forms, current, onPick }: { forms: FormVariant[]; current:
   );
 }
 
-function About({ mon }: { mon: SpeciesDetail }) {
+/** Description, evolution and locations, then training and breeding facts. Evolution and locations stay species-level. */
+function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail }) {
+  const facts: [string, string][] = [
+    ['Catch rate', String(mon.catchRate)],
+    ['EV yield', evYieldText(mon.evYield)],
+    ['Leveling rate', mon.growthRate],
+    ['Egg groups', mon.eggGroups.join(', ')],
+    ['Gender ratio', genderText(mon.genderRate)],
+  ];
   return (
-    <div className="section">
-      {mon.flavor && <p className="flavor">{mon.flavor}</p>}
-      <div className="facts">
-        <div className="fact">
-          <div className="k">Category</div>
-          <div className="v">{mon.genus || '—'}</div>
+    <>
+      {mon.flavor && (
+        <div className="section">
+          <p className="flavor">{mon.flavor}</p>
         </div>
-        <div className="fact">
-          <div className="k">Introduced</div>
-          <div className="v">Gen {roman(mon.gen)}</div>
-        </div>
-        <div className="fact">
-          <div className="k">Height</div>
-          <div className="v">{mon.heightM} m</div>
-        </div>
-        <div className="fact">
-          <div className="k">Weight</div>
-          <div className="v">{mon.weightKg} kg</div>
+      )}
+      <EvolutionTab mon={species} />
+      <LocationsTab key={species.id} mon={species} />
+      <div className="section">
+        <h2>Training and breeding</h2>
+        <div className="facts">
+          {facts.map(([k, v]) => (
+            <div className="fact" key={k}>
+              <div className="k">{k}</div>
+              <div className="v">{v}</div>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

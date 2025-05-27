@@ -15,6 +15,7 @@ const variant = (over: Partial<FormVariant>): FormVariant => ({
   abilities: [{ name: 'Blaze', hidden: false }],
   heightM: 1.7,
   weightKg: 90.5,
+  evYield: { spa: 3 },
   ...over,
 });
 const megaX = variant({
@@ -41,6 +42,11 @@ const charizard: SpeciesDetail = {
   total: 534,
   abilities: [{ name: 'Blaze', hidden: false }],
   flavor: 'Spits fire.',
+  catchRate: 45,
+  evYield: { spa: 3 },
+  growthRate: 'Medium Slow',
+  eggGroups: ['Monster', 'Dragon'],
+  genderRate: 1,
   legendary: false,
   mythical: false,
   evolutionChainId: 2,

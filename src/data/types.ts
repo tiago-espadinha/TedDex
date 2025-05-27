@@ -36,6 +36,15 @@ export interface SpeciesDetail extends IndexEntry {
   genus: string;
   abilities: { name: string; hidden: boolean }[];
   flavor: string;
+  catchRate: number;
+  /** Effort values a defeated Pokémon gives; only the stats it gives any in. */
+  evYield: Partial<StatBlock>;
+  /** In-game name, e.g. "Medium Slow". */
+  growthRate: string;
+  /** In-game names, e.g. ["Monster", "Grass"]; ["Undiscovered"] for those that can't breed. */
+  eggGroups: string[];
+  /** Female share in eighths (0 = always male, 8 = always female); -1 when genderless. */
+  genderRate: number;
   legendary: boolean;
   mythical: boolean;
   evolutionChainId: number | null;
@@ -44,7 +53,7 @@ export interface SpeciesDetail extends IndexEntry {
 }
 
 /** One form of a species: what changes in battle, plus the Pokémon id its media is stored under. */
-export type FormVariant = Pick<SpeciesDetail, 'name' | 'types' | 'stats' | 'total' | 'abilities' | 'heightM' | 'weightKg'> & {
+export type FormVariant = Pick<SpeciesDetail, 'name' | 'types' | 'stats' | 'total' | 'abilities' | 'heightM' | 'weightKg' | 'evYield'> & {
   pokemonId: number;
   /** Unique within the species, used in `?form=`; '' for the default form. */
   key: string;

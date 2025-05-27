@@ -342,6 +342,7 @@ main:focus, .sheet:focus { outline: none; }
 .detail-hero { padding-top: 0; border-radius: 0 0 32px 32px; color: var(--on-tint); touch-action: pan-y; }
 .detail-hero .bar { display: flex; justify-content: space-between; padding: 4px 8px; }
 .detail-hero .bar .icon-btn { color: var(--on-tint); }
+.detail-hero .hero-facts { margin: 8px 0 0; font-size: 13px; font-weight: 700; color: var(--on-tint-2); }
 .detail-hero .bar .icon-btn:active { background: var(--tint-press); }
 .detail-hero .title { padding: 0 24px; }
 .detail-hero .no { font-size: 14px; font-weight: 700; color: var(--on-tint-soft); }
