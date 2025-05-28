@@ -1,1 +1,1 @@
-{"effect":"Has a chance to make the target flinch.","species":[19,20,399,400,417,504,505,734,735]}
+{"description":"The user bites hard on the target with its sharp front fangs. This may also make the target flinch.","effect":"Inflicts regular damage. Has a chance to make the target flinch.","learners":{"level":[[19,127],[20,127],[399,120],[400,120],[417,112],[504,112],[505,112],[734,64],[735,64]]}}

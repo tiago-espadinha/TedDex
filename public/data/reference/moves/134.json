@@ -1,1 +1,1 @@
-{"effect":"Lowers the target’s accuracy by one stage.","species":[64,65]}
+{"description":"The user distracts the target by bending a spoon. This lowers the target’s accuracy.","effect":"Lowers the target’s accuracy by one stage.","learners":{"level":[[64,255],[65,255]]}}

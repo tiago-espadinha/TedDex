@@ -1,1 +1,1 @@
-{"effect":"All Pokemon on the field consume their held berries.","species":[855]}
+{"description":"The user has teatime with all the Pokémon currently in the battle. Each Pokémon eats its held Berry.","effect":"All Pokemon on the field consume their held berries. This effect is not prevented by Substitute, Embargo, Magic Room, Klutz, or Unnerve. Fails if no active Pokemon is holding a berry.","learners":{"level":[[855,384]]}}

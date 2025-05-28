@@ -1,1 +1,1 @@
-{"effect":"Has a chance to make the target flinch.","species":[777,871]}
+{"description":"The user crashes into the target, delivering a powerful electric shock. This may also make the target flinch.","effect":"Inflicts regular damage. Has a chance to make the target flinch.","learners":{"level":[[777,192],[871,384]]}}

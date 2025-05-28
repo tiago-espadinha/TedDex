@@ -1,1 +1,1 @@
-{"effect":"Inflicts more damage when the user has more HP remaining, with a maximum of 150 power.","species":[155,156,157,244,323,324,383]}
+{"description":"The user attacks opposing Pokémon with explosive fury. The lower the user's HP, the lower the move's power.","effect":"Inflicts regular damage. Power increases with the user’s remaining HP and is given by `150 * HP / max HP`, to a maximum of 150 when the user has full HP.","learners":{"level":[[155,504],[156,504],[157,504],[244,504],[323,508],[324,384],[383,508]],"egg":[[324,252]]}}

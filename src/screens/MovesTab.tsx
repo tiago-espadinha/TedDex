@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { loadLearnsets, loadMoves, loadVersions, useLoad } from '../data/api';
 import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types';
+import { signed } from '../data/format';
 import { typeChip } from '../data/typeColors';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
@@ -114,7 +115,7 @@ function MoveRow({ move, moves, level }: { move: number; moves: MoveTable; level
   );
 }
 
-/** Name plus category, power, accuracy and PP; shared with the team member editor. */
+/** Name plus category, power, accuracy, PP and any priority; shared with the team member editor. */
 export function MoveBody({ move: m }: { move: MoveInfo }) {
   return (
     <span className="body">
@@ -125,6 +126,7 @@ export function MoveBody({ move: m }: { move: MoveInfo }) {
           m.category !== 'status' && `Pow ${m.power ?? '—'}`,
           `Acc ${m.accuracy ? `${m.accuracy}%` : '—'}`,
           m.pp && `PP ${m.pp}`,
+          m.priority !== 0 && `Priority ${signed(m.priority)}`,
         ]
           .filter(Boolean)
           .map((part, i) => (

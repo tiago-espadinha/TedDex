@@ -1,1 +1,1 @@
-{"effect":"Inverts the target’s stat modifiers.","species":[686,687,853]}
+{"description":"All stat changes affecting the target turn topsy-turvy and become the opposite of what they were.","effect":"Inverts the target’s stat modifiers.","learners":{"level":[[686,480],[687,480],[853,128]]}}

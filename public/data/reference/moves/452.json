@@ -1,1 +1,1 @@
-{"effect":"User receives 1/3 the damage inflicted in recoil.","species":[103,185,389,459,460,556,650,651,652,708,709,775,778,787,810,811,812,1017]}
+{"description":"The user slams its rugged body into the target to attack. This also damages the user quite a lot.","effect":"Inflicts regular damage. User takes 1/3 the damage it inflicts in recoil.","learners":{"level":[[103,504],[185,504],[389,504],[459,504],[460,504],[650,352],[651,352],[652,352],[708,480],[709,480],[775,320],[778,448],[787,192],[810,384],[811,384],[812,384],[1017,256]],"egg":[[556,240]]}}

@@ -1,1 +1,1 @@
-{"effect":"User becomes the target’s type.","species":[73,92,94,120,138,151,351,380,618,949]}
+{"description":"The user reflects the target's type to become the same type as the target.","effect":"User’s type changes to match the target’s.","learners":{"level":[[73,480],[94,384],[120,112],[151,496],[380,496],[949,256]],"egg":[[92,480],[138,224],[351,224],[618,224]]}}

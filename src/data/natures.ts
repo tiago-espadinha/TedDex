@@ -37,6 +37,11 @@ export const NATURES: Nature[] = [
   { name: 'Timid', up: 'spe', down: 'atk' },
 ];
 
+/** Each stat's flavour: a nature likes the flavour of the stat it raises and dislikes that of the one it lowers. */
+const FLAVOR: Record<Stat, string> = { atk: 'Spicy', def: 'Sour', spa: 'Dry', spd: 'Bitter', spe: 'Sweet' };
+export const likedFlavor = (n: Nature) => (n.up && n.down ? FLAVOR[n.up] : undefined);
+export const dislikedFlavor = (n: Nature) => (n.up && n.down ? FLAVOR[n.down] : undefined);
+
 const SHORT: Record<Stat, string> = { atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe' };
 
 /** "Adamant (+Atk −SpA)", or "Hardy (neutral)". */

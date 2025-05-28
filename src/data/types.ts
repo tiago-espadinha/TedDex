@@ -77,6 +77,10 @@ export interface MoveInfo {
   power: number | null;
   accuracy: number | null;
   pp: number | null;
+  /** -7 to +5; 0 for most moves. */
+  priority: number;
+  /** Generation that introduced it. */
+  gen: number;
 }
 
 /** moves.json: move id → move. */
@@ -112,14 +116,24 @@ export interface EvolutionMember {
 /** items.json: held item id → English name. */
 export type ItemTable = Record<number, string>;
 
-/** reference/moves/<id>.json: what a move does and the species that learn it in any game. */
+/** Learn methods, as in a learnset. */
+export type LearnMethod = keyof Learnset;
+
+/**
+ * reference/moves/<id>.json: the in-game description, the full effect (paragraphs split by a blank line), and
+ * who learns it: per method, [species id, bitmask of generations (bit n-1 = Gen n)], default forms, by species id.
+ */
 export interface MoveReference {
+  description: string;
   effect: string;
-  species: number[];
+  learners: Partial<Record<LearnMethod, [species: number, gens: number][]>>;
 }
 
-/** reference/abilities.json: ability id → name, effect and the species that have it (any form). */
-export type AbilityTable = Record<number, { name: string; effect: string; species: number[] }>;
+/**
+ * reference/abilities.json: ability id → name, short effect, full details (paragraphs split by a blank line; may
+ * be empty), the generation that introduced it and the species that have it (any form).
+ */
+export type AbilityTable = Record<number, { name: string; effect: string; details: string; gen: number; species: number[] }>;
 
 /** reference/items.json: held item id → effect and the species that hold it in the wild. */
 export type ItemReferenceTable = Record<number, { effect: string; species: number[] }>;

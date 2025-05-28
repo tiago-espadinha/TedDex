@@ -431,6 +431,8 @@ a.evo-member:active { background: var(--surface-2); }
 .ref-kind svg { flex: none; margin-left: auto; color: var(--muted); }
 .ref-list { margin: 12px 16px; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
 .ref-list li + li { border-top: 1px solid var(--line); }
+/* Room under the last row to scroll clear of the FAB. */
+.ref-list.with-fab { margin-bottom: 88px; }
 .ref-list .move-row { color: var(--ink); text-decoration: none; }
 .ref-list .move-row:focus-visible { outline-offset: -2px; }
 .ref-list .move-row:active { background: var(--surface-2); }
@@ -472,8 +474,16 @@ a.move-row.tinted { color: var(--on-tint); }
 .chip-wrap:has(.chip-link) { column-gap: 8px; row-gap: 0; }
 .topbar.tinted { color: var(--on-tint); margin-top: calc(-1 * var(--safe-top)); padding: calc(var(--safe-top) + 8px) 12px 16px 8px; border-radius: 0 0 32px 32px; }
 .topbar.tinted .icon-btn { color: var(--on-tint); }
+/* Taller tinted headers (facts under the title) keep the back button at the top. */
+.topbar.tinted:has(.head-facts) { align-items: flex-start; }
+.topbar.tinted:has(.head-facts) .grow { padding-top: 6px; }
 .topbar.tinted .icon-btn:active { background: var(--tint-press); }
 .topbar.tinted .sub { color: var(--on-tint-2); }
+/* Facts in a tinted entry header (move pages): a 3-column grid of label over value. */
+.head-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; margin: 14px 0 0; }
+.head-facts div { min-width: 0; }
+.head-facts dt { font-size: 11px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
+.head-facts dd { margin: 2px 0 0; font-size: 15px; font-weight: 800; color: var(--on-tint); }
 .ref-species { padding-bottom: 24px; }
 .coming { margin: 8px 0; padding: 18px; border-radius: 16px; border: 1.5px dashed var(--outline); color: var(--muted); font-size: 14px; line-height: 1.5; }
 
@@ -538,6 +548,36 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .cov td.lead { text-align: left; background: none; }
 .cov td.count { text-align: right; background: none; font-size: 13px; }
 .cov img { width: 40px; height: 40px; image-rendering: pixelated; display: block; margin: 0 auto; }
+
+/* ---------- reference tables (natures, type chart) ---------- */
+.ref-table { margin: 12px 16px 24px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); overflow-x: auto; }
+.ref-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ref-table th, .ref-table td { padding: 10px 8px; text-align: left; border-top: 1px solid var(--line); white-space: nowrap; }
+.ref-table thead th { border-top: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; color: var(--muted); }
+.ref-table tbody th { font-weight: 800; color: var(--ink); }
+.ref-table td { font-weight: 600; color: var(--ink-2); }
+.ref-table td.up { color: var(--resist-ink); }
+.ref-table td.down { color: var(--weak-ink); }
+
+/* 18×18 chart: scrolls sideways on phones, the attacking column stays put.
+   The pinned column holds the left gutter and covers the cell gaps around it, so nothing scrolls into view
+   beside it; the scroll bar is hidden because overlay bars would run under it (the chart fits from about 640 px). */
+.type-matrix { margin: 12px 0 24px; padding-right: 16px; overflow-x: auto; scrollbar-width: none; }
+.type-matrix::-webkit-scrollbar { display: none; }
+.type-matrix table { border-collapse: separate; border-spacing: 2px; margin: 0 auto; }
+.type-matrix th { position: sticky; z-index: 1; background: var(--bg); padding: 0; }
+.type-matrix th:first-child { padding-left: 16px; box-shadow: 0 0 0 2px var(--bg); }
+.type-matrix tbody th a:focus-visible { outline-offset: -2px; }
+.type-matrix thead th { top: 0; }
+.type-matrix tbody th { left: 0; z-index: 2; text-align: left; }
+.type-matrix thead th:first-child { left: 0; z-index: 3; }
+.type-matrix abbr, .type-matrix tbody th a { display: block; color: var(--on-type); text-decoration: none; font-size: 10px; font-weight: 800; letter-spacing: 0.2px; text-transform: uppercase; border-radius: 6px; }
+.type-matrix abbr { width: 30px; padding: 4px 0; text-align: center; }
+.type-matrix tbody th a { min-width: 70px; padding: 7px 8px; }
+.type-matrix td { width: 30px; height: 30px; border-radius: 6px; background: var(--neutral-cell); text-align: center; font-size: 12px; font-weight: 800; color: var(--ink); }
+.type-matrix td.super { background: var(--resist-bg); color: var(--resist-ink); }
+.type-matrix td.resisted { background: var(--weak-bg); color: var(--weak-ink); }
+.type-matrix td.immune { background: var(--immune-bg); }
 
 .placeholder { padding: 24px; }
 .placeholder h1 { font-size: 28px; font-weight: 800; margin: 8px 0 12px; }

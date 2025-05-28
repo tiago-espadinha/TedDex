@@ -1,1 +1,1 @@
-{"effect":"Raises the user’s Attack by one stage and its Speed by two stages.","species":[599,600,601,801,849,966,967]}
+{"description":"The user rotates its gears, boosting its Attack stat and sharply boosting its Speed stat.","effect":"Raises the user’s Attack by one stage and its Speed by two stages.","learners":{"level":[[599,240],[600,240],[601,240],[801,448],[849,384],[966,256],[967,256]]}}

@@ -1,1 +1,1 @@
-{"effect":"Heals the user by half its max HP.","species":[35,36,113,151,173,175,176,242,440]}
+{"description":"The user restores its own HP by up to half its max HP.","effect":"Heals the user for half its max HP.","learners":{"tutor":[[35,4],[36,4],[113,4],[151,4],[173,4],[175,4],[176,4],[242,4]],"machine":[[113,1],[151,1]],"level":[[113,510],[242,510],[440,128]]}}

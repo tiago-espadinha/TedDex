@@ -1,1 +1,1 @@
-{"effect":"Inflicts regular damage with no additional effect.","species":[21,22,84,85,145,177,198,225,227,393,394,395,731,732,733,821,822,823,845,956,991]}
+{"description":"A corkscrewing attack that strikes the target with a sharp beak acting as a drill.","effect":"Inflicts regular damage.","learners":{"level":[[21,255],[22,255],[84,511],[85,511],[145,511],[225,448],[227,384],[393,504],[394,504],[395,504],[731,320],[732,320],[733,320],[821,384],[822,384],[823,384],[845,384],[956,256],[991,256]],"egg":[[177,254],[198,510],[227,254]]}}

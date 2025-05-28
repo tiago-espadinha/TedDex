@@ -1,1 +1,1 @@
-{"effect":"Always scores a critical hit.","species":[127,538,674]}
+{"description":"The user strikes the target with a fierce blow. This attack always results in a critical hit.","effect":"Inflicts regular damage. Always scores a critical hit.","learners":{"level":[[127,240],[538,240]],"egg":[[674,224]]}}

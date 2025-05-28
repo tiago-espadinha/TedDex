@@ -1,1 +1,1 @@
-{"effect":"Changes all Normal moves to Electric moves for the rest of the turn.","species":[170,171,181,417,466,523,587,604,796]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Changes all Pokémon’s Normal moves to Electric moves for the rest of the turn.","learners":{"level":[[170,96],[171,96],[181,96],[466,96],[523,96],[604,96],[796,64]],"egg":[[417,96],[587,96]]}}

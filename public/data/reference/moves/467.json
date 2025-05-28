@@ -1,1 +1,1 @@
-{"effect":"User vanishes, dodging all attacks, and hits next turn. Hits through Protect and Detect.","species":[487]}
+{"description":"The user disappears on the first turn, then attacks on the next turn. This move hits even if the target protects itself.","effect":"Inflicts regular damage. User vanishes for one turn, becoming immune to attack, and hits on the second turn.\n\nThis move ignores the effects of Detect and Protect.\n\nThis move cannot be selected by Sleep Talk.","learners":{"level":[[487,504]]}}

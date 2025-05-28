@@ -1,1 +1,1 @@
-{"effect":"Inflicts 20 points of damage.","species":[81,82,100,101,167,193,329,330,418,419,462,469,517,801]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Inflicts exactly 20 damage.","learners":{"level":[[81,127],[82,127],[100,127],[101,127],[193,126],[329,120],[330,120],[418,120],[419,120],[462,120],[469,120],[801,64]],"egg":[[167,126],[517,112]]}}

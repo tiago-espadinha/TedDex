@@ -10,13 +10,13 @@
  *   species/<id>.json     detail page data (incl. catch rate, EV yield, growth rate, egg groups, gender), loaded on demand;
  *                         `forms` lists battle forms (regional, mega, gmax…)
  *   learnsets/<id>.json   moves per version group (level-up, TM, tutor, egg), loaded by the Moves tab
- *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP
+ *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP, priority, generation
  *   versions.json         main-series version groups that have learnsets, oldest first
  *   evolution/<chain>.json  evolution chain members with English condition text, loaded by the Evolution tab
  *   items.json            held items a team member can carry: item id -> English name
- *   reference/abilities.json  ability id -> name, short effect, species that have it (any form)
+ *   reference/abilities.json  ability id -> name, short effect, full details, generation, species that have it (any form)
  *   reference/items.json      held item id -> short effect, species that hold it in the wild
- *   reference/moves/<id>.json move short effect + species that learn it in any game (default forms)
+ *   reference/moves/<id>.json move description, full effect, and its learners per method as [species, generation bitmask]
  *   locations/<id>.json   wild encounters per game (version id) as tuples into a string table, any form
  *   games.json            games (versions) with encounter data, oldest first
  *   meta.json             data version + build time (the HEAD commit date, so it never postdates the history)
@@ -243,6 +243,8 @@ const groupBy = <T,>(rows: T[], key: (r: T) => string | number) => {
 };
 
 const clean = (s: string) => s.replace(/[\f\n\r]+/g, ' ').replace(/­/g, '').replace(/\s+/g, ' ').trim();
+/** Long prose: each paragraph cleaned, paragraphs kept apart by a blank line. */
+const paragraphs = (s: string) => s.split(/\n\s*\n/).map(clean).filter(Boolean).join('\n\n');
 
 interface Learnset {
   level: [number, number][];
@@ -407,7 +409,9 @@ async function main() {
   );
   const usedMoves = new Set<string>();
   /** move id -> species ids that learn it, filled while writing learnsets. */
-  const learnersByMove = new Map<string, Set<number>>();
+  /** move id -> learn method -> species id -> bitmask of generations (bit n-1 = Gen n), filled while writing learnsets. */
+  const learnersByMove = new Map<string, Record<string, Map<number, number>>>();
+  const genOfVersionGroup = new Map(versionGroups.map((g) => [g.id, Number(g.generation_id)]));
   const usedVersionGroups = new Set<string>();
 
   const STAT_KEYS = ['', 'hp', 'atk', 'def', 'spa', 'spd', 'spe'] as const;
@@ -588,7 +592,10 @@ async function main() {
         if (!set.level.some(([m, l]) => m === move && l === Number(r.level))) set.level.push([move, Number(r.level)]);
       } else if (!set[method].includes(move)) set[method].push(move);
       usedMoves.add(r.move_id);
-      learnersByMove.set(r.move_id, (learnersByMove.get(r.move_id) ?? new Set()).add(id));
+      const byMethod = learnersByMove.get(r.move_id) ?? {};
+      learnersByMove.set(r.move_id, byMethod);
+      const bySpecies = (byMethod[method] ??= new Map());
+      bySpecies.set(id, (bySpecies.get(id) ?? 0) | (1 << (genOfVersionGroup.get(r.version_group_id)! - 1)));
       usedVersionGroups.add(r.version_group_id);
     }
     await writeFile(join(OUT, 'learnsets', `${id}.json`), JSON.stringify(learnset));
@@ -608,6 +615,8 @@ async function main() {
       power: m.power ? Number(m.power) : null,
       accuracy: m.accuracy ? Number(m.accuracy) : null,
       pp: m.pp ? Number(m.pp) : null,
+      priority: Number(m.priority),
+      gen: Number(m.generation_id),
     };
   }
 
@@ -773,22 +782,35 @@ async function main() {
 
   await mkdir(join(OUT, 'reference', 'moves'), { recursive: true });
   const moveProseIds = new Map<string, string>();
-  for (const p of moveEffectProse) if (Number(p.local_language_id) === ENGLISH) moveProseIds.set(p.move_effect_id, clean(p.short_effect));
+  for (const p of moveEffectProse) if (Number(p.local_language_id) === ENGLISH) moveProseIds.set(p.move_effect_id, paragraphs(p.effect));
   const moveFlavorText = effectText([], '', moveFlavor, 'move_id');
   for (const m of moves) {
     if (!usedMoves.has(m.id)) continue;
-    const effect = moveProseIds.get(m.effect_id) || moveFlavorText.get(m.id) || '';
-    const learners = [...(learnersByMove.get(m.id) ?? [])].sort((a, b) => a - b);
-    await writeFile(join(OUT, 'reference', 'moves', `${m.id}.json`), JSON.stringify({ effect, species: learners }));
+    const description = moveFlavorText.get(m.id) ?? '';
+    const effect = moveProseIds.get(m.effect_id) ?? '';
+    const learners: Record<string, [number, number][]> = {};
+    for (const [method, bySpecies] of Object.entries(learnersByMove.get(m.id) ?? {})) {
+      learners[method] = [...bySpecies].sort(([a], [b]) => a - b);
+    }
+    await writeFile(join(OUT, 'reference', 'moves', `${m.id}.json`), JSON.stringify({ description, effect, learners }));
   }
 
   const abilityEffect = effectText(abilityProse, 'ability_id', abilityFlavor, 'ability_id');
+  const abilityDetails = new Map(
+    abilityProse.filter((p) => Number(p.local_language_id) === ENGLISH && p.effect).map((p) => [p.ability_id, paragraphs(p.effect)]),
+  );
   const holdersByAbility = groupBy(pokemonAbilities, (r) => r.ability_id);
   const abilityTable: Record<string, unknown> = {};
   for (const a of abilities) {
     const holders = speciesIds(holdersByAbility.get(a.id) ?? []);
     if (a.is_main_series !== '1' || !holders.length) continue;
-    abilityTable[a.id] = { name: abilityName.get(a.id) ?? a.identifier, effect: abilityEffect.get(a.id) ?? '', species: holders };
+    abilityTable[a.id] = {
+      name: abilityName.get(a.id) ?? a.identifier,
+      effect: abilityEffect.get(a.id) ?? '',
+      details: abilityDetails.get(a.id) ?? '',
+      gen: Number(a.generation_id),
+      species: holders,
+    };
   }
 
   const itemEffect = effectText(itemProse, 'item_id', itemFlavor, 'item_id');

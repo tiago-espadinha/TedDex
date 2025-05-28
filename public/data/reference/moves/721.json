@@ -1,1 +1,1 @@
-{"effect":"After inflicting damage, causes all Normal-type moves to become Electric-type for the remainder of the turn.","species":[807]}
+{"description":"The user attacks with electrically charged fists. This move changes Normal-type moves to Electric-type moves.","effect":"After inflicting damage, all Normal-type moves become Electric-type for the remainder of the turn, including status moves. This effect is applied after move type-changing abilities, such as Pixilate and Normalize.","learners":{"level":[[807,192]]}}

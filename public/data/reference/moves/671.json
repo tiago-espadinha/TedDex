@@ -1,1 +1,1 @@
-{"effect":"Forces the target’s opponents to aim at the target for the rest of the turn.","species":[35,36,121,171,327,755,756]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"For the duration of the turn, if the target is also a valid target for a move used by one of its opponents, that move will target it instead.","learners":{"level":[[35,64],[36,64],[121,64],[171,64],[755,64],[756,64]],"egg":[[327,64]]}}

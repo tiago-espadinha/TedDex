@@ -1,1 +1,1 @@
-{"effect":"Raises the user's Speed by 1 stage. In Full Belly Mode, this move is Electric type. In Hangry Mode, this move is Dark type.","species":[877]}
+{"description":"Morpeko attacks and boosts its Speed stat with the energy stored in its cheeks. This move's type changes depending on the user's form.","effect":"Raises the user's Speed by 1 stage. In Full Belly Mode, this move is Electric type. In Hangry Mode, this move is Dark type. Fails unless the user is Hangry Mode or Full Belly Mode Morpeko.","learners":{"level":[[877,384]]}}

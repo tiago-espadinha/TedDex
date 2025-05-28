@@ -1,1 +1,1 @@
-{"effect":"Raises the Defense of all Grass Pokémon in battle.","species":[192,420,421,671,764]}
+{"description":"The user raises the Defense stats of all Grass-type Pokémon in battle with a mysterious power.","effect":"Raises the Defense of all Grass Pokémon in battle.","learners":{"level":[[192,224],[421,128],[671,96],[764,192]],"egg":[[420,224]]}}

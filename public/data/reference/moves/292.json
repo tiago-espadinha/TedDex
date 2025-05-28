@@ -1,1 +1,1 @@
-{"effect":"Hits 2-5 times in one turn.","species":[214,296,297,499,500,674,675,922,923,992]}
+{"description":"The user attacks the target with open-palmed arm thrusts. This move hits two to five times in a row.","effect":"Inflicts regular damage. Hits 2–5 times in one turn.\n\nHas a 3/8 chance each to hit 2 or 3 times, and a 1/8 chance each to hit 4 or 5 times. Averages to 3 hits per use.","learners":{"level":[[214,352],[296,508],[297,508],[499,368],[500,368],[674,224],[675,224],[922,256],[923,256],[992,256]]}}

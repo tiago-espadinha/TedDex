@@ -1,1 +1,1 @@
-{"effect":"Power doubles if the user moves before the target.","species":[880,881]}
+{"description":"The user stabs the target with its electrified beak. If the user attacks before the target, the power of this move is doubled.","effect":"Power doubles if the user moves before the target.","learners":{"level":[[880,128],[881,128]]}}

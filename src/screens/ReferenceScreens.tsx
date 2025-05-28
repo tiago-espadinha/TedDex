@@ -1,17 +1,19 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   defensiveMultipliers, loadAbilities, loadIndex, loadItemReference, loadItems, loadMoveReference, loadMoves, loadTypes,
   offensiveMultipliers, spriteUrl, useLoad,
 } from '../data/api';
-import { cap, formatNo } from '../data/format';
-import { NATURES } from '../data/natures';
+import { cap, formatMultiplier, formatNo, roman, signed } from '../data/format';
+import { NATURES, dislikedFlavor, likedFlavor } from '../data/natures';
 import { searchByName } from '../data/reference';
-import { typeTint } from '../data/typeColors';
-import type { IndexEntry, MoveInfo, TypeData, TypeName } from '../data/types';
+import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
+import { typeChip, typeTint } from '../data/typeColors';
+import type { IndexEntry, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip } from '../components/bits';
 import { MoveBody } from './MovesTab';
+import { MoveFilterSheet } from './MoveFilterSheet';
 
 type Kind = 'moves' | 'abilities' | 'items' | 'natures' | 'types';
 
@@ -19,10 +21,11 @@ const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'moves', title: 'Moves', one: 'Move', blurb: 'Power, accuracy, effect and who learns them' },
   { kind: 'abilities', title: 'Abilities', one: 'Ability', blurb: 'What each ability does and who has it' },
   { kind: 'items', title: 'Items', one: 'Held item', blurb: 'Held items and who carries them in the wild' },
-  { kind: 'natures', title: 'Natures', one: 'Nature', blurb: 'Which stat each nature raises and lowers' },
-  { kind: 'types', title: 'Types', one: 'Type', blurb: 'The type chart, one type at a time' },
+  { kind: 'natures', title: 'Natures', one: 'Nature', blurb: 'Stats each nature raises and lowers, and flavours' },
+  { kind: 'types', title: 'Types', one: 'Type', blurb: 'The full type chart' },
 ];
 
+const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const STAT_NAMES = { atk: 'Attack', def: 'Defense', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' };
 
 /** One row of a reference list; `move` and `type` pick a richer row. */
@@ -32,25 +35,23 @@ interface Entry {
   sub?: string;
   move?: MoveInfo;
   type?: TypeName;
+  /** Generation that introduced it, for the generation chips (abilities). */
+  gen?: number;
 }
 
-const natureSub = (n: (typeof NATURES)[number]) =>
-  n.up && n.down ? `+${STAT_NAMES[n.up]} · −${STAT_NAMES[n.down]}` : 'Neutral, no stat change';
+/** Kinds shown as a searchable list; natures and types are tables instead. */
+type ListKind = Exclude<Kind, 'natures' | 'types'>;
 
-async function loadEntries(kind: Kind): Promise<Entry[]> {
+async function loadEntries(kind: ListKind): Promise<Entry[]> {
   switch (kind) {
     case 'moves':
       return Object.entries(await loadMoves()).map(([id, move]) => ({ id, name: move.name, move }));
     case 'abilities':
-      return Object.entries(await loadAbilities()).map(([id, a]) => ({ id, name: a.name, sub: a.effect }));
+      return Object.entries(await loadAbilities()).map(([id, a]) => ({ id, name: a.name, sub: a.effect, gen: a.gen }));
     case 'items': {
       const [names, refs] = await Promise.all([loadItems(), loadItemReference()]);
       return Object.entries(names).map(([id, name]) => ({ id, name, sub: refs[Number(id)]?.effect }));
     }
-    case 'natures':
-      return NATURES.map((n) => ({ id: n.name.toLowerCase(), name: n.name, sub: natureSub(n) }));
-    case 'types':
-      return (await loadTypes()).types.map((t) => ({ id: t, name: cap(t), type: t }));
   }
 }
 
@@ -86,14 +87,47 @@ export function ReferenceScreen() {
 }
 
 // ---------------- searchable list ----------------
+/** `/reference/:kind`: the natures table, the type chart, or a searchable list. */
 export function ReferenceList() {
+  const kind = useParams().kind;
+  if (kind === 'natures') return <NatureTable />;
+  if (kind === 'types') return <TypeMatrix />;
+  return <SearchList />;
+}
+
+function SearchList() {
   const k = kindOf(useParams().kind);
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
-  const { data, error } = useLoad(() => (k ? loadEntries(k.kind) : Promise.resolve([])), k?.kind);
-  const shown = useMemo(() => searchByName(data ?? [], query), [data, query]);
+  const { data, error } = useLoad(() => (k ? loadEntries(k.kind as ListKind) : Promise.resolve([])), k?.kind);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  // Moves also filter and sort; their filters live in the URL next to the query.
+  const moveFilters = useMemo(() => (k?.kind === 'moves' ? readMoveFilters(params) : undefined), [k?.kind, params]);
+  const moves = useMemo(() => (data ?? []).filter((e): e is MoveEntry => !!e.move), [data]);
+  // Lists whose entries carry a generation (abilities) get generation chips, kept in `?gen=`.
+  const hasGens = !moveFilters && !!data?.some((e) => e.gen);
+  const gens = useMemo(() => (params.get('gen') ?? '').split(',').filter(Boolean).map(Number), [params]);
+  const shown = useMemo(() => {
+    if (moveFilters) return filterMoves(moves, moveFilters);
+    const hits = searchByName(data ?? [], query);
+    return gens.length ? hits.filter((e) => e.gen && gens.includes(e.gen)) : hits;
+  }, [data, moves, moveFilters, query, gens]);
+  const setParam = (key: string, value: string) =>
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        if (value) next.set(key, value);
+        else next.delete(key);
+        return next;
+      },
+      { replace: true },
+    );
+  const setQuery = (q: string) => setParam('q', q);
+  const toggleGen = (g: number) =>
+    setParam('gen', (gens.includes(g) ? gens.filter((x) => x !== g) : [...gens, g].sort()).join(','));
 
   if (!k) return <p className="empty">Page not found.</p>;
+  const filtered = moveFilters ? activeMoveFilters(moveFilters) : gens.length;
 
   return (
     <>
@@ -103,20 +137,26 @@ export function ReferenceList() {
         </Link>
         <div className="head-title">
           <h1>{k.title}</h1>
-          {data && <div className="sub">{data.length} in the data</div>}
+          {data && <div className="sub">{filtered || query ? `${shown.length} of ${data.length}` : `${data.length} in the data`}</div>}
         </div>
-        <SearchField
-          label={`Search ${k.title.toLowerCase()}`}
-          placeholder="Search"
-          value={query}
-          onChange={(q) => setParams(q ? { q } : {}, { replace: true })}
-        />
+        <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} />
       </header>
+      {hasGens && (
+        <div className="chip-row" role="group" aria-label="Generation introduced">
+          {GENS.map((g) => (
+            <button key={g} className={gens.includes(g) ? 'filter-chip on' : 'filter-chip'} aria-pressed={gens.includes(g)} onClick={() => toggleGen(g)}>
+              Gen {roman(g)}
+            </button>
+          ))}
+        </div>
+      )}
       {error && <p className="empty">Couldn't load {k.title.toLowerCase()}. {error.message}</p>}
       {!data && !error && <Loading />}
-      {data && !shown.length && <p className="empty">No {k.title.toLowerCase()} match “{query}”.</p>}
+      {data && !shown.length && (
+        <p className="empty">{filtered ? `No ${k.title.toLowerCase()} match these filters.` : `No ${k.title.toLowerCase()} match “${query}”.`}</p>
+      )}
       {shown.length > 0 && (
-        <ul className="ref-list">
+        <ul className={moveFilters ? 'ref-list with-fab' : 'ref-list'}>
           {shown.map((e) => (
             <li key={e.id}>
               <Link
@@ -130,9 +170,39 @@ export function ReferenceList() {
           ))}
         </ul>
       )}
+      {moveFilters && (
+        <>
+          <button
+            className="fab"
+            aria-label={filtered ? `Filter and sort, ${filtered} active` : 'Filter and sort'}
+            onClick={() => setSheetOpen(true)}
+          >
+            <Icon name="filter" size={24} />
+            {filtered > 0 && (
+              <span className="badge" aria-hidden="true">
+                {filtered}
+              </span>
+            )}
+          </button>
+          {sheetOpen && (
+            <MoveFilterSheet
+              value={moveFilters}
+              countFor={(f) => filterMoves(moves, f).length}
+              onApply={(f) => {
+                setParams(moveFilterParams(f), { replace: true });
+                setSheetOpen(false);
+                window.scrollTo({ top: 0 });
+              }}
+              onClose={() => setSheetOpen(false)}
+            />
+          )}
+        </>
+      )}
     </>
   );
 }
+
+type MoveEntry = Entry & { move: MoveInfo };
 
 function EntryBody({ entry: e }: { entry: Entry }) {
   if (e.move) {
@@ -165,7 +235,8 @@ export function ReferenceEntry() {
   const { kind, id = '' } = useParams();
   const k = kindOf(kind);
   if (!k) return <p className="empty">Page not found.</p>;
-  const Page = { moves: MoveEntry, abilities: AbilityEntry, items: ItemEntry, natures: NatureEntry, types: TypeEntry }[k.kind];
+  if (k.kind === 'natures') return <p className="empty">Page not found.</p>;
+  const Page = { moves: MoveEntry, abilities: AbilityEntry, items: ItemEntry, types: TypeEntry }[k.kind];
   return <Page id={id} one={k.one} />;
 }
 
@@ -181,11 +252,13 @@ interface FrameProps {
   loaded: boolean;
   /** Tints the header with this type, like the detail hero. */
   tint?: TypeName;
+  /** Shown in the header under the title, once loaded. */
+  head?: ReactNode;
   children?: ReactNode;
 }
 
 /** Topbar, then the body once loaded; the same loading, error and not-found states for every kind. */
-function EntryFrame({ one, name, error, loaded, tint, children }: FrameProps) {
+function EntryFrame({ one, name, error, loaded, tint, head, children }: FrameProps) {
   const navigate = useNavigate();
   let body = children;
   if (error) body = <p className="empty">Couldn't load this {one.toLowerCase()}. {error.message}</p>;
@@ -200,6 +273,7 @@ function EntryFrame({ one, name, error, loaded, tint, children }: FrameProps) {
         <div className="grow">
           <h1>{name ?? one}</h1>
           {name && <div className="sub">{one}</div>}
+          {name && head}
         </div>
       </header>
       {body}
@@ -214,24 +288,98 @@ function MoveEntry({ id, one }: EntryProps) {
     n,
   );
   const move = data?.[0][n];
+  const ref = data?.[2];
+  const facts: [string, ReactNode][] = move
+    ? [
+        ['Type', <TypeChip key="type" type={move.type} />],
+        ['Category', cap(move.category)],
+        ['Power', move.power ?? '—'],
+        ['Accuracy', move.accuracy ? `${move.accuracy}%` : '—'],
+        ['PP', move.pp ?? '—'],
+        ['Priority', signed(move.priority)],
+      ]
+    : [];
   return (
-    <EntryFrame one={one} name={move?.name} error={error} loaded={!!data} tint={move?.type}>
-      {move && data?.[2] && (
-        <>
-          <div className="section">
-            <div className="facts">
-              <Fact k="Type"><TypeChip type={move.type} large /></Fact>
-              <Fact k="Category">{cap(move.category)}</Fact>
-              <Fact k="Power">{move.power ?? '—'}</Fact>
-              <Fact k="Accuracy">{move.accuracy ? `${move.accuracy}%` : '—'}</Fact>
-              <Fact k="PP">{move.pp ?? '—'}</Fact>
+    <EntryFrame
+      one={one}
+      name={move?.name}
+      error={error}
+      loaded={!!data}
+      tint={move?.type}
+      head={
+        <dl className="head-facts">
+          {facts.map(([k, v]) => (
+            <div key={k}>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
             </div>
-          </div>
-          <Effect text={data[2].effect} />
-          <SpeciesList title="Learned by" ids={data[2].species} index={data[1]} none="No Pokémon learn it in the main-series games." />
+          ))}
+        </dl>
+      }
+    >
+      {move && ref && data && (
+        <>
+          {ref.description && (
+            <div className="section">
+              <h2>Description</h2>
+              <p className="flavor">{ref.description}</p>
+            </div>
+          )}
+          <Effect text={ref.effect} />
+          <MoveLearners learners={ref.learners} index={data[1]} />
         </>
       )}
     </EntryFrame>
+  );
+}
+
+const LEARN_METHODS: [LearnMethod, string][] = [
+  ['level', 'Level up'],
+  ['machine', 'TM/HM'],
+  ['tutor', 'Tutor'],
+  ['egg', 'Egg move'],
+];
+
+/** Who learns the move in one generation, one learn method at a time (a species can be in several). */
+function MoveLearners({ learners, index }: { learners: MoveReference['learners']; index: IndexEntry[] }) {
+  const all = Object.values(learners).flat();
+  const gens = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((g) => all.some(([, mask]) => mask & (1 << (g - 1))));
+  const [pickGen, setGen] = useState<number>();
+  const [pickMethod, setMethod] = useState<LearnMethod>('level');
+  if (!gens.length) return <SpeciesList title="Learned by" ids={[]} index={index} none="No Pokémon learn it in the main-series games." />;
+
+  const gen = pickGen && gens.includes(pickGen) ? pickGen : gens[gens.length - 1];
+  const inGen = (method: LearnMethod) => (learners[method] ?? []).filter(([, mask]) => mask & (1 << (gen - 1))).map(([s]) => s);
+  const methods = LEARN_METHODS.filter(([m]) => inGen(m).length > 0);
+  const [method, title] = methods.find(([m]) => m === pickMethod) ?? methods[0];
+
+  return (
+    <>
+      <div className="section">
+        <h2>Learned by</h2>
+        <label className="game-select">
+          <span className="k">Generation</span>
+          <select value={gen} onChange={(e) => setGen(Number(e.target.value))}>
+            {gens.map((g) => (
+              <option key={g} value={g}>
+                Gen {roman(g)}
+              </option>
+            ))}
+          </select>
+          <Icon name="next" size={18} />
+        </label>
+        {methods.length > 1 && (
+          <div className="segmented method-pick" role="radiogroup" aria-label="How they learn it">
+            {methods.map(([m, label]) => (
+              <button key={m} role="radio" aria-checked={m === method} onClick={() => setMethod(m)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <SpeciesList title={title} ids={inGen(method)} index={index} none="" />
+    </>
   );
 }
 
@@ -243,6 +391,7 @@ function AbilityEntry({ id, one }: EntryProps) {
       {ability && data && (
         <>
           <Effect text={ability.effect} />
+          {ability.details && ability.details !== ability.effect && <Effect title="Details" text={ability.details} />}
           <SpeciesList title="Pokémon with it" ids={ability.species} index={data[1]} none="No Pokémon have it." />
         </>
       )}
@@ -266,26 +415,110 @@ function ItemEntry({ id, one }: EntryProps) {
   );
 }
 
-function NatureEntry({ id, one }: EntryProps) {
-  const nature = NATURES.find((n) => n.name.toLowerCase() === id);
+/** Topbar for the table pages: back to Reference, title and a subtitle. */
+function TableHead({ title, sub }: { title: string; sub: string }) {
   return (
-    <EntryFrame one={one} name={nature?.name} loaded>
-      {nature && (
-        <div className="section">
-          {nature.up && nature.down ? (
-            <div className="facts">
-              <Fact k="Raises (+10%)">{STAT_NAMES[nature.up]}</Fact>
-              <Fact k="Lowers (−10%)">{STAT_NAMES[nature.down]}</Fact>
-            </div>
-          ) : (
-            <p className="flavor">A neutral nature: it raises and lowers the same stat, so nothing changes.</p>
-          )}
-          <p className="hint">Any Pokémon can have any nature, so there is no list of species here.</p>
-        </div>
-      )}
-    </EntryFrame>
+    <header className="topbar">
+      <Link to="/reference" className="icon-btn" aria-label="Back to Reference">
+        <Icon name="back" />
+      </Link>
+      <div className="grow">
+        <h1>{title}</h1>
+        <div className="sub">{sub}</div>
+      </div>
+    </header>
   );
 }
+
+/** Every nature with the stat it raises and lowers and the flavours it likes and dislikes; neutral ones show —. */
+function NatureTable() {
+  return (
+    <>
+      <TableHead title="Natures" sub={`${NATURES.length} natures · ±10% to one stat`} />
+      <div className="ref-table">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Nature</th>
+              <th scope="col">Increased</th>
+              <th scope="col">Decreased</th>
+              <th scope="col">Likes</th>
+              <th scope="col">Dislikes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {NATURES.map((n) => (
+              <tr key={n.name}>
+                <th scope="row">{n.name}</th>
+                <td className={n.up && 'up'}>{n.up ? STAT_NAMES[n.up] : '—'}</td>
+                <td className={n.down && 'down'}>{n.down ? STAT_NAMES[n.down] : '—'}</td>
+                <td>{likedFlavor(n) ?? '—'}</td>
+                <td>{dislikedFlavor(n) ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+/** Short column labels so 18 columns fit a phone with a little sideways scrolling. */
+const TYPE_ABBR = (t: TypeName) => t.slice(0, 3).toUpperCase();
+
+/** The full type chart: attacking type per row, defending type per column; blank cells are 1×. */
+function TypeMatrix() {
+  const { data, error } = useLoad(loadTypes, 'types');
+  return (
+    <>
+      <TableHead title="Types" sub="Attacking type down the side, defending along the top" />
+      {error && <p className="empty">Couldn't load the type chart. {error.message}</p>}
+      {!data && !error && <Loading />}
+      {data && (
+        <div className="type-matrix" tabIndex={0} role="region" aria-label="Type chart">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">
+                  <span className="sr-only">Attacking ↓ / defending →</span>
+                </th>
+                {data.types.map((def) => (
+                  <th scope="col" key={def}>
+                    <abbr title={cap(def)} style={{ backgroundColor: typeChip(def) }}>
+                      {TYPE_ABBR(def)}
+                    </abbr>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.types.map((atk) => (
+                <tr key={atk}>
+                  <th scope="row">
+                    <Link to={`/reference/types/${atk}`} style={{ backgroundColor: typeChip(atk) }}>
+                      {cap(atk)}
+                    </Link>
+                  </th>
+                  {data.types.map((def) => {
+                    const m = data.matrix[atk][def] ?? 1;
+                    return (
+                      <td key={def} className={matchupClass(m)} aria-label={`${cap(atk)} on ${cap(def)}: ${m}×`}>
+                        {formatMultiplier(m)}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** Attacking view, as in team coverage: super effective is good (green), resisted warm, immune grey. */
+const matchupClass = (m: number) => (m > 1 ? 'super' : m === 0 ? 'immune' : m < 1 ? 'resisted' : undefined);
 
 function TypeEntry({ id, one }: EntryProps) {
   const { data, error } = useLoad(() => Promise.all([loadTypes(), loadIndex()]), 'types');
@@ -346,20 +579,20 @@ function TypeChart({ type, data }: { type: TypeName; data: TypeData }) {
   ));
 }
 
-function Fact({ k, children }: { k: string; children: ReactNode }) {
-  return (
-    <div className="fact">
-      <div className="k">{k}</div>
-      <div className="v">{children}</div>
-    </div>
-  );
-}
-
-function Effect({ text }: { text: string }) {
+/** Effect text; the data keeps paragraphs apart with a blank line. */
+function Effect({ text, title = 'Effect' }: { text: string; title?: string }) {
   return (
     <div className="section">
-      <h2>Effect</h2>
-      <p className="flavor">{text || 'No description in the data yet.'}</p>
+      <h2>{title}</h2>
+      {text ? (
+        text.split('\n\n').map((para, i) => (
+          <p className="flavor" key={i}>
+            {para}
+          </p>
+        ))
+      ) : (
+        <p className="flavor">No description in the data yet.</p>
+      )}
     </div>
   );
 }

@@ -1,1 +1,1 @@
-{"effect":"Hits three times, increasing power by 100% with each successful hit.","species":[237,795]}
+{"description":"A consecutive three-kick attack that becomes more powerful with each successful hit.","effect":"Inflicts regular damage. Hits three times in the same turn. The second hit has double power, and the third hit has triple power. Each hit has a separate accuracy check, and this move stops if a hit misses.\n\nSkill Link does not apply.","learners":{"level":[[237,510],[795,192]]}}

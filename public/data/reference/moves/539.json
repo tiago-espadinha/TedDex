@@ -1,1 +1,1 @@
-{"effect":"Has a chance to lower the target’s accuracy by one stage.","species":[570,571,792]}
+{"description":"The user looses a pitch-black shock wave at the target to inflict damage. This may also lower the target's accuracy.","effect":"Inflicts regular damage. Has a chance to lower the target’s accuracy by one stage.","learners":{"level":[[570,496],[571,496],[792,448]]}}

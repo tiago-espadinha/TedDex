@@ -1,1 +1,1 @@
-{"effect":"Only inflicts damage if the user was hit by a physical move this turn.","species":[776]}
+{"description":"The user sets a shell trap. If the user is hit by a physical move, the trap will explode and inflict damage on opposing Pokémon.","effect":"Inflicts regular damage. If the user was not yet hit by an opponent’s physical move this turn, this move will fail.","learners":{"level":[[776,192]]}}

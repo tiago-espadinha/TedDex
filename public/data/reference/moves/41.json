@@ -1,1 +1,1 @@
-{"effect":"Hits twice in the same turn. Has a chance to poison the target.","species":[15,90,91,167,451,543,589,777]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Inflicts regular damage. Hits twice in the same turn. Has a chance to poison the target.","learners":{"level":[[15,127],[91,64],[589,112]],"egg":[[90,112],[167,112],[451,112],[543,112],[777,64]]}}

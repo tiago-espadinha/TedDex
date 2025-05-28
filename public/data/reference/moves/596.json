@@ -1,1 +1,1 @@
-{"effect":"Blocks damaging attacks and damages attacking Pokémon for 1/8 their max HP.","species":[332,511,556,652,777,970,1017]}
+{"description":"In addition to protecting the user from attacks, this move also damages any attacker that makes direct contact.","effect":"Blocks damaging attacks and damages attacking Pokémon for 1/8 their max HP.","learners":{"level":[[332,480],[556,224],[652,352],[777,192],[970,256],[1017,256]],"egg":[[511,64]]}}

@@ -1,1 +1,1 @@
-{"effect":"Raises a selected ally’s Special Defense by one stage.","species":[416,683,728,742,743,761,762,763,786,854,855,856,857,858,868,869]}
+{"description":"The user boosts the Sp. Def stat of an ally Pokémon by using a mysterious aroma.","effect":"Raises a selected ally’s Special Defense by one stage.","learners":{"level":[[416,384],[683,224],[761,448],[762,448],[763,448],[786,192],[854,384],[855,384],[856,256],[857,256],[858,256],[868,384],[869,384]],"egg":[[728,64],[742,384],[743,256],[856,128]]}}

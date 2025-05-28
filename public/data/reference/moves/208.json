@@ -1,1 +1,1 @@
-{"effect":"Heals the user by half its max HP.","species":[241,672,673]}
+{"description":"The user restores its own HP by up to half its max HP.","effect":"Heals the user for half its max HP.","learners":{"level":[[241,254],[672,96],[673,352]],"egg":[[672,352]]}}

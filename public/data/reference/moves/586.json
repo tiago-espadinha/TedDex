@@ -1,1 +1,1 @@
-{"effect":"Inflicts regular damage.","species":[276,295,329,330,441,715,731,732,733,784,812,849,963,982,985]}
+{"description":"The user attacks everything around it with the destructive power of a terrible explosive sound.","effect":"Inflicts regular damage.","learners":{"egg":[[276,224],[441,224],[731,320],[732,256],[733,256],[963,256]],"level":[[295,224],[329,480],[330,384],[715,480],[784,384],[812,384],[849,384],[982,256],[985,256]]}}

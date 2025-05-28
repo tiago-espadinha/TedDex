@@ -1,1 +1,1 @@
-{"effect":"Changes the target’s ability to Simple.","species":[54,83,177,263,300,325,381,527,528,531,605,606,649,686]}
+{"description":"The user emits a mysterious psychic wave that changes the target's Ability to Simple.","effect":"Changes the target’s ability to Simple.","learners":{"egg":[[54,480],[83,224],[177,224],[263,240],[300,240],[325,480],[686,96]],"level":[[381,384],[527,128],[528,128],[531,240],[605,112],[606,112],[649,240]]}}

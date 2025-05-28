@@ -1,1 +1,1 @@
-{"effect":"Heals the user for half the total damage dealt to all targets.","species":[694,695,702,938,1008]}
+{"description":"The user attacks everything around it. The user's HP is restored by half the damage taken by those hit.","effect":"Heals the user for half the total damage dealt to all targets.","learners":{"level":[[694,224],[695,224],[702,480],[1008,256]],"egg":[[938,256]]}}
