@@ -1,1 +1,1 @@
-{"effect":"Never misses.","species":[66,67,68,127,296,297,538,619,674,675,766,794]}
+{"description":"The user attacks last. In return, this throw move never misses.","effect":"Inflicts regular damage. Ignores accuracy and evasion modifiers.","learners":{"level":[[66,254],[67,254],[68,254],[127,248],[296,252],[297,252],[538,240],[674,224],[675,224],[794,192]],"egg":[[619,240],[766,192]]}}

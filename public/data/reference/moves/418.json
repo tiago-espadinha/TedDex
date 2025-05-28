@@ -1,1 +1,1 @@
-{"effect":"Inflicts regular damage with no additional effect.","species":[66,67,68,106,107,212,236,237,296,307,375,376,447,448,453,675]}
+{"description":"The user strikes the target with tough punches as fast as bullets. This move always goes first.","effect":"Inflicts regular damage.","learners":{"egg":[[66,248],[106,256],[107,256],[236,504],[237,256],[296,504],[307,504],[447,504],[453,504]],"level":[[66,128],[67,128],[68,128],[107,504],[212,504],[375,504],[376,504],[447,128],[448,128],[675,192]]}}

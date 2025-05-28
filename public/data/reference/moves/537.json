@@ -1,1 +1,1 @@
-{"effect":"Has a chance to make the target flinch.","species":[76,543,544,545,799]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Inflicts regular damage. Has a chance to make the target flinch.\n\nPower is doubled against Pokémon that have used Minimize since entering the field.","learners":{"level":[[76,112],[543,112],[544,112],[545,112],[799,64]]}}

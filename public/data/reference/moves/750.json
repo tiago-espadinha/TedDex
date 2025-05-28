@@ -1,1 +1,1 @@
-{"effect":"Causes the target to become a Psychic type.","species":[858]}
+{"description":"The user scatters a cloud of magic powder that changes the target's type to Psychic.","effect":"Causes the target to become a Psychic type. Fails if the target is Arceus, Silvally, or is already only a Psychic type.","learners":{"level":[[858,384]]}}

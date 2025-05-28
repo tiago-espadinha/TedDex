@@ -431,6 +431,8 @@ a.evo-member:active { background: var(--surface-2); }
 .ref-kind svg { flex: none; margin-left: auto; color: var(--muted); }
 .ref-list { margin: 12px 16px; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
 .ref-list li + li { border-top: 1px solid var(--line); }
+/* Room under the last row to scroll clear of the FAB. */
+.ref-list.with-fab { margin-bottom: 88px; }
 .ref-list .move-row { color: var(--ink); text-decoration: none; }
 .ref-list .move-row:focus-visible { outline-offset: -2px; }
 .ref-list .move-row:active { background: var(--surface-2); }
@@ -472,8 +474,16 @@ a.move-row.tinted { color: var(--on-tint); }
 .chip-wrap:has(.chip-link) { column-gap: 8px; row-gap: 0; }
 .topbar.tinted { color: var(--on-tint); margin-top: calc(-1 * var(--safe-top)); padding: calc(var(--safe-top) + 8px) 12px 16px 8px; border-radius: 0 0 32px 32px; }
 .topbar.tinted .icon-btn { color: var(--on-tint); }
+/* Taller tinted headers (facts under the title) keep the back button at the top. */
+.topbar.tinted:has(.head-facts) { align-items: flex-start; }
+.topbar.tinted:has(.head-facts) .grow { padding-top: 6px; }
 .topbar.tinted .icon-btn:active { background: var(--tint-press); }
 .topbar.tinted .sub { color: var(--on-tint-2); }
+/* Facts in a tinted entry header (move pages): a 3-column grid of label over value. */
+.head-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; margin: 14px 0 0; }
+.head-facts div { min-width: 0; }
+.head-facts dt { font-size: 11px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
+.head-facts dd { margin: 2px 0 0; font-size: 15px; font-weight: 800; color: var(--on-tint); }
 .ref-species { padding-bottom: 24px; }
 .coming { margin: 8px 0; padding: 18px; border-radius: 16px; border: 1.5px dashed var(--outline); color: var(--muted); font-size: 14px; line-height: 1.5; }
 

@@ -1,1 +1,1 @@
-{"effect":"Prevents any moves from hitting the user this turn. If this blocks a contact move, the user has their Defense lowered by 2 stages.","species":[862]}
+{"description":"This move enables the user to protect itself from all attacks. Its chance of failing rises if it is used in succession. Direct contact harshly lowers the attacker’s Defense stat.","effect":"Prevents any moves from hitting the user this turn. If this blocks a contact move, the user has their Defense lowered by 2 stages.","learners":{"level":[[862,128]]}}

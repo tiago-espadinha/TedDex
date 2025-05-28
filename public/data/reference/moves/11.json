@@ -1,1 +1,1 @@
-{"effect":"Inflicts regular damage with no additional effect.","species":[98,99,127,303,341,342,599,600,601,632,692,693,736,737,738,895]}
+{"description":"The target is gripped and squeezed from both sides to inflict damage.","effect":"Inflicts regular damage.","learners":{"level":[[98,127],[99,127],[127,255],[303,124],[341,124],[342,124],[599,240],[600,240],[601,240],[632,240],[692,224],[693,224],[736,448],[737,448],[738,192],[895,128]],"egg":[[738,256]]}}

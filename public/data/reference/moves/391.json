@@ -1,1 +1,1 @@
-{"effect":"User and target swap stat changes.","species":[490,801]}
+{"description":"The user employs its psychic power to switch stat changes with the target.","effect":"User swaps its stat modifiers with the target.","learners":{"level":[[490,504],[801,64]]}}

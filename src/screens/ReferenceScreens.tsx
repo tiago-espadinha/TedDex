@@ -1,17 +1,19 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   defensiveMultipliers, loadAbilities, loadIndex, loadItemReference, loadItems, loadMoveReference, loadMoves, loadTypes,
   offensiveMultipliers, spriteUrl, useLoad,
 } from '../data/api';
-import { cap, formatNo } from '../data/format';
+import { cap, formatNo, roman, signed } from '../data/format';
 import { NATURES } from '../data/natures';
 import { searchByName } from '../data/reference';
+import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
 import { typeTint } from '../data/typeColors';
-import type { IndexEntry, MoveInfo, TypeData, TypeName } from '../data/types';
+import type { IndexEntry, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip } from '../components/bits';
 import { MoveBody } from './MovesTab';
+import { MoveFilterSheet } from './MoveFilterSheet';
 
 type Kind = 'moves' | 'abilities' | 'items' | 'natures' | 'types';
 
@@ -91,9 +93,27 @@ export function ReferenceList() {
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
   const { data, error } = useLoad(() => (k ? loadEntries(k.kind) : Promise.resolve([])), k?.kind);
-  const shown = useMemo(() => searchByName(data ?? [], query), [data, query]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  // Moves also filter and sort; their filters live in the URL next to the query.
+  const moveFilters = useMemo(() => (k?.kind === 'moves' ? readMoveFilters(params) : undefined), [k?.kind, params]);
+  const moves = useMemo(() => (data ?? []).filter((e): e is MoveEntry => !!e.move), [data]);
+  const shown = useMemo(
+    () => (moveFilters ? filterMoves(moves, moveFilters) : searchByName(data ?? [], query)),
+    [data, moves, moveFilters, query],
+  );
+  const setQuery = (q: string) =>
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        if (q) next.set('q', q);
+        else next.delete('q');
+        return next;
+      },
+      { replace: true },
+    );
 
   if (!k) return <p className="empty">Page not found.</p>;
+  const filtered = moveFilters ? activeMoveFilters(moveFilters) : 0;
 
   return (
     <>
@@ -103,20 +123,17 @@ export function ReferenceList() {
         </Link>
         <div className="head-title">
           <h1>{k.title}</h1>
-          {data && <div className="sub">{data.length} in the data</div>}
+          {data && <div className="sub">{filtered || query ? `${shown.length} of ${data.length}` : `${data.length} in the data`}</div>}
         </div>
-        <SearchField
-          label={`Search ${k.title.toLowerCase()}`}
-          placeholder="Search"
-          value={query}
-          onChange={(q) => setParams(q ? { q } : {}, { replace: true })}
-        />
+        <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} />
       </header>
       {error && <p className="empty">Couldn't load {k.title.toLowerCase()}. {error.message}</p>}
       {!data && !error && <Loading />}
-      {data && !shown.length && <p className="empty">No {k.title.toLowerCase()} match “{query}”.</p>}
+      {data && !shown.length && (
+        <p className="empty">{filtered ? `No ${k.title.toLowerCase()} match these filters.` : `No ${k.title.toLowerCase()} match “${query}”.`}</p>
+      )}
       {shown.length > 0 && (
-        <ul className="ref-list">
+        <ul className={moveFilters ? 'ref-list with-fab' : 'ref-list'}>
           {shown.map((e) => (
             <li key={e.id}>
               <Link
@@ -130,9 +147,39 @@ export function ReferenceList() {
           ))}
         </ul>
       )}
+      {moveFilters && (
+        <>
+          <button
+            className="fab"
+            aria-label={filtered ? `Filter and sort, ${filtered} active` : 'Filter and sort'}
+            onClick={() => setSheetOpen(true)}
+          >
+            <Icon name="filter" size={24} />
+            {filtered > 0 && (
+              <span className="badge" aria-hidden="true">
+                {filtered}
+              </span>
+            )}
+          </button>
+          {sheetOpen && (
+            <MoveFilterSheet
+              value={moveFilters}
+              countFor={(f) => filterMoves(moves, f).length}
+              onApply={(f) => {
+                setParams(moveFilterParams(f), { replace: true });
+                setSheetOpen(false);
+                window.scrollTo({ top: 0 });
+              }}
+              onClose={() => setSheetOpen(false)}
+            />
+          )}
+        </>
+      )}
     </>
   );
 }
+
+type MoveEntry = Entry & { move: MoveInfo };
 
 function EntryBody({ entry: e }: { entry: Entry }) {
   if (e.move) {
@@ -181,11 +228,13 @@ interface FrameProps {
   loaded: boolean;
   /** Tints the header with this type, like the detail hero. */
   tint?: TypeName;
+  /** Shown in the header under the title, once loaded. */
+  head?: ReactNode;
   children?: ReactNode;
 }
 
 /** Topbar, then the body once loaded; the same loading, error and not-found states for every kind. */
-function EntryFrame({ one, name, error, loaded, tint, children }: FrameProps) {
+function EntryFrame({ one, name, error, loaded, tint, head, children }: FrameProps) {
   const navigate = useNavigate();
   let body = children;
   if (error) body = <p className="empty">Couldn't load this {one.toLowerCase()}. {error.message}</p>;
@@ -200,6 +249,7 @@ function EntryFrame({ one, name, error, loaded, tint, children }: FrameProps) {
         <div className="grow">
           <h1>{name ?? one}</h1>
           {name && <div className="sub">{one}</div>}
+          {name && head}
         </div>
       </header>
       {body}
@@ -214,24 +264,98 @@ function MoveEntry({ id, one }: EntryProps) {
     n,
   );
   const move = data?.[0][n];
+  const ref = data?.[2];
+  const facts: [string, ReactNode][] = move
+    ? [
+        ['Type', <TypeChip key="type" type={move.type} />],
+        ['Category', cap(move.category)],
+        ['Power', move.power ?? '—'],
+        ['Accuracy', move.accuracy ? `${move.accuracy}%` : '—'],
+        ['PP', move.pp ?? '—'],
+        ['Priority', signed(move.priority)],
+      ]
+    : [];
   return (
-    <EntryFrame one={one} name={move?.name} error={error} loaded={!!data} tint={move?.type}>
-      {move && data?.[2] && (
-        <>
-          <div className="section">
-            <div className="facts">
-              <Fact k="Type"><TypeChip type={move.type} large /></Fact>
-              <Fact k="Category">{cap(move.category)}</Fact>
-              <Fact k="Power">{move.power ?? '—'}</Fact>
-              <Fact k="Accuracy">{move.accuracy ? `${move.accuracy}%` : '—'}</Fact>
-              <Fact k="PP">{move.pp ?? '—'}</Fact>
+    <EntryFrame
+      one={one}
+      name={move?.name}
+      error={error}
+      loaded={!!data}
+      tint={move?.type}
+      head={
+        <dl className="head-facts">
+          {facts.map(([k, v]) => (
+            <div key={k}>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
             </div>
-          </div>
-          <Effect text={data[2].effect} />
-          <SpeciesList title="Learned by" ids={data[2].species} index={data[1]} none="No Pokémon learn it in the main-series games." />
+          ))}
+        </dl>
+      }
+    >
+      {move && ref && data && (
+        <>
+          {ref.description && (
+            <div className="section">
+              <h2>Description</h2>
+              <p className="flavor">{ref.description}</p>
+            </div>
+          )}
+          <Effect text={ref.effect} />
+          <MoveLearners learners={ref.learners} index={data[1]} />
         </>
       )}
     </EntryFrame>
+  );
+}
+
+const LEARN_METHODS: [LearnMethod, string][] = [
+  ['level', 'Level up'],
+  ['machine', 'TM/HM'],
+  ['tutor', 'Tutor'],
+  ['egg', 'Egg move'],
+];
+
+/** Who learns the move in one generation, one learn method at a time (a species can be in several). */
+function MoveLearners({ learners, index }: { learners: MoveReference['learners']; index: IndexEntry[] }) {
+  const all = Object.values(learners).flat();
+  const gens = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((g) => all.some(([, mask]) => mask & (1 << (g - 1))));
+  const [pickGen, setGen] = useState<number>();
+  const [pickMethod, setMethod] = useState<LearnMethod>('level');
+  if (!gens.length) return <SpeciesList title="Learned by" ids={[]} index={index} none="No Pokémon learn it in the main-series games." />;
+
+  const gen = pickGen && gens.includes(pickGen) ? pickGen : gens[gens.length - 1];
+  const inGen = (method: LearnMethod) => (learners[method] ?? []).filter(([, mask]) => mask & (1 << (gen - 1))).map(([s]) => s);
+  const methods = LEARN_METHODS.filter(([m]) => inGen(m).length > 0);
+  const [method, title] = methods.find(([m]) => m === pickMethod) ?? methods[0];
+
+  return (
+    <>
+      <div className="section">
+        <h2>Learned by</h2>
+        <label className="game-select">
+          <span className="k">Generation</span>
+          <select value={gen} onChange={(e) => setGen(Number(e.target.value))}>
+            {gens.map((g) => (
+              <option key={g} value={g}>
+                Gen {roman(g)}
+              </option>
+            ))}
+          </select>
+          <Icon name="next" size={18} />
+        </label>
+        {methods.length > 1 && (
+          <div className="segmented method-pick" role="radiogroup" aria-label="How they learn it">
+            {methods.map(([m, label]) => (
+              <button key={m} role="radio" aria-checked={m === method} onClick={() => setMethod(m)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <SpeciesList title={title} ids={inGen(method)} index={index} none="" />
+    </>
   );
 }
 
@@ -355,11 +479,20 @@ function Fact({ k, children }: { k: string; children: ReactNode }) {
   );
 }
 
-function Effect({ text }: { text: string }) {
+/** Effect text; the data keeps paragraphs apart with a blank line. */
+function Effect({ text, title = 'Effect' }: { text: string; title?: string }) {
   return (
     <div className="section">
-      <h2>Effect</h2>
-      <p className="flavor">{text || 'No description in the data yet.'}</p>
+      <h2>{title}</h2>
+      {text ? (
+        text.split('\n\n').map((para, i) => (
+          <p className="flavor" key={i}>
+            {para}
+          </p>
+        ))
+      ) : (
+        <p className="flavor">No description in the data yet.</p>
+      )}
     </div>
   );
 }

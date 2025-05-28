@@ -1,1 +1,1 @@
-{"effect":"Lowers the target’s Speed by two stages.","species":[179,180,181,187,188,189,315,331,332,406,546,547,556,684,685,830]}
+{"description":"The user releases cotton-like spores that cling to opposing Pokémon. This harshly lowers their Speed stats.","effect":"Lowers the target’s Speed by two stages.","learners":{"level":[[179,510],[180,510],[181,510],[187,510],[188,510],[189,510],[331,508],[332,508],[546,496],[547,496],[556,240],[684,224],[685,224],[830,128]],"egg":[[315,252],[406,248]]}}

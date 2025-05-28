@@ -1,1 +1,1 @@
-{"effect":"Puts the target to sleep.","species":[124,238]}
+{"description":"With a scary face, the user tries to force a kiss on the target. If it succeeds, the target falls asleep.","effect":"Puts the target to sleep.","learners":{"level":[[124,255]],"egg":[[238,2]]}}

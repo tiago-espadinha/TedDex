@@ -1,1 +1,1 @@
-{"effect":"Has an increased chance for a critical hit.","species":[416]}
+{"description":"The user calls out its underlings to pummel the target. This move has a heightened chance of landing a critical hit.","effect":"Inflicts regular damage. User’s critical hit rate is one level higher when using this move.","learners":{"level":[[416,504]]}}

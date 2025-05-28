@@ -1,1 +1,1 @@
-{"effect":"Lowers the target’s Attack and Special Attack by one stage.","species":[321,643,644,646,667,668,782,783,784,791,812,849,888,977,985,1009,1020]}
+{"description":"Letting out a noble roar, the user intimidates the target and lowers the target's Attack and Sp. Atk stats.","effect":"Lowers the target’s Attack and Special Attack by one stage.","learners":{"level":[[321,192],[643,448],[644,448],[646,448],[667,352],[668,352],[782,448],[783,448],[784,448],[791,448],[812,384],[849,384],[888,256],[977,256],[985,256],[1009,256]],"egg":[[1020,256]]}}

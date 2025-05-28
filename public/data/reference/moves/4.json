@@ -1,1 +1,1 @@
-{"effect":"Hits 2-5 times in one turn.","species":[107,115,165,166,532,674,675,794]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Inflicts regular damage. Hits 2–5 times in one turn.\n\nHas a 3/8 chance each to hit 2 or 3 times, and a 1/8 chance each to hit 4 or 5 times. Averages to 3 hits per use.","learners":{"level":[[107,127],[115,127],[165,126],[166,126],[674,96],[675,96],[794,64]],"egg":[[532,112]]}}

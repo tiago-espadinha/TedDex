@@ -1,1 +1,1 @@
-{"effect":"Paralyzes the target.","species":[23,24,206,336,495,496,497,621,694,718,780,843,844,982]}
+{"description":"The user intimidates the target with the pattern on its belly to cause paralysis.","effect":"Paralyzes the target.","learners":{"level":[[23,511],[24,511],[206,510],[336,508],[718,224],[780,192],[843,384],[844,384],[982,256]],"egg":[[495,368],[496,256],[497,256],[621,240],[694,224]]}}

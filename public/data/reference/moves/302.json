@@ -1,1 +1,1 @@
-{"effect":"Has a chance to make the target flinch.","species":[331,332,556,651,652]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Inflicts regular damage. Has a chance to make the target flinch.","learners":{"level":[[331,124],[332,124],[556,112],[651,96],[652,96]]}}

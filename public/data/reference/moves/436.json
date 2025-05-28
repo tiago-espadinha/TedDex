@@ -1,1 +1,1 @@
-{"effect":"Has a chance to burn the target.","species":[126,136,155,156,157,218,219,240,244,322,323,324,383,467,485,935,936,937,1004,1020]}
+{"description":"The user torches everything around it in an inferno of scarlet flames. This may also leave those it hits with a burn.","effect":"Inflicts regular damage. Has a chance to burn the target.","learners":{"level":[[126,504],[136,504],[155,504],[156,504],[157,504],[218,504],[219,504],[240,504],[244,504],[322,504],[323,504],[324,504],[383,504],[467,504],[485,504],[935,256],[936,256],[937,256],[1004,256],[1020,256]]}}

@@ -1,1 +1,1 @@
-{"effect":"Raises the user’s Attack by one stage.","species":[56,66,96,97,106,122,238,239,307,308,439,453,619,620]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Raises the user’s Attack by one stage.","learners":{"egg":[[56,126],[66,126],[238,126],[239,126],[453,120]],"level":[[96,127],[97,127],[106,127],[122,127],[307,124],[308,124],[439,120],[619,112],[620,112]]}}

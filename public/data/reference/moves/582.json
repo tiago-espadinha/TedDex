@@ -1,1 +1,1 @@
-{"effect":"Changes the target’s move’s type to Electric if it hasn’t moved yet this turn.","species":[694,695,836]}
+{"description":"If the target is electrified before it uses a move during that turn, the target’s move becomes Electric type.","effect":"Changes the target’s move’s type to Electric if it hasn’t moved yet this turn.","learners":{"level":[[694,224],[695,224],[836,128]]}}

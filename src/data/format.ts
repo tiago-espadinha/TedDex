@@ -1,6 +1,8 @@
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
 export const roman = (n: number) => ROMAN[n] ?? String(n);
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** +1, −3, 0 (a real minus sign). */
+export const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0');
 export const formatNo = (id: number) => `#${String(id).padStart(4, '0')}`;
 
 /** 0 → "0", 0.25 → "¼", 0.5 → "½", 1 → "", 2 → "2×", 4 → "4×" */

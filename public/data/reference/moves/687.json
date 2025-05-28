@@ -1,1 +1,1 @@
-{"effect":"Nullifies the target’s ability if it moves earlier.","species":[718]}
+{"description":"If the Pokémon the user has inflicted damage on have already used their moves, this move eliminates the effect of the target’s Ability.","effect":"Inflicts regular damage. If the target has already moved this turn, its ability is nullified.","learners":{"level":[[718,128]]}}

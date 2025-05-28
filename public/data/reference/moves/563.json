@@ -1,1 +1,1 @@
-{"effect":"Raises the Attack and Special Attack of all Grass Pokémon in battle.","species":[27,46,51,95,111,264,331,400,428,505,530,557,660,749,750,787]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Raises the Attack and Special Attack of all Grass Pokémon in battle.","learners":{"egg":[[27,96],[46,96],[95,96],[111,96],[331,96],[557,96]],"level":[[51,96],[264,96],[400,96],[428,96],[505,96],[530,96],[660,96],[749,64],[750,64],[787,64]]}}

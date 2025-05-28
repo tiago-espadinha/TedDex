@@ -1,1 +1,1 @@
-{"effect":"User foregoes its next turn to recharge.","species":[865]}
+{"description":"The user attacks wildly with its thick leek. The user can’t move on the next turn, because the force of this move makes it stagger.","effect":"Inflicts regular damage. User loses its next turn to \"recharge\", and cannot attack or switch out during that turn.","learners":{"level":[[865,128]]}}

@@ -1,1 +1,1 @@
-{"effect":"Has a chance to confuse the target.","species":[107,115,165,241,313,327,352,427,428,486,579,739,740]}
+{"description":"This move can’t be used. It’s recommended that this move is forgotten. Once forgotten, this move can’t be remembered.","effect":"Inflicts regular damage. Has a chance to confuse the target.","learners":{"level":[[107,64],[115,127],[327,124],[427,120],[428,120],[486,120],[579,112],[739,64],[740,64]],"egg":[[165,112],[241,120],[313,112],[352,120]]}}

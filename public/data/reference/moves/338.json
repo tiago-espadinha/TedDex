@@ -1,1 +1,1 @@
-{"effect":"User foregoes its next turn to recharge.","species":[3,151,154,254,389,497,652,724,812,908]}
+{"description":"The user slams the target with the roots of an enormous tree. The user can't move on the next turn.","effect":"Inflicts regular damage. User loses its next turn to \"recharge\", and cannot attack or switch out during that turn.","learners":{"tutor":[[3,252],[154,248],[254,248],[389,248],[497,112],[652,96],[724,192],[812,128]],"machine":[[3,256],[151,256],[154,256],[254,256],[389,256],[497,256],[652,256],[724,256],[812,256],[908,256]]}}

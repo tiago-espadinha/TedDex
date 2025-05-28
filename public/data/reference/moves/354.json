@@ -1,1 +1,1 @@
-{"effect":"Lowers the user’s Special Attack by two stages after inflicting damage.","species":[386]}
+{"description":"The user attacks the target with all its might. The recoil from this move harshly lowers the user's Sp. Atk stat.","effect":"Inflicts regular damage, then lowers the user’s Special Attack by two stages.","learners":{"level":[[386,380]]}}
