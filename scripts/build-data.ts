@@ -14,7 +14,7 @@
  *   versions.json         main-series version groups that have learnsets, oldest first
  *   evolution/<chain>.json  evolution chain members with English condition text, loaded by the Evolution tab
  *   items.json            held items a team member can carry: item id -> English name
- *   reference/abilities.json  ability id -> name, short effect, species that have it (any form)
+ *   reference/abilities.json  ability id -> name, short effect, full details, generation, species that have it (any form)
  *   reference/items.json      held item id -> short effect, species that hold it in the wild
  *   reference/moves/<id>.json move description, full effect, and its learners per method as [species, generation bitmask]
  *   locations/<id>.json   wild encounters per game (version id) as tuples into a string table, any form
@@ -796,12 +796,21 @@ async function main() {
   }
 
   const abilityEffect = effectText(abilityProse, 'ability_id', abilityFlavor, 'ability_id');
+  const abilityDetails = new Map(
+    abilityProse.filter((p) => Number(p.local_language_id) === ENGLISH && p.effect).map((p) => [p.ability_id, paragraphs(p.effect)]),
+  );
   const holdersByAbility = groupBy(pokemonAbilities, (r) => r.ability_id);
   const abilityTable: Record<string, unknown> = {};
   for (const a of abilities) {
     const holders = speciesIds(holdersByAbility.get(a.id) ?? []);
     if (a.is_main_series !== '1' || !holders.length) continue;
-    abilityTable[a.id] = { name: abilityName.get(a.id) ?? a.identifier, effect: abilityEffect.get(a.id) ?? '', species: holders };
+    abilityTable[a.id] = {
+      name: abilityName.get(a.id) ?? a.identifier,
+      effect: abilityEffect.get(a.id) ?? '',
+      details: abilityDetails.get(a.id) ?? '',
+      gen: Number(a.generation_id),
+      species: holders,
+    };
   }
 
   const itemEffect = effectText(itemProse, 'item_id', itemFlavor, 'item_id');

@@ -129,8 +129,11 @@ export interface MoveReference {
   learners: Partial<Record<LearnMethod, [species: number, gens: number][]>>;
 }
 
-/** reference/abilities.json: ability id → name, effect and the species that have it (any form). */
-export type AbilityTable = Record<number, { name: string; effect: string; species: number[] }>;
+/**
+ * reference/abilities.json: ability id → name, short effect, full details (paragraphs split by a blank line; may
+ * be empty), the generation that introduced it and the species that have it (any form).
+ */
+export type AbilityTable = Record<number, { name: string; effect: string; details: string; gen: number; species: number[] }>;
 
 /** reference/items.json: held item id → effect and the species that hold it in the wild. */
 export type ItemReferenceTable = Record<number, { effect: string; species: number[] }>;

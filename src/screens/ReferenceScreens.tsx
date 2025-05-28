@@ -25,6 +25,7 @@ const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'types', title: 'Types', one: 'Type', blurb: 'The type chart, one type at a time' },
 ];
 
+const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const STAT_NAMES = { atk: 'Attack', def: 'Defense', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' };
 
 /** One row of a reference list; `move` and `type` pick a richer row. */
@@ -34,6 +35,8 @@ interface Entry {
   sub?: string;
   move?: MoveInfo;
   type?: TypeName;
+  /** Generation that introduced it, for the generation chips (abilities). */
+  gen?: number;
 }
 
 const natureSub = (n: (typeof NATURES)[number]) =>
@@ -44,7 +47,7 @@ async function loadEntries(kind: Kind): Promise<Entry[]> {
     case 'moves':
       return Object.entries(await loadMoves()).map(([id, move]) => ({ id, name: move.name, move }));
     case 'abilities':
-      return Object.entries(await loadAbilities()).map(([id, a]) => ({ id, name: a.name, sub: a.effect }));
+      return Object.entries(await loadAbilities()).map(([id, a]) => ({ id, name: a.name, sub: a.effect, gen: a.gen }));
     case 'items': {
       const [names, refs] = await Promise.all([loadItems(), loadItemReference()]);
       return Object.entries(names).map(([id, name]) => ({ id, name, sub: refs[Number(id)]?.effect }));
@@ -97,23 +100,30 @@ export function ReferenceList() {
   // Moves also filter and sort; their filters live in the URL next to the query.
   const moveFilters = useMemo(() => (k?.kind === 'moves' ? readMoveFilters(params) : undefined), [k?.kind, params]);
   const moves = useMemo(() => (data ?? []).filter((e): e is MoveEntry => !!e.move), [data]);
-  const shown = useMemo(
-    () => (moveFilters ? filterMoves(moves, moveFilters) : searchByName(data ?? [], query)),
-    [data, moves, moveFilters, query],
-  );
-  const setQuery = (q: string) =>
+  // Lists whose entries carry a generation (abilities) get generation chips, kept in `?gen=`.
+  const hasGens = !moveFilters && !!data?.some((e) => e.gen);
+  const gens = useMemo(() => (params.get('gen') ?? '').split(',').filter(Boolean).map(Number), [params]);
+  const shown = useMemo(() => {
+    if (moveFilters) return filterMoves(moves, moveFilters);
+    const hits = searchByName(data ?? [], query);
+    return gens.length ? hits.filter((e) => e.gen && gens.includes(e.gen)) : hits;
+  }, [data, moves, moveFilters, query, gens]);
+  const setParam = (key: string, value: string) =>
     setParams(
       (p) => {
         const next = new URLSearchParams(p);
-        if (q) next.set('q', q);
-        else next.delete('q');
+        if (value) next.set(key, value);
+        else next.delete(key);
         return next;
       },
       { replace: true },
     );
+  const setQuery = (q: string) => setParam('q', q);
+  const toggleGen = (g: number) =>
+    setParam('gen', (gens.includes(g) ? gens.filter((x) => x !== g) : [...gens, g].sort()).join(','));
 
   if (!k) return <p className="empty">Page not found.</p>;
-  const filtered = moveFilters ? activeMoveFilters(moveFilters) : 0;
+  const filtered = moveFilters ? activeMoveFilters(moveFilters) : gens.length;
 
   return (
     <>
@@ -127,6 +137,15 @@ export function ReferenceList() {
         </div>
         <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} />
       </header>
+      {hasGens && (
+        <div className="chip-row" role="group" aria-label="Generation introduced">
+          {GENS.map((g) => (
+            <button key={g} className={gens.includes(g) ? 'filter-chip on' : 'filter-chip'} aria-pressed={gens.includes(g)} onClick={() => toggleGen(g)}>
+              Gen {roman(g)}
+            </button>
+          ))}
+        </div>
+      )}
       {error && <p className="empty">Couldn't load {k.title.toLowerCase()}. {error.message}</p>}
       {!data && !error && <Loading />}
       {data && !shown.length && (
@@ -367,6 +386,7 @@ function AbilityEntry({ id, one }: EntryProps) {
       {ability && data && (
         <>
           <Effect text={ability.effect} />
+          {ability.details && ability.details !== ability.effect && <Effect title="Details" text={ability.details} />}
           <SpeciesList title="Pokémon with it" ids={ability.species} index={data[1]} none="No Pokémon have it." />
         </>
       )}
