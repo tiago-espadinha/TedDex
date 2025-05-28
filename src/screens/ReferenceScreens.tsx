@@ -4,11 +4,11 @@ import {
   defensiveMultipliers, loadAbilities, loadIndex, loadItemReference, loadItems, loadMoveReference, loadMoves, loadTypes,
   offensiveMultipliers, spriteUrl, useLoad,
 } from '../data/api';
-import { cap, formatNo, roman, signed } from '../data/format';
-import { NATURES } from '../data/natures';
+import { cap, formatMultiplier, formatNo, roman, signed } from '../data/format';
+import { NATURES, dislikedFlavor, likedFlavor } from '../data/natures';
 import { searchByName } from '../data/reference';
 import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
-import { typeTint } from '../data/typeColors';
+import { typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip } from '../components/bits';
@@ -21,8 +21,8 @@ const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'moves', title: 'Moves', one: 'Move', blurb: 'Power, accuracy, effect and who learns them' },
   { kind: 'abilities', title: 'Abilities', one: 'Ability', blurb: 'What each ability does and who has it' },
   { kind: 'items', title: 'Items', one: 'Held item', blurb: 'Held items and who carries them in the wild' },
-  { kind: 'natures', title: 'Natures', one: 'Nature', blurb: 'Which stat each nature raises and lowers' },
-  { kind: 'types', title: 'Types', one: 'Type', blurb: 'The type chart, one type at a time' },
+  { kind: 'natures', title: 'Natures', one: 'Nature', blurb: 'Stats each nature raises and lowers, and flavours' },
+  { kind: 'types', title: 'Types', one: 'Type', blurb: 'The full type chart' },
 ];
 
 const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -39,10 +39,10 @@ interface Entry {
   gen?: number;
 }
 
-const natureSub = (n: (typeof NATURES)[number]) =>
-  n.up && n.down ? `+${STAT_NAMES[n.up]} · −${STAT_NAMES[n.down]}` : 'Neutral, no stat change';
+/** Kinds shown as a searchable list; natures and types are tables instead. */
+type ListKind = Exclude<Kind, 'natures' | 'types'>;
 
-async function loadEntries(kind: Kind): Promise<Entry[]> {
+async function loadEntries(kind: ListKind): Promise<Entry[]> {
   switch (kind) {
     case 'moves':
       return Object.entries(await loadMoves()).map(([id, move]) => ({ id, name: move.name, move }));
@@ -52,10 +52,6 @@ async function loadEntries(kind: Kind): Promise<Entry[]> {
       const [names, refs] = await Promise.all([loadItems(), loadItemReference()]);
       return Object.entries(names).map(([id, name]) => ({ id, name, sub: refs[Number(id)]?.effect }));
     }
-    case 'natures':
-      return NATURES.map((n) => ({ id: n.name.toLowerCase(), name: n.name, sub: natureSub(n) }));
-    case 'types':
-      return (await loadTypes()).types.map((t) => ({ id: t, name: cap(t), type: t }));
   }
 }
 
@@ -91,11 +87,19 @@ export function ReferenceScreen() {
 }
 
 // ---------------- searchable list ----------------
+/** `/reference/:kind`: the natures table, the type chart, or a searchable list. */
 export function ReferenceList() {
+  const kind = useParams().kind;
+  if (kind === 'natures') return <NatureTable />;
+  if (kind === 'types') return <TypeMatrix />;
+  return <SearchList />;
+}
+
+function SearchList() {
   const k = kindOf(useParams().kind);
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
-  const { data, error } = useLoad(() => (k ? loadEntries(k.kind) : Promise.resolve([])), k?.kind);
+  const { data, error } = useLoad(() => (k ? loadEntries(k.kind as ListKind) : Promise.resolve([])), k?.kind);
   const [sheetOpen, setSheetOpen] = useState(false);
   // Moves also filter and sort; their filters live in the URL next to the query.
   const moveFilters = useMemo(() => (k?.kind === 'moves' ? readMoveFilters(params) : undefined), [k?.kind, params]);
@@ -231,7 +235,8 @@ export function ReferenceEntry() {
   const { kind, id = '' } = useParams();
   const k = kindOf(kind);
   if (!k) return <p className="empty">Page not found.</p>;
-  const Page = { moves: MoveEntry, abilities: AbilityEntry, items: ItemEntry, natures: NatureEntry, types: TypeEntry }[k.kind];
+  if (k.kind === 'natures') return <p className="empty">Page not found.</p>;
+  const Page = { moves: MoveEntry, abilities: AbilityEntry, items: ItemEntry, types: TypeEntry }[k.kind];
   return <Page id={id} one={k.one} />;
 }
 
@@ -410,26 +415,110 @@ function ItemEntry({ id, one }: EntryProps) {
   );
 }
 
-function NatureEntry({ id, one }: EntryProps) {
-  const nature = NATURES.find((n) => n.name.toLowerCase() === id);
+/** Topbar for the table pages: back to Reference, title and a subtitle. */
+function TableHead({ title, sub }: { title: string; sub: string }) {
   return (
-    <EntryFrame one={one} name={nature?.name} loaded>
-      {nature && (
-        <div className="section">
-          {nature.up && nature.down ? (
-            <div className="facts">
-              <Fact k="Raises (+10%)">{STAT_NAMES[nature.up]}</Fact>
-              <Fact k="Lowers (−10%)">{STAT_NAMES[nature.down]}</Fact>
-            </div>
-          ) : (
-            <p className="flavor">A neutral nature: it raises and lowers the same stat, so nothing changes.</p>
-          )}
-          <p className="hint">Any Pokémon can have any nature, so there is no list of species here.</p>
-        </div>
-      )}
-    </EntryFrame>
+    <header className="topbar">
+      <Link to="/reference" className="icon-btn" aria-label="Back to Reference">
+        <Icon name="back" />
+      </Link>
+      <div className="grow">
+        <h1>{title}</h1>
+        <div className="sub">{sub}</div>
+      </div>
+    </header>
   );
 }
+
+/** Every nature with the stat it raises and lowers and the flavours it likes and dislikes; neutral ones show —. */
+function NatureTable() {
+  return (
+    <>
+      <TableHead title="Natures" sub={`${NATURES.length} natures · ±10% to one stat`} />
+      <div className="ref-table">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Nature</th>
+              <th scope="col">Increased</th>
+              <th scope="col">Decreased</th>
+              <th scope="col">Likes</th>
+              <th scope="col">Dislikes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {NATURES.map((n) => (
+              <tr key={n.name}>
+                <th scope="row">{n.name}</th>
+                <td className={n.up && 'up'}>{n.up ? STAT_NAMES[n.up] : '—'}</td>
+                <td className={n.down && 'down'}>{n.down ? STAT_NAMES[n.down] : '—'}</td>
+                <td>{likedFlavor(n) ?? '—'}</td>
+                <td>{dislikedFlavor(n) ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+/** Short column labels so 18 columns fit a phone with a little sideways scrolling. */
+const TYPE_ABBR = (t: TypeName) => t.slice(0, 3).toUpperCase();
+
+/** The full type chart: attacking type per row, defending type per column; blank cells are 1×. */
+function TypeMatrix() {
+  const { data, error } = useLoad(loadTypes, 'types');
+  return (
+    <>
+      <TableHead title="Types" sub="Attacking type down the side, defending along the top" />
+      {error && <p className="empty">Couldn't load the type chart. {error.message}</p>}
+      {!data && !error && <Loading />}
+      {data && (
+        <div className="type-matrix" tabIndex={0} role="region" aria-label="Type chart">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">
+                  <span className="sr-only">Attacking ↓ / defending →</span>
+                </th>
+                {data.types.map((def) => (
+                  <th scope="col" key={def}>
+                    <abbr title={cap(def)} style={{ backgroundColor: typeChip(def) }}>
+                      {TYPE_ABBR(def)}
+                    </abbr>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.types.map((atk) => (
+                <tr key={atk}>
+                  <th scope="row">
+                    <Link to={`/reference/types/${atk}`} style={{ backgroundColor: typeChip(atk) }}>
+                      {cap(atk)}
+                    </Link>
+                  </th>
+                  {data.types.map((def) => {
+                    const m = data.matrix[atk][def] ?? 1;
+                    return (
+                      <td key={def} className={matchupClass(m)} aria-label={`${cap(atk)} on ${cap(def)}: ${m}×`}>
+                        {formatMultiplier(m)}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** Attacking view, as in team coverage: super effective is good (green), resisted warm, immune grey. */
+const matchupClass = (m: number) => (m > 1 ? 'super' : m === 0 ? 'immune' : m < 1 ? 'resisted' : undefined);
 
 function TypeEntry({ id, one }: EntryProps) {
   const { data, error } = useLoad(() => Promise.all([loadTypes(), loadIndex()]), 'types');
@@ -488,15 +577,6 @@ function TypeChart({ type, data }: { type: TypeName; data: TypeData }) {
       })}
     </div>
   ));
-}
-
-function Fact({ k, children }: { k: string; children: ReactNode }) {
-  return (
-    <div className="fact">
-      <div className="k">{k}</div>
-      <div className="v">{children}</div>
-    </div>
-  );
 }
 
 /** Effect text; the data keeps paragraphs apart with a blank line. */
