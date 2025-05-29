@@ -475,8 +475,8 @@ a.move-row.tinted { color: var(--on-tint); }
 .topbar.tinted { color: var(--on-tint); margin-top: calc(-1 * var(--safe-top)); padding: calc(var(--safe-top) + 8px) 12px 16px 8px; border-radius: 0 0 32px 32px; }
 .topbar.tinted .icon-btn { color: var(--on-tint); }
 /* Taller tinted headers (facts under the title) keep the back button at the top. */
-.topbar.tinted:has(.head-facts) { align-items: flex-start; }
-.topbar.tinted:has(.head-facts) .grow { padding-top: 6px; }
+.topbar:has(.head-facts) { align-items: flex-start; }
+.topbar:has(.head-facts) .grow { padding-top: 6px; }
 .topbar.tinted .icon-btn:active { background: var(--tint-press); }
 .topbar.tinted .sub { color: var(--on-tint-2); }
 /* Facts in a tinted entry header (move pages): a 3-column grid of label over value. */
@@ -484,6 +484,16 @@ a.move-row.tinted { color: var(--on-tint); }
 .head-facts div { min-width: 0; }
 .head-facts dt { font-size: 11px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
 .head-facts dd { margin: 2px 0 0; font-size: 15px; font-weight: 800; color: var(--on-tint); }
+.topbar:not(.tinted) .head-facts dt { color: var(--muted); }
+.topbar:not(.tinted) .head-facts dd { color: var(--ink); }
+/* Item pages: facts under the title, the sprite on a tile at the end of the header. */
+.topbar:not(.tinted):has(.head-facts) { padding-bottom: 12px; }
+.item-art { flex: none; width: 64px; height: 64px; margin: 6px 4px 0 8px; padding: 8px; box-sizing: content-box; border-radius: 20px; background: var(--surface-2); object-fit: contain; }
+.ref-list .item-sprite { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--surface-2); object-fit: contain; }
+.ref-list .price { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+/* Item categories have longer labels than generations: two columns, wrapping. */
+.cat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 6px; }
+.cat-grid .gen-btn { height: auto; min-height: 44px; padding: 4px 8px; line-height: 1.2; }
 .ref-species { padding-bottom: 24px; }
 .coming { margin: 8px 0; padding: 18px; border-radius: 16px; border: 1.5px dashed var(--outline); color: var(--muted); font-size: 14px; line-height: 1.5; }
 

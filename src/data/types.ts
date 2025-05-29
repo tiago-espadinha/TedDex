@@ -1,4 +1,5 @@
 /** Shapes of the JSON produced by scripts/build-data.ts. Keep in sync with it. */
+import type { ItemCategory } from './itemCategories';
 
 export type TypeName =
   | 'normal' | 'fighting' | 'flying' | 'poison' | 'ground' | 'rock'
@@ -135,8 +136,20 @@ export interface MoveReference {
  */
 export type AbilityTable = Record<number, { name: string; effect: string; details: string; gen: number; species: number[] }>;
 
-/** reference/items.json: held item id → effect and the species that hold it in the wild. */
-export type ItemReferenceTable = Record<number, { effect: string; species: number[] }>;
+/**
+ * reference/items.json: item id → name, category, the generation that introduced it, price (0 when it can't be
+ * bought), short effect and the species that hold it in the wild. Every named item, held or not.
+ */
+export type ItemReferenceTable = Record<number, ItemInfo>;
+
+export interface ItemInfo {
+  name: string;
+  category: ItemCategory;
+  gen: number;
+  cost: number;
+  effect: string;
+  species: number[];
+}
 
 /** games.json: games (versions, not version groups) with encounter data, oldest first. */
 export interface Game {

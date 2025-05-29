@@ -30,3 +30,6 @@ export function genderText(rate: number): string {
   if (female === 100) return '100% ♀';
   return `${100 - female}% ♂ · ${female}% ♀`;
 }
+
+/** Shop price in Pokédollars: 4000 → "₽4,000"; 0 (not sold) → "—". */
+export const formatPrice = (cost: number) => (cost > 0 ? `₽${cost.toLocaleString('en-US')}` : '—');

@@ -15,7 +15,8 @@
  *   evolution/<chain>.json  evolution chain members with English condition text, loaded by the Evolution tab
  *   items.json            held items a team member can carry: item id -> English name
  *   reference/abilities.json  ability id -> name, short effect, full details, generation, species that have it (any form)
- *   reference/items.json      held item id -> short effect, species that hold it in the wild
+ *   reference/items.json      item id -> name, category, generation introduced, price (0 = not sold), short effect
+ *                             (no "Held: " preamble), species that hold it in the wild; every named item but unused ones
  *   reference/moves/<id>.json move description, full effect, and its learners per method as [species, generation bitmask]
  *   locations/<id>.json   wild encounters per game (version id) as tuples into a string table, any form
  *   games.json            games (versions) with encounter data, oldest first
@@ -26,6 +27,7 @@ import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { summariseSlots, type ConditionValue } from './encounters';
+import { POKEAPI_ITEM_CATEGORIES } from '../src/data/itemCategories';
 
 const CSV_BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv';
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -78,6 +80,20 @@ const HELD_ITEM_CATEGORIES = new Set([
   'effort-training', 'training', 'jewels', 'mega-stones', 'memories', 'z-crystals',
   'medicine', 'picky-healing', 'in-a-pinch', 'type-protection', 'other',
 ]);
+/**
+ * Items with no item_game_indices row: Oak's Parcel is Gen I; the rest (Legends: Z-A Mega Stones, Metal Alloy)
+ * are newer than PokeAPI's game indices, so they count as the newest generation.
+ */
+const ITEM_GEN_FALLBACK: Record<string, number> = { 'oaks-parcel': 1 };
+const NEWEST_GEN = 9;
+/** Game-specific copies of an item share its English name; the copy gets the game in brackets. */
+const ITEM_VARIANTS: [RegExp, string][] = [
+  [/--letsgo$/, "Let's Go"],
+  [/--pikachu$/, "Let's Go Pikachu"],
+  [/--eevee$/, "Let's Go Eevee"],
+  [/--galar$/, 'Sword/Shield'],
+  [/^la.+-ball$/, 'Legends: Arceus'],
+];
 /** Short labels for encounter_methods identifiers; the rest use their English prose. */
 const METHOD_LABELS: Record<string, string> = {
   walk: 'Grass or cave',
@@ -290,6 +306,7 @@ async function main() {
     itemProse,
     itemFlavor,
     pokemonItems,
+    itemGameIndices,
     encounters,
     encounterSlots,
     encounterMethods,
@@ -338,6 +355,7 @@ async function main() {
         'item_prose',
         'item_flavor_text',
         'pokemon_items',
+        'item_game_indices',
         'encounters',
         'encounter_slots',
         'encounter_methods',
@@ -815,9 +833,38 @@ async function main() {
 
   const itemEffect = effectText(itemProse, 'item_id', itemFlavor, 'item_id');
   const wildHolders = groupBy(pokemonItems, (r) => r.item_id);
+  const firstGen = new Map<string, number>();
+  for (const g of itemGameIndices) firstGen.set(g.item_id, Math.min(Number(g.generation_id), firstGen.get(g.item_id) ?? Infinity));
+  const categoryIdentifier = new Map(itemCategories.map((c) => [c.id, c.identifier]));
   const itemReference: Record<string, unknown> = {};
-  for (const id of Object.keys(itemTable)) {
-    itemReference[id] = { effect: itemEffect.get(id) ?? '', species: speciesIds(wildHolders.get(id) ?? []) };
+  const itemById = new Map(items.map((it) => [it.id, it]));
+  for (const it of items) {
+    const name = itemName.get(it.id);
+    const identifier = categoryIdentifier.get(it.category_id) ?? '';
+    if (!(identifier in POKEAPI_ITEM_CATEGORIES)) throw new Error(`Item category ${identifier || it.category_id} has no group in itemCategories.ts`);
+    const category = POKEAPI_ITEM_CATEGORIES[identifier];
+    if (!name || !category) continue;
+    itemReference[it.id] = {
+      name,
+      category,
+      gen: firstGen.get(it.id) ?? ITEM_GEN_FALLBACK[it.identifier] ?? NEWEST_GEN,
+      cost: Number(it.cost) || 0,
+      effect: (itemEffect.get(it.id) ?? '')
+        .replace(/^Held:\s*/, '')
+        .replace(/^./, (c) => c.toUpperCase())
+        .replace(/\[VAR \(\d+\)\]/g, 'a certain Pokémon'), // Dynamax Crystals name the Pokémon in-game
+      species: speciesIds(wildHolders.get(it.id) ?? []),
+    };
+  }
+  const itemsByName = groupBy(Object.entries(itemReference) as [string, { name: string }][], ([, it]) => it.name);
+  for (const [name, same] of itemsByName) {
+    if (same.length < 2) continue;
+    for (const [id, it] of same) {
+      const variant = ITEM_VARIANTS.find(([re]) => re.test(itemById.get(id)!.identifier))?.[1];
+      if (variant) it.name = `${name} (${variant})`;
+    }
+    const names = same.map(([, it]) => it.name);
+    if (new Set(names).size < names.length) throw new Error(`Items share the name ${name}: add a rule to ITEM_VARIANTS`);
   }
 
   // --- locations: wild encounters per game (PokeAPI has them from Red/Blue to Sword/Shield) ---
@@ -933,7 +980,7 @@ async function main() {
   await writeFile(join(OUT, 'meta.json'), JSON.stringify({ version, builtAt, species: index.length }));
   console.log(
     `Done: ${index.length} species, ${battleTypes.length} types, ${usedMoves.size} moves, ` +
-      `${versionList.length} games, ${chains.size} evolution chains, ${Object.keys(itemTable).length} items, ` +
+      `${versionList.length} games, ${chains.size} evolution chains, ${Object.keys(itemTable).length} held items, ${Object.keys(itemReference).length} items, ` +
       `${gameList.length} games with encounters, ` +
       `${formCount} forms → public/data (version ${version})`,
   );

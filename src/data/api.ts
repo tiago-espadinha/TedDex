@@ -57,10 +57,11 @@ export function useLoad<T>(loader: () => Promise<T>, key: unknown): { data?: T; 
 }
 
 // ---- media (mirrored into /media by `npm run media`) ----
-// Sprites are precached; artwork and cries are cached the first time they are seen.
+// Sprites (Pokémon and items) are precached; artwork and cries are cached the first time they are seen.
 export const spriteUrl = (id: number) => `/media/sprites/${id}.webp`;
 export const artworkUrl = (id: number) => `/media/artwork/${id}.webp`;
 export const cryUrl = (id: number) => `/media/cries/${id}.m4a`;
+export const itemSpriteUrl = (id: number | string) => `/media/items/${id}.webp`;
 
 // ---- type maths ----
 export function defensiveMultipliers(defTypes: TypeName[], data: TypeData): Record<TypeName, number> {
