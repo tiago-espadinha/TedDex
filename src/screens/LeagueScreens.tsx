@@ -1,8 +1,10 @@
 import { useId, useState, type ReactNode } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { loadAbilities, loadIndex, loadItems, loadLeague, loadLeagues, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import {
+  itemSpriteUrl, loadAbilities, loadIndex, loadItems, loadLeague, loadLeagues, loadMoves, loadSpecies, spriteUrl, trainerSpriteUrl, useLoad,
+} from '../data/api';
 import { typeChip, typeTint } from '../data/typeColors';
-import type { AbilityTable, FormVariant, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTrainer, MoveTable } from '../data/types';
+import type { AbilityTable, FormVariant, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTeam, LeagueTrainer, MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
 
@@ -62,7 +64,8 @@ const formKey = (id: number, form: string) => `${id}:${form}`;
 async function loadGame(id: string): Promise<[LeagueGame, Tables] | null> {
   if (!(await loadLeagues()).some((g) => g.id === id)) return null;
   const [game, index, moves, abilities, items] = await Promise.all([loadLeague(id), loadIndex(), loadMoves(), loadAbilities(), loadItems()]);
-  const members = game.trainers.flatMap((t) => t.teams.flatMap((team) => team.members));
+  const teams = game.trainers.flatMap((t) => [...t.teams, ...(t.rematches ?? []).flatMap((r) => r.teams)]);
+  const members = teams.flatMap((team) => team.members);
   const formed = [...new Set(members.filter((m) => m.form).map((m) => m.id))];
   const forms = new Map<string, FormVariant>();
   for (const s of await Promise.all(formed.map(loadSpecies))) {
@@ -76,6 +79,10 @@ export function LeagueGameScreen() {
   const navigate = useNavigate();
   const { data, error } = useLoad(() => loadGame(id), id);
   const [game, tables] = data ?? [];
+  const [params, setParams] = useSearchParams();
+  const hasRematches = !!game?.trainers.some((t) => t.rematches);
+  const rematch = hasRematches && params.get('rematch') === '1';
+  const toggleRematch = () => setParams(rematch ? {} : { rematch: '1' }, { replace: true });
   return (
     <>
       <header className="topbar">
@@ -93,8 +100,14 @@ export function LeagueGameScreen() {
       {game && tables && (
         <>
           {game.note && <p className="hint league-note">{game.note}</p>}
+          {hasRematches && (
+            <button type="button" className="switch-row" role="switch" aria-checked={rematch} onClick={toggleRematch}>
+              Show rematches
+              <span className="track" aria-hidden="true" />
+            </button>
+          )}
           {game.trainers.map((t, i) => (
-            <TrainerSection key={`${t.name}-${i}`} trainer={t} tables={tables} />
+            <TrainerSection key={`${t.name}-${i}`} trainer={t} tables={tables} rematch={rematch} />
           ))}
           <Sources trainers={game.trainers} />
         </>
@@ -117,35 +130,71 @@ function splitLabels(labels: string[]): { prefix: string; options: string[] } {
   const words = labels.map((l) => l.split(' '));
   let n = 0;
   while (words.every((w) => n < w.length - 1 && w[n] === words[0][n])) n++;
-  return { prefix: words[0].slice(0, n).join(' '), options: words.map((w) => w.slice(n).join(' ')) };
+  // "(before Stark Mountain)" → "Before Stark Mountain".
+  const option = (w: string[]) => w.slice(n).join(' ').replace(/^\((.*)\)$/, '$1').replace(/^./, (c) => c.toUpperCase());
+  return { prefix: words[0].slice(0, n).join(' '), options: words.map(option) };
 }
 
-function TrainerSection({ trainer: t, tables }: { trainer: LeagueTrainer; tables: Tables }) {
+/** A labelled row of radio buttons; `labels` share their leading words, which become the heading. */
+function Picker({ labels, pick, onPick, labelledBy }: { labels: string[]; pick: number; onPick: (i: number) => void; labelledBy: string }) {
+  const { prefix, options } = splitLabels(labels);
+  const id = useId();
+  return (
+    <>
+      <div className="league-pick-label" id={id}>
+        {prefix || 'Team'}
+      </div>
+      <div className="segmented league-pick" role="radiogroup" aria-labelledby={`${labelledBy} ${id}`}>
+        {options.map((o, i) => (
+          <button key={i} role="radio" aria-checked={i === pick} onClick={() => onPick(i)}>
+            {o}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function TrainerSection({ trainer: t, tables, rematch }: { trainer: LeagueTrainer; tables: Tables; rematch: boolean }) {
+  const [stage, setStage] = useState(0);
   const [pick, setPick] = useState(0);
-  const team = t.teams[pick];
-  const { prefix, options } = splitLabels(t.teams.map((tm) => tm.label ?? ''));
+  const stages = rematch ? t.rematches : undefined;
+  const teams: LeagueTeam[] = stages?.[stage].teams ?? t.teams;
+  const team = teams[Math.min(pick, teams.length - 1)];
   const headingId = useId();
-  const pickLabelId = useId();
   return (
     <section className="section league-trainer" aria-labelledby={headingId}>
       <div className="league-head">
-        <h2 id={headingId}>{t.name}</h2>
-        <span className="role">{t.role}</span>
-        {t.type && <TypeChip type={t.type} />}
+        {t.sprite ? (
+          <img className="trainer-sprite" src={trainerSpriteUrl(t.sprite)} alt="" width={72} height={72} loading="lazy" />
+        ) : (
+          <span className="trainer-sprite placeholder" aria-hidden="true">
+            <Icon name="person" size={32} />
+          </span>
+        )}
+        <div className="who">
+          <h2 id={headingId}>{t.name}</h2>
+          <div className="tags">
+            <span className="role">{t.role}</span>
+            {t.type && <TypeChip type={t.type} />}
+          </div>
+        </div>
       </div>
-      {t.teams.length > 1 && (
-        <>
-          <div className="league-pick-label" id={pickLabelId}>
-            {prefix || 'Team'}
-          </div>
-          <div className="segmented league-pick" role="radiogroup" aria-labelledby={`${headingId} ${pickLabelId}`}>
-            {options.map((o, i) => (
-              <button key={i} role="radio" aria-checked={i === pick} onClick={() => setPick(i)}>
-                {o}
-              </button>
-            ))}
-          </div>
-        </>
+      {rematch && !stages && <p className="hint league-no-rematch">No rematch in this game: first battle team.</p>}
+      {stages && stages.length > 1 && (
+        <Picker
+          labels={stages.map((s) => s.label)}
+          pick={stage}
+          onPick={(i) => {
+            setStage(i);
+            setPick(0);
+          }}
+          labelledBy={headingId}
+        />
+      )}
+      {stages?.length === 1 && <p className="league-pick-label">{stages[0].label}</p>}
+      {teams.length > 1 && (
+        <Picker labels={teams.map((tm) => tm.label ?? '')} pick={pick} onPick={setPick} labelledBy={headingId} />
       )}
       <ul className="league-team">
         {team.members.map((m, i) => (
@@ -161,7 +210,7 @@ function MemberRow({ member: m, tables }: { member: LeagueMember; tables: Tables
   const form = m.form ? tables.forms.get(formKey(m.id, m.form)) : undefined;
   const name = form?.name ?? species?.name ?? `#${m.id}`;
   const types = form?.types ?? species?.types ?? [];
-  const item = m.item !== undefined ? tables.items[m.item] : undefined;
+  const item = m.item !== undefined && tables.items[m.item] ? { id: m.item, name: tables.items[m.item] } : undefined;
   const ability = m.ability !== undefined ? tables.abilities[m.ability]?.name : undefined;
   return (
     <li className="league-mon">
@@ -188,8 +237,21 @@ function MemberRow({ member: m, tables }: { member: LeagueMember; tables: Tables
       </Link>
       {(ability || item || m.tera || m.battleForm) && (
         <dl className="league-facts">
-          {ability && <Fact k="Ability">{ability}</Fact>}
-          {item && <Fact k="Item"><Link to={`/reference/items/${m.item}`}>{item}</Link></Fact>}
+          {ability && (
+            <Fact k="Ability">
+              <Link className="league-chip" to={`/reference/abilities/${m.ability}`}>
+                {ability}
+              </Link>
+            </Fact>
+          )}
+          {item && (
+            <Fact k="Item">
+              <Link className="league-chip" to={`/reference/items/${item.id}`}>
+                <img src={itemSpriteUrl(item.id)} alt="" width={24} height={24} loading="lazy" />
+                {item.name}
+              </Link>
+            </Fact>
+          )}
           {m.tera && (
             <Fact k="Tera">
               <TypeChip type={m.tera} />
@@ -232,7 +294,7 @@ function Sources({ trainers }: { trainers: LeagueTrainer[] }) {
     <section className="section">
       <h2>Source</h2>
       <p className="hint league-source">
-        Teams of the first league challenge, from Bulbapedia (CC BY-NC-SA 2.5):{' '}
+        Teams from Bulbapedia (CC BY-NC-SA 2.5), trainer sprites from Bulbagarden Archives:{' '}
         {pages.map(([url, name], i) => (
           <span key={url}>
             {i > 0 && ', '}

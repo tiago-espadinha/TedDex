@@ -25,6 +25,8 @@ export interface RawParty {
   headings: string[];
   game: string;
   caption: string;
+  /** Bulbagarden Archives file name of the trainer sprite, e.g. "Spr B2W2 Shauntal.png"; empty when none. */
+  sprite: string;
   members: RawMember[];
 }
 
@@ -88,7 +90,14 @@ export function parseParties(wikitext: string): RawParty[] {
     if (/^\{\{Party\s*$/.test(line)) {
       const { body, end } = templateBody(lines, i);
       const f = fields(body);
-      party = { headings: heads.filter(Boolean), game: f.game ?? '', caption: f.caption ?? '', members: [] };
+      party = {
+        headings: heads.filter(Boolean),
+        game: f.game ?? '',
+        caption: f.caption ?? '',
+        // A size may follow the name: "VSSteven.png{{!}}150px".
+        sprite: (f.sprite ?? '').replace(/\{\{!\}\}.*$/, ''),
+        members: [],
+      };
       parties.push(party);
       i = end;
     } else if (/^\{\{Party\/end\}\}/.test(line)) {

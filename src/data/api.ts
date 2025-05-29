@@ -63,6 +63,7 @@ export const spriteUrl = (id: number) => `/media/sprites/${id}.webp`;
 export const artworkUrl = (id: number) => `/media/artwork/${id}.webp`;
 export const cryUrl = (id: number) => `/media/cries/${id}.m4a`;
 export const itemSpriteUrl = (id: number | string) => `/media/items/${id}.webp`;
+export const trainerSpriteUrl = (key: string) => `/media/trainers/${key}.webp`;
 
 // ---- type maths ----
 export function defensiveMultipliers(defTypes: TypeName[], data: TypeData): Record<TypeName, number> {

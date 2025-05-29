@@ -243,7 +243,8 @@
      "type": "ice",
      "page": "Lorelei",
      "game": "FRLG",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Bruno",
@@ -251,7 +252,8 @@
      "type": "fighting",
      "page": "Bruno",
      "game": "FRLG",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Agatha",
@@ -259,7 +261,8 @@
      "type": "ghost",
      "page": "Agatha",
      "game": "FRLG",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Lance",
@@ -267,14 +270,16 @@
      "type": "dragon",
      "page": "Lance",
      "game": "FRLG",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Blue",
      "role": "Champion",
      "page": "Blue (game)",
      "game": "FRLG",
-     "heading": "Champion battle"
+     "heading": "Champion battle",
+     "rematch": "Rematch"
     }
    ]
   },
@@ -363,7 +368,8 @@
      "role": "Champion",
      "page": "Cynthia",
      "game": "Pt",
-     "heading": "Before [[Stark Mountain]]"
+     "heading": "Before [[Stark Mountain]]",
+     "rematch": "After Stark Mountain"
     }
    ]
   },
@@ -381,7 +387,8 @@
      "type": "psychic",
      "page": "Will",
      "game": "HGSS",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Koga",
@@ -389,7 +396,8 @@
      "type": "poison",
      "page": "Koga",
      "game": "HGSS",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Bruno",
@@ -397,7 +405,8 @@
      "type": "fighting",
      "page": "Bruno",
      "game": "HGSS",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Karen",
@@ -405,7 +414,8 @@
      "type": "dark",
      "page": "Karen",
      "game": "HGSS",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Lance",
@@ -413,7 +423,8 @@
      "type": "dragon",
      "page": "Lance",
      "game": "HGSS",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     }
    ]
   },
@@ -432,7 +443,8 @@
      "type": "ghost",
      "page": "Shauntal",
      "game": "BW",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Grimsley",
@@ -440,7 +452,8 @@
      "type": "dark",
      "page": "Grimsley",
      "game": "BW",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Caitlin",
@@ -448,7 +461,8 @@
      "type": "psychic",
      "page": "Caitlin",
      "game": "BW",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Marshal",
@@ -456,7 +470,8 @@
      "type": "fighting",
      "page": "Marshal",
      "game": "BW",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Alder",
@@ -481,7 +496,8 @@
      "type": "ghost",
      "page": "Shauntal",
      "game": "B2W2",
-     "heading": "First battle (Easy Mode/Normal Mode)"
+     "heading": "First battle (Easy Mode/Normal Mode)",
+     "rematch": "Rematch (Easy Mode/Normal Mode)"
     },
     {
      "name": "Grimsley",
@@ -489,7 +505,8 @@
      "type": "dark",
      "page": "Grimsley",
      "game": "B2W2",
-     "heading": "First battle (Easy Mode/Normal Mode)"
+     "heading": "First battle (Easy Mode/Normal Mode)",
+     "rematch": "Rematch (Easy Mode/Normal Mode)"
     },
     {
      "name": "Caitlin",
@@ -497,7 +514,8 @@
      "type": "psychic",
      "page": "Caitlin",
      "game": "B2W2",
-     "heading": "First battle (Easy Mode/Normal Mode)"
+     "heading": "First battle (Easy Mode/Normal Mode)",
+     "rematch": "Rematch (Easy Mode/Normal Mode)"
     },
     {
      "name": "Marshal",
@@ -505,7 +523,8 @@
      "type": "fighting",
      "page": "Marshal",
      "game": "B2W2",
-     "heading": "First battle (Easy Mode/Normal Mode)"
+     "heading": "First battle (Easy Mode/Normal Mode)",
+     "rematch": "Rematch (Easy Mode/Normal Mode)"
     },
     {
      "name": "Iris",
@@ -513,7 +532,8 @@
      "type": "dragon",
      "page": "Iris",
      "game": "B2W2",
-     "heading": "Initial battle (Easy Mode/Normal Mode)"
+     "heading": "Initial battle (Easy Mode/Normal Mode)",
+     "rematch": "Rematch (Easy Mode/Normal Mode)"
     }
    ]
   },
@@ -580,7 +600,8 @@
      "type": "dark",
      "page": "Sidney",
      "game": "ORAS",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Phoebe",
@@ -588,7 +609,8 @@
      "type": "ghost",
      "page": "Phoebe",
      "game": "ORAS",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Glacia",
@@ -596,7 +618,8 @@
      "type": "ice",
      "page": "Glacia",
      "game": "ORAS",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Drake",
@@ -604,7 +627,8 @@
      "type": "dragon",
      "page": "Drake",
      "game": "ORAS",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Steven",
@@ -612,7 +636,8 @@
      "type": "steel",
      "page": "Steven Stone",
      "game": "ORAS",
-     "heading": "Champion battle"
+     "heading": "Champion battle",
+     "rematch": "Rematch"
     }
    ]
   },
@@ -630,7 +655,8 @@
      "type": "fighting",
      "page": "Hala",
      "game": "SM",
-     "heading": "Pokémon League battle"
+     "heading": "Pokémon League battle",
+     "rematch": "Pokémon League rematch"
     },
     {
      "name": "Olivia",
@@ -638,7 +664,8 @@
      "type": "rock",
      "page": "Olivia",
      "game": "SM",
-     "heading": "Pokémon League battle"
+     "heading": "Pokémon League battle",
+     "rematch": "Pokémon League rematch"
     },
     {
      "name": "Acerola",
@@ -646,7 +673,8 @@
      "type": "ghost",
      "page": "Acerola",
      "game": "SM",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Kahili",
@@ -654,14 +682,16 @@
      "type": "flying",
      "page": "Kahili",
      "game": "SM",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Kukui",
      "role": "Champion",
      "page": "Professor Kukui",
      "game": "SM",
-     "heading": "Champion battle"
+     "heading": "Champion battle",
+     "rematch": "Title Defense battle"
     }
    ]
   },
@@ -680,7 +710,8 @@
      "type": "steel",
      "page": "Molayne",
      "game": "USUM",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Olivia",
@@ -688,7 +719,8 @@
      "type": "rock",
      "page": "Olivia",
      "game": "USUM",
-     "heading": "Pokémon League battle"
+     "heading": "Pokémon League battle",
+     "rematch": "Pokémon League rematch"
     },
     {
      "name": "Acerola",
@@ -696,7 +728,8 @@
      "type": "ghost",
      "page": "Acerola",
      "game": "USUM",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Kahili",
@@ -704,14 +737,16 @@
      "type": "flying",
      "page": "Kahili",
      "game": "USUM",
-     "heading": "Initial battle"
+     "heading": "Initial battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Hau",
      "role": "Champion",
      "page": "Hau",
      "game": "USUM",
-     "heading": "Champion battle"
+     "heading": "Champion battle",
+     "rematch": "Title Defense battle"
     }
    ]
   },
@@ -729,7 +764,8 @@
      "type": "ice",
      "page": "Lorelei",
      "game": "PE",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Bruno",
@@ -737,7 +773,8 @@
      "type": "fighting",
      "page": "Bruno",
      "game": "PE",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Agatha",
@@ -745,7 +782,8 @@
      "type": "ghost",
      "page": "Agatha",
      "game": "PE",
-     "heading": "First battle"
+     "heading": "First battle",
+     "rematch": "Rematch"
     },
     {
      "name": "Lance",
@@ -760,7 +798,8 @@
      "role": "Champion",
      "page": "Trace (game)",
      "game": "LGE",
-     "heading": "Champion battle"
+     "heading": "Champion battle",
+     "rematch": "Rematch"
     }
    ]
   },
@@ -843,7 +882,11 @@
      "type": "bug",
      "page": "Aaron",
      "game": "BDSP",
-     "heading": "First match"
+     "heading": "First match",
+     "rematch": [
+      "Rematch (before Stark Mountain)",
+      "Rematch (after Stark Mountain)"
+     ]
     },
     {
      "name": "Bertha",
@@ -851,7 +894,11 @@
      "type": "ground",
      "page": "Bertha",
      "game": "BDSP",
-     "heading": "First match"
+     "heading": "First match",
+     "rematch": [
+      "Rematch (before Stark Mountain)",
+      "Rematch (after Stark Mountain)"
+     ]
     },
     {
      "name": "Flint",
@@ -859,7 +906,11 @@
      "type": "fire",
      "page": "Flint",
      "game": "BDSP",
-     "heading": "First match"
+     "heading": "First match",
+     "rematch": [
+      "Rematch (before Stark Mountain)",
+      "Rematch (after Stark Mountain)"
+     ]
     },
     {
      "name": "Lucian",
@@ -867,14 +918,22 @@
      "type": "psychic",
      "page": "Lucian",
      "game": "BDSP",
-     "heading": "First match"
+     "heading": "First match",
+     "rematch": [
+      "Rematch (before Stark Mountain)",
+      "Rematch (after Stark Mountain)"
+     ]
     },
     {
      "name": "Cynthia",
      "role": "Champion",
      "page": "Cynthia",
      "game": "BDSP",
-     "heading": "Champion battle"
+     "heading": "Champion battle",
+     "rematch": [
+      "Rematch (before Stark Mountain)",
+      "Rematch (after Stark Mountain)"
+     ]
     }
    ]
   },

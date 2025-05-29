@@ -7,25 +7,33 @@
  *   npm run league -- --fresh # ignore the cache and re-download
  *
  * Run after `npm run data` (it reads public/data/ for species, forms, moves, abilities and items).
- * Output: league/index.json (games, oldest first) and league/<game>.json. Fails on any name it cannot map,
- * and writes nothing until every game has been built.
+ * Output: league/index.json (games, oldest first), league/<game>.json and each trainer's sprite from the
+ * party template as media/trainers/<file>.webp (downloaded from Bulbagarden Archives with curl, cached in
+ * .cache/bulbapedia/sprites/, first frame only; needs `ffmpeg`). Fails on any name it cannot map, and writes
+ * nothing until every game has been built.
  */
-import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdir, readFile, rename, writeFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { execFile } from 'node:child_process';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 import type {
-  AbilityTable, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTeam, LeagueTrainer, MoveTable, SpeciesDetail,
-  TypeData, TypeName, VersionGroup,
+  AbilityTable, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueRematch, LeagueTeam, LeagueTrainer, MoveTable,
+  SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from '../src/data/types';
-import { nameKey, parseLevel, parseParties, plainText, type RawMember } from './league';
+import { nameKey, parseLevel, parseParties, plainText, type RawMember, type RawParty } from './league';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const CACHE = join(ROOT, '.cache', 'bulbapedia');
 const DATA = join(ROOT, 'public', 'data');
 const OUT = join(DATA, 'league');
+const SPRITE_CACHE = join(CACHE, 'sprites');
+const SPRITES = join(ROOT, 'public', 'media', 'trainers');
+const ARCHIVES = 'https://archives.bulbagarden.net/wiki/Special:FilePath';
 const FRESH = process.argv.includes('--fresh');
 const WIKI = 'https://bulbapedia.bulbagarden.net';
 const USER_AGENT = 'material-dex-web data build (non-commercial fan project)';
+const run = promisify(execFile);
 
 /** Sprite suffixes that are only cosmetic (or the default form) for the species that use them. */
 const COSMETIC_FORMS = new Set(['shield', 'west', 'east', 'shiny', 'baile', 'female', 'male', 'full']);
@@ -46,6 +54,8 @@ interface ManifestTrainer {
   game: string | string[];
   /** Text one of the party's headings must contain; every matching party becomes a team. */
   heading?: string;
+  /** Heading text of each later battle (post-game rematch, title defense), in battle order. */
+  rematch?: string | string[];
 }
 
 interface ManifestGame {
@@ -164,23 +174,70 @@ async function member(raw: RawMember, ids: Lookups, levelTag: RegExp | undefined
   return out;
 }
 
+/** "Spr B2W2 Shauntal.png" → "spr-b2w2-shauntal": the sprite's file name under media/trainers/. */
+const spriteKey = (file: string) => file.replace(/\.png$/i, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+/** Sprite files to download, keyed by `spriteKey`. */
+const sprites = new Map<string, string>();
+
 async function trainer(t: ManifestTrainer, game: ManifestGame, ids: Lookups): Promise<LeagueTrainer> {
   const games = ([] as string[]).concat(t.game);
   const who = `${game.id} / ${t.name}`;
-  const parties = parseParties(await wikitext(t.page)).filter(
-    (p) => games.includes(p.game) && (!t.heading || p.headings.some((h) => h.includes(t.heading!))),
-  );
-  if (!parties.length) throw new Error(`${who}: no party on "${t.page}" for game ${games} under "${t.heading ?? ''}"`);
+  const all = parseParties(await wikitext(t.page)).filter((p) => games.includes(p.game));
+  // Raw headings ("Before [[Stark Mountain]]") or their plain text ("Rematch (Easy Mode/Normal Mode)") both match.
+  const under = (heading: string) =>
+    all.filter((p) => p.headings.some((h) => h.includes(heading) || plainText(h).includes(heading)));
   const levelTag = game.levelTag ? new RegExp(game.levelTag) : undefined;
-  const teams: LeagueTeam[] = [];
-  for (const p of parties) {
-    const team: LeagueTeam = { members: await Promise.all(p.members.map((m) => member(m, ids, levelTag, who))) };
-    if (parties.length > 1) team.label = plainText(p.caption) || `Team ${teams.length + 1}`;
-    teams.push(team);
-  }
-  const out: LeagueTrainer = { name: t.name, role: t.role, source: pageUrl(t.page), teams };
+  const teamsOf = async (parties: RawParty[], heading: string): Promise<LeagueTeam[]> => {
+    if (!parties.length) throw new Error(`${who}: no party on "${t.page}" for game ${games} under "${heading}"`);
+    const teams: LeagueTeam[] = [];
+    for (const p of parties) {
+      const team: LeagueTeam = { members: await Promise.all(p.members.map((m) => member(m, ids, levelTag, who))) };
+      if (parties.length > 1) team.label = plainText(p.caption) || `Team ${teams.length + 1}`;
+      teams.push(team);
+    }
+    return teams;
+  };
+  const first = t.heading ? under(t.heading) : all;
+  const out: LeagueTrainer = { name: t.name, role: t.role, source: pageUrl(t.page), teams: await teamsOf(first, t.heading ?? '') };
   if (t.type) out.type = typeName(ids, t.type, who);
+  const file = first[0].sprite;
+  if (file) {
+    out.sprite = spriteKey(file);
+    const known = sprites.get(out.sprite);
+    if (known && known !== file) throw new Error(`${who}: sprites "${known}" and "${file}" share the name ${out.sprite}`);
+    sprites.set(out.sprite, file);
+  }
+  const rematches: LeagueRematch[] = [];
+  for (const heading of ([] as string[]).concat(t.rematch ?? [])) {
+    const parties = under(heading);
+    rematches.push({ label: plainText(parties[0]?.headings.at(-1) ?? heading), teams: await teamsOf(parties, heading) });
+  }
+  if (rematches.length) out.rematches = rematches;
   return out;
+}
+
+const spriteSource = (file: string) => join(SPRITE_CACHE, file.replace(/[^\w.()-]+/g, '_'));
+
+/** Downloads a sprite once into the cache; the `.part` file only takes the cached name once curl has finished. */
+async function fetchSprite(file: string) {
+  const src = spriteSource(file);
+  if (!FRESH && existsSync(src)) return;
+  console.log(`  fetching ${file}`);
+  const url = `${ARCHIVES}/${encodeURIComponent(file.replace(/ /g, '_'))}`;
+  await run('curl', ['-sSfL', '-A', USER_AGENT, '-o', `${src}.part`, url]);
+  await rename(`${src}.part`, src);
+  await sleep(1000);
+}
+
+/** Writes a cached sprite's first frame as WebP: pixel sprites doubled, VS art fitted in 192 px. */
+async function writeSprite(key: string, file: string) {
+  const src = spriteSource(file);
+  const { stdout } = await run('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width', '-of', 'csv=p=0', src]);
+  const options = Number(stdout) <= 128
+    ? ['-vf', 'scale=iw*2:ih*2:flags=neighbor', '-c:v', 'libwebp', '-lossless', '1']
+    : ['-vf', 'scale=192:192:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '85'];
+  await run('ffmpeg', ['-v', 'error', '-y', '-i', src, '-frames:v', '1', ...options, join(SPRITES, `${key}.webp`)]);
 }
 
 async function buildGame(g: ManifestGame, ids: Lookups): Promise<LeagueGame> {
@@ -193,17 +250,21 @@ async function buildGame(g: ManifestGame, ids: Lookups): Promise<LeagueGame> {
 }
 
 async function main() {
-  await mkdir(CACHE, { recursive: true });
+  await mkdir(SPRITE_CACHE, { recursive: true });
   const ids = await lookups();
   const { games } = await readJson<{ games: ManifestGame[] }>(join(ROOT, 'scripts', 'league-manifest.json'));
   const built: LeagueGame[] = [];
   for (const g of games) built.push(await buildGame(g, ids));
+  for (const file of sprites.values()) await fetchSprite(file);
   await rm(OUT, { recursive: true, force: true });
   await mkdir(OUT, { recursive: true });
   for (const game of built) await writeFile(join(OUT, `${game.id}.json`), JSON.stringify(game));
   const index = built.map(({ id, label, region, gen }) => ({ id, label, region, gen }));
   await writeFile(join(OUT, 'index.json'), JSON.stringify(index));
-  console.log(`${index.length} games → public/data/league/`);
+  await rm(SPRITES, { recursive: true, force: true });
+  await mkdir(SPRITES, { recursive: true });
+  for (const [key, file] of sprites) await writeSprite(key, file);
+  console.log(`${index.length} games → public/data/league/, ${sprites.size} sprites → public/media/trainers/`);
 }
 
 main().catch((err: Error) => {

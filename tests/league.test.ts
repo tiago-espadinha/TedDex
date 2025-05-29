@@ -20,6 +20,7 @@ const PAGE = `==In the core series games==
 =====Championship Match=====
 {{Party
 | caption = {{PlayerChoice|0810|Grookey}}
+| sprite = VSLeon.png{{!}}150px
 | name = Leon
 | game = SwSh
 | pokemon = 2
@@ -57,6 +58,11 @@ describe('parseParties', () => {
     ]);
     assert.equal(parties[1].game, 'SwSh');
     assert.equal(parties[1].caption, '{{PlayerChoice|0810|Grookey}}');
+  });
+
+  test('reads the sprite file name without its size', () => {
+    assert.equal(parties[0].sprite, '');
+    assert.equal(parties[1].sprite, 'VSLeon.png');
   });
 
   test('a new heading replaces deeper ones', () => {
