@@ -1,18 +1,20 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
-  defensiveMultipliers, loadAbilities, loadIndex, loadItemReference, loadItems, loadMoveReference, loadMoves, loadTypes,
+  defensiveMultipliers, itemSpriteUrl, loadAbilities, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes,
   offensiveMultipliers, spriteUrl, useLoad,
 } from '../data/api';
-import { cap, formatMultiplier, formatNo, roman, signed } from '../data/format';
+import { cap, formatMultiplier, formatNo, formatPrice, roman, signed } from '../data/format';
+import { activeItemFilters, filterItems, itemFilterParams, readItemFilters } from '../data/itemFilter';
 import { NATURES, dislikedFlavor, likedFlavor } from '../data/natures';
 import { searchByName } from '../data/reference';
 import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
 import { typeChip, typeTint } from '../data/typeColors';
-import type { IndexEntry, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
+import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip } from '../components/bits';
 import { MoveBody } from './MovesTab';
+import { ItemFilterSheet } from './ItemFilterSheet';
 import { MoveFilterSheet } from './MoveFilterSheet';
 
 type Kind = 'moves' | 'abilities' | 'items' | 'natures' | 'types';
@@ -20,7 +22,7 @@ type Kind = 'moves' | 'abilities' | 'items' | 'natures' | 'types';
 const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'moves', title: 'Moves', one: 'Move', blurb: 'Power, accuracy, effect and who learns them' },
   { kind: 'abilities', title: 'Abilities', one: 'Ability', blurb: 'What each ability does and who has it' },
-  { kind: 'items', title: 'Items', one: 'Held item', blurb: 'Held items and who carries them in the wild' },
+  { kind: 'items', title: 'Items', one: 'Item', blurb: 'Every item: what it does, its price and where to find it' },
   { kind: 'natures', title: 'Natures', one: 'Nature', blurb: 'Stats each nature raises and lowers, and flavours' },
   { kind: 'types', title: 'Types', one: 'Type', blurb: 'The full type chart' },
 ];
@@ -28,12 +30,13 @@ const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
 const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const STAT_NAMES = { atk: 'Attack', def: 'Defense', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' };
 
-/** One row of a reference list; `move` and `type` pick a richer row. */
+/** One row of a reference list; `move`, `item` and `type` pick a richer row. */
 interface Entry {
   id: string;
   name: string;
   sub?: string;
   move?: MoveInfo;
+  item?: ItemInfo;
   type?: TypeName;
   /** Generation that introduced it, for the generation chips (abilities). */
   gen?: number;
@@ -48,10 +51,8 @@ async function loadEntries(kind: ListKind): Promise<Entry[]> {
       return Object.entries(await loadMoves()).map(([id, move]) => ({ id, name: move.name, move }));
     case 'abilities':
       return Object.entries(await loadAbilities()).map(([id, a]) => ({ id, name: a.name, sub: a.effect, gen: a.gen }));
-    case 'items': {
-      const [names, refs] = await Promise.all([loadItems(), loadItemReference()]);
-      return Object.entries(names).map(([id, name]) => ({ id, name, sub: refs[Number(id)]?.effect }));
-    }
+    case 'items':
+      return Object.entries(await loadItemReference()).map(([id, item]) => ({ id, name: item.name, item }));
   }
 }
 
@@ -101,17 +102,21 @@ function SearchList() {
   const query = params.get('q') ?? '';
   const { data, error } = useLoad(() => (k ? loadEntries(k.kind as ListKind) : Promise.resolve([])), k?.kind);
   const [sheetOpen, setSheetOpen] = useState(false);
-  // Moves also filter and sort; their filters live in the URL next to the query.
+  // Moves and items also filter (moves sort too) in a sheet; their filters live in the URL next to the query.
   const moveFilters = useMemo(() => (k?.kind === 'moves' ? readMoveFilters(params) : undefined), [k?.kind, params]);
+  const itemFilters = useMemo(() => (k?.kind === 'items' ? readItemFilters(params) : undefined), [k?.kind, params]);
   const moves = useMemo(() => (data ?? []).filter((e): e is MoveEntry => !!e.move), [data]);
+  const items = useMemo(() => (data ?? []).filter((e): e is ItemEntry => !!e.item), [data]);
+  const hasSheet = !!(moveFilters || itemFilters);
   // Lists whose entries carry a generation (abilities) get generation chips, kept in `?gen=`.
-  const hasGens = !moveFilters && !!data?.some((e) => e.gen);
+  const hasGens = !hasSheet && !!data?.some((e) => e.gen);
   const gens = useMemo(() => (params.get('gen') ?? '').split(',').filter(Boolean).map(Number), [params]);
   const shown = useMemo(() => {
     if (moveFilters) return filterMoves(moves, moveFilters);
+    if (itemFilters) return filterItems(items, itemFilters);
     const hits = searchByName(data ?? [], query);
     return gens.length ? hits.filter((e) => e.gen && gens.includes(e.gen)) : hits;
-  }, [data, moves, moveFilters, query, gens]);
+  }, [data, moves, items, moveFilters, itemFilters, query, gens]);
   const setParam = (key: string, value: string) =>
     setParams(
       (p) => {
@@ -127,7 +132,12 @@ function SearchList() {
     setParam('gen', (gens.includes(g) ? gens.filter((x) => x !== g) : [...gens, g].sort()).join(','));
 
   if (!k) return <p className="empty">Page not found.</p>;
-  const filtered = moveFilters ? activeMoveFilters(moveFilters) : gens.length;
+  const filtered = moveFilters ? activeMoveFilters(moveFilters) : itemFilters ? activeItemFilters(itemFilters) : gens.length;
+  const applyFilters = (next: Record<string, string>) => {
+    setParams(next, { replace: true });
+    setSheetOpen(false);
+    window.scrollTo({ top: 0 });
+  };
 
   return (
     <>
@@ -156,7 +166,7 @@ function SearchList() {
         <p className="empty">{filtered ? `No ${k.title.toLowerCase()} match these filters.` : `No ${k.title.toLowerCase()} match “${query}”.`}</p>
       )}
       {shown.length > 0 && (
-        <ul className={moveFilters ? 'ref-list with-fab' : 'ref-list'}>
+        <ul className={hasSheet ? 'ref-list with-fab' : 'ref-list'}>
           {shown.map((e) => (
             <li key={e.id}>
               <Link
@@ -170,7 +180,7 @@ function SearchList() {
           ))}
         </ul>
       )}
-      {moveFilters && (
+      {hasSheet && (
         <>
           <button
             className="fab"
@@ -184,15 +194,19 @@ function SearchList() {
               </span>
             )}
           </button>
-          {sheetOpen && (
+          {sheetOpen && moveFilters && (
             <MoveFilterSheet
               value={moveFilters}
               countFor={(f) => filterMoves(moves, f).length}
-              onApply={(f) => {
-                setParams(moveFilterParams(f), { replace: true });
-                setSheetOpen(false);
-                window.scrollTo({ top: 0 });
-              }}
+              onApply={(f) => applyFilters(moveFilterParams(f))}
+              onClose={() => setSheetOpen(false)}
+            />
+          )}
+          {sheetOpen && itemFilters && (
+            <ItemFilterSheet
+              value={itemFilters}
+              countFor={(f) => filterItems(items, f).length}
+              onApply={(f) => applyFilters(itemFilterParams(f))}
               onClose={() => setSheetOpen(false)}
             />
           )}
@@ -203,6 +217,7 @@ function SearchList() {
 }
 
 type MoveEntry = Entry & { move: MoveInfo };
+type ItemEntry = Entry & { item: ItemInfo };
 
 function EntryBody({ entry: e }: { entry: Entry }) {
   if (e.move) {
@@ -210,6 +225,27 @@ function EntryBody({ entry: e }: { entry: Entry }) {
       <>
         <MoveBody move={e.move} />
         <TypeChip type={e.move.type} />
+      </>
+    );
+  }
+  if (e.item) {
+    return (
+      <>
+        <img className="item-sprite" src={itemSpriteUrl(e.id)} alt="" width={40} height={40} loading="lazy" />
+        <span className="body">
+          <span className="name">{e.name}</span>
+          <span className="meta one-line">{e.item.effect || e.item.category}</span>
+        </span>
+        <span className="price">
+          {e.item.cost ? (
+            formatPrice(e.item.cost)
+          ) : (
+            <>
+              <span aria-hidden="true">—</span>
+              <span className="sr-only">Not sold</span>
+            </>
+          )}
+        </span>
       </>
     );
   }
@@ -254,11 +290,13 @@ interface FrameProps {
   tint?: TypeName;
   /** Shown in the header under the title, once loaded. */
   head?: ReactNode;
+  /** Picture at the end of the header (item sprites), once loaded. */
+  art?: ReactNode;
   children?: ReactNode;
 }
 
 /** Topbar, then the body once loaded; the same loading, error and not-found states for every kind. */
-function EntryFrame({ one, name, error, loaded, tint, head, children }: FrameProps) {
+function EntryFrame({ one, name, error, loaded, tint, head, art, children }: FrameProps) {
   const navigate = useNavigate();
   let body = children;
   if (error) body = <p className="empty">Couldn't load this {one.toLowerCase()}. {error.message}</p>;
@@ -275,6 +313,7 @@ function EntryFrame({ one, name, error, loaded, tint, head, children }: FramePro
           {name && <div className="sub">{one}</div>}
           {name && head}
         </div>
+        {name && art}
       </header>
       {body}
     </>
@@ -306,16 +345,7 @@ function MoveEntry({ id, one }: EntryProps) {
       error={error}
       loaded={!!data}
       tint={move?.type}
-      head={
-        <dl className="head-facts">
-          {facts.map(([k, v]) => (
-            <div key={k}>
-              <dt>{k}</dt>
-              <dd>{v}</dd>
-            </div>
-          ))}
-        </dl>
-      }
+      head={<Facts facts={facts} />}
     >
       {move && ref && data && (
         <>
@@ -330,6 +360,20 @@ function MoveEntry({ id, one }: EntryProps) {
         </>
       )}
     </EntryFrame>
+  );
+}
+
+/** Label-over-value facts in an entry header (moves, items). */
+function Facts({ facts }: { facts: [string, ReactNode][] }) {
+  return (
+    <dl className="head-facts">
+      {facts.map(([k, v]) => (
+        <div key={k}>
+          <dt>{k}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -400,18 +444,117 @@ function AbilityEntry({ id, one }: EntryProps) {
 }
 
 function ItemEntry({ id, one }: EntryProps) {
-  const { data, error } = useLoad(() => Promise.all([loadItems(), loadItemReference(), loadIndex()]), 'items');
   const n = Number(id);
-  const ref = data?.[1][n];
+  const { data, error } = useLoad(
+    () => Promise.all([loadItemReference(), loadIndex()]).then(async ([items, index]) => [items, index, items[n] && (await loadItemPlaces(n))] as const),
+    n,
+  );
+  const item = data?.[0][n];
+  const facts: [string, ReactNode][] = item
+    ? [
+        ['Category', item.category],
+        ['Introduced', `Gen ${roman(item.gen)}`],
+        ['Price', item.cost ? formatPrice(item.cost) : 'Not sold'],
+      ]
+    : [];
   return (
-    <EntryFrame one={one} name={data?.[0][n]} error={error} loaded={!!data}>
-      {ref && data && (
+    <EntryFrame
+      one={one}
+      name={item?.name}
+      error={error}
+      loaded={!!data}
+      head={<Facts facts={facts} />}
+      art={<img className="item-art" src={itemSpriteUrl(id)} alt="" width={64} height={64} />}
+    >
+      {item && data && (
         <>
-          <Effect text={ref.effect} />
-          <SpeciesList title="Held in the wild by" ids={ref.species} index={data[2]} none="No Pokémon hold it in the wild." />
+          <Effect text={item.effect} />
+          <WhereToFind places={data[2]} index={data[1]} />
         </>
       )}
     </EntryFrame>
+  );
+}
+
+/** Where to get an item, one block per game (newest first): wild holders, then one-time and repeatable ways. */
+function WhereToFind({ places, index }: { places: ItemPlaces; index: IndexEntry[] }) {
+  const byId = useMemo(() => new Map(index.map((m) => [m.id, m])), [index]);
+  return (
+    <section className="section">
+      <h2>Where to find</h2>
+      {!places.games.length && <p className="hint">No known place to find it in the games.</p>}
+      {places.games.map((g, i) => (
+        <PlaceGame key={i} place={g} byId={byId} />
+      ))}
+      {places.games.length > 0 && (
+        <p className="hint league-source">
+          {places.games.some((g) => g.held) && 'Wild held items from PokeAPI. '}
+          {places.source && (
+            <>
+              From{' '}
+              <a href={places.source} target="_blank" rel="noreferrer">
+                Bulbapedia
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>{' '}
+              (CC BY-NC-SA 2.5).
+            </>
+          )}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function PlaceGame({ place, byId }: { place: ItemPlaceGame; byId: Map<number, IndexEntry> }) {
+  const ways: [string, string][] = [
+    ...(place.once ?? []).map((text): [string, string] => ['One time', text]),
+    ...(place.repeat ?? []).map((text): [string, string] => ['Repeatable', text]),
+  ];
+  return (
+    <div className="move-group place-game">
+      <h3>{place.game}</h3>
+      {place.note?.map((text, i) => (
+        <p key={i} className="flavor">
+          {text}
+        </p>
+      ))}
+      {(place.held || ways.length > 0) && (
+        <ul>
+          {place.held && (
+            <li className="move-row place-row">
+              <span className="body">
+                <span className="meta">
+                  <span>Held by wild Pokémon</span>
+                </span>
+                <span className="held-chips">
+                  {place.held.map(([id, rarity]) => {
+                    const m = byId.get(id);
+                    return (
+                      m && (
+                        <Link key={id} className="held-chip" to={`/pokemon/${id}`}>
+                          <img src={spriteUrl(id)} alt="" width={32} height={32} loading="lazy" />
+                          {m.name} <span className="pct">{rarity}%</span>
+                        </Link>
+                      )
+                    );
+                  })}
+                </span>
+              </span>
+            </li>
+          )}
+          {ways.map(([kind, text], i) => (
+            <li key={i} className="move-row place-row">
+              <span className="body">
+                <span className="meta">
+                  <span>{kind}</span>
+                </span>
+                <span className="name">{text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

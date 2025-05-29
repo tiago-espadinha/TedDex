@@ -26,7 +26,7 @@ export default defineConfig({
       },
       workbox: {
         // App shell, every data file and every sprite are precached, so the dex works fully offline.
-        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}', 'media/sprites/*.webp'],
+        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}', 'media/sprites/*.webp', 'media/items/*.webp'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [

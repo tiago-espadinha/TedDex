@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type {
-  AbilityTable, EvolutionMember, Game, IndexEntry, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary, Learnsets, Locations,
+  AbilityTable, EvolutionMember, Game, IndexEntry, ItemPlaces, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary, Learnsets, Locations,
   MoveReference, MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from './types';
 
@@ -36,6 +36,7 @@ export const loadGames = () => getJson<Game[]>('/data/games.json');
 export const loadMoveReference = (id: number) => getJson<MoveReference>(`/data/reference/moves/${id}.json`);
 export const loadAbilities = () => getJson<AbilityTable>('/data/reference/abilities.json');
 export const loadItemReference = () => getJson<ItemReferenceTable>('/data/reference/items.json');
+export const loadItemPlaces = (id: number) => getJson<ItemPlaces>(`/data/reference/places/${id}.json`);
 export const loadLeagues = () => getJson<LeagueSummary[]>('/data/league/index.json');
 export const loadLeague = (id: string) => getJson<LeagueGame>(`/data/league/${id}.json`);
 
@@ -57,10 +58,11 @@ export function useLoad<T>(loader: () => Promise<T>, key: unknown): { data?: T; 
 }
 
 // ---- media (mirrored into /media by `npm run media`) ----
-// Sprites are precached; artwork and cries are cached the first time they are seen.
+// Sprites (Pokémon and items) are precached; artwork and cries are cached the first time they are seen.
 export const spriteUrl = (id: number) => `/media/sprites/${id}.webp`;
 export const artworkUrl = (id: number) => `/media/artwork/${id}.webp`;
 export const cryUrl = (id: number) => `/media/cries/${id}.m4a`;
+export const itemSpriteUrl = (id: number | string) => `/media/items/${id}.webp`;
 
 // ---- type maths ----
 export function defensiveMultipliers(defTypes: TypeName[], data: TypeData): Record<TypeName, number> {
