@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "data": "tsx scripts/build-data.ts",
     "media": "tsx scripts/build-media.ts",
-    "league": "tsx scripts/build-league.ts"
+    "league": "tsx scripts/build-league.ts",
+    "item-places": "tsx scripts/build-item-places.ts"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.14.19",

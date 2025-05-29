@@ -5,7 +5,7 @@ import type { ItemInfo } from '../src/data/types';
 
 const item = (name: string, over: Partial<ItemInfo>): { name: string; item: ItemInfo } => ({
   name,
-  item: { name, category: 'Held items', gen: 2, cost: 0, effect: '', species: [], ...over },
+  item: { name, category: 'Held items', gen: 2, cost: 0, effect: '', wild: [], ...over },
 });
 const ITEMS = [
   item('Oran Berry', { category: 'Berries', cost: 80 }),

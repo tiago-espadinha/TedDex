@@ -16,7 +16,8 @@
  *   items.json            held items a team member can carry: item id -> English name
  *   reference/abilities.json  ability id -> name, short effect, full details, generation, species that have it (any form)
  *   reference/items.json      item id -> name, category, generation introduced, price (0 = not sold), short effect
- *                             (no "Held: " preamble), species that hold it in the wild; every named item but unused ones
+ *                             (no "Held: " preamble), wild holders as [version group, species, rarity %]; every named item
+ *                             but unused ones
  *   reference/moves/<id>.json move description, full effect, and its learners per method as [species, generation bitmask]
  *   locations/<id>.json   wild encounters per game (version id) as tuples into a string table, any form
  *   games.json            games (versions) with encounter data, oldest first
@@ -833,6 +834,22 @@ async function main() {
 
   const itemEffect = effectText(itemProse, 'item_id', itemFlavor, 'item_id');
   const wildHolders = groupBy(pokemonItems, (r) => r.item_id);
+  const versionGroupOf = new Map(versions.map((v) => [v.id, Number(v.version_group_id)]));
+  /**
+   * [version group, species, rarity %] per version group and species (forms count as their species, the highest
+   * rarity across the group's games wins).
+   */
+  const wildRows = (rows: Row[]) => {
+    const best = new Map<string, [number, number, number]>();
+    for (const r of rows) {
+      const species = speciesOfPokemon.get(r.pokemon_id);
+      const group = versionGroupOf.get(r.version_id);
+      if (!species || species > index.length || !group) continue;
+      const key = `${group}|${species}`;
+      if ((best.get(key)?.[2] ?? -1) < Number(r.rarity)) best.set(key, [group, species, Number(r.rarity)]);
+    }
+    return [...best.values()].sort((a, b) => a[0] - b[0] || b[2] - a[2] || a[1] - b[1]);
+  };
   const firstGen = new Map<string, number>();
   for (const g of itemGameIndices) firstGen.set(g.item_id, Math.min(Number(g.generation_id), firstGen.get(g.item_id) ?? Infinity));
   const categoryIdentifier = new Map(itemCategories.map((c) => [c.id, c.identifier]));
@@ -853,7 +870,7 @@ async function main() {
         .replace(/^Held:\s*/, '')
         .replace(/^./, (c) => c.toUpperCase())
         .replace(/\[VAR \(\d+\)\]/g, 'a certain Pokémon'), // Dynamax Crystals name the Pokémon in-game
-      species: speciesIds(wildHolders.get(it.id) ?? []),
+      wild: wildRows(wildHolders.get(it.id) ?? []),
     };
   }
   const itemsByName = groupBy(Object.entries(itemReference) as [string, { name: string }][], ([, it]) => it.name);

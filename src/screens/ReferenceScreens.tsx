@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
-  defensiveMultipliers, itemSpriteUrl, loadAbilities, loadIndex, loadItemReference, loadMoveReference, loadMoves, loadTypes,
+  defensiveMultipliers, itemSpriteUrl, loadAbilities, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes,
   offensiveMultipliers, spriteUrl, useLoad,
 } from '../data/api';
 import { cap, formatMultiplier, formatNo, formatPrice, roman, signed } from '../data/format';
@@ -10,7 +10,7 @@ import { NATURES, dislikedFlavor, likedFlavor } from '../data/natures';
 import { searchByName } from '../data/reference';
 import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
 import { typeChip, typeTint } from '../data/typeColors';
-import type { IndexEntry, ItemInfo, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
+import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip } from '../components/bits';
 import { MoveBody } from './MovesTab';
@@ -22,7 +22,7 @@ type Kind = 'moves' | 'abilities' | 'items' | 'natures' | 'types';
 const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'moves', title: 'Moves', one: 'Move', blurb: 'Power, accuracy, effect and who learns them' },
   { kind: 'abilities', title: 'Abilities', one: 'Ability', blurb: 'What each ability does and who has it' },
-  { kind: 'items', title: 'Items', one: 'Item', blurb: 'Every item: what it does, its price and who holds it' },
+  { kind: 'items', title: 'Items', one: 'Item', blurb: 'Every item: what it does, its price and where to find it' },
   { kind: 'natures', title: 'Natures', one: 'Nature', blurb: 'Stats each nature raises and lowers, and flavours' },
   { kind: 'types', title: 'Types', one: 'Type', blurb: 'The full type chart' },
 ];
@@ -444,8 +444,12 @@ function AbilityEntry({ id, one }: EntryProps) {
 }
 
 function ItemEntry({ id, one }: EntryProps) {
-  const { data, error } = useLoad(() => Promise.all([loadItemReference(), loadIndex()]), 'items');
-  const item = data?.[0][Number(id)];
+  const n = Number(id);
+  const { data, error } = useLoad(
+    () => Promise.all([loadItemReference(), loadIndex()]).then(async ([items, index]) => [items, index, items[n] && (await loadItemPlaces(n))] as const),
+    n,
+  );
+  const item = data?.[0][n];
   const facts: [string, ReactNode][] = item
     ? [
         ['Category', item.category],
@@ -465,10 +469,92 @@ function ItemEntry({ id, one }: EntryProps) {
       {item && data && (
         <>
           <Effect text={item.effect} />
-          <SpeciesList title="Held in the wild by" ids={item.species} index={data[1]} none="No Pokémon hold it in the wild." />
+          <WhereToFind places={data[2]} index={data[1]} />
         </>
       )}
     </EntryFrame>
+  );
+}
+
+/** Where to get an item, one block per game (newest first): wild holders, then one-time and repeatable ways. */
+function WhereToFind({ places, index }: { places: ItemPlaces; index: IndexEntry[] }) {
+  const byId = useMemo(() => new Map(index.map((m) => [m.id, m])), [index]);
+  return (
+    <section className="section">
+      <h2>Where to find</h2>
+      {!places.games.length && <p className="hint">No known place to find it in the games.</p>}
+      {places.games.map((g, i) => (
+        <PlaceGame key={i} place={g} byId={byId} />
+      ))}
+      {places.games.length > 0 && (
+        <p className="hint league-source">
+          {places.games.some((g) => g.held) && 'Wild held items from PokeAPI. '}
+          {places.source && (
+            <>
+              From{' '}
+              <a href={places.source} target="_blank" rel="noreferrer">
+                Bulbapedia
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>{' '}
+              (CC BY-NC-SA 2.5).
+            </>
+          )}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function PlaceGame({ place, byId }: { place: ItemPlaceGame; byId: Map<number, IndexEntry> }) {
+  const ways: [string, string][] = [
+    ...(place.once ?? []).map((text): [string, string] => ['One time', text]),
+    ...(place.repeat ?? []).map((text): [string, string] => ['Repeatable', text]),
+  ];
+  return (
+    <div className="move-group place-game">
+      <h3>{place.game}</h3>
+      {place.note?.map((text, i) => (
+        <p key={i} className="flavor">
+          {text}
+        </p>
+      ))}
+      {(place.held || ways.length > 0) && (
+        <ul>
+          {place.held && (
+            <li className="move-row place-row">
+              <span className="body">
+                <span className="meta">
+                  <span>Held by wild Pokémon</span>
+                </span>
+                <span className="held-chips">
+                  {place.held.map(([id, rarity]) => {
+                    const m = byId.get(id);
+                    return (
+                      m && (
+                        <Link key={id} className="held-chip" to={`/pokemon/${id}`}>
+                          <img src={spriteUrl(id)} alt="" width={32} height={32} loading="lazy" />
+                          {m.name} <span className="pct">{rarity}%</span>
+                        </Link>
+                      )
+                    );
+                  })}
+                </span>
+              </span>
+            </li>
+          )}
+          {ways.map(([kind, text], i) => (
+            <li key={i} className="move-row place-row">
+              <span className="body">
+                <span className="meta">
+                  <span>{kind}</span>
+                </span>
+                <span className="name">{text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

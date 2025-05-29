@@ -43,6 +43,11 @@ describe('items reference data', () => {
     assert.equal(byName('Charizardite X')?.category, 'Mega Stones');
   });
 
+  test('wild holders are per version group: Snorlax holds Leftovers in Ruby/Sapphire at 100%', () => {
+    assert.deepEqual(byName('Leftovers')?.wild[0], [5, 143, 100]);
+    assert.ok(list.every((it) => it.wild.every(([game, , rarity]) => game > 0 && rarity > 0 && rarity <= 100)));
+  });
+
   test('prices: 0 marks items that are not sold', () => {
     assert.equal(byName('Poké Ball')?.cost, 200);
     assert.equal(byName('Master Ball')?.cost, 0);

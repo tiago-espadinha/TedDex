@@ -138,7 +138,7 @@ export type AbilityTable = Record<number, { name: string; effect: string; detail
 
 /**
  * reference/items.json: item id → name, category, the generation that introduced it, price (0 when it can't be
- * bought), short effect and the species that hold it in the wild. Every named item, held or not.
+ * bought), short effect and the wild Pokémon that hold it. Every named item, held or not.
  */
 export type ItemReferenceTable = Record<number, ItemInfo>;
 
@@ -148,7 +148,27 @@ export interface ItemInfo {
   gen: number;
   cost: number;
   effect: string;
-  species: number[];
+  /** Wild holders: [version group (see versions.json), species, chance in percent], oldest game first. */
+  wild: [versionGroup: number, species: number, rarity: number][];
+}
+
+/**
+ * reference/places/<id>.json: where to find an item, newest game first ("Other" last). `held` is PokeAPI's wild
+ * holders as [species, chance in percent]; `once` and `repeat` are Bulbapedia's one-time and repeatable ways as
+ * text, and `source` is the Bulbapedia page they come from (absent when the page gave nothing).
+ */
+export interface ItemPlaces {
+  source?: string;
+  games: ItemPlaceGame[];
+}
+
+export interface ItemPlaceGame {
+  game: string;
+  held?: [species: number, rarity: number][];
+  once?: string[];
+  repeat?: string[];
+  /** Bulbapedia's text when the page describes acquisition in prose rather than a table (game "Other"). */
+  note?: string[];
 }
 
 /** games.json: games (versions, not version groups) with encounter data, oldest first. */
