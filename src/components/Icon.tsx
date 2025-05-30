@@ -65,6 +65,7 @@ const paths = {
   ),
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   shield: <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />,
+  pencil: <path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" />,
   trash: <path d="M5 7h14M10 11v6M14 11v6M7 7l1 13h8l1-13M9 7V4h6v3" />,
 } as const;
 

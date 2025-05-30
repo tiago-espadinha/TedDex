@@ -6,8 +6,8 @@ import type { MoveTable, TypeName } from '../data/types';
 import { TypeChip } from './bits';
 
 /**
- * The parts of a Pokémon card in a team: league and Gym teams, and saved teams. The caller wraps
- * `MonHead` in its link (`.evo-member`) and puts the card in a `.league-mon`.
+ * The parts of a Pokémon card in a team: league and Gym teams, and saved teams. The caller puts
+ * `MonHead` in an `.evo-member` row (a link to the species on league pages).
  */
 
 /** Sprite on its first type's tint, name and type chips, then `aside` (a level badge). */
@@ -49,18 +49,28 @@ export function Fact({ k, children }: { k: string; children: ReactNode }) {
   );
 }
 
-/** The moves as links to their pages, edged in their type colour. */
-export function MonMoves({ name, moves, table }: { name: string; moves: number[]; table: MoveTable }) {
+/** The moves edged in their type colour; links to their pages unless `plain` (inside a card that is a link). */
+export function MonMoves({ name, moves, table, plain }: { name: string; moves: number[]; table: MoveTable; plain?: boolean }) {
   return (
     <ul className="league-moves" aria-label={`${name}'s moves`}>
       {moves.map((id, i) => {
         const move = table[id];
+        const style = move && { borderLeftColor: typeChip(move.type) };
+        const label = (
+          <>
+            {move?.name ?? `Move ${id}`}
+            {move && <span className="sr-only">, {move.type}</span>}
+          </>
+        );
         return (
           <li key={`${id}-${i}`}>
-            <Link to={`/reference/moves/${id}`} style={move && { borderLeftColor: typeChip(move.type) }}>
-              {move?.name ?? `Move ${id}`}
-              {move && <span className="sr-only">, {move.type}</span>}
-            </Link>
+            {plain ? (
+              <span style={style}>{label}</span>
+            ) : (
+              <Link to={`/reference/moves/${id}`} style={style}>
+                {label}
+              </Link>
+            )}
           </li>
         );
       })}

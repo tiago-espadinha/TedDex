@@ -68,6 +68,12 @@ export async function createTeam(name?: string): Promise<number> {
   return db.teams.add({ name: name ?? `Team ${count + 1}`, members: [], updatedAt: Date.now() });
 }
 
+/** Renames a team; a blank name leaves it unchanged. */
+export async function renameTeam(teamId: number, name: string) {
+  const trimmed = name.trim();
+  if (trimmed) await db.teams.update(teamId, { name: trimmed, updatedAt: Date.now() });
+}
+
 /** Adds a species, in form `formKey` ('' or absent for the default), to a team. Returns false when the team is full. */
 export async function addToTeam(teamId: number, speciesId: number, formKey?: string): Promise<boolean> {
   return db.transaction('rw', db.teams, async () => {
