@@ -82,6 +82,13 @@ export function ReferenceScreen() {
           </div>
           <Icon name="next" size={20} />
         </Link>
+        <Link to="/reference/gyms" className="team-row ref-kind">
+          <div>
+            <div className="name">Gym Leaders</div>
+            <div className="meta">Every game's Gym teams, badges and rematches</div>
+          </div>
+          <Icon name="next" size={20} />
+        </Link>
       </nav>
     </>
   );

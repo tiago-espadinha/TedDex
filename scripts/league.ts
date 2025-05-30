@@ -25,6 +25,8 @@ export interface RawParty {
   headings: string[];
   game: string;
   caption: string;
+  /** Bulbagarden Archives file name of the trainer sprite, e.g. "Spr B2W2 Shauntal.png"; empty when none. */
+  sprite: string;
   members: RawMember[];
 }
 
@@ -73,7 +75,8 @@ function member(f: Record<string, string>): RawMember {
 
 /** Every party on a page, in page order. */
 export function parseParties(wikitext: string): RawParty[] {
-  const lines = wikitext.split('\n');
+  // Some pages open a template mid-line ("Misty has three Full Restores.{{Party", "}}{{Pokémon"): give it its own line.
+  const lines = wikitext.replace(/(?<=\S)\{\{(?=(?:Party|Pokémon)\s*$|Party\/end\}\})/gm, '\n{{').split('\n');
   const heads: string[] = [];
   const parties: RawParty[] = [];
   let party: RawParty | null = null;
@@ -88,7 +91,14 @@ export function parseParties(wikitext: string): RawParty[] {
     if (/^\{\{Party\s*$/.test(line)) {
       const { body, end } = templateBody(lines, i);
       const f = fields(body);
-      party = { headings: heads.filter(Boolean), game: f.game ?? '', caption: f.caption ?? '', members: [] };
+      party = {
+        headings: heads.filter(Boolean),
+        game: f.game ?? '',
+        caption: f.caption ?? '',
+        // A size may follow the name: "VSSteven.png{{!}}150px".
+        sprite: (f.sprite ?? '').replace(/\{\{!\}\}.*$/, ''),
+        members: [],
+      };
       parties.push(party);
       i = end;
     } else if (/^\{\{Party\/end\}\}/.test(line)) {

@@ -20,6 +20,7 @@ const PAGE = `==In the core series games==
 =====Championship Match=====
 {{Party
 | caption = {{PlayerChoice|0810|Grookey}}
+| sprite = VSLeon.png{{!}}150px
 | name = Leon
 | game = SwSh
 | pokemon = 2
@@ -59,6 +60,11 @@ describe('parseParties', () => {
     assert.equal(parties[1].caption, '{{PlayerChoice|0810|Grookey}}');
   });
 
+  test('reads the sprite file name without its size', () => {
+    assert.equal(parties[0].sprite, '');
+    assert.equal(parties[1].sprite, 'VSLeon.png');
+  });
+
   test('a new heading replaces deeper ones', () => {
     assert.deepEqual(parties[0].headings.at(-1), 'Capture tutorial (optional)');
   });
@@ -78,6 +84,13 @@ describe('parseParties', () => {
 test('parseParties throws on a template closed inline instead of merging members', () => {
   const page = '{{Party\n| game = RGB\n}}\n{{Pokémon\n| ndex = 0087\n| move4 = Rest}}\n{{Pokémon\n| ndex = 0091\n}}\n{{Party/end}}';
   assert.throws(() => parseParties(page), /Unclosed template/);
+});
+
+test('parseParties reads templates opened mid-line', () => {
+  const page = 'Misty has three Full Restores.{{Party\n| game = HGSS\n}}{{Pokémon\n| ndex = 0055\n}}\n{{Pokémon\n| ndex = 0121\n}}{{Party/end}}';
+  const [party] = parseParties(page);
+  assert.equal(party.game, 'HGSS');
+  assert.deepEqual(party.members.map((m) => m.ndex), [55, 121]);
 });
 
 describe('parseLevel', () => {

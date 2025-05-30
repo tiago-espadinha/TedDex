@@ -452,9 +452,20 @@ a.move-row.tinted { color: var(--on-tint); }
 .ref-list .move-row > svg { flex: none; color: var(--muted); }
 .league-note { margin: 4px 24px 0; font-size: 13px; line-height: 1.5; }
 .league-trainer { padding-top: 18px; }
-.league-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.league-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.league-head .who { min-width: 0; }
+.league-head .tags { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .league-head h2 { margin: 0; font-size: 18px; }
+.trainer-sprite { flex: none; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px; background: var(--surface-2); color: var(--muted); object-fit: contain; }
+.league-no-rematch { margin: 0 0 10px; font-size: 13px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: calc(100% - 48px); min-height: 44px; margin: 8px 24px 0; padding: 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 700; color: var(--ink); }
+.switch-row .track { position: relative; flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--muted); transition: background-color 0.15s; }
+.switch-row .track::after { content: ''; position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); transition: transform 0.15s; }
+.switch-row[aria-checked='true'] .track { background: var(--primary); }
+.switch-row[aria-checked='true'] .track::after { transform: translateX(20px); background: var(--primary-ink); }
+.switch-row:focus-visible { outline-offset: 2px; }
 .league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--muted); }
+.league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--muted); }
 .league-pick-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
 .league-pick { height: 44px; margin-bottom: 10px; }
 .league-team { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
@@ -467,8 +478,11 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-facts dd { margin: 0; font-weight: 700; color: var(--ink-2); }
 .league-facts a { color: var(--primary); }
 .league-moves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0 12px 0 80px; padding: 0; list-style: none; }
-.league-moves a { display: flex; align-items: center; min-height: 44px; padding: 0 10px; border-radius: 12px; border-left: 4px solid var(--outline); background: var(--surface-2); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
-.league-moves a:active { background: var(--line); }
+.league-moves a, .league-chip { align-items: center; min-height: 44px; padding: 0 10px; border-radius: 12px; border-left: 4px solid var(--outline); background: var(--surface-2); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+.league-moves a:active, .league-chip:active { background: var(--line); }
+.league-moves a { display: flex; }
+.league-facts .league-chip { display: inline-flex; gap: 6px; padding-right: 12px; color: var(--ink); }
+.league-chip img { flex: none; image-rendering: pixelated; }
 .league-moves a:focus-visible, .league-mon .evo-member:focus-visible { outline-offset: -2px; }
 .league-mon .evo-member:active { background: var(--surface-2); }
 @media (min-width: 600px) {
@@ -626,7 +640,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
 [data-design='b'] :is(.search, .segmented, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .league-team, .picker-list,
-  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves a, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
+  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves a, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
 [data-design='b'] :is(.ref-list li, .move-group .move-row, .ref-species .evo-member) { border-top: 0; background: var(--surface); box-shadow: var(--shadow-card); }
