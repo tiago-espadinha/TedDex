@@ -75,7 +75,8 @@ function member(f: Record<string, string>): RawMember {
 
 /** Every party on a page, in page order. */
 export function parseParties(wikitext: string): RawParty[] {
-  const lines = wikitext.split('\n');
+  // Some pages open a template mid-line ("Misty has three Full Restores.{{Party", "}}{{Pokémon"): give it its own line.
+  const lines = wikitext.replace(/(?<=\S)\{\{(?=(?:Party|Pokémon)\s*$|Party\/end\}\})/gm, '\n{{').split('\n');
   const heads: string[] = [];
   const parties: RawParty[] = [];
   let party: RawParty | null = null;

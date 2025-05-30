@@ -227,9 +227,11 @@ export interface LeagueRematch {
 
 export interface LeagueTrainer {
   name: string;
-  /** "Elite Four", "Champion", or the Champion Cup round. */
+  /** "Elite Four", "Champion", the Champion Cup round, "Gym Leader" (with the version or choice it depends on), "Kahuna". */
   role: string;
   type?: TypeName;
+  /** Gym Leaders: the badge (or, in Alola, the Z-Crystal) the battle awards. */
+  badge?: string;
   /** File name under media/trainers/ without extension; absent when Bulbapedia has no sprite. */
   sprite?: string;
   /** Bulbapedia page the team comes from. */
@@ -239,7 +241,7 @@ export interface LeagueTrainer {
   rematches?: LeagueRematch[];
 }
 
-/** league/<id>.json: one game's Elite Four and Champion in battle order. */
+/** league/<id>.json or gyms/<id>.json: one game's Elite Four and Champion, or its Gym Leaders, in battle order. */
 export interface LeagueGame extends LeagueSummary {
   note?: string;
   trainers: LeagueTrainer[];

@@ -37,8 +37,10 @@ export const loadMoveReference = (id: number) => getJson<MoveReference>(`/data/r
 export const loadAbilities = () => getJson<AbilityTable>('/data/reference/abilities.json');
 export const loadItemReference = () => getJson<ItemReferenceTable>('/data/reference/items.json');
 export const loadItemPlaces = (id: number) => getJson<ItemPlaces>(`/data/reference/places/${id}.json`);
-export const loadLeagues = () => getJson<LeagueSummary[]>('/data/league/index.json');
-export const loadLeague = (id: string) => getJson<LeagueGame>(`/data/league/${id}.json`);
+/** Trainer data folders: Elite Four & Champion, and Gym Leaders. */
+export type TrainerKind = 'league' | 'gyms';
+export const loadTrainerGames = (kind: TrainerKind) => getJson<LeagueSummary[]>(`/data/${kind}/index.json`);
+export const loadTrainerGame = (kind: TrainerKind, id: string) => getJson<LeagueGame>(`/data/${kind}/${id}.json`);
 
 /** Small hook: resolves a promise-returning loader, re-running when `key` changes. */
 export function useLoad<T>(loader: () => Promise<T>, key: unknown): { data?: T; error?: Error } {

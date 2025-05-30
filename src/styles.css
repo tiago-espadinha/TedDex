@@ -465,6 +465,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .switch-row[aria-checked='true'] .track::after { transform: translateX(20px); background: var(--primary-ink); }
 .switch-row:focus-visible { outline-offset: 2px; }
 .league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--muted); }
+.league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--muted); }
 .league-pick-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
 .league-pick { height: 44px; margin-bottom: 10px; }
 .league-team { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }

@@ -86,6 +86,13 @@ test('parseParties throws on a template closed inline instead of merging members
   assert.throws(() => parseParties(page), /Unclosed template/);
 });
 
+test('parseParties reads templates opened mid-line', () => {
+  const page = 'Misty has three Full Restores.{{Party\n| game = HGSS\n}}{{Pokémon\n| ndex = 0055\n}}\n{{Pokémon\n| ndex = 0121\n}}{{Party/end}}';
+  const [party] = parseParties(page);
+  assert.equal(party.game, 'HGSS');
+  assert.deepEqual(party.members.map((m) => m.ndex), [55, 121]);
+});
+
 describe('parseLevel', () => {
   test('plain and slash-separated levels take the first', () => {
     assert.equal(parseLevel('54'), 54);

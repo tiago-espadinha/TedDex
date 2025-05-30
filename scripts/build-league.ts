@@ -1,13 +1,14 @@
 /**
- * Elite Four & Champion build: turns Bulbapedia's trainer pages into the JSON the Reference tab ships.
- * PokeAPI has no trainer data, so `scripts/league-manifest.json` says by hand which battle of which page
- * belongs to each game; this script only reads the teams out of those pages and maps names to our ids.
+ * Elite Four & Champion and Gym Leader build: turns Bulbapedia's trainer pages into the JSON the Reference tab
+ * ships. PokeAPI has no trainer data, so `scripts/league-manifest.json` and `scripts/gym-manifest.json` say by
+ * hand which battle of which page belongs to each game; this script only reads the teams out of those pages and
+ * maps names to our ids.
  *
  *   npm run league            # download pages (cached in .cache/bulbapedia/) and emit public/data/league/
  *   npm run league -- --fresh # ignore the cache and re-download
  *
  * Run after `npm run data` (it reads public/data/ for species, forms, moves, abilities and items).
- * Output: league/index.json (games, oldest first), league/<game>.json and each trainer's sprite from the
+ * Output: league/ and gyms/, each with index.json (games, oldest first) and <game>.json, and each trainer's sprite from the
  * party template as media/trainers/<file>.webp (downloaded from Bulbagarden Archives with curl, cached in
  * .cache/bulbapedia/sprites/, first frame only; needs `ffmpeg`). Fails on any name it cannot map, and writes
  * nothing until every game has been built.
@@ -18,7 +19,7 @@ import { execFile } from 'node:child_process';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import type {
-  AbilityTable, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueRematch, LeagueTeam, LeagueTrainer, MoveTable,
+  AbilityTable, IndexEntry, ItemReferenceTable, LeagueGame, LeagueMember, LeagueRematch, LeagueTeam, LeagueTrainer, MoveTable,
   SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from '../src/data/types';
 import { nameKey, parseLevel, parseParties, plainText, type RawMember, type RawParty } from './league';
@@ -26,7 +27,11 @@ import { nameKey, parseLevel, parseParties, plainText, type RawMember, type RawP
 const ROOT = new URL('..', import.meta.url).pathname;
 const CACHE = join(ROOT, '.cache', 'bulbapedia');
 const DATA = join(ROOT, 'public', 'data');
-const OUT = join(DATA, 'league');
+/** Each manifest and the folder under public/data/ its games go to. */
+const BUILDS = [
+  { manifest: 'league-manifest.json', out: 'league' },
+  { manifest: 'gym-manifest.json', out: 'gyms' },
+];
 const SPRITE_CACHE = join(CACHE, 'sprites');
 const SPRITES = join(ROOT, 'public', 'media', 'trainers');
 const ARCHIVES = 'https://archives.bulbagarden.net/wiki/Special:FilePath';
@@ -37,6 +42,8 @@ const run = promisify(execFile);
 
 /** Sprite suffixes that are only cosmetic (or the default form) for the species that use them. */
 const COSMETIC_FORMS = new Set(['shield', 'west', 'east', 'shiny', 'baile', 'female', 'male', 'full']);
+/** Sprite suffixes our forms name more precisely (Galarian Darmanitan in Standard Mode). */
+const FORM_ALIASES: Record<string, string> = { galar: 'galar-standard' };
 /** Older spellings on Gen I–IV pages → current move names. */
 const MOVE_ALIASES: Record<string, string> = {
   hijumpkick: 'High Jump Kick',
@@ -45,17 +52,24 @@ const MOVE_ALIASES: Record<string, string> = {
   smellingsalt: 'Smelling Salts',
 };
 
+/** A later battle's heading on the page, with a shorter label when the heading is too long for the picker. */
+type ManifestRematch = string | { heading: string; label: string };
+
 interface ManifestTrainer {
   name: string;
   role: string;
   type?: TypeName;
+  badge?: string;
   page: string;
   /** Value(s) of the party's `game =` field. */
   game: string | string[];
   /** Text one of the party's headings must contain; every matching party becomes a team. */
   heading?: string;
-  /** Heading text of each later battle (post-game rematch, title defense), in battle order. */
-  rematch?: string | string[];
+  /**
+   * Heading text of each later battle (post-game rematch, title defense), in battle order; the heading is its
+   * label unless a shorter one is given.
+   */
+  rematch?: ManifestRematch | ManifestRematch[];
 }
 
 interface ManifestGame {
@@ -78,11 +92,13 @@ async function wikitext(page: string): Promise<string> {
   const file = join(CACHE, `${page.replace(/[^\w()-]+/g, '_')}.wiki`);
   if (!FRESH && existsSync(file)) return readFile(file, 'utf8');
   console.log(`  fetching ${page}`);
-  const res = await fetch(`${WIKI}/w/index.php?title=${encodeURIComponent(page)}&action=raw`, {
-    headers: { 'User-Agent': USER_AGENT },
-  });
-  if (!res.ok) throw new Error(`${page}: HTTP ${res.status}`);
-  const text = await res.text();
+  // Through curl: Bulbapedia challenges Node's fetch.
+  const url = `${WIKI}/w/index.php?title=${encodeURIComponent(page)}&action=raw`;
+  const { stdout } = await run('curl', ['-sS', '-A', USER_AGENT, '-w', '\n%{http_code}', url], { maxBuffer: 1 << 26 });
+  const cut = stdout.lastIndexOf('\n');
+  const status = Number(stdout.slice(cut + 1));
+  if (status !== 200) throw new Error(`${page}: HTTP ${status}`);
+  const text = stdout.slice(0, cut);
   if (text.startsWith('#REDIRECT')) throw new Error(`${page} redirects: ${text.split('\n')[0]}; use the target page`);
   await writeFile(file, text);
   await sleep(1000); // be polite to the wiki
@@ -95,7 +111,8 @@ async function lookups() {
     readJson<IndexEntry[]>(join(DATA, 'index.json')),
     readJson<MoveTable>(join(DATA, 'moves.json')),
     readJson<AbilityTable>(join(DATA, 'reference', 'abilities.json')),
-    readJson<ItemTable>(join(DATA, 'items.json')),
+    // Every item, not only items.json's held items: a few teams hold Berries with no battle effect.
+    readJson<ItemReferenceTable>(join(DATA, 'reference', 'items.json')),
     readJson<VersionGroup[]>(join(DATA, 'versions.json')),
     readJson<TypeData>(join(DATA, 'types.json')),
   ]);
@@ -104,7 +121,7 @@ async function lookups() {
     species: new Map(index.map((s) => [s.id, s])),
     moves: byName(Object.entries(moves).map(([id, m]) => [id, m.name])),
     abilities: byName(Object.entries(abilities).map(([id, a]) => [id, a.name])),
-    items: byName(Object.entries(items)),
+    items: byName(Object.entries(items).map(([id, item]) => [id, item.name])),
     gen: new Map(versions.map((v) => [v.id, v.gen])),
     types: new Set<string>(types.types),
   };
@@ -123,9 +140,11 @@ function speciesForms(id: number): Promise<string[]> {
 
 /** Our form key for a sprite suffix like "-Alola"; undefined for the default or a cosmetic form. */
 async function formOf(raw: RawMember): Promise<string | undefined> {
-  const key = raw.form.replace(/^-/, '').toLowerCase();
+  const key = raw.form.replace(/^-/, '').toLowerCase().replace(/ /g, '-');
   if (!key) return undefined;
-  if ((await speciesForms(raw.ndex)).includes(key)) return key;
+  const keys = await speciesForms(raw.ndex);
+  if (keys.includes(key)) return key;
+  if (keys.includes(FORM_ALIASES[key])) return FORM_ALIASES[key];
   if (COSMETIC_FORMS.has(key)) return undefined;
   throw new Error(`${raw.pokemon}: unknown form "${raw.form}"`);
 }
@@ -201,6 +220,7 @@ async function trainer(t: ManifestTrainer, game: ManifestGame, ids: Lookups): Pr
   const first = t.heading ? under(t.heading) : all;
   const out: LeagueTrainer = { name: t.name, role: t.role, source: pageUrl(t.page), teams: await teamsOf(first, t.heading ?? '') };
   if (t.type) out.type = typeName(ids, t.type, who);
+  if (t.badge) out.badge = t.badge;
   const file = first[0].sprite;
   if (file) {
     out.sprite = spriteKey(file);
@@ -209,9 +229,11 @@ async function trainer(t: ManifestTrainer, game: ManifestGame, ids: Lookups): Pr
     sprites.set(out.sprite, file);
   }
   const rematches: LeagueRematch[] = [];
-  for (const heading of ([] as string[]).concat(t.rematch ?? [])) {
+  for (const r of ([] as ManifestRematch[]).concat(t.rematch ?? [])) {
+    const heading = typeof r === 'string' ? r : r.heading;
     const parties = under(heading);
-    rematches.push({ label: plainText(parties[0]?.headings.at(-1) ?? heading), teams: await teamsOf(parties, heading) });
+    const label = typeof r === 'string' ? plainText(parties[0]?.headings.at(-1) ?? heading) : r.label;
+    rematches.push({ label, teams: await teamsOf(parties, heading) });
   }
   if (rematches.length) out.rematches = rematches;
   return out;
@@ -237,7 +259,8 @@ async function writeSprite(key: string, file: string) {
   const options = Number(stdout) <= 128
     ? ['-vf', 'scale=iw*2:ih*2:flags=neighbor', '-c:v', 'libwebp', '-lossless', '1']
     : ['-vf', 'scale=192:192:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '85'];
-  await run('ffmpeg', ['-v', 'error', '-y', '-i', src, '-frames:v', '1', ...options, join(SPRITES, `${key}.webp`)]);
+  // Read as a still PNG: ffmpeg cannot demux some APNGs, and the still image is the first frame.
+  await run('ffmpeg', ['-v', 'error', '-y', '-f', 'png_pipe', '-i', src, '-frames:v', '1', ...options, join(SPRITES, `${key}.webp`)]);
 }
 
 async function buildGame(g: ManifestGame, ids: Lookups): Promise<LeagueGame> {
@@ -252,19 +275,27 @@ async function buildGame(g: ManifestGame, ids: Lookups): Promise<LeagueGame> {
 async function main() {
   await mkdir(SPRITE_CACHE, { recursive: true });
   const ids = await lookups();
-  const { games } = await readJson<{ games: ManifestGame[] }>(join(ROOT, 'scripts', 'league-manifest.json'));
-  const built: LeagueGame[] = [];
-  for (const g of games) built.push(await buildGame(g, ids));
+  const built: { out: string; games: LeagueGame[] }[] = [];
+  for (const { manifest, out } of BUILDS) {
+    const { games } = await readJson<{ games: ManifestGame[] }>(join(ROOT, 'scripts', manifest));
+    const done: LeagueGame[] = [];
+    for (const g of games) done.push(await buildGame(g, ids));
+    built.push({ out, games: done });
+  }
   for (const file of sprites.values()) await fetchSprite(file);
-  await rm(OUT, { recursive: true, force: true });
-  await mkdir(OUT, { recursive: true });
-  for (const game of built) await writeFile(join(OUT, `${game.id}.json`), JSON.stringify(game));
-  const index = built.map(({ id, label, region, gen }) => ({ id, label, region, gen }));
-  await writeFile(join(OUT, 'index.json'), JSON.stringify(index));
+  for (const { out, games } of built) {
+    const dir = join(DATA, out);
+    await rm(dir, { recursive: true, force: true });
+    await mkdir(dir, { recursive: true });
+    for (const game of games) await writeFile(join(dir, `${game.id}.json`), JSON.stringify(game));
+    const index = games.map(({ id, label, region, gen }) => ({ id, label, region, gen }));
+    await writeFile(join(dir, 'index.json'), JSON.stringify(index));
+    console.log(`${index.length} games → public/data/${out}/`);
+  }
   await rm(SPRITES, { recursive: true, force: true });
   await mkdir(SPRITES, { recursive: true });
   for (const [key, file] of sprites) await writeSprite(key, file);
-  console.log(`${index.length} games → public/data/league/, ${sprites.size} sprites → public/media/trainers/`);
+  console.log(`${sprites.size} sprites → public/media/trainers/`);
 }
 
 main().catch((err: Error) => {
