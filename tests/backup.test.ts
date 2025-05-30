@@ -66,6 +66,23 @@ describe('parseBackup', () => {
     assert.deepEqual(parseBackup(oneMember({ speciesId: 1, moves: [1, 2, 3, 4] }))[0].members[0].moves, [1, 2, 3, 4]);
   });
 
+  test('round-trips god mode, with an illegal move and ability', () => {
+    const member = { speciesId: 25, ability: 'Huge Power', moves: [147], godMode: true };
+    const [team] = parseBackup(oneMember(member));
+    assert.deepEqual(team.members, [{ ...member, formKey: undefined, nature: undefined, item: undefined }]);
+    assert.deepEqual(parseBackup(backup([team]))[0].members, team.members);
+  });
+
+  test('stores god mode off as no god mode', () => {
+    assert.equal('godMode' in parseBackup(oneMember({ speciesId: 25, godMode: false }))[0].members[0], false);
+    assert.equal('godMode' in parseBackup(oneMember({ speciesId: 25 }))[0].members[0], false);
+  });
+
+  test('rejects a god mode that is not true or false', () => {
+    rejects(oneMember({ speciesId: 25, godMode: 'yes' }), /^Team 1 in the file: member 1 has an invalid god mode$/);
+    rejects(oneMember({ speciesId: 25, godMode: 1 }), /invalid god mode/);
+  });
+
   test('rejects files that are not backups', () => {
     rejects('not json', /isn't a team backup/);
     rejects('null', /isn't a team backup/);

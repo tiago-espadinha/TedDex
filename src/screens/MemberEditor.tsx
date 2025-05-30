@@ -1,29 +1,20 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { loadItems, loadLearnsets, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
+import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
 import { MOVE_SLOTS, db, updateMember, type TeamMember } from '../data/db';
 import { applyForm } from '../data/forms';
+import { moveChoices, otherAbilities } from '../data/memberOptions';
 import { NATURES, natureLabel } from '../data/natures';
 import { typeTint } from '../data/typeColors';
-import type { Learnsets, MoveTable } from '../data/types';
+import type { MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useModalSheet } from '../components/bits';
 import { MoveBody } from './MovesTab';
 
 const loadAll = (id: number) => Promise.all([loadSpecies(id), loadLearnsets(id), loadMoves(), loadItems()]);
 
-/** Every move the species learns in any main-series game, by any method, sorted by name. */
-function legalMoves(learnsets: Learnsets, moves: MoveTable): number[] {
-  const ids = new Set<number>();
-  for (const set of Object.values(learnsets)) {
-    set.level.forEach(([m]) => ids.add(m));
-    [...set.machine, ...set.tutor, ...set.egg].forEach((m) => ids.add(m));
-  }
-  return [...ids].sort((a, b) => moves[a].name.localeCompare(moves[b].name));
-}
-
-type Picking = { kind: 'item' } | { kind: 'move'; slot: number };
+type Picking = { kind: 'item' } | { kind: 'ability' } | { kind: 'move'; slot: number };
 
 export function MemberEditor() {
   const params = useParams();
@@ -32,11 +23,19 @@ export function MemberEditor() {
   const team = useLiveQuery(() => db.teams.get(teamId).then((t) => t ?? null), [teamId]);
   const member = team?.members[index];
   const { data, error } = useLoad(() => (member ? loadAll(member.speciesId) : Promise.resolve(undefined)), member?.speciesId);
+  const godMode = member?.godMode ?? false;
+  // Every ability is only needed in god mode, so it loads then.
+  const { data: abilities, error: abilitiesError } = useLoad(() => (godMode ? loadAbilities() : Promise.resolve(undefined)), godMode);
   const [picking, setPicking] = useState<Picking>();
-  const legal = useMemo(() => (data ? legalMoves(data[1], data[2]) : []), [data]);
+  const choices = useMemo(() => (data ? moveChoices(data[1], data[2], godMode) : []), [data, godMode]);
   const itemOptions = useMemo(
     () => Object.entries(data?.[3] ?? {}).map(([id, name]) => ({ id: Number(id), name })).sort((a, b) => a.name.localeCompare(b.name)),
     [data],
+  );
+  const formKey = member?.formKey ?? null;
+  const abilityOptions = useMemo(
+    () => (data && abilities ? otherAbilities(applyForm(data[0], formKey).view.abilities, abilities) : []),
+    [data, formKey, abilities],
   );
 
   if (team === undefined) return <Loading />;
@@ -56,10 +55,14 @@ export function MemberEditor() {
       else if (!next.includes(move) && slot < MOVE_SLOTS) next[Math.min(slot, next.length)] = move;
       return { ...m, moves: next };
     });
-  /** Switches form, dropping the chosen ability if the new form doesn't have it. */
+  /**
+   * Switches form, dropping the chosen ability if it was the old form's own and the new form doesn't have it.
+   * God mode, and an ability picked in god mode, keep it.
+   */
   const setForm = (key: string) =>
     updateMember(teamId, index, (m) => {
-      const keep = applyForm(species, key).view.abilities.some((a) => a.name === m.ability);
+      const own = (formKey: string | null) => applyForm(species, formKey).view.abilities.some((a) => a.name === m.ability);
+      const keep = m.godMode || !own(m.formKey ?? null) || own(key);
       return { ...m, formKey: key || undefined, ability: keep ? m.ability : undefined };
     });
 
@@ -85,6 +88,21 @@ export function MemberEditor() {
           <Icon name="next" size={20} />
         </Link>
       </div>
+
+      <button
+        type="button"
+        className="switch-row"
+        role="switch"
+        aria-checked={godMode}
+        aria-describedby="god-mode-hint"
+        onClick={() => save({ godMode: godMode ? undefined : true })}
+      >
+        God mode
+        <span className="track" aria-hidden="true" />
+      </button>
+      <p id="god-mode-hint" className="hint god-mode-hint">
+        {godMode ? 'Any move and any ability, legal or not.' : 'Only its own moves and abilities; choices made stay.'}
+      </p>
 
       {species.forms && (
         <Field title="Form">
@@ -112,7 +130,19 @@ export function MemberEditor() {
               {a.hidden && <small>Hidden</small>}
             </button>
           ))}
+          {member.ability && !mon.abilities.some((a) => a.name === member.ability) && (
+            <button className="ability" role="radio" aria-checked onClick={() => save({ ability: undefined })}>
+              {member.ability}
+              <small>Not its own</small>
+            </button>
+          )}
         </div>
+        {godMode && (
+          <button className="add-slot ability-any" onClick={() => setPicking({ kind: 'ability' })} disabled={!abilities}>
+            <Icon name="plus" size={18} /> Any ability
+          </button>
+        )}
+        {godMode && abilitiesError && <p className="hint">Couldn't load the ability list. {abilitiesError.message}</p>}
       </Field>
 
       <Field title="Nature">
@@ -145,8 +175,8 @@ export function MemberEditor() {
       </Field>
 
       <Field title={`Moves · ${chosen.length} of ${MOVE_SLOTS}`}>
-        <MoveSlots chosen={chosen} moves={moves} canAdd={legal.length > 0} onPick={(slot) => setPicking({ kind: 'move', slot })} onRemove={(slot) => setMove(slot)} />
-        {!legal.length && <p className="hint">No move data for {mon.name}.</p>}
+        <MoveSlots chosen={chosen} moves={moves} canAdd={choices.length > 0} onPick={(slot) => setPicking({ kind: 'move', slot })} onRemove={(slot) => setMove(slot)} />
+        {!choices.length && <p className="hint">No move data for {mon.name}.</p>}
       </Field>
 
       {picking?.kind === 'item' && (
@@ -158,10 +188,24 @@ export function MemberEditor() {
           onClose={() => setPicking(undefined)}
         />
       )}
+      {picking?.kind === 'ability' && abilities && (
+        <PickerSheet
+          title="Any ability"
+          options={abilityOptions}
+          render={(o) => (
+            <span className="body">
+              <span className="name">{o.name}</span>
+              <span className="meta">{abilities[o.id].effect}</span>
+            </span>
+          )}
+          onPick={(id) => save({ ability: abilities[id].name })}
+          onClose={() => setPicking(undefined)}
+        />
+      )}
       {picking?.kind === 'move' && (
         <PickerSheet
           title={chosen[picking.slot] ? `Replace ${moves[chosen[picking.slot]].name}` : 'Add a move'}
-          options={legal.filter((m) => !chosen.includes(m)).map((id) => ({ id, name: moves[id].name }))}
+          options={choices.filter((m) => !chosen.includes(m)).map((id) => ({ id, name: moves[id].name }))}
           render={(o) => (
             <>
               <MoveBody move={moves[o.id]} />

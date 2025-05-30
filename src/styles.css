@@ -464,6 +464,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .switch-row[aria-checked='true'] .track { background: var(--primary); }
 .switch-row[aria-checked='true'] .track::after { transform: translateX(20px); background: var(--primary-ink); }
 .switch-row:focus-visible { outline-offset: 2px; }
+.god-mode-hint { margin: 2px 24px 0; }
 .league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--muted); }
 .league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--muted); }
 .league-pick-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
@@ -578,6 +579,8 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .move-slots { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .move-slots .move-row { padding: 0 4px 0 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-slots .add-slot { width: 100%; }
+.ability-any { width: 100%; margin-top: 8px; }
+.ability-any:disabled { opacity: 0.6; }
 .move-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 4px 8px 12px; border: 0; background: transparent; text-align: left; border-radius: 16px; }
 .sheet .search { margin: 12px 0 10px; }
 .picker-list { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
