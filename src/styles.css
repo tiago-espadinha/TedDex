@@ -224,6 +224,7 @@ main:focus, .sheet:focus { outline: none; }
 .type-chip.lg { font-size: 12px; padding: 4px 12px; }
 .filter-chip { height: 32px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--outline); background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 600; white-space: nowrap; }
 .filter-chip.on { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 700; }
+.filter-chip.removable { display: inline-flex; align-items: center; gap: 4px; padding-right: 10px; }
 
 /* ---------- dex ---------- */
 .dex-head { display: flex; align-items: center; gap: 12px; padding: 8px 16px 10px 20px; }
@@ -263,13 +264,8 @@ main:focus, .sheet:focus { outline: none; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
 
-/* Room under the last grid row so it can scroll clear of the category bar (48 px) and the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
-.dex-list { margin-bottom: 136px; }
-/* Quick categories, docked above the bottom nav. */
-.cat-bar { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-bottom)); z-index: 14; max-width: 720px; margin: 0 auto; display: flex; gap: 8px; padding: 8px 16px; overflow-x: auto; scrollbar-width: none; background: var(--bg); border-top: 1px solid var(--line); }
-.cat-bar::-webkit-scrollbar { display: none; }
-.cat-bar .filter-chip:not(.on) { background: var(--surface); }
-.cat-bar ~ .fab { bottom: calc(var(--nav-h) + var(--safe-bottom) + 64px); }
+/* Room under the last grid row so it can scroll clear of the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
+.dex-list { margin-bottom: 88px; }
 .fab { position: fixed; right: max(16px, calc((100vw - 720px) / 2 + 16px)); bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); z-index: 15; width: 56px; height: 56px; border-radius: 16px; border: 0; background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); }
 .fab .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
@@ -305,9 +301,9 @@ main:focus, .sheet:focus { outline: none; }
 .hint { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
 
 /* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
-:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button) { position: relative; }
-:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button)::after {
-  content: ''; position: absolute; inset: min(0px, 50% - 22px);
+:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button) {
+  position: relative;
+  &::after { content: ''; position: absolute; inset: min(0px, 50% - 22px); }
 }
 
 @keyframes fade { from { opacity: 0; } }
@@ -514,7 +510,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .item-art { flex: none; width: 64px; height: 64px; margin: 6px 4px 0 8px; padding: 8px; box-sizing: content-box; border-radius: 20px; background: var(--surface-2); object-fit: contain; }
 .ref-list .item-sprite { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--surface-2); object-fit: contain; }
 .ref-list .price { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-/* Item categories have longer labels than generations: two columns, wrapping. */
+/* Categories (items, Dex) have longer labels than generations: two columns, wrapping. */
 .cat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 6px; }
 .cat-grid .gen-btn { height: auto; min-height: 44px; padding: 4px 8px; line-height: 1.2; }
 .ref-species { padding-bottom: 24px; }
@@ -665,7 +661,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .segmented, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .league-team, .picker-list,
+[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .league-team, .picker-list,
   .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }

@@ -6,7 +6,7 @@ export type TypeName =
   | 'bug' | 'ghost' | 'steel' | 'fire' | 'water' | 'grass'
   | 'electric' | 'psychic' | 'ice' | 'dragon' | 'dark' | 'fairy';
 
-/** Quick categories on the Dex chip bar. */
+/** Quick categories in the Dex filter sheet. */
 export type Category =
   | 'starter' | 'mega' | 'fossil' | 'eeveelution' | 'legendary' | 'mythical' | 'regional' | 'baby' | 'paradox' | 'stone';
 

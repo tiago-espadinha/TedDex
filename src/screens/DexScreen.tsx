@@ -1,13 +1,13 @@
 import Fuse from 'fuse.js';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { artworkUrl, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { cap, formatNo, roman } from '../data/format';
 import { addToTeam, db } from '../data/db';
 import { CATEGORY_LABELS, SORT_LABELS, saveOrder, useDexFilters, type SortKey } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
-import type { Category, IndexEntry } from '../data/types';
+import type { IndexEntry } from '../data/types';
 import { FUSE_OPTIONS, applyFilters, sortValue } from '../data/filter';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
@@ -16,7 +16,6 @@ import { useDexView, useSpriteStyle } from '../data/settings';
 
 const ROW_H = 118; // card 108 + gap 10
 const LIST_ROW_H = 72; // row 64 + gap 8
-const CATEGORIES = Object.entries(CATEGORY_LABELS) as [Category, string][];
 
 function useColumns() {
   const get = () => (window.innerWidth >= 600 ? 3 : 2);
@@ -33,6 +32,7 @@ export function DexScreen() {
   const { data: all, error } = useLoad(loadIndex, 'index');
   const [filters, setFilters] = useDexFilters();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const fab = useRef<HTMLButtonElement>(null);
   const [params] = useSearchParams();
   const pickTeam = params.get('pick') ? Number(params.get('pick')) : null;
   const navigate = useNavigate();
@@ -52,7 +52,7 @@ export function DexScreen() {
   // Row heights differ between the views: measure again when switching.
   useEffect(() => virtual.measure(), [virtual, rowHeight]);
 
-  const activeCount = filters.gens.length + filters.types.length + (filters.sort !== 'number' ? 1 : 0);
+  const activeCount = filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
 
   async function pick(id: number) {
     if (pickTeam == null) return;
@@ -91,8 +91,22 @@ export function DexScreen() {
         />
       </header>
 
-      {chips.length > 0 && (
+      {(chips.length > 0 || filters.category) && (
         <div className="chip-row">
+          {filters.category && (
+            <button
+              className="filter-chip on removable"
+              aria-label={`Remove ${CATEGORY_LABELS[filters.category]} filter`}
+              onClick={() => {
+                setFilters({ ...filters, category: null });
+                // The chip (and maybe its row) unmounts: keep focus on the screen.
+                fab.current?.focus();
+              }}
+            >
+              {CATEGORY_LABELS[filters.category]}
+              <Icon name="close" size={16} />
+            </button>
+          )}
           {chips.map((c) => (
             <button key={c} className="filter-chip on" onClick={() => setSheetOpen(true)}>
               {c}
@@ -136,26 +150,8 @@ export function DexScreen() {
         })}
       </div>
 
-      <div className="cat-bar" role="group" aria-label="Quick categories">
-        {CATEGORIES.map(([c, label]) => {
-          const on = filters.category === c;
-          return (
-            <button
-              key={c}
-              className={on ? 'filter-chip on' : 'filter-chip'}
-              aria-pressed={on}
-              onClick={() => {
-                setFilters({ ...filters, category: on ? null : c });
-                window.scrollTo({ top: 0 });
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
       <button
+        ref={fab}
         className="fab"
         aria-label={activeCount ? `Filter and sort, ${activeCount} active` : 'Filter and sort'}
         onClick={() => setSheetOpen(true)}
