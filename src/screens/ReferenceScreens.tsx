@@ -4,16 +4,17 @@ import {
   defensiveMultipliers, itemSpriteUrl, loadAbilities, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes,
   offensiveMultipliers, spriteUrl, useLoad,
 } from '../data/api';
+import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters } from '../data/abilityFilter';
 import { cap, formatMultiplier, formatNo, formatPrice, roman, signed } from '../data/format';
 import { activeItemFilters, filterItems, itemFilterParams, readItemFilters } from '../data/itemFilter';
 import { NATURES, dislikedFlavor, likedFlavor } from '../data/natures';
-import { searchByName } from '../data/reference';
 import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip } from '../components/bits';
 import { MoveBody } from './MovesTab';
+import { AbilityFilterSheet } from './AbilityFilterSheet';
 import { ItemFilterSheet } from './ItemFilterSheet';
 import { MoveFilterSheet } from './MoveFilterSheet';
 
@@ -27,7 +28,6 @@ const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'types', title: 'Types', one: 'Type', blurb: 'The full type chart' },
 ];
 
-const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const STAT_NAMES = { atk: 'Attack', def: 'Defense', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' };
 
 /** One row of a reference list; `move`, `item` and `type` pick a richer row. */
@@ -38,7 +38,7 @@ interface Entry {
   move?: MoveInfo;
   item?: ItemInfo;
   type?: TypeName;
-  /** Generation that introduced it, for the generation chips (abilities). */
+  /** Generation that introduced it, for the generation filter (abilities). */
   gen?: number;
 }
 
@@ -109,21 +109,20 @@ function SearchList() {
   const query = params.get('q') ?? '';
   const { data, error } = useLoad(() => (k ? loadEntries(k.kind as ListKind) : Promise.resolve([])), k?.kind);
   const [sheetOpen, setSheetOpen] = useState(false);
-  // Moves and items also filter (moves sort too) in a sheet; their filters live in the URL next to the query.
+  // Moves, items and abilities also filter (moves sort too) in a sheet; their filters live in the URL next to the query.
   const moveFilters = useMemo(() => (k?.kind === 'moves' ? readMoveFilters(params) : undefined), [k?.kind, params]);
   const itemFilters = useMemo(() => (k?.kind === 'items' ? readItemFilters(params) : undefined), [k?.kind, params]);
+  const abilityFilters = useMemo(() => (k?.kind === 'abilities' ? readAbilityFilters(params) : undefined), [k?.kind, params]);
   const moves = useMemo(() => (data ?? []).filter((e): e is MoveEntry => !!e.move), [data]);
   const items = useMemo(() => (data ?? []).filter((e): e is ItemEntry => !!e.item), [data]);
-  const hasSheet = !!(moveFilters || itemFilters);
-  // Lists whose entries carry a generation (abilities) get generation chips, kept in `?gen=`.
-  const hasGens = !hasSheet && !!data?.some((e) => e.gen);
-  const gens = useMemo(() => (params.get('gen') ?? '').split(',').filter(Boolean).map(Number), [params]);
+  // Only the generations that introduced an ability (III onwards) get a button in the sheet.
+  const abilityGens = useMemo(() => [...new Set((data ?? []).map((e) => e.gen ?? 0))].filter(Boolean).sort(), [data]);
+  const hasSheet = !!(moveFilters || itemFilters || abilityFilters);
   const shown = useMemo(() => {
     if (moveFilters) return filterMoves(moves, moveFilters);
     if (itemFilters) return filterItems(items, itemFilters);
-    const hits = searchByName(data ?? [], query);
-    return gens.length ? hits.filter((e) => e.gen && gens.includes(e.gen)) : hits;
-  }, [data, moves, items, moveFilters, itemFilters, query, gens]);
+    return filterAbilities(data ?? [], abilityFilters ?? { query, gens: [] });
+  }, [data, moves, items, moveFilters, itemFilters, abilityFilters, query]);
   const setParam = (key: string, value: string) =>
     setParams(
       (p) => {
@@ -135,11 +134,15 @@ function SearchList() {
       { replace: true },
     );
   const setQuery = (q: string) => setParam('q', q);
-  const toggleGen = (g: number) =>
-    setParam('gen', (gens.includes(g) ? gens.filter((x) => x !== g) : [...gens, g].sort()).join(','));
 
   if (!k) return <p className="empty">Page not found.</p>;
-  const filtered = moveFilters ? activeMoveFilters(moveFilters) : itemFilters ? activeItemFilters(itemFilters) : gens.length;
+  const filtered = moveFilters
+    ? activeMoveFilters(moveFilters)
+    : itemFilters
+      ? activeItemFilters(itemFilters)
+      : abilityFilters
+        ? activeAbilityFilters(abilityFilters)
+        : 0;
   const applyFilters = (next: Record<string, string>) => {
     setParams(next, { replace: true });
     setSheetOpen(false);
@@ -158,15 +161,6 @@ function SearchList() {
         </div>
         <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} />
       </header>
-      {hasGens && (
-        <div className="chip-row" role="group" aria-label="Generation introduced">
-          {GENS.map((g) => (
-            <button key={g} className={gens.includes(g) ? 'filter-chip on' : 'filter-chip'} aria-pressed={gens.includes(g)} onClick={() => toggleGen(g)}>
-              Gen {roman(g)}
-            </button>
-          ))}
-        </div>
-      )}
       {error && <p className="empty">Couldn't load {k.title.toLowerCase()}. {error.message}</p>}
       {!data && !error && <Loading />}
       {data && !shown.length && (
@@ -214,6 +208,15 @@ function SearchList() {
               value={itemFilters}
               countFor={(f) => filterItems(items, f).length}
               onApply={(f) => applyFilters(itemFilterParams(f))}
+              onClose={() => setSheetOpen(false)}
+            />
+          )}
+          {sheetOpen && abilityFilters && (
+            <AbilityFilterSheet
+              value={abilityFilters}
+              gens={abilityGens}
+              countFor={(f) => filterAbilities(data ?? [], f).length}
+              onApply={(f) => applyFilters(abilityFilterParams(f))}
               onClose={() => setSheetOpen(false)}
             />
           )}
