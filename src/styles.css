@@ -217,13 +217,14 @@ main:focus, .sheet:focus { outline: none; }
 .topbar .sub { font-size: 13px; font-weight: 600; color: var(--muted); }
 .topbar .grow { flex: 1; min-width: 0; }
 .topbar .head-title { flex: none; max-width: 45%; margin-right: 8px; }
-.topbar .head-title h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:is(.topbar .head-title h1, .topbar .team-name) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- chips ---------- */
 .type-chip { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.3px; color: var(--on-type); padding: 2px 9px; border-radius: 999px; text-transform: uppercase; }
 .type-chip.lg { font-size: 12px; padding: 4px 12px; }
 .filter-chip { height: 32px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--outline); background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 600; white-space: nowrap; }
 .filter-chip.on { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 700; }
+.filter-chip.removable { display: inline-flex; align-items: center; gap: 4px; padding-right: 10px; }
 
 /* ---------- dex ---------- */
 .dex-head { display: flex; align-items: center; gap: 12px; padding: 8px 16px 10px 20px; }
@@ -263,13 +264,8 @@ main:focus, .sheet:focus { outline: none; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
 
-/* Room under the last grid row so it can scroll clear of the category bar (48 px) and the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
-.dex-list { margin-bottom: 136px; }
-/* Quick categories, docked above the bottom nav. */
-.cat-bar { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-bottom)); z-index: 14; max-width: 720px; margin: 0 auto; display: flex; gap: 8px; padding: 8px 16px; overflow-x: auto; scrollbar-width: none; background: var(--bg); border-top: 1px solid var(--line); }
-.cat-bar::-webkit-scrollbar { display: none; }
-.cat-bar .filter-chip:not(.on) { background: var(--surface); }
-.cat-bar ~ .fab { bottom: calc(var(--nav-h) + var(--safe-bottom) + 64px); }
+/* Room under the last grid row so it can scroll clear of the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
+.dex-list { margin-bottom: 88px; }
 .fab { position: fixed; right: max(16px, calc((100vw - 720px) / 2 + 16px)); bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); z-index: 15; width: 56px; height: 56px; border-radius: 16px; border: 0; background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); }
 .fab .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
@@ -305,9 +301,9 @@ main:focus, .sheet:focus { outline: none; }
 .hint { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
 
 /* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
-:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button) { position: relative; }
-:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button)::after {
-  content: ''; position: absolute; inset: min(0px, 50% - 22px);
+:is(.filter-chip, .gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button) {
+  position: relative;
+  &::after { content: ''; position: absolute; inset: min(0px, 50% - 22px); }
 }
 
 @keyframes fade { from { opacity: 0; } }
@@ -464,6 +460,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .switch-row[aria-checked='true'] .track { background: var(--primary); }
 .switch-row[aria-checked='true'] .track::after { transform: translateX(20px); background: var(--primary-ink); }
 .switch-row:focus-visible { outline-offset: 2px; }
+.god-mode-hint { margin: 2px 24px 0; }
 .league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--muted); }
 .league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--muted); }
 .league-pick-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
@@ -478,9 +475,9 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-facts dd { margin: 0; font-weight: 700; color: var(--ink-2); }
 .league-facts a { color: var(--primary); }
 .league-moves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0 12px 0 80px; padding: 0; list-style: none; }
-.league-moves a, .league-chip { align-items: center; min-height: 44px; padding: 0 10px; border-radius: 12px; border-left: 4px solid var(--outline); background: var(--surface-2); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+.league-moves li > *, .league-chip { align-items: center; min-height: 44px; padding: 0 10px; border-radius: 12px; border-left: 4px solid var(--outline); background: var(--surface-2); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
 .league-moves a:active, .league-chip:active { background: var(--line); }
-.league-moves a { display: flex; }
+.league-moves li > * { display: flex; }
 .league-facts .league-chip { display: inline-flex; gap: 6px; padding-right: 12px; color: var(--ink); }
 .league-chip img { flex: none; image-rendering: pixelated; }
 .league-moves a:focus-visible, .league-mon .evo-member:focus-visible { outline-offset: -2px; }
@@ -491,7 +488,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-source a { color: var(--primary); }
 .empty a { display: inline-flex; align-items: center; min-height: 44px; color: var(--primary); font-weight: 700; }
 @media (max-width: 374px) {
-  .league-facts, .league-moves { margin-left: 12px; }
+  .league-facts, .league-moves, .team-mon-hint { margin-left: 12px; }
 }
 .chip-wrap:has(.chip-link) { column-gap: 8px; row-gap: 0; }
 .topbar.tinted { color: var(--on-tint); margin-top: calc(-1 * var(--safe-top)); padding: calc(var(--safe-top) + 8px) 12px 16px 8px; border-radius: 0 0 32px 32px; }
@@ -513,7 +510,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .item-art { flex: none; width: 64px; height: 64px; margin: 6px 4px 0 8px; padding: 8px; box-sizing: content-box; border-radius: 20px; background: var(--surface-2); object-fit: contain; }
 .ref-list .item-sprite { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--surface-2); object-fit: contain; }
 .ref-list .price { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-/* Item categories have longer labels than generations: two columns, wrapping. */
+/* Categories (items, Dex) have longer labels than generations: two columns, wrapping. */
 .cat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 6px; }
 .cat-grid .gen-btn { height: auto; min-height: 44px; padding: 4px 8px; line-height: 1.2; }
 .ref-species { padding-bottom: 24px; }
@@ -536,6 +533,29 @@ a.move-row.tinted { color: var(--on-tint); }
 .slot .meta { font-size: 12px; font-weight: 600; color: var(--on-tint-2); margin-top: 2px; }
 .slot .chips { display: flex; gap: 4px; margin-top: 4px; }
 .slot .icon-btn { color: var(--on-tint-2); }
+/* The link covers the name and sprites; the rename button sits over its top-right corner. */
+.team-entry { position: relative; display: block; padding: 0; }
+.team-entry > a { display: flex; flex-direction: column; gap: 2px; padding: 14px; border-radius: inherit; color: inherit; text-decoration: none; }
+.team-entry :is(.name, .meta) { padding-right: 42px; }
+.team-entry > a:focus-visible { outline-offset: -2px; }
+.team-entry .name { overflow-wrap: anywhere; }
+.team-entry > .icon-btn { position: absolute; top: 6px; right: 6px; }
+.team-entry .minis { gap: 2px; margin: 0 0 -6px -4px; }
+.team-entry .minis img { width: 48px; height: 48px; margin: 0; }
+/* A member card is one link to the editor, on its first type's tint; the remove button sits over its top-right corner. */
+.team-members { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.team-mon { position: relative; border-radius: var(--radius-card); color: var(--on-tint); }
+.team-mon > a { display: block; padding-bottom: 10px; border-radius: inherit; color: inherit; text-decoration: none; }
+.team-mon > a:active { background-color: var(--tint-press); }
+.team-mon > a:focus-visible { outline-offset: -2px; }
+.team-mon .evo-member { padding-right: 52px; color: inherit; }
+/* The card already carries the tint, so the sprite drops the tile MonHead paints inline. */
+.team-mon .evo-member img { background: transparent !important; }
+.team-mon > .icon-btn { position: absolute; top: 6px; right: 4px; color: var(--on-tint-2); }
+.team-mon :is(.league-chip, .league-moves li > *) { background: var(--tint-glass); color: var(--on-tint); }
+.team-mon .league-facts dt { color: var(--on-tint-muted); }
+.team-mon .league-facts dd { color: var(--on-tint); }
+.team-mon-hint { display: block; margin: -4px 12px 0 80px; font-size: 13px; font-weight: 600; color: var(--on-tint-muted); }
 .add-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .add-slot { height: 56px; border-radius: var(--radius-card); border: 1.5px dashed var(--outline); background: transparent; font-size: 14px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
 .member-hero { text-decoration: none; padding-right: 12px; }
@@ -555,6 +575,8 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .move-slots { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .move-slots .move-row { padding: 0 4px 0 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-slots .add-slot { width: 100%; }
+.ability-any { width: 100%; margin-top: 8px; }
+.ability-any:disabled { opacity: 0.6; }
 .move-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 4px 8px 12px; border: 0; background: transparent; text-align: left; border-radius: 16px; }
 .sheet .search { margin: 12px 0 10px; }
 .picker-list { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
@@ -562,8 +584,8 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .picker-list .move-row { width: 100%; border: 0; background: transparent; text-align: left; }
 .picker-list .move-row:active { background: var(--surface-2); }
 .picker-list .move-row:focus-visible { outline-offset: -2px; }
-.name-input { font-size: 22px; font-weight: 800; border: 0; background: transparent; padding: 0; width: 100%; outline: none; color: var(--ink); }
-.name-input:focus { border-bottom: 2px solid var(--primary); }
+.rename-field { margin: 14px 0 16px; }
+.primary-btn:disabled { opacity: 0.45; }
 .bottom-cta { padding: 16px; }
 
 /* ---------- coverage ---------- */
@@ -622,15 +644,15 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 /* The header is a bar here: the chip row under it gets as much space above as below. */
 [data-design='b'] .chip-row { padding-top: 12px; }
 [data-design='b'] .dex-head h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
-[data-design='b'] :is(.topbar h1, .sheet-head h2, .placeholder h1, .name-input) { font-weight: 600; }
+[data-design='b'] :is(.topbar h1, .sheet-head h2, .placeholder h1) { font-weight: 600; }
 [data-design='b'] .search:not(.sheet .search, .in-head) { margin: 8px 6px 0; }
 [data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
 [data-design='b'] .list-row { padding: 0 6px; }
 [data-design='b'] .mon-card.row { background-image: linear-gradient(90deg, transparent 20%, var(--surface) 70%); }
-[data-design='b'] :is(.mon-card, .slot) { box-shadow: var(--shadow-card); }
+[data-design='b'] :is(.mon-card, .slot, .team-mon) { box-shadow: var(--shadow-card); }
 [data-design='b'] .mon-card { background-image: linear-gradient(180deg, transparent 0%, var(--surface) 85%); }
-[data-design='b'] .slot { background-image: linear-gradient(90deg, transparent 34%, var(--surface) 72%); }
-[data-design='b'] :is(.mon-card .name, .slot .name, .team-row .name) { font-weight: 500; }
+[data-design='b'] :is(.slot, .team-mon) { background-image: linear-gradient(90deg, transparent 34%, var(--surface) 72%); }
+[data-design='b'] :is(.mon-card .name, .slot .name, .team-mon .name, .team-row .name) { font-weight: 500; }
 [data-design='b'] :is(.detail-hero, .topbar.tinted) { border-radius: 0; }
 [data-design='b'] .detail-hero h1 { font-weight: 600; letter-spacing: 0; }
 [data-design='b'] .segmented { --seg-r: 4px; }
@@ -639,8 +661,8 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .segmented, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .league-team, .picker-list,
-  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves a, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
+[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .league-team, .picker-list,
+  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
 [data-design='b'] :is(.ref-list li, .move-group .move-row, .ref-species .evo-member) { border-top: 0; background: var(--surface); box-shadow: var(--shadow-card); }

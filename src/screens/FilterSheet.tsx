@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
-import { DEFAULT_FILTERS, SORT_LABELS, type DexFilters, type SortKey } from '../data/dexState';
+import { CATEGORY_LABELS, DEFAULT_FILTERS, SORT_LABELS, type DexFilters, type SortKey } from '../data/dexState';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
-import type { TypeName } from '../data/types';
+import type { Category, TypeName } from '../data/types';
 import { roman } from '../data/format';
 
 const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const SORTS = Object.entries(SORT_LABELS) as [SortKey, string][];
+const CATEGORIES = Object.entries(CATEGORY_LABELS) as [Category, string][];
 
 /** Adds `x` to the list, or takes it out if it is there. */
 const toggle = <T,>(list: T[], x: T) => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
@@ -79,6 +80,21 @@ export function FilterSheet({
           })}
         </div>
         <p className="hint">Shows Pokémon with any of the chosen types.</p>
+
+        <h3 id="filter-category">Category</h3>
+        <div className="cat-grid" role="group" aria-labelledby="filter-category">
+          {CATEGORIES.map(([c, label]) => (
+            <button
+              key={c}
+              className="gen-btn"
+              aria-pressed={draft.category === c}
+              onClick={() => setDraft((d) => ({ ...d, category: d.category === c ? null : c }))}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="hint">One at a time; tap it again to clear.</p>
 
         <h3>Sort by</h3>
         <div className="sort-grid" role="radiogroup" aria-label="Sort by">

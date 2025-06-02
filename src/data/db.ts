@@ -5,7 +5,8 @@ import type { ItemTable, MoveTable, SpeciesDetail } from './types';
 
 /**
  * A team slot. `formKey` is a key from the species' `forms` (absent for the default form), `nature`
- * a name from NATURES, `item` an items.json id, `moves` moves.json ids.
+ * a name from NATURES, `item` an items.json id, `moves` moves.json ids. `godMode` lets the editor pick any
+ * move and any ability, not only the species' own.
  */
 export interface TeamMember {
   speciesId: number;
@@ -14,6 +15,7 @@ export interface TeamMember {
   nature?: string;
   item?: number;
   moves?: number[];
+  godMode?: boolean;
 }
 
 export interface Team {
@@ -52,6 +54,7 @@ class DexDB extends Dexie {
           }),
       );
     // v3: members may have a formKey. Every v2 member is a valid v3 member, so nothing to upgrade.
+    // godMode came later as an optional, unindexed field, so it needs no new version.
     this.version(3).stores({ teams: '++id, updatedAt' });
   }
 }
@@ -66,6 +69,12 @@ if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
 export async function createTeam(name?: string): Promise<number> {
   const count = await db.teams.count();
   return db.teams.add({ name: name ?? `Team ${count + 1}`, members: [], updatedAt: Date.now() });
+}
+
+/** Renames a team; a blank name leaves it unchanged. */
+export async function renameTeam(teamId: number, name: string) {
+  const trimmed = name.trim();
+  if (trimmed) await db.teams.update(teamId, { name: trimmed, updatedAt: Date.now() });
 }
 
 /** Adds a species, in form `formKey` ('' or absent for the default), to a team. Returns false when the team is full. */
@@ -117,8 +126,9 @@ const NATURE_NAMES = new Set(NATURES.map((n) => n.name));
 /** What is wrong with a member, or null. Abilities and moves are checked for shape, not per species. */
 function memberProblem(m: unknown): string | null {
   if (typeof m !== 'object' || m === null) return 'is not a Pokémon';
-  const { speciesId, formKey, ability, nature, item, moves } = m as Record<string, unknown>;
+  const { speciesId, formKey, ability, nature, item, moves, godMode } = m as Record<string, unknown>;
   if (!isSpecies(speciesId)) return 'is not a known Pokémon';
+  if (godMode !== undefined && typeof godMode !== 'boolean') return 'has an invalid god mode';
   if (formKey !== undefined && (typeof formKey !== 'string' || formKey.length > 40)) return 'has an invalid form';
   if (ability !== undefined && (typeof ability !== 'string' || ability.length > 40)) return 'has an invalid ability';
   if (nature !== undefined && !NATURE_NAMES.has(nature as string)) return 'has an unknown nature';
@@ -155,13 +165,14 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
     });
     return {
       name: typeof name === 'string' && name.trim() ? name.trim() : `Team ${existing + i + 1}`,
-      members: (members as TeamMember[]).map(({ speciesId, formKey, ability, nature, item, moves }) => ({
+      members: (members as TeamMember[]).map(({ speciesId, formKey, ability, nature, item, moves, godMode }) => ({
         speciesId,
         formKey: formKey || undefined,
         ability,
         nature,
         item,
         moves,
+        ...(godMode && { godMode }),
       })),
       updatedAt: Date.now(),
     };

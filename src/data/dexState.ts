@@ -19,7 +19,7 @@ export const SORT_LABELS: Record<SortKey, string> = {
   weight: 'Weight',
 };
 
-/** Quick categories in the order the chip bar shows them. */
+/** Quick categories in the order the filter sheet shows them. */
 export const CATEGORY_LABELS: Record<Category, string> = {
   starter: 'Starters',
   mega: 'Megas',

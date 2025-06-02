@@ -1,15 +1,16 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { attackingTypes, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { attackingTypes, itemSpriteUrl, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
-import { TEAM_SIZE, createTeam, db, removeFromTeam, type TeamMember } from '../data/db';
+import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, type Team, type TeamMember } from '../data/db';
 import { cap, formatMultiplier, formatNo } from '../data/format';
 import { memberView, type MemberView } from '../data/forms';
 import { typeTint } from '../data/typeColors';
 import type { ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip } from '../components/bits';
+import { Loading, TypeChip, useModalSheet } from '../components/bits';
+import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 
 /**
  * Resolves members to how their slot looks, loading the species file of each member that has a form.
@@ -27,11 +28,34 @@ function useMemberViews(members: TeamMember[] = []) {
   return { view, formsReady: !!details || !!error };
 }
 
-/** "Adamant · Life Orb · 3 moves", or a prompt when nothing is set yet. */
-function memberSummary(m: TeamMember, items?: ItemTable) {
-  const moves = m.moves?.length ?? 0;
-  const parts = [m.nature, m.item && items?.[m.item], moves && `${moves} move${moves === 1 ? '' : 's'}`].filter(Boolean);
-  return parts.length ? parts.join(' · ') : 'Set ability, nature, item and moves';
+/** What is set on a member (ability, nature, item, moves), or a prompt when nothing is set yet. */
+function MemberDetails({ member: m, name, items, moves }: { member: TeamMember; name: string; items?: ItemTable; moves?: MoveTable }) {
+  const item = m.item !== undefined && items?.[m.item] ? { id: m.item, name: items[m.item] } : undefined;
+  const chosen = moves && m.moves?.length ? m.moves : undefined;
+  if (!m.ability && !m.nature && m.item === undefined && !m.moves?.length) return <span className="team-mon-hint">Tap to set ability, nature, item and moves</span>;
+  return (
+    <>
+      {(m.ability || m.nature || item) && (
+        <MonFacts>
+          {m.ability && (
+            <Fact k="Ability">
+              <span className="league-chip">{m.ability}</span>
+            </Fact>
+          )}
+          {m.nature && <Fact k="Nature">{m.nature}</Fact>}
+          {item && (
+            <Fact k="Item">
+              <span className="league-chip">
+                <img src={itemSpriteUrl(item.id)} alt="" width={24} height={24} loading="lazy" />
+                {item.name}
+              </span>
+            </Fact>
+          )}
+        </MonFacts>
+      )}
+      {chosen && moves && <MonMoves name={name} moves={chosen} table={moves} plain />}
+    </>
+  );
 }
 
 // ---------------- saved teams ----------------
@@ -39,6 +63,7 @@ export function TeamsScreen() {
   const teams = useLiveQuery(() => db.teams.orderBy('updatedAt').reverse().toArray(), []);
   const { view } = useMemberViews(teams?.flatMap((t) => t.members));
   const navigate = useNavigate();
+  const [renaming, setRenaming] = useState<Team>();
 
   return (
     <>
@@ -49,25 +74,74 @@ export function TeamsScreen() {
         {!teams && <Loading />}
         {teams?.length === 0 && <p className="empty">No teams yet. Create one, or tap + on any Pokémon.</p>}
         {teams?.map((t) => (
-          <Link key={t.id} to={`/teams/${t.id}`} className="team-row">
-            <div>
-              <div className="name">{t.name}</div>
-              <div className="meta">
+          <div key={t.id} className="team-row team-entry">
+            <Link to={`/teams/${t.id}`}>
+              <span className="name">{t.name}</span>
+              <span className="meta">
                 {t.members.length} of {TEAM_SIZE}
-              </div>
-            </div>
-            <div className="minis" aria-hidden="true">
-              {t.members.map((m, i) => {
-                const mon = view?.(m);
-                return <img key={i} src={spriteUrl(mon?.mediaId ?? m.speciesId)} alt="" title={mon?.name} />;
-              })}
-            </div>
-          </Link>
+              </span>
+              {t.members.length > 0 && (
+                <span className="minis" aria-hidden="true">
+                  {t.members.map((m, i) => {
+                    const mon = view?.(m);
+                    return <img key={i} src={spriteUrl(mon?.mediaId ?? m.speciesId)} alt="" title={mon?.name} />;
+                  })}
+                </span>
+              )}
+            </Link>
+            <button className="icon-btn" aria-label={`Rename ${t.name}`} onClick={() => setRenaming(t)}>
+              <Icon name="pencil" size={20} />
+            </button>
+          </div>
         ))}
         <button className="add-slot" onClick={async () => navigate(`/teams/${await createTeam()}`)}>
           <Icon name="plus" size={18} /> New team
         </button>
       </div>
+      {renaming && <RenameSheet team={renaming} onClose={() => setRenaming(undefined)} />}
+    </>
+  );
+}
+
+function RenameSheet({ team, onClose }: { team: Team; onClose: () => void }) {
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
+  const [name, setName] = useState(team.name);
+  const headingId = useId();
+  return (
+    <>
+      <div className="scrim" onClick={() => close()} />
+      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby={headingId}>
+        <div className="handle" />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (name.trim() !== team.name) renameTeam(team.id, name);
+            close();
+          }}
+        >
+          <div className="sheet-head">
+            <h2 id={headingId}>Rename team</h2>
+            <button type="button" className="text-btn" onClick={() => close()}>
+              Cancel
+            </button>
+          </div>
+          <label className="search rename-field">
+            <span className="sr-only">Team name</span>
+            <input
+              data-autofocus
+              value={name}
+              maxLength={40}
+              autoComplete="off"
+              enterKeyHint="done"
+              onChange={(e) => setName(e.target.value)}
+              onFocus={(e) => e.target.select()}
+            />
+          </label>
+          <button className="primary-btn" disabled={!name.trim()}>
+            Save
+          </button>
+        </form>
+      </section>
     </>
   );
 }
@@ -78,13 +152,13 @@ export function TeamEditor() {
   const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
   const { view } = useMemberViews(team?.members);
   const { data: items } = useLoad(loadItems, 'items');
+  const { data: moves } = useLoad(loadMoves, 'moves');
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [renaming, setRenaming] = useState(false);
 
   if (team === undefined) return <Loading />;
   if (!team) return <p className="empty">This team no longer exists.</p>;
-
-  const empty = TEAM_SIZE - team.members.length;
 
   return (
     <>
@@ -93,22 +167,14 @@ export function TeamEditor() {
           <Icon name="back" />
         </Link>
         <div className="grow">
-          <label className="sr-only" htmlFor="team-name">
-            Team name
-          </label>
-          <input
-            id="team-name"
-            className="name-input"
-            defaultValue={team.name}
-            onBlur={(e) => {
-              const name = e.target.value.trim();
-              if (name && name !== team.name) db.teams.update(id, { name, updatedAt: Date.now() });
-            }}
-          />
+          <h1 className="team-name">{team.name}</h1>
           <div className="sub">
             {team.members.length} of {TEAM_SIZE}
           </div>
         </div>
+        <button className="icon-btn" aria-label="Rename team" onClick={() => setRenaming(true)}>
+          <Icon name="pencil" />
+        </button>
         <button
           className="icon-btn"
           aria-label={confirmDelete ? 'Confirm delete team' : 'Delete team'}
@@ -131,32 +197,31 @@ export function TeamEditor() {
       </div>
 
       <div className="list">
-        {team.members.map((m, i) => {
-          const mon = view?.(m);
-          return (
-            <div key={`${m.speciesId}-${i}`} className="slot" style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}>
-              <Link to={`/teams/${id}/member/${i}`}>
-                <img src={spriteUrl(mon?.mediaId ?? m.speciesId)} alt="" width={64} height={64} />
-                <div style={{ minWidth: 0 }}>
-                  <div className="name">{mon?.name ?? formatNo(m.speciesId)}</div>
-                  <div className="chips">{mon?.types.map((t) => <TypeChip key={t} type={t} />)}</div>
-                  <div className="meta">{memberSummary(m, items)}</div>
-                </div>
-              </Link>
-              <button className="icon-btn" aria-label={`Remove ${mon?.name ?? 'member'}`} onClick={() => removeFromTeam(id, i)}>
-                <Icon name="close" size={20} />
-              </button>
-            </div>
-          );
-        })}
-        {empty > 0 && (
-          <div className="add-grid">
-            {Array.from({ length: Math.min(empty, 2) }, (_, i) => (
-              <Link key={i} to={`/?pick=${id}`} className="add-slot">
-                <Icon name="plus" size={18} /> Add Pokémon
-              </Link>
-            ))}
-          </div>
+        {team.members.length > 0 && (
+          <ul className="team-members">
+            {team.members.map((m, i) => {
+              const mon = view?.(m);
+              const name = mon?.name ?? formatNo(m.speciesId);
+              return (
+                <li key={`${m.speciesId}-${i}`} className="team-mon" style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}>
+                  <Link to={`/teams/${id}/member/${i}`}>
+                    <span className="evo-member">
+                      <MonHead spriteId={mon?.mediaId ?? m.speciesId} name={name} types={mon?.types ?? []} />
+                    </span>
+                    <MemberDetails member={m} name={name} items={items} moves={moves} />
+                  </Link>
+                  <button className="icon-btn" aria-label={`Remove ${name}`} onClick={() => removeFromTeam(id, i)}>
+                    <Icon name="close" size={20} />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {team.members.length < TEAM_SIZE && (
+          <Link to={`/?pick=${id}`} className="add-slot">
+            <Icon name="plus" size={18} /> Add Pokémon
+          </Link>
         )}
       </div>
 
@@ -167,6 +232,7 @@ export function TeamEditor() {
           </Link>
         </div>
       )}
+      {renaming && <RenameSheet team={team} onClose={() => setRenaming(false)} />}
     </>
   );
 }
