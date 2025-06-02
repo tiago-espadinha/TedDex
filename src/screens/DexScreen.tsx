@@ -15,7 +15,7 @@ import { FilterSheet } from './FilterSheet';
 import { useDexView, useSpriteStyle } from '../data/settings';
 
 const ROW_H = 118; // card 108 + gap 10
-const LIST_ROW_H = 72; // row 64 + gap 8
+const LIST_ROW_H = 108; // row 100 + gap 8
 
 function useColumns() {
   const get = () => (window.innerWidth >= 600 ? 3 : 2);
@@ -189,7 +189,7 @@ function sortedBy(m: IndexEntry, sort: SortKey): string | undefined {
   return `${SORT_LABELS[sort]} ${v}`;
 }
 
-/** A species in the grid (card) or in list view (`row`: sprite on the left, one line). */
+/** A species in the grid (card) or in list view (`row`: sprite on the left, number over name). */
 function MonCard({ mon, art, row, value, onPick }: { mon: IndexEntry; art: boolean; row: boolean; value?: string; onPick?: () => void }) {
   const body = (
     <>
@@ -213,8 +213,8 @@ function MonCard({ mon, art, row, value, onPick }: { mon: IndexEntry; art: boole
         alt=""
         loading="lazy"
         decoding="async"
-        width={row ? 56 : 84}
-        height={row ? 56 : 84}
+        width={row && !art ? 96 : row ? 80 : 84}
+        height={row && !art ? 96 : row ? 80 : 84}
       />
     </>
   );

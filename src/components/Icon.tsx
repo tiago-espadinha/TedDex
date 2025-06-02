@@ -66,6 +66,18 @@ const paths = {
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   shield: <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />,
   pencil: <path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" />,
+  height: (
+    <g transform="rotate(-45 12 12)">
+      <rect x="3" y="8" width="18" height="8" rx="1.5" />
+      <path d="M7 8v3M11 8v4.5M15 8v3" />
+    </g>
+  ),
+  weight: (
+    <>
+      <path d="M9 8a3 3 0 016 0" />
+      <path d="M6.5 8h11L20 20H4z" />
+    </>
+  ),
   trash: <path d="M5 7h14M10 11v6M14 11v6M7 7l1 13h8l1-13M9 7V4h6v3" />,
 } as const;
 

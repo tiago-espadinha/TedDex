@@ -136,14 +136,28 @@ export function DetailScreen() {
         <div className="title">
           <div className="no">{formatNo(mon.id)}</div>
           <h1>{view.name}</h1>
+          {view.genus && <p className="genus">{view.genus}</p>}
           <div className="types">
             {view.types.map((t) => (
               <TypeChip key={t} type={t} large />
             ))}
           </div>
-          <p className="hero-facts">
-            {[view.genus, `${view.heightM} m`, `${view.weightKg} kg`].filter(Boolean).join(' · ')}
-          </p>
+          <dl className="size">
+            <div>
+              <dt>
+                <Icon name="height" size={16} />
+                <span className="sr-only">Height</span>
+              </dt>
+              <dd>{view.heightM} m</dd>
+            </div>
+            <div>
+              <dt>
+                <Icon name="weight" size={16} />
+                <span className="sr-only">Weight</span>
+              </dt>
+              <dd>{view.weightKg} kg</dd>
+            </div>
+          </dl>
         </div>
         {mon.forms && <FormPicker forms={mon.forms} current={form?.key ?? ''} onPick={pickForm} />}
         <div className="art-row">
