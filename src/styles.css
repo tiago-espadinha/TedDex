@@ -372,14 +372,13 @@ main:focus, .sheet:focus { outline: none; }
 .nav-round { width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .nav-round[aria-disabled='true'] { opacity: 0.35; pointer-events: none; }
 
-.tabs { display: flex; gap: 4px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 40px; }
-.tabs::-webkit-scrollbar { display: none; }
-/* Fade the edge that has more tabs past it (set from DetailScreen); the mask reads alpha only. */
-.tabs[data-more='end'] { mask-image: linear-gradient(to right, var(--ink) calc(100% - 40px), transparent); }
-.tabs[data-more='start'] { mask-image: linear-gradient(to left, var(--ink) calc(100% - 40px), transparent); }
-.tabs[data-more='both'] { mask-image: linear-gradient(to right, transparent, var(--ink) 40px, var(--ink) calc(100% - 40px), transparent); }
-.tabs button { height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: transparent; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; }
-.tabs button[aria-selected='true'] { background: var(--ink); color: var(--bg); font-weight: 700; }
+/* Three equal tabs; the selected one sits on a pill (.tab-ink) that slides to it, placed by --tab (its index). */
+.tabs { position: relative; display: flex; gap: 4px; padding: 14px 16px 6px; }
+.tabs button { flex: 1 1 0; height: 36px; padding: 0 8px; border: 0; border-radius: 18px; background: transparent; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; transition: color 220ms ease; }
+.tabs button[aria-selected='true'] { color: var(--bg); font-weight: 700; }
+.tab-ink { position: absolute; top: 14px; left: 16px; width: calc((100% - 32px - 8px) / 3); height: 36px; border-radius: 18px; background: var(--ink); transform: translateX(calc(var(--tab) * (100% + 4px))); transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+/* The tab panel pages sideways (usePager.ts): the browser keeps vertical scrolling, the clip hides the sliding panel. */
+.pager { overflow-x: clip; touch-action: pan-y; }
 
 .section { padding: 12px 24px 0; }
 .section h2 { margin: 6px 0 10px; font-size: 15px; font-weight: 800; }
@@ -673,8 +672,9 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] :is(.detail-hero, .topbar.tinted) { border-radius: 0; }
 [data-design='b'] .detail-hero h1 { font-weight: 600; letter-spacing: 0; }
 [data-design='b'] .segmented { --seg-r: 4px; }
-[data-design='b'] .tabs button { border-radius: 4px; }
-[data-design='b'] .tabs button[aria-selected='true'] { background: var(--bar); color: var(--ink); }
+[data-design='b'] :is(.tabs button, .tab-ink) { border-radius: 4px; }
+[data-design='b'] .tabs button[aria-selected='true'] { color: var(--ink); }
+[data-design='b'] .tab-ink { background: var(--bar); }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }

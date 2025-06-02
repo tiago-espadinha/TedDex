@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { addToTeam, currentTeamId, db } from '../data/db';
@@ -9,6 +9,7 @@ import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useToast } from '../components/bits';
+import { usePager } from '../components/usePager';
 import { EvolutionTab } from './EvolutionTab';
 import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
@@ -44,9 +45,9 @@ export function DetailScreen() {
   const navigate = useNavigate();
   const toast = useToast();
   const { prev, next } = neighbours(id);
-  // A sideways swipe on the hero steps through species, on the panel below through the tabs.
+  // A sideways swipe on the hero steps through species; the panel below pages through the tabs.
   const touch = useRef<Point | null>(null);
-  const panelTouch = useRef<Point | null>(null);
+  const { ref: panelRef, target: selected, turn: showTab, handlers: swipe } = usePager<HTMLDivElement>(TABS.indexOf(tab), TABS.length, (i) => setTab(TABS[i]));
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -65,16 +66,13 @@ export function DetailScreen() {
 
   /** Arrow keys, Home and End move between tabs (ARIA tabs pattern, selection follows focus). */
   function onTabKey(e: KeyboardEvent) {
-    const i = TABS.indexOf(tab);
+    const i = selected;
     const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: TABS.length - 1 }[e.key];
     if (to === undefined) return;
     e.preventDefault();
-    const t = TABS[(to + TABS.length) % TABS.length];
-    setTab(t);
-    const el = document.getElementById(`tab-${t}`);
-    el?.focus();
-    // focus() alone leaves a tab scrolled out of the overflowing row at 375 px.
-    el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const t = (to + TABS.length) % TABS.length;
+    showTab(t);
+    document.getElementById(`tab-${TABS[t]}`)?.focus();
   }
 
   /** Adds this species, in the form shown (`formKey`), to the most recently edited team. */
@@ -172,37 +170,29 @@ export function DetailScreen() {
         {noArtworkFor === mediaId && <p className="art-note">Artwork isn't saved offline yet</p>}
       </section>
 
-      <div className="tabs" ref={trackScrollEdges} role="tablist" aria-label="Sections" onKeyDown={onTabKey}>
-        {TABS.map((t) => (
+      <div className="tabs" role="tablist" aria-label="Sections" onKeyDown={onTabKey} style={{ '--tab': selected } as CSSProperties}>
+        <span className="tab-ink" aria-hidden="true" />
+        {TABS.map((t, i) => (
           <button
             key={t}
             id={`tab-${t}`}
             role="tab"
-            aria-selected={tab === t}
+            aria-selected={selected === i}
             aria-controls="tab-panel"
-            tabIndex={tab === t ? 0 : -1}
-            onClick={() => setTab(t)}
+            tabIndex={selected === i ? 0 : -1}
+            onClick={() => showTab(i)}
           >
             {t}
           </button>
         ))}
       </div>
 
-      <div
-        id="tab-panel"
-        role="tabpanel"
-        aria-labelledby={`tab-${tab}`}
-        onTouchStart={(e) => (panelTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
-        onTouchEnd={(e) => {
-          const step = swipeStep(panelTouch.current, e.changedTouches[0]);
-          panelTouch.current = null;
-          const to = TABS[TABS.indexOf(tab) + step];
-          if (step && to) setTab(to);
-        }}
-      >
-        {tab === 'About' && <About mon={view} species={mon} />}
-        {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
-        {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
+      <div className="pager" {...swipe}>
+        <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} ref={panelRef}>
+          {tab === 'About' && <About mon={view} species={mon} />}
+          {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
+          {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
+        </div>
       </div>
       <div style={{ height: 24 }} />
     </>
@@ -221,29 +211,6 @@ function swipeStep(start: Point | null, end: { clientX: number; clientY: number 
   const dy = end.clientY - start.y;
   if (Math.abs(dx) <= 60 || Math.abs(dx) <= Math.abs(dy) * 1.5) return 0;
   return dx < 0 ? 1 : -1;
-}
-
-/**
- * Ref callback for a horizontal scroller: sets `data-more` to the end(s) with content scrolled out
- * of view ('start', 'end' or 'both'), so CSS can fade that edge. Observes the children too, since a
- * late web font widens them without resizing the scroller.
- */
-function trackScrollEdges(el: HTMLElement | null) {
-  if (!el) return;
-  const update = () => {
-    const start = el.scrollLeft > 1;
-    const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
-    if (start || end) el.dataset.more = start && end ? 'both' : start ? 'start' : 'end';
-    else delete el.dataset.more;
-  };
-  const observer = new ResizeObserver(update);
-  observer.observe(el);
-  for (const child of el.children) observer.observe(child);
-  el.addEventListener('scroll', update, { passive: true });
-  return () => {
-    observer.disconnect();
-    el.removeEventListener('scroll', update);
-  };
 }
 
 /** Prev/next arrow; at either end of the list it is shown dimmed and leaves the tab order. */
