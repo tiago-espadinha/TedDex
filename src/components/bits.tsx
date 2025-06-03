@@ -29,7 +29,7 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/', label: 'Dex', icon: 'dex', end: true },
   { to: '/teams', label: 'Team', icon: 'team' },
   { to: '/reference', label: 'Guide', icon: 'book' },
-  { to: '/more', label: 'More', icon: 'menu' },
+  { to: '/more', label: 'Settings', icon: 'cog' },
 ];
 
 export function BottomNav() {

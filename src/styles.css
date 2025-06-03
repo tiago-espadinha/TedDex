@@ -69,6 +69,9 @@
   --cat-special: #33569f;
   --cat-status: #625f6b;
   --on-cat: #ffffff;
+  /* Gender symbols in the gender ratio (text on --surface, ≥ 4.5:1). */
+  --gender-male: #2a5fc7;
+  --gender-female: #c22a6e;
   color-scheme: light;
 }
 
@@ -97,6 +100,8 @@
     --neutral-cell: #24222a;
     --sheet: var(--surface);
     --scrim: rgba(0, 0, 0, 0.6);
+    --gender-male: #7eaaff;
+    --gender-female: #ff85b6;
     color-scheme: dark;
   }
 }
@@ -124,6 +129,8 @@
   --neutral-cell: #24222a;
   --sheet: var(--surface);
   --scrim: rgba(0, 0, 0, 0.6);
+  --gender-male: #7eaaff;
+  --gender-female: #ff85b6;
   color-scheme: dark;
 }
 
@@ -189,6 +196,8 @@
   --cat-physical: #a34a22;
   --cat-special: #3d5a91;
   --cat-status: #5c5a63;
+  --gender-male: #7eaaff;
+  --gender-female: #ff85b6;
   color-scheme: dark;
 }
 
@@ -407,6 +416,11 @@ main:focus, .sheet:focus { outline: none; }
 .fact { padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
 .fact .k { font-size: 12px; font-weight: 600; color: var(--muted); }
 .fact .v { font-size: 15px; font-weight: 800; margin-top: 2px; }
+.gender-ratio { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.gender-ratio > span { white-space: nowrap; }
+.gender { display: inline-flex; vertical-align: -4px; }
+.gender-male { color: var(--gender-male); }
+.gender-female { color: var(--gender-female); }
 .flavor { font-size: 15px; line-height: 1.55; color: var(--ink-2); margin: 0 0 14px; }
 .game-select { position: relative; display: flex; align-items: center; min-height: 48px; padding: 0 12px 0 14px; margin: 4px 0 6px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
 .game-select .k { font-size: 12px; font-weight: 600; color: var(--muted); }

@@ -41,7 +41,7 @@ export function MoreScreen() {
 
   return (
     <div className="placeholder">
-      <h1>More</h1>
+      <h1>Settings</h1>
 
       <div className="section" style={{ padding: 0 }}>
         <h2>Design</h2>

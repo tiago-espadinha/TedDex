@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { addToTeam, currentTeamId, db } from '../data/db';
@@ -241,14 +241,41 @@ function FormPicker({ forms, current, onPick }: { forms: FormVariant[]; current:
   );
 }
 
+const GENDER_ICON = { '♂': 'male', '♀': 'female' } as const;
+
+/** genderText() with ♂ and ♀ as coloured icons; the symbols and the " · " separator stay as screen-reader text. */
+function GenderRatio({ rate }: { rate: number }) {
+  return (
+    <span className="gender-ratio">
+      {genderText(rate)
+        .split(' · ')
+        .map((share, i) => (
+          <span key={i}>
+            {i > 0 && <span className="sr-only"> · </span>}
+            {share.split(/([♂♀])/).map((part, j) =>
+              part === '♂' || part === '♀' ? (
+                <span key={j} className={`gender gender-${GENDER_ICON[part]}`}>
+                  <Icon name={GENDER_ICON[part]} size={20} />
+                  <span className="sr-only">{part}</span>
+                </span>
+              ) : (
+                part
+              ),
+            )}
+          </span>
+        ))}
+    </span>
+  );
+}
+
 /** Description, evolution and locations, then training and breeding facts. Evolution and locations stay species-level. */
 function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail }) {
-  const facts: [string, string][] = [
+  const facts: [string, ReactNode][] = [
     ['Catch rate', String(mon.catchRate)],
     ['EV yield', evYieldText(mon.evYield)],
     ['Leveling rate', mon.growthRate],
     ['Egg groups', mon.eggGroups.join(', ')],
-    ['Gender ratio', genderText(mon.genderRate)],
+    ['Gender ratio', <GenderRatio rate={mon.genderRate} />],
   ];
   return (
     <>
