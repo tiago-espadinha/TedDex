@@ -28,6 +28,15 @@ const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'types', title: 'Types', one: 'Type', blurb: 'The full type chart' },
 ];
 
+/** Menu look per kind: pixel-art sprites (a TM, Ability Capsule, Potion, a Mint, Rusted Sword over Shield). */
+const MENU_LOOK: Record<Kind, { sprite: string; tint: TypeName }> = {
+  moves: { sprite: '/media/guide/tm.webp', tint: 'fighting' },
+  abilities: { sprite: itemSpriteUrl(685), tint: 'psychic' },
+  items: { sprite: itemSpriteUrl(17), tint: 'water' },
+  natures: { sprite: '/media/guide/mint.webp', tint: 'grass' },
+  types: { sprite: '/media/guide/types.webp', tint: 'steel' },
+};
+
 const STAT_NAMES = { atk: 'Attack', def: 'Defense', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' };
 
 /** One row of a reference list; `move`, `item` and `type` pick a richer row. */
@@ -59,36 +68,30 @@ async function loadEntries(kind: ListKind): Promise<Entry[]> {
 const kindOf = (param?: string) => KINDS.find((k) => k.kind === param);
 
 // ---------------- landing ----------------
+/** Landing rows: each section's sprite (`public/media/items/` or `guide/`) on a type tint. */
+const MENU: { to: string; title: string; blurb: string; sprite: string; tint: TypeName }[] = [
+  ...KINDS.map((k) => ({ to: `/reference/${k.kind}`, title: k.title, blurb: k.blurb, ...MENU_LOOK[k.kind] })),
+  { to: '/reference/league', title: 'Elite Four & Champion', blurb: "Every game's league teams and movesets", sprite: itemSpriteUrl(1), tint: 'dragon' },
+  { to: '/reference/gyms', title: 'Gym Leaders', blurb: "Every game's Gym teams, badges and rematches", sprite: itemSpriteUrl(50), tint: 'rock' },
+];
+
 export function ReferenceScreen() {
   return (
     <>
       <header className="dex-head">
-        <h1>Reference</h1>
+        <h1>Guide</h1>
       </header>
-      <nav className="list" aria-label="Reference">
-        {KINDS.map((k) => (
-          <Link key={k.kind} to={`/reference/${k.kind}`} className="team-row ref-kind">
+      <nav className="list ref-menu" aria-label="Guide">
+        {MENU.map((m) => (
+          <Link key={m.to} to={m.to} className="team-row ref-kind" style={{ backgroundColor: typeTint(m.tint) }}>
+            <img className="ref-art" src={m.sprite} alt="" />
             <div>
-              <div className="name">{k.title}</div>
-              <div className="meta">{k.blurb}</div>
+              <div className="name">{m.title}</div>
+              <div className="meta">{m.blurb}</div>
             </div>
             <Icon name="next" size={20} />
           </Link>
         ))}
-        <Link to="/reference/league" className="team-row ref-kind">
-          <div>
-            <div className="name">Elite Four &amp; Champion</div>
-            <div className="meta">Every game's league teams and movesets</div>
-          </div>
-          <Icon name="next" size={20} />
-        </Link>
-        <Link to="/reference/gyms" className="team-row ref-kind">
-          <div>
-            <div className="name">Gym Leaders</div>
-            <div className="meta">Every game's Gym teams, badges and rematches</div>
-          </div>
-          <Icon name="next" size={20} />
-        </Link>
       </nav>
     </>
   );
@@ -152,7 +155,7 @@ function SearchList() {
   return (
     <>
       <header className="topbar">
-        <Link to="/reference" className="icon-btn" aria-label="Back to Reference">
+        <Link to="/reference" className="icon-btn" aria-label="Back to Guide">
           <Icon name="back" />
         </Link>
         <div className="head-title">
@@ -578,7 +581,7 @@ function PlaceGame({ place, byId }: { place: ItemPlaceGame; byId: Map<number, In
 function TableHead({ title, sub }: { title: string; sub: string }) {
   return (
     <header className="topbar">
-      <Link to="/reference" className="icon-btn" aria-label="Back to Reference">
+      <Link to="/reference" className="icon-btn" aria-label="Back to Guide">
         <Icon name="back" />
       </Link>
       <div className="grow">

@@ -464,6 +464,14 @@ a.evo-member:active { background: var(--surface-2); }
 /* ---------- reference ---------- */
 .ref-kind .name { font-size: 17px; }
 .ref-kind svg { flex: none; margin-left: auto; color: var(--muted); }
+/* Guide landing: the rows share the screen height (min 72 px, so short screens scroll), on fixed tints. */
+.app:has(> .ref-menu) { display: flex; flex-direction: column; }
+.ref-menu { flex: 1; }
+.ref-menu .ref-kind { flex: 1 1 0; min-height: 72px; border-color: transparent; color: var(--on-tint); }
+.ref-menu .ref-kind :is(.meta, svg) { color: var(--on-tint-muted); }
+.ref-menu .ref-kind .meta { text-wrap: pretty; }
+/* Pixel art at its own size (60–64 px, already doubled), so the pixels stay whole. */
+.ref-art { flex: none; width: 64px; height: 64px; object-fit: none; image-rendering: pixelated; }
 .ref-list { margin: 12px 16px; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
 .ref-list li + li { border-top: 1px solid var(--line); }
 /* Room under the last row to scroll clear of the FAB. */

@@ -28,7 +28,7 @@ export function CategoryIcon({ category, decorative }: { category: MoveCategory;
 const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/', label: 'Dex', icon: 'dex', end: true },
   { to: '/teams', label: 'Team', icon: 'team' },
-  { to: '/reference', label: 'Reference', icon: 'book' },
+  { to: '/reference', label: 'Guide', icon: 'book' },
   { to: '/more', label: 'More', icon: 'menu' },
 ];
 
