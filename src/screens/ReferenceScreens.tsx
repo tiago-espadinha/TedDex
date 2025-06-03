@@ -12,7 +12,7 @@ import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } fro
 import { typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField, TypeChip } from '../components/bits';
+import { CategoryIcon, Loading, SearchField, TypeChip } from '../components/bits';
 import { MoveBody } from './MovesTab';
 import { AbilityFilterSheet } from './AbilityFilterSheet';
 import { ItemFilterSheet } from './ItemFilterSheet';
@@ -341,7 +341,13 @@ function MoveEntry({ id, one }: EntryProps) {
   const facts: [string, ReactNode][] = move
     ? [
         ['Type', <TypeChip key="type" type={move.type} />],
-        ['Category', cap(move.category)],
+        [
+          'Category',
+          <span key="cat" className="cat-fact">
+            <CategoryIcon category={move.category} decorative />
+            {cap(move.category)}
+          </span>,
+        ],
         ['Power', move.power ?? '—'],
         ['Accuracy', move.accuracy ? `${move.accuracy}%` : '—'],
         ['PP', move.pp ?? '—'],

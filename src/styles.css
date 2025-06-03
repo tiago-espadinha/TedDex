@@ -64,6 +64,11 @@
   --type-dark-chip: #4e4038;     --type-dark-tint: #e8e3df;
   --type-steel-chip: #5a6676;    --type-steel-tint: #e4e8ec;
   --type-fairy-chip: #a3437a;    --type-fairy-tint: #f7e0ec;
+  /* Move category badges (the only other meaning palette): white glyph on each. */
+  --cat-physical: #b4401c;
+  --cat-special: #33569f;
+  --cat-status: #625f6b;
+  --on-cat: #ffffff;
   color-scheme: light;
 }
 
@@ -181,6 +186,9 @@
   --type-dark-chip: #54473f;     --type-dark-tint: #322e2d;
   --type-steel-chip: #56616e;    --type-steel-tint: #33373f;
   --type-fairy-chip: #9a4c74;    --type-fairy-tint: #4c2f41;
+  --cat-physical: #a34a22;
+  --cat-special: #3d5a91;
+  --cat-status: #5c5a63;
   color-scheme: dark;
 }
 
@@ -418,8 +426,15 @@ main:focus, .sheet:focus { outline: none; }
 .move-row .name { font-size: 15px; font-weight: 700; }
 .move-row .meta { display: flex; flex-wrap: wrap; column-gap: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .move-row .meta span { white-space: nowrap; }
-.move-row .meta span:first-child { text-transform: capitalize; }
-.loc-row .meta span:first-child, .place-row .meta span:first-child { text-transform: none; }
+/* Move category badge: a white glyph on the category colour, 18 px in rows, chips and the filter sheet. */
+.cat-icon { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; color: var(--on-cat); }
+.cat-icon svg { width: 14px; height: 14px; stroke-width: 2.5; }
+.cat-physical { background-color: var(--cat-physical); }
+.cat-special { background-color: var(--cat-special); }
+.cat-status { background-color: var(--cat-status); }
+.move-row .meta { align-items: center; }
+.cat-fact, .gen-btn:has(.cat-icon) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.league-moves li > * { gap: 6px; }
 .loc-row .note { font-size: 12px; line-height: 1.4; color: var(--ink-2); }
 .place-game { margin-top: 16px; }
 .place-game h3 { margin: 0 2px 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
@@ -485,12 +500,17 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-mon + .league-mon { border-top: 1px solid var(--line); }
 .league-mon { padding-bottom: 10px; }
 .league-mon .evo-member .lv { flex: none; padding: 6px 10px; border-radius: 12px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; font-weight: 800; white-space: nowrap; }
-.league-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 12px 8px 80px; font-size: 13px; }
+.league-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 12px 8px; font-size: 13px; }
 .league-facts div { display: flex; gap: 6px; align-items: center; }
 .league-facts dt { color: var(--muted); font-weight: 600; }
 .league-facts dd { margin: 0; font-weight: 700; color: var(--ink-2); }
 .league-facts a { color: var(--primary); }
-.league-moves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0 12px 0 80px; padding: 0; list-style: none; }
+/* Beside its label a chip is too narrow for the longer names, which then break mid-word. */
+@media (max-width: 599px) {
+  .league-facts div { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .league-facts dd, .league-facts .league-chip { align-self: stretch; }
+}
+.league-moves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0 12px; padding: 0; list-style: none; }
 .league-moves li > *, .league-chip { align-items: center; min-height: 44px; padding: 0 10px; border-radius: 12px; border-left: 4px solid var(--outline); background: var(--surface-2); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
 .league-moves a:active, .league-chip:active { background: var(--line); }
 .league-moves li > * { display: flex; }
@@ -504,7 +524,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-source a { color: var(--primary); }
 .empty a { display: inline-flex; align-items: center; min-height: 44px; color: var(--primary); font-weight: 700; }
 @media (max-width: 374px) {
-  .league-facts, .league-moves, .team-mon-hint { margin-left: 12px; }
+  .team-mon-hint { margin-left: 12px; }
 }
 .chip-wrap:has(.chip-link) { column-gap: 8px; row-gap: 0; }
 .topbar.tinted { color: var(--on-tint); margin-top: calc(-1 * var(--safe-top)); padding: calc(var(--safe-top) + 8px) 12px 16px 8px; border-radius: 0 0 32px 32px; }
@@ -686,6 +706,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 /* Level badge: a circle ringed in the move's type colour (the ring colour is set inline). */
 [data-design='b'] .move-row .lv { border-radius: 50%; border-width: 2px; border-style: solid; background: var(--bg); color: var(--ink); font-weight: 500; }
 /* Poppins runs wider and heavier than Manrope: lighter small text, muted plum actions. */
+[data-design='b'] .cat-icon { border-radius: 3px; }
 [data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .team-row .meta, .hint) { font-weight: 400; }
 [data-design='b'] .topbar:not(.tinted) .sub { color: var(--ink-2); }
 [data-design='b'] :is(.section h2, .move-group h2, .eff-group h3, .place-game h3) { font-weight: 600; }

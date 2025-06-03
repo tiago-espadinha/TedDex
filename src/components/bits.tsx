@@ -1,13 +1,26 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { cap } from '../data/format';
 import { typeChip } from '../data/typeColors';
-import type { TypeName } from '../data/types';
+import type { MoveCategory, TypeName } from '../data/types';
 import { Icon, type IconName } from './Icon';
 
 export function TypeChip({ type, large }: { type: TypeName; large?: boolean }) {
   return (
     <span className={large ? 'type-chip lg' : 'type-chip'} style={{ backgroundColor: typeChip(type) }}>
       {type}
+    </span>
+  );
+}
+
+/** A move's category as a coloured badge: labelled on its own, or `decorative` when the word sits beside it. */
+export function CategoryIcon({ category, decorative }: { category: MoveCategory; decorative?: boolean }) {
+  return (
+    <span
+      className={`cat-icon cat-${category}`}
+      {...(decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': cap(category) })}
+    >
+      <Icon name={category} size={13} />
     </span>
   );
 }

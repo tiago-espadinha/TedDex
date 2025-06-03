@@ -5,7 +5,7 @@ import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types
 import { signed } from '../data/format';
 import { typeChip } from '../data/typeColors';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip } from '../components/bits';
+import { CategoryIcon, Loading, TypeChip } from '../components/bits';
 
 type Method = keyof Learnset;
 const METHODS: { key: Method; title: string }[] = [
@@ -115,14 +115,14 @@ function MoveRow({ move, moves, level }: { move: number; moves: MoveTable; level
   );
 }
 
-/** Name plus category, power, accuracy, PP and any priority; shared with the team member editor. */
+/** Name plus category icon, power, accuracy, PP and any priority; shared with the team member editor. */
 export function MoveBody({ move: m }: { move: MoveInfo }) {
   return (
     <span className="body">
       <span className="name">{m.name}</span>
       <span className="meta">
+        <CategoryIcon category={m.category} />
         {[
-          m.category,
           m.category !== 'status' && `Pow ${m.power ?? '—'}`,
           `Acc ${m.accuracy ? `${m.accuracy}%` : '—'}`,
           m.pp && `PP ${m.pp}`,

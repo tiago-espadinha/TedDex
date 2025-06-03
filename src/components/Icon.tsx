@@ -79,6 +79,26 @@ const paths = {
     </>
   ),
   trash: <path d="M5 7h14M10 11v6M14 11v6M7 7l1 13h8l1-13M9 7V4h6v3" />,
+  // Move categories (drawn on a coloured badge by CategoryIcon), each stretched along a 30° diagonal:
+  // a spike bubble, rings, an oval split by an S-curve with one side filled.
+  physical: (
+    <path
+      transform="rotate(-30 12 12)"
+      d="M23.5 12 17.7 13.4 20.1 17.3 14.4 15.3 12 19.5 9.6 15.3 3.9 17.3 6.3 13.4 0.5 12 6.3 10.6 3.9 6.7 9.6 8.7 12 4.5 14.4 8.7 20.1 6.7 17.7 10.6z"
+    />
+  ),
+  special: (
+    <g transform="rotate(-30 12 12)">
+      <ellipse cx="12" cy="12" rx="10" ry="6.5" />
+      <ellipse cx="12" cy="12" rx="4.5" ry="2.5" />
+    </g>
+  ),
+  status: (
+    <g transform="rotate(150 12 12)">
+      <ellipse cx="12" cy="12" rx="10" ry="7" strokeWidth="2" />
+      <path d="M2 12a5 3.5 0 0110 0 5 3.5 0 0010 0 10 7 0 00-20 0z" fill="currentColor" stroke="none" />
+    </g>
+  ),
 } as const;
 
 export type IconName = keyof typeof paths;

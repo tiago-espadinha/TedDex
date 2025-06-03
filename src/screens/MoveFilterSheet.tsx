@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useModalSheet } from '../components/bits';
+import { CategoryIcon, useModalSheet } from '../components/bits';
 import { cap, roman } from '../data/format';
 import { MOVE_CATEGORIES, MOVE_SORTS, type MoveFilters, type MoveSort } from '../data/moveFilter';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
@@ -50,6 +50,7 @@ export function MoveFilterSheet({
               aria-pressed={draft.categories.includes(c)}
               onClick={() => setDraft((d) => ({ ...d, categories: toggle(d.categories, c) }))}
             >
+              <CategoryIcon category={c} decorative />
               {cap(c)}
             </button>
           ))}
