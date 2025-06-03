@@ -255,12 +255,15 @@ main:focus, .sheet:focus { outline: none; }
 .mon-card .type-chip { line-height: 14px; }
 .mon-card img { position: absolute; z-index: 0; right: 2px; bottom: 0; width: 80px; height: 80px; image-rendering: pixelated; }
 .mon-card.sprite-art img { image-rendering: auto; }
-/* List view: one line per species, sprite on the left. */
-.mon-card.row { height: 64px; display: flex; align-items: center; gap: 12px; padding: 4px 14px 4px 4px; border-radius: 16px; }
-.mon-card.row img { position: static; order: -1; flex: none; width: 56px; height: 56px; }
-.mon-card.row .no { flex: none; width: 46px; }
-.mon-card.row .name { flex: 1; min-width: 0; margin: 0; }
-.mon-card.row .types { flex-direction: row; margin: 0; }
+/* List view: sprite on the left, number over name, type chips stacked on the right. */
+.mon-card.row { height: 100px; display: grid; grid-template-columns: 80px minmax(0, 1fr) auto; grid-template-rows: 1fr 1fr; column-gap: 12px; row-gap: 2px; padding: 8px 14px 8px 8px; border-radius: 16px; }
+/* Sprite files are 96 px with transparent edges: draw them at full size and let the edges overlap the padding. */
+.mon-card.row img { position: static; grid-area: 1 / 1 / 3 / 2; align-self: center; width: 96px; height: 96px; margin: -8px; }
+/* Artwork fills its frame: keep it inside the row. */
+.mon-card.row.sprite-art img { width: 80px; height: 80px; margin: 0; }
+.mon-card.row .no { grid-area: 1 / 2; align-self: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mon-card.row .name { grid-area: 2 / 2; align-self: start; margin: 0; font-size: 16px; }
+.mon-card.row .types { grid-area: 1 / 3 / 3 / 4; align-self: center; align-items: stretch; margin: 0; text-align: center; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
 
@@ -338,11 +341,25 @@ main:focus, .sheet:focus { outline: none; }
 .detail-hero { padding-top: 0; border-radius: 0 0 32px 32px; color: var(--on-tint); touch-action: pan-y; }
 .detail-hero .bar { display: flex; justify-content: space-between; padding: 4px 8px; }
 .detail-hero .bar .icon-btn { color: var(--on-tint); }
-.detail-hero .hero-facts { margin: 8px 0 0; font-size: 13px; font-weight: 700; color: var(--on-tint-2); }
 .detail-hero .bar .icon-btn:active { background: var(--tint-press); }
-.detail-hero .title { padding: 0 24px; }
+/* Number, name and types on the left; category level with the name, height and weight below it, on the right. */
+.detail-hero .title {
+  display: grid; grid-template-columns: fit-content(65%) minmax(min-content, 1fr);
+  grid-template-areas: 'no .' 'name genus' 'types size'; column-gap: 16px; padding: 0 24px;
+}
+.detail-hero .title .no { grid-area: no; }
+.detail-hero .title h1 { grid-area: name; align-self: baseline; }
+.detail-hero .title .types { grid-area: types; align-self: start; }
+.detail-hero .genus {
+  grid-area: genus; align-self: baseline; margin: 0; text-align: right;
+  font-size: 15px; font-weight: 700; line-height: 1.25; color: var(--on-tint-2);
+}
+.detail-hero .size { grid-area: size; display: grid; justify-items: end; align-content: start; gap: 2px; margin: 0; }
+.detail-hero .size > div { display: flex; align-items: center; gap: 6px; }
+.detail-hero .size dt { display: flex; color: var(--on-tint-soft); }
+.detail-hero .size dd { margin: 0; font-size: 13px; font-weight: 700; color: var(--on-tint-2); }
 .detail-hero .no { font-size: 14px; font-weight: 700; color: var(--on-tint-soft); }
-.detail-hero h1 { margin: 2px 0 8px; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+.detail-hero h1 { margin: 2px 0 8px; font-size: clamp(28px, 8vw, 32px); font-weight: 800; letter-spacing: -0.5px; }
 .detail-hero .types { display: flex; gap: 6px; }
 .detail-hero .art-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 20px; }
 .detail-hero .art-row img { width: 184px; height: 184px; object-fit: contain; }
@@ -355,14 +372,13 @@ main:focus, .sheet:focus { outline: none; }
 .nav-round { width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .nav-round[aria-disabled='true'] { opacity: 0.35; pointer-events: none; }
 
-.tabs { display: flex; gap: 4px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 40px; }
-.tabs::-webkit-scrollbar { display: none; }
-/* Fade the edge that has more tabs past it (set from DetailScreen); the mask reads alpha only. */
-.tabs[data-more='end'] { mask-image: linear-gradient(to right, var(--ink) calc(100% - 40px), transparent); }
-.tabs[data-more='start'] { mask-image: linear-gradient(to left, var(--ink) calc(100% - 40px), transparent); }
-.tabs[data-more='both'] { mask-image: linear-gradient(to right, transparent, var(--ink) 40px, var(--ink) calc(100% - 40px), transparent); }
-.tabs button { height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: transparent; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; }
-.tabs button[aria-selected='true'] { background: var(--ink); color: var(--bg); font-weight: 700; }
+/* Three equal tabs; the selected one sits on a pill (.tab-ink) that slides to it, placed by --tab (its index). */
+.tabs { position: relative; display: flex; gap: 4px; padding: 14px 16px 6px; }
+.tabs button { flex: 1 1 0; height: 36px; padding: 0 8px; border: 0; border-radius: 18px; background: transparent; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; transition: color 220ms ease; }
+.tabs button[aria-selected='true'] { color: var(--bg); font-weight: 700; }
+.tab-ink { position: absolute; top: 14px; left: 16px; width: calc((100% - 32px - 8px) / 3); height: 36px; border-radius: 18px; background: var(--ink); transform: translateX(calc(var(--tab) * (100% + 4px))); transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+/* The tab panel pages sideways (usePager.ts): the browser keeps vertical scrolling, the clip hides the sliding panel. */
+.pager { overflow-x: clip; touch-action: pan-y; }
 
 .section { padding: 12px 24px 0; }
 .section h2 { margin: 6px 0 10px; font-size: 15px; font-weight: 800; }
@@ -656,8 +672,9 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] :is(.detail-hero, .topbar.tinted) { border-radius: 0; }
 [data-design='b'] .detail-hero h1 { font-weight: 600; letter-spacing: 0; }
 [data-design='b'] .segmented { --seg-r: 4px; }
-[data-design='b'] .tabs button { border-radius: 4px; }
-[data-design='b'] .tabs button[aria-selected='true'] { background: var(--bar); color: var(--ink); }
+[data-design='b'] :is(.tabs button, .tab-ink) { border-radius: 4px; }
+[data-design='b'] .tabs button[aria-selected='true'] { color: var(--ink); }
+[data-design='b'] .tab-ink { background: var(--bar); }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
