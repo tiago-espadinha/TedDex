@@ -74,6 +74,7 @@ const paths = {
   ),
   shield: <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />,
   pencil: <path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" />,
+  bolt: <path d="M13 3L5 14h6l-1 7 8-11h-6z" />,
   height: (
     <g transform="rotate(-45 12 12)">
       <rect x="3" y="8" width="18" height="8" rx="1.5" />

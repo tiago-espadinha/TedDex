@@ -23,7 +23,7 @@ export function MemberEditor() {
   const team = useLiveQuery(() => db.teams.get(teamId).then((t) => t ?? null), [teamId]);
   const member = team?.members[index];
   const { data, error } = useLoad(() => (member ? loadAll(member.speciesId) : Promise.resolve(undefined)), member?.speciesId);
-  const godMode = member?.godMode ?? false;
+  const godMode = team?.godMode ?? false;
   // Every ability is only needed in god mode, so it loads then.
   const { data: abilities, error: abilitiesError } = useLoad(() => (godMode ? loadAbilities() : Promise.resolve(undefined)), godMode);
   const [picking, setPicking] = useState<Picking>();
@@ -62,7 +62,7 @@ export function MemberEditor() {
   const setForm = (key: string) =>
     updateMember(teamId, index, (m) => {
       const own = (formKey: string | null) => applyForm(species, formKey).view.abilities.some((a) => a.name === m.ability);
-      const keep = m.godMode || !own(m.formKey ?? null) || own(key);
+      const keep = godMode || !own(m.formKey ?? null) || own(key);
       return { ...m, formKey: key || undefined, ability: keep ? m.ability : undefined };
     });
 
@@ -74,7 +74,10 @@ export function MemberEditor() {
         </Link>
         <div className="grow">
           <h1>{mon.name}</h1>
-          <div className="sub">{team.name}</div>
+          <div className="sub">
+            {team.name}
+            {godMode && ' · God mode'}
+          </div>
         </div>
       </header>
 
@@ -88,21 +91,6 @@ export function MemberEditor() {
           <Icon name="next" size={20} />
         </Link>
       </div>
-
-      <button
-        type="button"
-        className="switch-row"
-        role="switch"
-        aria-checked={godMode}
-        aria-describedby="god-mode-hint"
-        onClick={() => save({ godMode: godMode ? undefined : true })}
-      >
-        God mode
-        <span className="track" aria-hidden="true" />
-      </button>
-      <p id="god-mode-hint" className="hint god-mode-hint">
-        {godMode ? 'Any move and any ability, legal or not.' : 'Only its own moves and abilities; choices made stay.'}
-      </p>
 
       {species.forms && (
         <Field title="Form">

@@ -3,13 +3,13 @@ import { useId, useMemo, useState, type CSSProperties, type ReactNode } from 're
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { attackingTypes, itemSpriteUrl, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
-import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, type Team, type TeamMember } from '../data/db';
+import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, setGodMode, type Team, type TeamMember } from '../data/db';
 import { cap, formatMultiplier, formatNo } from '../data/format';
 import { memberView, type MemberView } from '../data/forms';
 import { typeTint } from '../data/typeColors';
 import type { ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip, useModalSheet } from '../components/bits';
+import { Loading, TypeChip, useModalSheet, useToast } from '../components/bits';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 
 /**
@@ -147,6 +147,8 @@ function RenameSheet({ team, onClose }: { team: Team; onClose: () => void }) {
 }
 
 // ---------------- team editor ----------------
+const godModeText = (on: boolean) => (on ? 'God mode on: any move and ability for every member' : 'God mode off: only legal moves and abilities');
+
 export function TeamEditor() {
   const id = Number(useParams().id);
   const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
@@ -156,6 +158,7 @@ export function TeamEditor() {
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  const toast = useToast();
 
   if (team === undefined) return <Loading />;
   if (!team) return <p className="empty">This team no longer exists.</p>;
@@ -170,8 +173,21 @@ export function TeamEditor() {
           <h1 className="team-name">{team.name}</h1>
           <div className="sub">
             {team.members.length} of {TEAM_SIZE}
+            {team.godMode && ' · God mode'}
           </div>
         </div>
+        <button
+          className="icon-btn"
+          aria-label="God mode"
+          aria-pressed={team.godMode ?? false}
+          title={godModeText(team.godMode ?? false)}
+          onClick={async () => {
+            await setGodMode(id, !team.godMode);
+            toast({ text: godModeText(!team.godMode) });
+          }}
+        >
+          <Icon name="bolt" />
+        </button>
         <button className="icon-btn" aria-label="Rename team" onClick={() => setRenaming(true)}>
           <Icon name="pencil" />
         </button>

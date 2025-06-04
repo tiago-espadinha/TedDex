@@ -2,12 +2,14 @@ import { useId, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   itemSpriteUrl, loadAbilities, loadIndex, loadItemReference, loadItems, loadMoves, loadSpecies, loadTrainerGame, loadTrainerGames,
-  trainerSpriteUrl, useLoad, type TrainerKind,
+  spriteUrl, trainerSpriteUrl, useLoad, type TrainerKind,
 } from '../data/api';
 import type { AbilityTable, FormVariant, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTeam, LeagueTrainer, MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
+import { teamType } from '../data/teamType';
+import { typeTint } from '../data/typeColors';
 
 const battleFormLabel = (key: string) => (key === 'gmax' ? 'Gigantamaxes' : 'Mega Evolves');
 const TITLES: Record<TrainerKind, string> = { league: 'Elite Four & Champion', gyms: 'Gym Leaders' };
@@ -61,6 +63,13 @@ interface Tables {
 }
 
 const formKey = (id: number, form: string) => `${id}:${form}`;
+
+/** A member's sprite, name and types, from its form when it has one. */
+function monOf(m: LeagueMember, tables: Tables) {
+  const species = tables.index.get(m.id);
+  const form = m.form ? tables.forms.get(formKey(m.id, m.form)) : undefined;
+  return { spriteId: form?.pokemonId ?? m.id, name: form?.name ?? species?.name ?? `#${m.id}`, types: form?.types ?? species?.types ?? [] };
+}
 
 /** The game and the tables its page needs; null when the id is not a game in the data. */
 async function loadGame(kind: TrainerKind, id: string): Promise<[LeagueGame, Tables] | null> {
@@ -177,65 +186,85 @@ function TrainerSection({ trainer: t, tables, rematch }: { trainer: LeagueTraine
   const stages = rematch ? t.rematches : undefined;
   const teams: LeagueTeam[] = stages?.[stage].teams ?? t.teams;
   const team = teams[Math.min(pick, teams.length - 1)];
+  const [open, setOpen] = useState(false);
   const headingId = useId();
+  const bodyId = useId();
+  const tint = teamType(t.type, team.members.map((m) => monOf(m, tables).types));
   return (
-    <section className="section league-trainer" aria-labelledby={headingId}>
-      <div className="league-head">
-        {t.sprite ? (
-          <img className="trainer-sprite" src={trainerSpriteUrl(t.sprite)} alt="" width={72} height={72} loading="lazy" />
-        ) : (
-          <span className="trainer-sprite placeholder" aria-hidden="true">
-            <Icon name="person" size={32} />
+    <section className="section league-trainer" aria-labelledby={headingId} style={tint && { backgroundColor: typeTint(tint) }}>
+      <h2 className="league-head-wrap">
+        <button type="button" className="league-head" aria-expanded={open} aria-controls={bodyId} onClick={() => setOpen(!open)}>
+          {t.sprite ? (
+            <img className="trainer-sprite" src={trainerSpriteUrl(t.sprite)} alt="" width={72} height={72} loading="lazy" />
+          ) : (
+            <span className="trainer-sprite placeholder" aria-hidden="true">
+              <Icon name="person" size={32} />
+            </span>
+          )}
+          <span className="who">
+            <span className="trainer-name" id={headingId}>{t.name}</span>
+            <span className="tags">
+              <span className="role">{t.role}</span>
+              {t.type && <TypeChip type={t.type} />}
+            </span>
+            {t.badge && <span className="badge-name">{t.badge}</span>}
           </span>
+          <Icon name="next" size={20} />
+          {!open && <TeamStrip team={team} tables={tables} />}
+        </button>
+      </h2>
+      <div id={bodyId} className="league-body" hidden={!open}>
+        {rematch && !stages && <p className="hint league-no-rematch">No rematch for this trainer: first battle team.</p>}
+        {stages && stages.length > 1 && (
+          <Picker
+            labels={stages.map((s) => s.label)}
+            fallback="Rematch"
+            pick={stage}
+            onPick={(i) => {
+              setStage(i);
+              setPick(0);
+            }}
+            labelledBy={headingId}
+          />
         )}
-        <div className="who">
-          <h2 id={headingId}>{t.name}</h2>
-          <div className="tags">
-            <span className="role">{t.role}</span>
-            {t.type && <TypeChip type={t.type} />}
-          </div>
-          {t.badge && <div className="badge-name">{t.badge}</div>}
-        </div>
+        {stages?.length === 1 && <p className="league-pick-label">{stages[0].label}</p>}
+        {teams.length > 1 && (
+          <Picker labels={teams.map((tm) => tm.label ?? '')} fallback="Team" pick={pick} onPick={setPick} labelledBy={headingId} />
+        )}
+        <ul className="league-team">
+          {team.members.map((m, i) => (
+            <MemberRow key={`${m.id}-${i}`} member={m} tables={tables} />
+          ))}
+        </ul>
       </div>
-      {rematch && !stages && <p className="hint league-no-rematch">No rematch for this trainer: first battle team.</p>}
-      {stages && stages.length > 1 && (
-        <Picker
-          labels={stages.map((s) => s.label)}
-          fallback="Rematch"
-          pick={stage}
-          onPick={(i) => {
-            setStage(i);
-            setPick(0);
-          }}
-          labelledBy={headingId}
-        />
-      )}
-      {stages?.length === 1 && <p className="league-pick-label">{stages[0].label}</p>}
-      {teams.length > 1 && (
-        <Picker labels={teams.map((tm) => tm.label ?? '')} fallback="Team" pick={pick} onPick={setPick} labelledBy={headingId} />
-      )}
-      <ul className="league-team">
-        {team.members.map((m, i) => (
-          <MemberRow key={`${m.id}-${i}`} member={m} tables={tables} />
-        ))}
-      </ul>
     </section>
   );
 }
 
+/** The team's sprites in a collapsed trainer row; their names are read out with the row. */
+function TeamStrip({ team, tables }: { team: LeagueTeam; tables: Tables }) {
+  const mons = team.members.map((m) => monOf(m, tables));
+  return (
+    <span className="team-strip">
+      {mons.map((n, i) => (
+        <img key={`${n.spriteId}-${i}`} src={spriteUrl(n.spriteId)} alt="" width={40} height={40} loading="lazy" />
+      ))}
+      <span className="sr-only">, team: {mons.map((n) => n.name).join(', ')}</span>
+    </span>
+  );
+}
+
 function MemberRow({ member: m, tables }: { member: LeagueMember; tables: Tables }) {
-  const species = tables.index.get(m.id);
-  const form = m.form ? tables.forms.get(formKey(m.id, m.form)) : undefined;
-  const name = form?.name ?? species?.name ?? `#${m.id}`;
+  const { spriteId, name, types } = monOf(m, tables);
   const item = m.item !== undefined && tables.items[m.item] ? { id: m.item, name: tables.items[m.item] } : undefined;
   const ability = m.ability !== undefined ? tables.abilities[m.ability]?.name : undefined;
   return (
     <li className="league-mon">
       <Link className="evo-member" to={`/pokemon/${m.id}${m.form ? `?form=${m.form}` : ''}`}>
         <MonHead
-          spriteId={form?.pokemonId ?? m.id}
+          spriteId={spriteId}
           name={name}
-          types={form?.types ?? species?.types ?? []}
+          types={types}
           aside={<span className="lv">Lv {m.level}</span>}
         />
       </Link>
