@@ -13,7 +13,7 @@ import { typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { CategoryIcon, Loading, SearchField, TypeChip } from '../components/bits';
-import { MoveBody } from './MovesTab';
+import { MoveCells, MoveHead } from './MovesTab';
 import { AbilityFilterSheet } from './AbilityFilterSheet';
 import { ItemFilterSheet } from './ItemFilterSheet';
 import { MoveFilterSheet } from './MoveFilterSheet';
@@ -169,8 +169,9 @@ function SearchList() {
       {data && !shown.length && (
         <p className="empty">{filtered ? `No ${k.title.toLowerCase()} match these filters.` : `No ${k.title.toLowerCase()} match “${query}”.`}</p>
       )}
+      {shown.length > 0 && k.kind === 'moves' && <MoveHead />}
       {shown.length > 0 && (
-        <ul className={hasSheet ? 'ref-list with-fab' : 'ref-list'}>
+        <ul className={`ref-list${hasSheet ? ' with-fab' : ''}${k.kind === 'moves' ? ' move-table' : ''}`}>
           {shown.map((e) => (
             <li key={e.id}>
               <Link
@@ -233,14 +234,7 @@ type MoveEntry = Entry & { move: MoveInfo };
 type ItemEntry = Entry & { item: ItemInfo };
 
 function EntryBody({ entry: e }: { entry: Entry }) {
-  if (e.move) {
-    return (
-      <>
-        <MoveBody move={e.move} />
-        <TypeChip type={e.move.type} />
-      </>
-    );
-  }
+  if (e.move) return <MoveCells move={e.move} />;
   if (e.item) {
     return (
       <>
@@ -441,7 +435,7 @@ function MoveLearners({ learners, index }: { learners: MoveReference['learners']
           </div>
         )}
       </div>
-      <SpeciesList title={title} ids={inGen(method)} index={index} none="" />
+      <LearnerTable title={title} ids={inGen(method)} index={index} />
     </>
   );
 }
@@ -760,6 +754,41 @@ function Effect({ text, title = 'Effect' }: { text: string; title?: string }) {
 }
 
 /** Species linking to their detail pages, in dex order; sprites load as they scroll into view. */
+/** Species that learn a move as aligned columns: number, sprite, name, types. */
+function LearnerTable({ title, ids, index }: { title: string; ids: number[]; index: IndexEntry[] }) {
+  const byId = useMemo(() => new Map(index.map((m) => [m.id, m])), [index]);
+  const mons = ids.map((id) => byId.get(id)).filter((m): m is IndexEntry => !!m);
+  return (
+    <section className="section ref-species">
+      <h2>
+        {title} · {mons.length}
+      </h2>
+      <div className="learner-head" aria-hidden="true">
+        <span>No.</span>
+        <span />
+        <span>Pokémon</span>
+        <span className="type">Type</span>
+      </div>
+      <ul className="learner-table">
+        {mons.map((m) => (
+          <li key={m.id}>
+            <Link className="learner-row" to={`/pokemon/${m.id}`}>
+              <span className="no">{formatNo(m.id)}</span>
+              <img src={spriteUrl(m.id)} alt="" width={40} height={40} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
+              <span className="name">{m.name}</span>
+              <span className="types">
+                {m.types.map((t) => (
+                  <TypeChip key={t} type={t} />
+                ))}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function SpeciesList({ title, ids, index, none }: { title: string; ids: number[]; index: IndexEntry[]; none: string }) {
   const byId = useMemo(() => new Map(index.map((m) => [m.id, m])), [index]);
   const mons = ids.map((id) => byId.get(id)).filter((m): m is IndexEntry => !!m);

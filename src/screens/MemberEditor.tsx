@@ -10,7 +10,7 @@ import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useModalSheet } from '../components/bits';
-import { MoveBody } from './MovesTab';
+import { MoveCells, MoveHead } from './MovesTab';
 
 const loadAll = (id: number) => Promise.all([loadSpecies(id), loadLearnsets(id), loadMoves(), loadItems()]);
 
@@ -206,12 +206,8 @@ export function MemberEditor() {
         <PickerSheet
           title={chosen[picking.slot] ? `Replace ${moves[chosen[picking.slot]].name}` : 'Add a move'}
           options={choices.filter((m) => !chosen.includes(m)).map((id) => ({ id, name: moves[id].name }))}
-          render={(o) => (
-            <>
-              <MoveBody move={moves[o.id]} />
-              <TypeChip type={moves[o.id].type} />
-            </>
-          )}
+          head={<MoveHead />}
+          render={(o) => <MoveCells move={moves[o.id]} />}
           onPick={(move) => setMove(picking.slot, move)}
           onClose={() => setPicking(undefined)}
         />
@@ -243,32 +239,34 @@ function MoveSlots({
   onRemove: (slot: number) => void;
 }) {
   return (
-    <ul className="move-slots">
-      {Array.from({ length: MOVE_SLOTS }, (_, slot) => {
-        const id = chosen[slot];
-        if (id === undefined) {
-          return canAdd && slot === chosen.length ? (
-            <li key={slot}>
-              <button className="add-slot" onClick={() => onPick(slot)}>
-                <Icon name="plus" size={18} /> Add move
+    <>
+      {chosen.length > 0 && <MoveHead trailing />}
+      <ul className="move-slots move-table">
+        {Array.from({ length: MOVE_SLOTS }, (_, slot) => {
+          const id = chosen[slot];
+          if (id === undefined) {
+            return canAdd && slot === chosen.length ? (
+              <li key={slot}>
+                <button className="add-slot" onClick={() => onPick(slot)}>
+                  <Icon name="plus" size={18} /> Add move
+                </button>
+              </li>
+            ) : null;
+          }
+          const m = moves[id];
+          return (
+            <li key={slot} className="move-row">
+              <button className="move-pick" aria-label={`Replace ${m.name}`} onClick={() => onPick(slot)}>
+                <MoveCells move={m} />
+              </button>
+              <button className="icon-btn" aria-label={`Remove ${m.name}`} onClick={() => onRemove(slot)}>
+                <Icon name="close" size={20} />
               </button>
             </li>
-          ) : null;
-        }
-        const m = moves[id];
-        return (
-          <li key={slot} className="move-row">
-            <button className="move-pick" aria-label={`Replace ${m.name}`} onClick={() => onPick(slot)}>
-              <MoveBody move={m} />
-              <TypeChip type={m.type} />
-            </button>
-            <button className="icon-btn" aria-label={`Remove ${m.name}`} onClick={() => onRemove(slot)}>
-              <Icon name="close" size={20} />
-            </button>
-          </li>
-        );
-      })}
-    </ul>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 
@@ -281,12 +279,15 @@ interface Option {
 function PickerSheet({
   title,
   options,
+  head,
   render,
   onPick,
   onClose,
 }: {
   title: string;
   options: Option[];
+  /** A header row above the list; the list then lays out as a move table. */
+  head?: ReactNode;
   render: (o: Option) => ReactNode;
   onPick: (id: number) => void;
   onClose: () => void;
@@ -313,7 +314,8 @@ function PickerSheet({
           <span className="sr-only">Search</span>
           <input type="search" data-autofocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
         </label>
-        <ul className="picker-list">
+        {head && shown.length > 0 && head}
+        <ul className={head ? 'picker-list move-table' : 'picker-list'}>
           {shown.map((o) => (
             <li key={o.id}>
               <button
