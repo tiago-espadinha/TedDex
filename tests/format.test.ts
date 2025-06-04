@@ -1,11 +1,20 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { evYieldText, formatPrice, genderText } from '../src/data/format';
+import { catchChance, evYieldParts, formatPrice, genderText } from '../src/data/format';
 
 test('EV yield lists the stats in stat order', () => {
-  assert.equal(evYieldText({ spa: 1 }), '1 Sp. Atk');
-  assert.equal(evYieldText({ spe: 1, atk: 2 }), '2 Atk, 1 Speed');
-  assert.equal(evYieldText({}), 'None');
+  assert.deepEqual(evYieldParts({ spa: 1 }), [{ stat: 'spa', text: '1 Sp. Atk' }]);
+  assert.deepEqual(evYieldParts({ spe: 1, atk: 2 }), [
+    { stat: 'atk', text: '2 Atk' },
+    { stat: 'spe', text: '1 Speed' },
+  ]);
+  assert.deepEqual(evYieldParts({}), []);
+});
+
+test('catch chance is rate / 3 / 255 with one decimal', () => {
+  assert.equal(catchChance(45), '5.9%');
+  assert.equal(catchChance(255), '33.3%');
+  assert.equal(catchChance(3), '0.4%');
 });
 
 test('gender ratio from eighths', () => {

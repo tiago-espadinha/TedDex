@@ -64,6 +64,14 @@
   --type-dark-chip: #4e4038;     --type-dark-tint: #e8e3df;
   --type-steel-chip: #5a6676;    --type-steel-tint: #e4e8ec;
   --type-fairy-chip: #a3437a;    --type-fairy-tint: #f7e0ec;
+  /* Move category badges (the only other meaning palette): white glyph on each. */
+  --cat-physical: #b4401c;
+  --cat-special: #33569f;
+  --cat-status: #625f6b;
+  --on-cat: #ffffff;
+  /* Gender symbols in the gender ratio (text on --surface, ≥ 4.5:1). */
+  --gender-male: #2a5fc7;
+  --gender-female: #c22a6e;
   color-scheme: light;
 }
 
@@ -92,6 +100,8 @@
     --neutral-cell: #24222a;
     --sheet: var(--surface);
     --scrim: rgba(0, 0, 0, 0.6);
+    --gender-male: #7eaaff;
+    --gender-female: #ff85b6;
     color-scheme: dark;
   }
 }
@@ -119,6 +129,8 @@
   --neutral-cell: #24222a;
   --sheet: var(--surface);
   --scrim: rgba(0, 0, 0, 0.6);
+  --gender-male: #7eaaff;
+  --gender-female: #ff85b6;
   color-scheme: dark;
 }
 
@@ -181,6 +193,11 @@
   --type-dark-chip: #54473f;     --type-dark-tint: #322e2d;
   --type-steel-chip: #56616e;    --type-steel-tint: #33373f;
   --type-fairy-chip: #9a4c74;    --type-fairy-tint: #4c2f41;
+  --cat-physical: #a34a22;
+  --cat-special: #3d5a91;
+  --cat-status: #5c5a63;
+  --gender-male: #7eaaff;
+  --gender-female: #ff85b6;
   color-scheme: dark;
 }
 
@@ -327,7 +344,7 @@ main:focus, .sheet:focus { outline: none; }
 
 /* Content settling in: tab panels fade, stat bars fill from the left. */
 #tab-panel > * { animation: fade 200ms ease; }
-.stat-row .fill { transform-origin: left; animation: grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.stat-row .fill, .fill-catch { transform-origin: left; animation: grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 /* The cry button while the cry plays: a pill behind it and pulsing sound waves. */
 .icon-btn.playing { background: var(--tint-press); }
 .icon-btn.playing svg path + path { animation: pulse 500ms ease-in-out infinite alternate; }
@@ -396,9 +413,28 @@ main:focus, .sheet:focus { outline: none; }
 .eff-group { margin-bottom: 12px; }
 .eff-group h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.fact { padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.fact { display: flex; flex-direction: column; padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
 .fact .k { font-size: 12px; font-weight: 600; color: var(--muted); }
 .fact .v { font-size: 15px; font-weight: 800; margin-top: 2px; }
+.fact.wide { grid-column: 1 / -1; }
+.fact-chips { flex: 1; display: flex; flex-wrap: wrap; align-content: space-evenly; align-items: center; gap: 6px; margin-top: 4px; }
+/* Chips keep their size; their rows spread over the tile's height (tiles in a row match the tallest one). */
+.fact .v:has(> .fact-chips) { flex: 1; display: flex; }
+.fact-chip { padding: 3px 10px; border-radius: 12px; color: var(--on-type); font-size: 13px; font-weight: 700; }
+/* Catch rate and gender ratio bars: decorative, the values are in the text. */
+.fact-bar { display: flex; gap: 2px; height: 8px; margin: 8px 0 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.fact-bar > span { height: 100%; }
+.fill-male { background: var(--gender-male); }
+.fill-female { background: var(--gender-female); }
+.fill-genderless { background: var(--muted); }
+/* Catch rate and its chance on one line, the chance set apart by a rule. */
+.catch-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.fact-note { padding-left: 10px; border-left: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--muted); }
+.gender-ratio { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.gender-ratio > span { white-space: nowrap; }
+.gender { display: inline-flex; vertical-align: -4px; }
+.gender-male { color: var(--gender-male); }
+.gender-female { color: var(--gender-female); }
 .flavor { font-size: 15px; line-height: 1.55; color: var(--ink-2); margin: 0 0 14px; }
 .game-select { position: relative; display: flex; align-items: center; min-height: 48px; padding: 0 12px 0 14px; margin: 4px 0 6px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
 .game-select .k { font-size: 12px; font-weight: 600; color: var(--muted); }
@@ -418,8 +454,48 @@ main:focus, .sheet:focus { outline: none; }
 .move-row .name { font-size: 15px; font-weight: 700; }
 .move-row .meta { display: flex; flex-wrap: wrap; column-gap: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .move-row .meta span { white-space: nowrap; }
-.move-row .meta span:first-child { text-transform: capitalize; }
-.loc-row .meta span:first-child, .place-row .meta span:first-child { text-transform: none; }
+/* Move category badge: a white glyph on the category colour, 18 px in rows, chips and the filter sheet. */
+.cat-icon { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 5px; color: var(--on-cat); }
+.cat-icon svg { width: 14px; height: 14px; stroke-width: 2.5; }
+.cat-physical { background-color: var(--cat-physical); }
+.cat-special { background-color: var(--cat-special); }
+.cat-status { background-color: var(--cat-status); }
+.move-row .meta { align-items: center; }
+/* Move tables: the header and every row share one column template so the values line up. */
+.move-table, .move-head { --type-col: 64px; --num-col: 30px; --col-gap: 6px; --move-cols: minmax(0, 1fr) var(--type-col) 26px var(--num-col) var(--num-col) var(--num-col); }
+:is(.move-table, .move-head).with-lv { --move-cols: 32px minmax(0, 1fr) var(--type-col) 26px var(--num-col) var(--num-col) var(--num-col); }
+@media (min-width: 600px) { .move-table, .move-head { --type-col: 76px; --num-col: 40px; --col-gap: 12px; } }
+.move-table :is(a, button).move-row, .move-table .move-pick, .move-head { display: grid; grid-template-columns: var(--move-cols); column-gap: var(--col-gap); align-items: center; }
+.move-head, .learner-head { padding: 0 13px 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
+/* Clears the slot's remove button: border 1 + row padding 4 + button 44 + gap 12 + pick padding 4. */
+.move-head.with-end { padding-right: 65px; }
+.move-head > :not(.move), .learner-head .type, .move-table .num { text-align: center; }
+.move-table .cat-icon { justify-self: center; }
+.move-table .num { font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.move-table .name { font-size: 14px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.move-table .prio { display: block; font-size: 11px; font-weight: 600; color: var(--muted); }
+.move-table .lv { width: 32px; height: 32px; }
+:is(.move-table, .learner-row) .type-chip { width: 100%; padding-inline: 0; text-align: center; }
+@media (min-width: 600px) { .move-table .name { font-size: 15px; } }
+.move-group .move-head { margin-top: 4px; }
+.move-head:has(+ .ref-list) { margin: 12px 16px 0; }
+.move-head + .ref-list { margin-top: 0; }
+/* Learned by: number, sprite, name and types in columns; two types stack on phones. */
+.learner-table, .learner-head { --types-col: 64px; --learner-cols: 44px 40px minmax(0, 1fr) var(--types-col); }
+@media (min-width: 600px) { .learner-table, .learner-head { --types-col: 156px; } }
+.learner-head, .learner-row { display: grid; grid-template-columns: var(--learner-cols); column-gap: 10px; align-items: center; }
+.learner-table { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.learner-table li + li { border-top: 1px solid var(--line); }
+.learner-row { min-height: 56px; padding: 8px 12px; color: var(--ink); text-decoration: none; }
+.learner-row:active { background: var(--surface-2); }
+.learner-row:focus-visible { outline-offset: -2px; }
+.learner-row .no { font-size: 12px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.learner-row img { width: 40px; height: 40px; border-radius: 12px; image-rendering: pixelated; }
+.learner-row .name { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.learner-row .types { display: flex; flex-direction: column; gap: 4px; }
+@media (min-width: 600px) { .learner-row .types { flex-direction: row; } }
+.cat-fact, .gen-btn:has(.cat-icon) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.league-moves li > * { gap: 6px; }
 .loc-row .note { font-size: 12px; line-height: 1.4; color: var(--ink-2); }
 .place-game { margin-top: 16px; }
 .place-game h3 { margin: 0 2px 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
@@ -449,6 +525,14 @@ a.evo-member:active { background: var(--surface-2); }
 /* ---------- reference ---------- */
 .ref-kind .name { font-size: 17px; }
 .ref-kind svg { flex: none; margin-left: auto; color: var(--muted); }
+/* Guide landing: the rows share the screen height (min 72 px, so short screens scroll), on fixed tints. */
+.app:has(> .ref-menu) { display: flex; flex-direction: column; }
+.ref-menu { flex: 1; }
+.ref-menu .ref-kind { flex: 1 1 0; min-height: 72px; border-color: transparent; color: var(--on-tint); }
+.ref-menu .ref-kind :is(.meta, svg) { color: var(--on-tint-muted); }
+.ref-menu .ref-kind .meta { text-wrap: pretty; }
+/* Pixel art at its own size (60–64 px, already doubled), so the pixels stay whole. */
+.ref-art { flex: none; width: 64px; height: 64px; object-fit: none; image-rendering: pixelated; }
 .ref-list { margin: 12px 16px; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
 .ref-list li + li { border-top: 1px solid var(--line); }
 /* Room under the last row to scroll clear of the FAB. */
@@ -485,12 +569,17 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-mon + .league-mon { border-top: 1px solid var(--line); }
 .league-mon { padding-bottom: 10px; }
 .league-mon .evo-member .lv { flex: none; padding: 6px 10px; border-radius: 12px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; font-weight: 800; white-space: nowrap; }
-.league-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 12px 8px 80px; font-size: 13px; }
+.league-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 12px 8px; font-size: 13px; }
 .league-facts div { display: flex; gap: 6px; align-items: center; }
 .league-facts dt { color: var(--muted); font-weight: 600; }
 .league-facts dd { margin: 0; font-weight: 700; color: var(--ink-2); }
 .league-facts a { color: var(--primary); }
-.league-moves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0 12px 0 80px; padding: 0; list-style: none; }
+/* Beside its label a chip is too narrow for the longer names, which then break mid-word. */
+@media (max-width: 599px) {
+  .league-facts div { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .league-facts dd, .league-facts .league-chip { align-self: stretch; }
+}
+.league-moves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0 12px; padding: 0; list-style: none; }
 .league-moves li > *, .league-chip { align-items: center; min-height: 44px; padding: 0 10px; border-radius: 12px; border-left: 4px solid var(--outline); background: var(--surface-2); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
 .league-moves a:active, .league-chip:active { background: var(--line); }
 .league-moves li > * { display: flex; }
@@ -504,7 +593,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-source a { color: var(--primary); }
 .empty a { display: inline-flex; align-items: center; min-height: 44px; color: var(--primary); font-weight: 700; }
 @media (max-width: 374px) {
-  .league-facts, .league-moves, .team-mon-hint { margin-left: 12px; }
+  .team-mon-hint { margin-left: 12px; }
 }
 .chip-wrap:has(.chip-link) { column-gap: 8px; row-gap: 0; }
 .topbar.tinted { color: var(--on-tint); margin-top: calc(-1 * var(--safe-top)); padding: calc(var(--safe-top) + 8px) 12px 16px 8px; border-radius: 0 0 32px 32px; }
@@ -678,7 +767,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .league-team, .picker-list,
+[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .evo-list, .learner-row img, .league-team, .picker-list,
   .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
@@ -686,9 +775,19 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 /* Level badge: a circle ringed in the move's type colour (the ring colour is set inline). */
 [data-design='b'] .move-row .lv { border-radius: 50%; border-width: 2px; border-style: solid; background: var(--bg); color: var(--ink); font-weight: 500; }
 /* Poppins runs wider and heavier than Manrope: lighter small text, muted plum actions. */
+[data-design='b'] .cat-icon { border-radius: 3px; }
 [data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .team-row .meta, .hint) { font-weight: 400; }
 [data-design='b'] .topbar:not(.tinted) .sub { color: var(--ink-2); }
 [data-design='b'] :is(.section h2, .move-group h2, .eff-group h3, .place-game h3) { font-weight: 600; }
 [data-design='b'] .ref-list .name { font-weight: 500; }
 [data-design='b'] .form-btn { border-radius: 4px; font-weight: 500; }
 [data-design='b'] :is(.fab, .primary-btn) { border-radius: 4px; background: var(--bar); color: var(--ink); box-shadow: var(--shadow-fab); font-weight: 500; letter-spacing: 0.5px; }
+
+/* Phones: move and learner tables run edge to edge, keeping their rounded box. */
+@media (max-width: 599px) {
+  .move-group :is(.move-head, .move-table), .ref-species :is(.learner-head, .learner-table) { margin-inline: -24px; }
+  .picker :is(.move-head, .move-table) { margin-inline: -20px; }
+  .move-head:has(+ .ref-list), .ref-list.move-table { margin-inline: 0; }
+  :is(.move-group, .picker, .ref-list, .ref-species) :is(.move-row, .learner-row) { padding-inline: 15px; }
+  :is(.move-group, .picker, .ref-species) .learner-head, .move-head:not(.with-end) { padding-inline: 16px; }
+}

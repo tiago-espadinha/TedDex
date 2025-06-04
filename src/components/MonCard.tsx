@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { spriteUrl } from '../data/api';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { MoveTable, TypeName } from '../data/types';
-import { TypeChip } from './bits';
+import { CategoryIcon, TypeChip } from './bits';
 
 /**
  * The parts of a Pokémon card in a team: league and Gym teams, and saved teams. The caller puts
@@ -58,8 +58,9 @@ export function MonMoves({ name, moves, table, plain }: { name: string; moves: n
         const style = move && { borderLeftColor: typeChip(move.type) };
         const label = (
           <>
+            {move && <CategoryIcon category={move.category} decorative />}
             {move?.name ?? `Move ${id}`}
-            {move && <span className="sr-only">, {move.type}</span>}
+            {move && <span className="sr-only">, {move.type}, {move.category}</span>}
           </>
         );
         return (

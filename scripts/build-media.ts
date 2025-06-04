@@ -13,6 +13,7 @@
  *   artwork/<id>.webp   475 px official artwork, WebP q80 (cached on first view); species and forms
  *   cries/<id>.m4a      latest cry, AAC 64 kbps mono (iOS Safari can't reliably play OGG); species only
  *   items/<id>.webp     item sprite, 48–64 px WebP (precached); every item in reference/items.json
+ *   guide/<name>.webp   pixel-art sprites for the Guide menu rows, doubled, lossless (precached)
  */
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -24,6 +25,8 @@ const run = promisify(execFile);
 
 const SPRITES = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
 const ITEM_SPRITES = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items';
+// PokeAPI has no pixel-art Mint (its Gen 8 items are 160 px renders); PokéSprite draws the stat Mints.
+const POKESPRITE_ITEMS = 'https://raw.githubusercontent.com/msikma/pokesprite/master/items';
 const CRIES = 'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest';
 const ROOT = new URL('..', import.meta.url).pathname;
 const CACHE = join(ROOT, '.cache', 'media');
@@ -63,6 +66,8 @@ const KINDS: Kind[] = [
 ];
 const itemIdentifiers = new Map<number, string>();
 
+const PIXEL_OPTIONS = ['-vf', 'scale=iw*2:ih*2:flags=neighbor', '-c:v', 'libwebp', '-lossless', '1'];
+
 /**
  * Older item sprites are 24–32 px pixel art, newer ones 160 px renders. Pixel art is doubled with nearest-neighbour
  * and kept lossless; renders shrink to 64 px, lossy. Both then display sharp at the same size without
@@ -71,7 +76,7 @@ const itemIdentifiers = new Map<number, string>();
 async function itemSpriteOptions(src: string): Promise<string[]> {
   const width = (await readFile(src)).readUInt32BE(16); // PNG IHDR width
   return width <= 32
-    ? ['-vf', 'scale=iw*2:ih*2:flags=neighbor', '-c:v', 'libwebp', '-lossless', '1']
+    ? PIXEL_OPTIONS
     : ['-vf', 'scale=64:64:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '85'];
 }
 
@@ -97,6 +102,41 @@ async function convert(kind: Kind, id: number): Promise<'done' | 'skipped' | 'mi
   await run('ffmpeg', ['-loglevel', 'error', '-y', '-i', src, ...options, tmp]);
   await rename(tmp, out);
   return 'done';
+}
+
+/**
+ * Guide menu sprites: the Fighting TM, the Speed (Timid) Mint, and the Rusted Sword over the Rusted Shield in one
+ * 64 px image. The rusted sprites are already doubled pixel art: each is cropped to its art and placed at even
+ * offsets so the pair fills the box without breaking the pixel grid.
+ */
+async function buildGuideSprites() {
+  const dir = join(OUT, 'guide');
+  await mkdir(dir, { recursive: true });
+  const fetchItem = async (url: string, name: string) => {
+    const src = await fetchSource(url, join(CACHE, 'guide', name));
+    if (!src) throw new Error(`Guide sprite missing: ${url}`);
+    return src;
+  };
+  const ffmpeg = (inputs: string[], options: string[], name: string) =>
+    run('ffmpeg', ['-loglevel', 'error', '-y', ...inputs.flatMap((i) => ['-i', i]), ...options, join(dir, `${name}.webp`)]);
+
+  await mkdir(join(CACHE, 'guide'), { recursive: true });
+  await ffmpeg([await fetchItem(`${ITEM_SPRITES}/tm-fighting.png`, 'tm-fighting.png')], PIXEL_OPTIONS, 'tm');
+  await ffmpeg([await fetchItem(`${POKESPRITE_ITEMS}/mint/speed.png`, 'mint-speed.png')], PIXEL_OPTIONS, 'mint');
+  const sword = await fetchItem(`${ITEM_SPRITES}/rusted-sword.png`, 'rusted-sword.png');
+  const shield = await fetchItem(`${ITEM_SPRITES}/rusted-shield.png`, 'rusted-shield.png');
+  // Both sprites carry a white sticker border (and near-white pixels where it meets the art): clear it to alpha 0.
+  // colorkey would set every other pixel opaque, so geq keeps the source alpha instead.
+  const unsticker = "format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(gt(r(X,Y),200)*gt(g(X,Y),200)*gt(b(X,Y),200),0,alpha(X,Y))'";
+  const pair = [
+    'color=c=black@0:s=64x64,format=rgba[bg]',
+    `[0]${unsticker},crop=42:40:12:10[sword]`,
+    `[1]${unsticker},crop=44:36:10:14[shield]`,
+    '[bg][shield]overlay=14:24:format=rgb[back]',
+    '[back][sword]overlay=4:4:format=rgb,format=rgba',
+  ].join(';');
+  await ffmpeg([sword, shield], ['-filter_complex', pair, '-frames:v', '1', '-c:v', 'libwebp', '-lossless', '1'], 'types');
+  console.log('guide: 3 sprites');
 }
 
 /** Runs `task` over `items` with at most CONCURRENCY in flight. */
@@ -149,6 +189,7 @@ async function main() {
     console.log(`${kind.dir}: ${done} converted, ${skipped} up to date, ${missing.length} missing`);
     if (missing.length) console.log(`  no source for: ${missing.sort((a, b) => a - b).join(', ')}`);
   }
+  await buildGuideSprites();
 }
 
 main().catch((err) => {

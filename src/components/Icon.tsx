@@ -40,8 +40,9 @@ const paths = {
   ),
   dex: (
     <>
-      <circle cx="12" cy="12" r="8" />
-      <path d="M4 12h16" />
+      <path d="M4.5 5a2.5 2.5 0 012.5-2.5h4l2 3h4A2.5 2.5 0 0119.5 8v11a2.5 2.5 0 01-2.5 2.5H7A2.5 2.5 0 014.5 19z" />
+      <circle cx="8.5" cy="7.5" r="2" />
+      <path d="M4.5 12.5h15" />
     </>
   ),
   person: (
@@ -52,9 +53,11 @@ const paths = {
   ),
   team: (
     <>
-      <circle cx="9" cy="8" r="3.5" />
-      <circle cx="17" cy="9" r="2.5" />
-      <path d="M3 19c0-3 2.7-5 6-5s6 2 6 5M15 14.5c3 0 5 1.6 5 4.5" />
+      <path d="M14.1 6.4A6.2 6.2 0 1 0 6.4 14.1M1.8 8h4.6M9.6 8h3.1" />
+      <circle cx="8" cy="8" r="1.6" />
+      <circle cx="16" cy="16" r="6.2" />
+      <path d="M9.8 16h4.6M17.6 16h4.6" />
+      <circle cx="16" cy="16" r="1.6" />
     </>
   ),
   book: (
@@ -63,7 +66,12 @@ const paths = {
       <path d="M9 9h6M9 13h6" />
     </>
   ),
-  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+  cog: (
+    <>
+      <path d="M13.39 4.94L14.58 2.86L16.64 3.71L16.01 6.02L17.98 7.99L20.29 7.36L21.14 9.42L19.06 10.61L19.06 13.39L21.14 14.58L20.29 16.64L17.98 16.01L16.01 17.98L16.64 20.29L14.58 21.14L13.39 19.06L10.61 19.06L9.42 21.14L7.36 20.29L7.99 17.98L6.02 16.01L3.71 16.64L2.86 14.58L4.94 13.39L4.94 10.61L2.86 9.42L3.71 7.36L6.02 7.99L7.99 6.02L7.36 3.71L9.42 2.86L10.61 4.94z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
   shield: <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />,
   pencil: <path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" />,
   height: (
@@ -79,6 +87,38 @@ const paths = {
     </>
   ),
   trash: <path d="M5 7h14M10 11v6M14 11v6M7 7l1 13h8l1-13M9 7V4h6v3" />,
+  // Move categories (drawn on a coloured badge by CategoryIcon), each stretched along a 30° diagonal:
+  // a spike bubble, rings, an oval split by an S-curve with one side filled.
+  physical: (
+    <path
+      transform="rotate(-30 12 12)"
+      d="M23.5 12 17.7 13.4 20.1 17.3 14.4 15.3 12 19.5 9.6 15.3 3.9 17.3 6.3 13.4 0.5 12 6.3 10.6 3.9 6.7 9.6 8.7 12 4.5 14.4 8.7 20.1 6.7 17.7 10.6z"
+    />
+  ),
+  special: (
+    <g transform="rotate(-30 12 12)">
+      <ellipse cx="12" cy="12" rx="10" ry="6.5" />
+      <ellipse cx="12" cy="12" rx="4.5" ry="2.5" />
+    </g>
+  ),
+  status: (
+    <g transform="rotate(150 12 12)">
+      <ellipse cx="12" cy="12" rx="10" ry="7" strokeWidth="2" />
+      <path d="M2 12a5 3.5 0 0110 0 5 3.5 0 0010 0 10 7 0 00-20 0z" fill="currentColor" stroke="none" />
+    </g>
+  ),
+  male: (
+    <g strokeWidth="2.75">
+      <circle cx="10" cy="14" r="6" />
+      <path d="M14.5 9.5L20 4M15 4h5v5" />
+    </g>
+  ),
+  female: (
+    <g strokeWidth="2.75">
+      <circle cx="12" cy="9" r="6" />
+      <path d="M12 15v7M8.5 18.5h7" />
+    </g>
+  ),
 } as const;
 
 export type IconName = keyof typeof paths;

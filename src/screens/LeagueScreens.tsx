@@ -18,7 +18,7 @@ export function LeagueList({ kind }: { kind: TrainerKind }) {
   return (
     <>
       <header className="topbar">
-        <Link to="/reference" className="icon-btn" aria-label="Back to Reference">
+        <Link to="/reference" className="icon-btn" aria-label="Back to Guide">
           <Icon name="back" />
         </Link>
         <div className="grow">

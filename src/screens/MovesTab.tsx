@@ -5,7 +5,7 @@ import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types
 import { signed } from '../data/format';
 import { typeChip } from '../data/typeColors';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip } from '../components/bits';
+import { CategoryIcon, Loading, TypeChip } from '../components/bits';
 
 type Method = keyof Learnset;
 const METHODS: { key: Method; title: string }[] = [
@@ -61,7 +61,7 @@ export function MovesTab({ mon }: { mon: SpeciesDetail }) {
       )}
 
       {shown && (
-        <MoveGroup title={`${shown.title} · ${set[shown.key].length}`}>
+        <MoveGroup title={`${shown.title} · ${set[shown.key].length}`} level={shown.key === 'level'}>
           {shown.key === 'level'
             ? set.level.map(([move, level]) => <MoveRow key={`${move}-${level}`} move={move} moves={moves} level={level} />)
             : [...set[shown.key]].sort(byName).map((move) => <MoveRow key={move} move={move} moves={moves} />)}
@@ -79,11 +79,12 @@ function Note({ children }: { children: ReactNode }) {
   );
 }
 
-function MoveGroup({ title, children }: { title: string; children: ReactNode }) {
+function MoveGroup({ title, level, children }: { title: string; level: boolean; children: ReactNode }) {
   return (
     <section className="move-group">
       <h2>{title}</h2>
-      <ul>{children}</ul>
+      <MoveHead level={level} />
+      <ul className={level ? 'move-table with-lv' : 'move-table'}>{children}</ul>
     </section>
   );
 }
@@ -93,46 +94,75 @@ function MoveRow({ move, moves, level }: { move: number; moves: MoveTable; level
   return (
     <li>
       <Link className="move-row" to={`/reference/moves/${move}`}>
-      {level !== undefined && (
-        <span className="lv" style={{ borderColor: typeChip(m.type) }}>
-          {level === 0 ? (
-            <>
-              <span aria-hidden="true">Evo</span>
-              <span className="sr-only">On evolution</span>
-            </>
-          ) : (
-            <>
-              <span className="sr-only">Level </span>
-              {level}
-            </>
-          )}
-        </span>
-      )}
-      <MoveBody move={m} />
-      <TypeChip type={m.type} />
+        {level !== undefined && (
+          <span className="lv" style={{ borderColor: typeChip(m.type) }}>
+            {level === 0 ? (
+              <>
+                <span aria-hidden="true">Evo</span>
+                <span className="sr-only">On evolution</span>
+              </>
+            ) : (
+              <>
+                <span className="sr-only">Level </span>
+                {level}
+              </>
+            )}
+          </span>
+        )}
+        <MoveCells move={m} />
       </Link>
     </li>
   );
 }
 
-/** Name plus category, power, accuracy, PP and any priority; shared with the team member editor. */
-export function MoveBody({ move: m }: { move: MoveInfo }) {
+/** Column labels over a move table; screen readers get each label inside its cell instead. */
+export function MoveHead({ level, trailing }: { level?: boolean; trailing?: boolean }) {
   return (
-    <span className="body">
-      <span className="name">{m.name}</span>
-      <span className="meta">
-        {[
-          m.category,
-          m.category !== 'status' && `Pow ${m.power ?? '—'}`,
-          `Acc ${m.accuracy ? `${m.accuracy}%` : '—'}`,
-          m.pp && `PP ${m.pp}`,
-          m.priority !== 0 && `Priority ${signed(m.priority)}`,
-        ]
-          .filter(Boolean)
-          .map((part, i) => (
-            <span key={i}>{part}</span>
-          ))}
+    <div className={`move-head${level ? ' with-lv' : ''}${trailing ? ' with-end' : ''}`} aria-hidden="true">
+      {level && <span>Lv</span>}
+      <span className="move">Move</span>
+      <span>Type</span>
+      <span className="cat">Cat</span>
+      <span className="num">Pow</span>
+      <span className="num">Acc</span>
+      <span className="num">PP</span>
+    </div>
+  );
+}
+
+/** A move as table cells: name (with any priority), type, category, power, accuracy, PP; shared with the Guide and the member editor. */
+export function MoveCells({ move: m }: { move: MoveInfo }) {
+  return (
+    <>
+      <span className="name">
+        {m.name}
+        {m.priority !== 0 && ' '}
+        {m.priority !== 0 && <span className="prio">Priority {signed(m.priority)}</span>}
       </span>
+      <TypeChip type={m.type} />
+      <CategoryIcon category={m.category} />
+      <Stat label="Power" value={m.category === 'status' ? null : m.power} />
+      <Stat label="Accuracy" value={m.accuracy} unit="%" />
+      <Stat label="PP" value={m.pp} />
+    </>
+  );
+}
+
+function Stat({ label, value, unit }: { label: string; value: number | null; unit?: string }) {
+  return (
+    <span className="num">
+      <span className="sr-only">{label} </span>
+      {value === null ? (
+        <>
+          <span aria-hidden="true">—</span>
+          <span className="sr-only">none</span>
+        </>
+      ) : (
+        <>
+          {value}
+          {unit && <span className="sr-only">{unit}</span>}
+        </>
+      )}
     </span>
   );
 }
