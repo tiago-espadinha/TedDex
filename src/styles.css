@@ -344,7 +344,7 @@ main:focus, .sheet:focus { outline: none; }
 
 /* Content settling in: tab panels fade, stat bars fill from the left. */
 #tab-panel > * { animation: fade 200ms ease; }
-.stat-row .fill { transform-origin: left; animation: grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.stat-row .fill, .fill-catch { transform-origin: left; animation: grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 /* The cry button while the cry plays: a pill behind it and pulsing sound waves. */
 .icon-btn.playing { background: var(--tint-press); }
 .icon-btn.playing svg path + path { animation: pulse 500ms ease-in-out infinite alternate; }
@@ -413,9 +413,23 @@ main:focus, .sheet:focus { outline: none; }
 .eff-group { margin-bottom: 12px; }
 .eff-group h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.fact { padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.fact { display: flex; flex-direction: column; padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
 .fact .k { font-size: 12px; font-weight: 600; color: var(--muted); }
 .fact .v { font-size: 15px; font-weight: 800; margin-top: 2px; }
+.fact.wide { grid-column: 1 / -1; }
+.fact-chips { flex: 1; display: flex; flex-wrap: wrap; align-content: space-evenly; align-items: center; gap: 6px; margin-top: 4px; }
+/* Chips keep their size; their rows spread over the tile's height (tiles in a row match the tallest one). */
+.fact .v:has(> .fact-chips) { flex: 1; display: flex; }
+.fact-chip { padding: 3px 10px; border-radius: 12px; color: var(--on-type); font-size: 13px; font-weight: 700; }
+/* Catch rate and gender ratio bars: decorative, the values are in the text. */
+.fact-bar { display: flex; gap: 2px; height: 8px; margin: 8px 0 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.fact-bar > span { height: 100%; }
+.fill-male { background: var(--gender-male); }
+.fill-female { background: var(--gender-female); }
+.fill-genderless { background: var(--muted); }
+/* Catch rate and its chance on one line, the chance set apart by a rule. */
+.catch-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.fact-note { padding-left: 10px; border-left: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--muted); }
 .gender-ratio { display: flex; flex-wrap: wrap; gap: 2px 14px; }
 .gender-ratio > span { white-space: nowrap; }
 .gender { display: inline-flex; vertical-align: -4px; }
@@ -753,7 +767,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .ability, .game-select, .team-row, .evo-list, .learner-row img, .league-team, .picker-list,
+[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .evo-list, .learner-row img, .league-team, .picker-list,
   .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }

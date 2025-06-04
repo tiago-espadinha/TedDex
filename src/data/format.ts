@@ -16,11 +16,13 @@ export function formatMultiplier(m: number): string {
 
 const STAT_SHORT = { hp: 'HP', atk: 'Atk', def: 'Def', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' } as const;
 
-/** { spa: 1 } → "1 Sp. Atk"; { atk: 2, spe: 1 } → "2 Atk, 1 Speed"; {} → "None". */
-export function evYieldText(ev: Partial<Record<keyof typeof STAT_SHORT, number>>): string {
-  const parts = (Object.keys(STAT_SHORT) as (keyof typeof STAT_SHORT)[]).filter((k) => ev[k]).map((k) => `${ev[k]} ${STAT_SHORT[k]}`);
-  return parts.length ? parts.join(', ') : 'None';
+/** { atk: 2, spe: 1 } → [{ stat: 'atk', text: "2 Atk" }, { stat: 'spe', text: "1 Speed" }], in stat order; {} → []. */
+export function evYieldParts(ev: Partial<Record<keyof typeof STAT_SHORT, number>>): { stat: keyof typeof STAT_SHORT; text: string }[] {
+  return (Object.keys(STAT_SHORT) as (keyof typeof STAT_SHORT)[]).filter((k) => ev[k]).map((k) => ({ stat: k, text: `${ev[k]} ${STAT_SHORT[k]}` }));
 }
+
+/** Catch rate (3–255) → the chance with a Poké Ball at full HP and no status, about rate / 3 / 255: 45 → "5.9%", 255 → "33.3%". */
+export const catchChance = (rate: number) => `${((Math.min(255, rate) / 3 / 255) * 100).toFixed(1)}%`;
 
 /** Female share in eighths (-1 genderless) → "87.5% ♂ · 12.5% ♀", "100% ♂", "Genderless". */
 export function genderText(rate: number): string {

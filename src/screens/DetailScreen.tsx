@@ -4,7 +4,7 @@ import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, sprit
 import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { evYieldText, formatMultiplier, formatNo, genderText } from '../data/format';
+import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText } from '../data/format';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
@@ -268,15 +268,51 @@ function GenderRatio({ rate }: { rate: number }) {
   );
 }
 
-/** Description, evolution and locations, then training and breeding facts. Evolution and locations stay species-level. */
+/** A decorative bar under a fact; the value it shows is in the fact's text. */
+function FactBar({ parts }: { parts: [width: number, className: string, color?: string][] }) {
+  return (
+    <span className="fact-bar" aria-hidden="true">
+      {parts
+        .filter(([w]) => w > 0)
+        .map(([w, c, bg]) => (
+          <span key={c} className={c} style={{ width: `${w}%`, backgroundColor: bg }} />
+        ))}
+    </span>
+  );
+}
+
+/** Chip colours borrowed from the type chips (white text passes 4.5:1 on each). */
+const EV_COLOR: Record<keyof SpeciesDetail['stats'], TypeName> = { hp: 'fighting', atk: 'fire', def: 'electric', spa: 'water', spd: 'grass', spe: 'fairy' };
+const EGG_GROUP_COLOR: Record<string, TypeName> = {
+  Monster: 'fire', 'Water 1': 'water', 'Water 2': 'water', 'Water 3': 'water', Bug: 'bug', Flying: 'flying', Field: 'ground',
+  Fairy: 'fairy', Grass: 'grass', 'Human-Like': 'fighting', Mineral: 'rock', Amorphous: 'ghost', Dragon: 'dragon', Ditto: 'psychic',
+};
+
+function Chips({ items }: { items: [text: string, color: TypeName][] }) {
+  return (
+    <span className="fact-chips">
+      {items.map(([t, c]) => (
+        <span key={t} className="fact-chip" style={{ backgroundColor: typeChip(c) }}>
+          {t}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function Fact({ k, wide, children }: { k: string; wide?: boolean; children: ReactNode }) {
+  return (
+    <div className={wide ? 'fact wide' : 'fact'}>
+      <div className="k">{k}</div>
+      <div className="v">{children}</div>
+    </div>
+  );
+}
+
+/** Description, evolution and locations, then the Training and Breeding facts. Evolution and locations stay species-level. */
 function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail }) {
-  const facts: [string, ReactNode][] = [
-    ['Catch rate', String(mon.catchRate)],
-    ['EV yield', evYieldText(mon.evYield)],
-    ['Leveling rate', mon.growthRate],
-    ['Egg groups', mon.eggGroups.join(', ')],
-    ['Gender ratio', <GenderRatio rate={mon.genderRate} />],
-  ];
+  const ev = evYieldParts(mon.evYield);
+  const female = (mon.genderRate / 8) * 100;
   return (
     <>
       {mon.flavor && (
@@ -287,14 +323,38 @@ function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail })
       <EvolutionTab mon={species} />
       <LocationsTab key={species.id} mon={species} />
       <div className="section">
-        <h2>Training and breeding</h2>
+        <h2>Training</h2>
         <div className="facts">
-          {facts.map(([k, v]) => (
-            <div className="fact" key={k}>
-              <div className="k">{k}</div>
-              <div className="v">{v}</div>
-            </div>
-          ))}
+          <Fact k="Leveling rate">{mon.growthRate}</Fact>
+          <Fact k="EV yield">{ev.length ? <Chips items={ev.map((p) => [p.text, EV_COLOR[p.stat]])} /> : 'None'}</Fact>
+          <Fact k="Catch rate" wide>
+            <span className="catch-line">
+              {mon.catchRate}
+              <small className="fact-note">{catchChance(mon.catchRate)} with a Poké Ball at full HP</small>
+            </span>
+            <FactBar parts={[[(mon.catchRate / 255) * 100, 'fill-catch', typeChip(mon.types[0])]]} />
+          </Fact>
+        </div>
+      </div>
+      <div className="section">
+        <h2>Breeding</h2>
+        <div className="facts">
+          <Fact k="Egg groups">
+            <Chips items={mon.eggGroups.map((g) => [g, EGG_GROUP_COLOR[g] ?? 'normal'])} />
+          </Fact>
+          <Fact k="Gender ratio">
+            <GenderRatio rate={mon.genderRate} />
+            <FactBar
+              parts={
+                mon.genderRate < 0
+                  ? [[100, 'fill-genderless']]
+                  : [
+                      [100 - female, 'fill-male'],
+                      [female, 'fill-female'],
+                    ]
+              }
+            />
+          </Fact>
         </div>
       </div>
     </>
