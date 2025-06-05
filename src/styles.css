@@ -316,9 +316,9 @@ main:focus, .sheet:focus { outline: none; }
 .mon-card { position: relative; display: block; height: 108px; border-radius: var(--radius-card); padding: 12px 12px 12px 14px; color: var(--on-tint); text-decoration: none; overflow: hidden; transition: transform 120ms ease; }
 .mon-card:active { transform: scale(0.97); }
 /* Fixed line heights: two stacked type chips fit above the 12 px bottom padding in both designs' fonts. */
-.mon-card .no { font-size: 12px; line-height: 16px; font-weight: 700; color: var(--on-tint-muted); }
+.mon-card .no { font-size: 12px; line-height: 16px; font-weight: 700; color: var(--on-tint-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mon-card .no, .mon-card .name, .mon-card .types { position: relative; z-index: 1; }
-.mon-card .sort-val { font-weight: 800; color: var(--on-tint); }
+.mon-card :is(.sort-val, .form-label) { font-weight: 800; color: var(--on-tint); }
 .mon-card .name { font-size: 15px; line-height: 20px; font-weight: 800; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mon-card .types { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 6px; }
 .mon-card .type-chip { line-height: 14px; }
@@ -330,7 +330,7 @@ main:focus, .sheet:focus { outline: none; }
 .mon-card.row img { position: static; grid-area: 1 / 1 / 3 / 2; align-self: center; width: 96px; height: 96px; margin: -8px; }
 /* Artwork fills its frame: keep it inside the row. */
 .mon-card.row.sprite-art img { width: 80px; height: 80px; margin: 0; }
-.mon-card.row .no { grid-area: 1 / 2; align-self: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mon-card.row .no { grid-area: 1 / 2; align-self: end; }
 .mon-card.row .name { grid-area: 2 / 2; align-self: start; margin: 0; font-size: 16px; }
 .mon-card.row .types { grid-area: 1 / 3 / 3 / 4; align-self: center; align-items: stretch; margin: 0; text-align: center; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
@@ -504,6 +504,8 @@ main:focus, .sheet:focus { outline: none; }
 .game-select select { appearance: none; flex: 1; min-width: 0; height: 46px; padding: 0 32px 0 10px; border: 0; background: transparent; font-size: 15px; font-weight: 800; text-overflow: ellipsis; }
 .game-select svg { position: absolute; right: 12px; transform: rotate(90deg); pointer-events: none; color: var(--muted); }
 .game-select:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
+.game-select:disabled { cursor: default; }
+.game-select:disabled svg { display: none; }
 .game-select select:focus-visible { outline: none; }
 .move-group { margin-top: 14px; }
 .move-group ul { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
@@ -640,6 +642,8 @@ a.move-row.tinted { color: var(--on-tint); }
 .switch-row[aria-checked='true'] .track { background: var(--primary); }
 .switch-row[aria-checked='true'] .track::after { transform: translateX(20px); background: var(--primary-ink); }
 .switch-row:focus-visible { outline-offset: 2px; }
+.switch-list { margin-top: 4px; }
+.switch-list .switch-row { width: 100%; margin: 0; }
 .league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
 .league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--on-tint-2); }
 .league-pick-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
@@ -746,6 +750,15 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-mon .league-facts dt { color: var(--on-tint-muted); }
 .team-mon .league-facts dd { color: var(--on-tint); }
 .team-mon-hint { display: block; margin: -4px 12px 0 80px; font-size: 13px; font-weight: 600; color: var(--on-tint-muted); }
+.team-mon-flag { margin-bottom: 8px; font-weight: 800; color: var(--on-tint); }
+/* Moves, abilities and items not in the team's game: a dashed edge and a note under the name. */
+.league-moves .not-in-game > *, .league-facts .league-chip.not-in-game { flex-wrap: wrap; align-content: center; padding-block: 4px; border-left-style: dashed; }
+.league-facts .league-chip.not-in-game { row-gap: 0; }
+.team-mon .league-moves li > * { height: 100%; }
+.move-flag { flex-basis: 100%; font-size: 12px; font-weight: 600; color: var(--muted); }
+.team-mon .move-flag { color: var(--on-tint-muted); }
+.move-table .move-note { font-weight: 700; color: var(--ink-2); }
+.team-game { margin: 0 0 4px; }
 .add-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .add-slot { height: 56px; border-radius: var(--radius-card); border: 1.5px dashed var(--outline); background: transparent; font-size: 14px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
 .member-hero { text-decoration: none; padding-right: 12px; }

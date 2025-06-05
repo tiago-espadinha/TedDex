@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import Fuse from 'fuse.js';
-import { DEFAULT_FILTERS, type DexFilters } from '../src/data/dexState';
-import { FUSE_OPTIONS, applyFilters } from '../src/data/filter';
-import type { IndexEntry } from '../src/data/types';
+import { DEFAULT_FILTERS, parseFormKinds, type DexFilters } from '../src/data/dexState';
+import { FUSE_OPTIONS, applyFilters, dexRows } from '../src/data/filter';
+import type { FormKind, IndexEntry, IndexForm } from '../src/data/types';
 
 /** A grid row with made-up stats and size; only the fields a test sorts by matter. */
 const mon = (id: number, name: string, types: IndexEntry['types'], gen: number, total: number, atk = 50, weightKg = 10): IndexEntry => ({
@@ -101,5 +101,82 @@ describe('applyFilters', () => {
     const before = ALL.map((m) => m.id);
     ids({ sort: 'name' });
     assert.deepEqual(ALL.map((m) => m.id), before);
+  });
+});
+
+/** A form for the index: its kind, types and base total; stats and size don't matter here. */
+const form = (key: string, kind: IndexForm['kind'], pokemonId: number, name: string, types: IndexForm['types'], total: number, atk = 50): IndexForm => ({
+  key, label: name.split(' ')[0], kind, pokemonId, name, types, total, stats: { hp: 50, atk, def: 50, spa: 50, spd: 50, spe: 50 }, heightM: 1, weightKg: 10,
+});
+
+const WITH_FORMS: IndexEntry[] = [
+  {
+    ...mon(6, 'Charizard', ['fire', 'flying'], 1, 534, 84),
+    tags: ['mega'],
+    forms: [
+      form('mega-x', 'mega', 10034, 'Mega Charizard X', ['fire', 'dragon'], 634, 130),
+      form('mega-y', 'mega', 10035, 'Mega Charizard Y', ['fire', 'flying'], 634, 104),
+      form('gmax', 'gmax', 10196, 'Gigantamax Charizard', ['fire', 'flying'], 534, 84),
+    ],
+  },
+  { ...mon(37, 'Vulpix', ['fire'], 1, 299), tags: ['regional'], forms: [form('alola', 'regional', 10103, 'Alolan Vulpix', ['ice'], 299)] },
+  { ...mon(479, 'Rotom', ['electric', 'ghost'], 4, 440), forms: [form('heat', 'other', 10008, 'Heat Rotom', ['electric', 'fire'], 520)] },
+  mon(149, 'Dragonite', ['dragon', 'flying'], 1, 600, 134),
+];
+
+/** Rows for the switched-on kinds, filtered; each as its species number plus form key ("6", "6:mega-x"). */
+const rowKeys = (kinds: FormKind[], f: Partial<DexFilters> = {}) => {
+  const rows = dexRows(WITH_FORMS, kinds);
+  return applyFilters(rows, new Fuse(rows, FUSE_OPTIONS), { ...DEFAULT_FILTERS, ...f }).map((r) => (r.form ? `${r.id}:${r.form.key}` : `${r.id}`));
+};
+
+describe('dexRows', () => {
+  test('with every switch off there is one row per species, without the form lists', () => {
+    const rows = dexRows(WITH_FORMS, []);
+    assert.deepEqual(rows.map((r) => r.id), [6, 37, 479, 149]);
+    assert.ok(rows.every((r) => !('forms' in r) && !r.form));
+  });
+
+  test('each switch adds only its kind, right after the species', () => {
+    assert.deepEqual(rowKeys(['mega']), ['6', '6:mega-x', '6:mega-y', '37', '479', '149']);
+    assert.deepEqual(rowKeys(['regional']), ['6', '37', '37:alola', '479', '149']);
+    assert.deepEqual(rowKeys(['gmax']), ['6', '6:gmax', '37', '479', '149']);
+    assert.deepEqual(rowKeys(['other']), ['6', '37', '479', '479:heat', '149']);
+  });
+
+  test("a form row has the form's types and stats with the species' name, number, generation and tags", () => {
+    const megaX = dexRows(WITH_FORMS, ['mega'])[1];
+    assert.deepEqual(megaX.types, ['fire', 'dragon']);
+    assert.equal(megaX.total, 634);
+    assert.deepEqual([megaX.name, megaX.id, megaX.gen, megaX.tags], ['Charizard', 6, 1, ['mega']]);
+    assert.deepEqual(megaX.form, { key: 'mega-x', label: 'Mega', name: 'Mega Charizard X', pokemonId: 10034 });
+  });
+
+  test('Fire+Dragon includes Mega Charizard X only with Megas on', () => {
+    assert.ok(rowKeys(['mega'], { types: ['fire', 'dragon'] }).includes('6:mega-x'));
+    assert.ok(!rowKeys([], { types: ['fire', 'dragon'] }).includes('6:mega-x'));
+    assert.deepEqual(rowKeys(['mega'], { query: 'dragon' }), ['6:mega-x', '149']);
+  });
+
+  test('search finds forms by name and number', () => {
+    assert.deepEqual(rowKeys(['regional'], { query: 'alolan' }), ['37:alola']);
+    assert.deepEqual(rowKeys(['other'], { query: 'heat rotom' }), ['479:heat']);
+    assert.deepEqual(rowKeys(['mega', 'gmax'], { query: '6' }), ['6', '6:mega-x', '6:mega-y', '6:gmax']);
+    assert.deepEqual(rowKeys(['mega'], { query: 'charizard' }), ['6', '6:mega-x', '6:mega-y']);
+  });
+
+  test('sorts and generation filters apply to form rows', () => {
+    assert.deepEqual(rowKeys(['mega', 'other'], { sort: 'total' }).slice(0, 4), ['6:mega-x', '6:mega-y', '149', '6']);
+    assert.deepEqual(rowKeys(['mega'], { sort: 'atk' }).slice(0, 2), ['149', '6:mega-x']);
+    assert.deepEqual(rowKeys(['other'], { gens: [4] }), ['479', '479:heat']);
+    assert.deepEqual(rowKeys(['mega', 'regional'], { sort: 'name' }), ['6', '6:mega-x', '6:mega-y', '149', '479', '37', '37:alola']);
+  });
+});
+
+describe('parseFormKinds', () => {
+  test('reads the stored list in Settings order and ignores unknown words', () => {
+    assert.deepEqual(parseFormKinds('gmax,mega,shiny'), ['mega', 'gmax']);
+    assert.deepEqual(parseFormKinds(''), []);
+    assert.deepEqual(parseFormKinds(null), []);
   });
 });

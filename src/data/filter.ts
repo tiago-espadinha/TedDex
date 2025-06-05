@@ -2,13 +2,33 @@ import type Fuse from 'fuse.js';
 import type { IFuseOptions } from 'fuse.js';
 import type { DexFilters, SortKey } from './dexState';
 import { isTypeName } from './typeColors';
-import type { IndexEntry } from './types';
+import type { FormKind, IndexEntry } from './types';
 
-/** Name search options, shared by DexScreen and the tests. */
-export const FUSE_OPTIONS: IFuseOptions<IndexEntry> = { keys: ['name'], threshold: 0.3, ignoreLocation: true };
+/**
+ * A Dex row: a species, or one of its forms (`form`) with the form's types, stats and size. A form row keeps the
+ * species' name, so it sorts by name right after it, and is told apart by `form.label`.
+ */
+export interface DexRow extends Omit<IndexEntry, 'forms'> {
+  form?: { key: string; label: string; name: string; pokemonId: number };
+}
+
+/** The species, each followed by its forms of the kinds switched on, in dex order. Forms keep the species' number, generation and tags. */
+export function dexRows(index: IndexEntry[], kinds: readonly FormKind[]): DexRow[] {
+  const rows: DexRow[] = [];
+  for (const { forms, ...mon } of index) {
+    rows.push(mon);
+    for (const { key, label, name, kind, pokemonId, ...shown } of forms ?? []) {
+      if (kinds.includes(kind)) rows.push({ ...mon, ...shown, form: { key, label, name, pokemonId } });
+    }
+  }
+  return rows;
+}
+
+/** Name search options, shared by DexScreen and the tests: a form row matches its full name too ("Alolan Vulpix"). */
+export const FUSE_OPTIONS: IFuseOptions<DexRow> = { keys: ['name', 'form.name'], threshold: 0.3, ignoreLocation: true };
 
 /** The number a sort orders by, highest first; undefined for number and name order. */
-export function sortValue(m: IndexEntry, sort: SortKey): number | undefined {
+export function sortValue(m: DexRow, sort: SortKey): number | undefined {
   switch (sort) {
     case 'number':
     case 'name':
@@ -25,7 +45,7 @@ export function sortValue(m: IndexEntry, sort: SortKey): number | undefined {
 }
 
 /** Search + category/generation/type filters + sort, in that order. Types match any of the chosen ones. Pure, so it's easy to test. */
-export function applyFilters(all: IndexEntry[], fuse: Fuse<IndexEntry> | null, f: DexFilters): IndexEntry[] {
+export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f: DexFilters): T[] {
   let list = all;
   const q = f.query.trim().toLowerCase();
   if (q) {
@@ -35,8 +55,8 @@ export function applyFilters(all: IndexEntry[], fuse: Fuse<IndexEntry> | null, f
     } else if (isTypeName(q)) {
       list = list.filter((m) => m.types.includes(q));
     } else if (fuse) {
-      const hits = new Set(fuse.search(q).map((r) => r.item.id));
-      list = list.filter((m) => hits.has(m.id));
+      const hits = new Set(fuse.search(q).map((r) => r.item));
+      list = list.filter((m) => hits.has(m));
     }
   }
   if (f.category) list = list.filter((m) => m.tags?.includes(f.category!));

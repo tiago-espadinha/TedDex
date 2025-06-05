@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { loadVersions, useLoad } from '../data/api';
 import { BackupError, exportTeams, importTeams } from '../data/db';
 import { parseGamePref } from '../data/game';
-import { applyDesign, applyTheme, useDesign, useGame, useSpriteStyle, useTheme, type Theme } from '../data/settings';
+import { FORM_KIND_LABELS } from '../data/dexState';
+import { applyDesign, applyTheme, useDesign, useDexForms, useGame, useSpriteStyle, useTheme, type Theme } from '../data/settings';
+import type { FormKind } from '../data/types';
 import { Icon } from '../components/Icon';
 import { useToast } from '../components/bits';
 
@@ -10,6 +12,7 @@ export function MoreScreen() {
   const [design, setDesign] = useDesign();
   const [theme, setTheme] = useTheme();
   const [sprite, setSprite] = useSpriteStyle();
+  const [formKinds, setFormKinds] = useDexForms();
   const [game, setGame] = useGame();
   const versions = useLoad(loadVersions, 'versions').data;
   const [dataVersion, setDataVersion] = useState<string>();
@@ -81,6 +84,31 @@ export function MoreScreen() {
           <button role="radio" aria-checked={sprite === 'art'} onClick={() => setSprite('art')}>
             Artwork
           </button>
+        </div>
+
+        <h2 style={{ marginTop: 22 }} id="forms-head">
+          Forms in the Dex
+        </h2>
+        <p id="forms-hint" className="hint">
+          Show these forms as their own rows, right after their species.
+        </p>
+        <div className="switch-list" role="group" aria-labelledby="forms-head" aria-describedby="forms-hint">
+          {(Object.entries(FORM_KIND_LABELS) as [FormKind, string][]).map(([kind, label]) => {
+            const on = formKinds.includes(kind);
+            return (
+              <button
+                key={kind}
+                type="button"
+                className="switch-row"
+                role="switch"
+                aria-checked={on}
+                onClick={() => setFormKinds(on ? formKinds.filter((k) => k !== kind) : [...formKinds, kind])}
+              >
+                {label}
+                <span className="track" aria-hidden="true" />
+              </button>
+            );
+          })}
         </div>
 
         <h2 style={{ marginTop: 22 }}>Game</h2>

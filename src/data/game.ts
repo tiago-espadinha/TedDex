@@ -7,6 +7,9 @@ export function parseGamePref(value: string | null): GamePref {
   return value && Number.isInteger(n) && n > 0 ? n : 'latest';
 }
 
+/** The game a new team starts with: the chosen one, or any game (undefined) for 'latest'. */
+export const teamGame = (pref: GamePref): number | undefined => (pref === 'latest' ? undefined : pref);
+
 /**
  * The version group to show out of a species' groups (`available`, oldest first): the chosen one when it has it,
  * else its latest, with `missed` set to the chosen one so the tab can say so. Undefined when it has none.

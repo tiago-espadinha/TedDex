@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { BackupError, checkKnownForms, checkKnownIds, parseBackup, teamGodMode } from '../src/data/db';
-import type { MoveTable, SpeciesDetail } from '../src/data/types';
+import { BackupError, checkKnownForms, checkKnownGames, checkKnownIds, parseBackup, teamGodMode } from '../src/data/db';
+import type { MoveTable, SpeciesDetail, VersionGroup } from '../src/data/types';
 
 const backup = (teams: unknown) => JSON.stringify({ app: 'material-dex', version: 4, teams });
 const oneMember = (member: unknown) => backup([{ name: 'A', members: [member] }]);
@@ -104,6 +104,22 @@ describe('parseBackup', () => {
     rejects(oneMember({ speciesId: 25, godMode: 1 }), /invalid god mode/);
   });
 
+  test('round-trips the team game', () => {
+    const [team] = parseBackup(JSON.stringify({ app: 'material-dex', version: 5, teams: [{ name: 'A', members: [{ speciesId: 25, moves: [9] }], game: 1 }] }));
+    assert.equal(team.game, 1);
+    assert.deepEqual(team.members[0].moves, [9]);
+  });
+
+  test('imports a team from an older backup as any game', () => {
+    const [team] = parseBackup(oneMember({ speciesId: 25 }));
+    assert.equal(team.game, undefined);
+    assert.ok(!('game' in team));
+  });
+
+  test('rejects a game that is not a positive whole number', () => {
+    for (const game of [0, -1, 1.5, '1', null]) rejects(backup([{ name: 'A', members: [], game }]), /Team 1 in the file has an invalid game/);
+  });
+
   test('rejects files that are not backups', () => {
     rejects('not json', /isn't a team backup/);
     rejects('null', /isn't a team backup/);
@@ -198,6 +214,21 @@ describe('checkKnownForms', () => {
     for (const member of [{ speciesId: 38, formKey: 'galar' }, { speciesId: 6, formKey: 'mega-x' }]) {
       assert.throws(check(member), (e: unknown) => e instanceof BackupError && e.message === 'Team 1 in the file: member 1 has an unknown form');
     }
+  });
+});
+
+describe('checkKnownGames', () => {
+  const versions: VersionGroup[] = [{ id: 1, label: 'Red / Blue', gen: 1 }];
+
+  test('accepts a known game and teams without one', () => {
+    checkKnownGames([{ name: 'A', members: [], game: 1, updatedAt: 0 }, { name: 'B', members: [], updatedAt: 0 }], versions);
+  });
+
+  test('rejects an unknown game and names the team', () => {
+    assert.throws(
+      () => checkKnownGames([{ name: 'A', members: [], updatedAt: 0 }, { name: 'B', members: [], game: 99, updatedAt: 0 }], versions),
+      (e: unknown) => e instanceof BackupError && /Team 2 in the file has an unknown game/.test(e.message),
+    );
   });
 });
 

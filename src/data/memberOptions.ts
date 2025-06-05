@@ -1,19 +1,28 @@
-import type { AbilityTable, Learnsets, MoveTable } from './types';
+import type { AbilityTable, FormVariant, Learnsets, MoveTable } from './types';
 
 const byName = (moves: MoveTable) => (a: number, b: number) => moves[a].name.localeCompare(moves[b].name);
 
 /**
- * The moves the member editor offers, sorted by name: every move the species learns in any
- * main-series game by any method, or in god mode every move.
+ * Every move the species learns by any method in version group `game` (none when it isn't in that game),
+ * or in any main-series game when `game` is undefined.
  */
-export function moveChoices(learnsets: Learnsets, moves: MoveTable, godMode = false): number[] {
-  if (godMode) return Object.keys(moves).map(Number).sort(byName(moves));
+export function learnable(learnsets: Learnsets, game?: number): Set<number> {
+  const sets = game === undefined ? Object.values(learnsets) : learnsets[game] ? [learnsets[game]] : [];
   const ids = new Set<number>();
-  for (const set of Object.values(learnsets)) {
+  for (const set of sets) {
     set.level.forEach(([m]) => ids.add(m));
     [...set.machine, ...set.tutor, ...set.egg].forEach((m) => ids.add(m));
   }
-  return [...ids].sort(byName(moves));
+  return ids;
+}
+
+/**
+ * The moves the member editor offers, sorted by name: what the species learns in the team's `game`
+ * (see `learnable`), or in god mode every move.
+ */
+export function moveChoices(learnsets: Learnsets, moves: MoveTable, godMode = false, game?: number): number[] {
+  const ids = godMode ? Object.keys(moves).map(Number) : [...learnable(learnsets, game)];
+  return ids.sort(byName(moves));
 }
 
 /** Every ability not among `own` (by name), sorted by name: what god mode adds to the ability picker. */
@@ -24,3 +33,20 @@ export function otherAbilities(own: { name: string }[], abilities: AbilityTable)
     .filter((a) => !owned.has(a.name))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+/** The first generation whose games have abilities, hidden abilities and held items. */
+export const FIRST_GEN = { ability: 3, hidden: 5, item: 2 };
+
+/**
+ * Whether a team's game (its generation `gen`; undefined for any game) has an ability introduced in Gen
+ * `introduced`, hidden or not. `abilityInGame(gen, 1)` tells whether the game has abilities at all.
+ */
+export const abilityInGame = (gen: number | undefined, introduced: number, hidden = false) =>
+  gen === undefined || (gen >= Math.max(FIRST_GEN.ability, introduced) && (!hidden || gen >= FIRST_GEN.hidden));
+
+/** Whether a team's game (generation `gen`, undefined for any game) has a held item introduced in Gen `introduced`. */
+export const itemInGame = (gen: number | undefined, introduced: number) => gen === undefined || gen >= Math.max(FIRST_GEN.item, introduced);
+
+/** Whether version group `game` (undefined for any game) has the form; the default form (no `games`) is in every game. */
+export const formInGame = (form: Pick<FormVariant, 'games'> | undefined, game?: number) =>
+  game === undefined || !form?.games || form.games.includes(game);

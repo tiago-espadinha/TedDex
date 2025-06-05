@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { Category, StatBlock, TypeName } from './types';
+import type { Category, FormKind, StatBlock, TypeName } from './types';
 
 /** Dex list filters. Kept in sessionStorage so they survive opening a detail page. */
 export type SortKey = 'number' | 'name' | 'total' | keyof StatBlock | 'height' | 'weight';
@@ -32,6 +32,20 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   paradox: 'Paradox',
   stone: 'Stone evolutions',
 };
+
+/** The Settings switches that add forms as Dex rows, in the order Settings shows them. */
+export const FORM_KIND_LABELS: Record<FormKind, string> = {
+  mega: 'Megas & Primals',
+  regional: 'Regional forms',
+  gmax: 'Gigantamax',
+  other: 'Other battle forms',
+};
+
+/** The form kinds a stored "mega,gmax" list switches on; unknown words are ignored. */
+export function parseFormKinds(raw: string | null): FormKind[] {
+  const words = raw?.split(',') ?? [];
+  return (Object.keys(FORM_KIND_LABELS) as FormKind[]).filter((k) => words.includes(k));
+}
 
 export interface DexFilters {
   query: string;
@@ -69,22 +83,31 @@ export function useDexFilters() {
   return [filters, update] as const;
 }
 
-/** The visible list order, so the detail page's previous/next follows it. */
-export function saveOrder(ids: number[]) {
+/** A species' detail page, in form `formKey` when given. */
+export const detailPath = (id: number, formKey?: string) =>
+  `/pokemon/${id}${formKey ? `?${new URLSearchParams({ form: formKey })}` : ''}`;
+
+/** The visible rows' detail paths in list order, so the detail page's previous/next follows it. */
+export function saveOrder(paths: string[]) {
   try {
-    sessionStorage.setItem(ORDER_KEY, JSON.stringify(ids));
+    sessionStorage.setItem(ORDER_KEY, JSON.stringify(paths));
   } catch {
     /* ignore */
   }
 }
 
-export function neighbours(id: number): { prev?: number; next?: number } {
+/**
+ * The detail paths before and after this species (in form `formKey`) in the saved order. A form that isn't a row
+ * (picked on the detail page) steps from its species' row; without a saved row, from the neighbouring numbers.
+ */
+export function neighbours(id: number, formKey?: string): { prev?: string; next?: string } {
   try {
-    const ids = JSON.parse(sessionStorage.getItem(ORDER_KEY) ?? '[]') as number[];
-    const i = ids.indexOf(id);
-    if (i >= 0) return { prev: ids[i - 1], next: ids[i + 1] };
+    const paths = JSON.parse(sessionStorage.getItem(ORDER_KEY) ?? '[]') as unknown[];
+    let i = paths.indexOf(detailPath(id, formKey));
+    if (i < 0) i = paths.indexOf(detailPath(id));
+    if (i >= 0) return { prev: paths[i - 1] as string | undefined, next: paths[i + 1] as string | undefined };
   } catch {
     /* fall through */
   }
-  return { prev: id > 1 ? id - 1 : undefined, next: id + 1 };
+  return { prev: id > 1 ? detailPath(id - 1) : undefined, next: detailPath(id + 1) };
 }

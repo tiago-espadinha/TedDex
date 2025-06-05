@@ -1,7 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie';
-import { loadItems, loadMoves, loadSpecies } from './api';
+import { loadItems, loadMoves, loadSpecies, loadVersions } from './api';
 import { NATURES } from './natures';
-import type { ItemTable, MoveTable, SpeciesDetail } from './types';
+import type { ItemTable, MoveTable, SpeciesDetail, VersionGroup } from './types';
 
 /**
  * A team slot. `formKey` is a key from the species' `forms` (absent for the default form), `nature`
@@ -16,12 +16,16 @@ export interface TeamMember {
   moves?: number[];
 }
 
-/** `godMode` lets the member editor pick any move and any ability for every member, not only the species' own. */
+/**
+ * `godMode` lets the member editor pick any move and any ability for every member, not only the species' own.
+ * `game` is the version group (versions.json) whose learnsets the move picker offers; absent means any game.
+ */
 export interface Team {
   id: number;
   name: string;
   members: TeamMember[];
   godMode?: boolean;
+  game?: number;
   updatedAt: number;
 }
 
@@ -67,6 +71,8 @@ class DexDB extends Dexie {
             team.members.forEach((m) => delete (m as { godMode?: unknown }).godMode);
           }),
       );
+    // v5: teams may have a game. Every v4 team is a valid v5 team (any game), so nothing to upgrade.
+    this.version(5).stores({ teams: '++id, updatedAt' });
   }
 }
 
@@ -77,9 +83,10 @@ if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
   navigator.storage.persist().catch(() => {});
 }
 
-export async function createTeam(name?: string): Promise<number> {
+/** Creates a team for `game` (a version group; absent for any game). */
+export async function createTeam(name?: string, game?: number): Promise<number> {
   const count = await db.teams.count();
-  return db.teams.add({ name: name ?? `Team ${count + 1}`, members: [], updatedAt: Date.now() });
+  return db.teams.add({ name: name ?? `Team ${count + 1}`, members: [], ...(game !== undefined && { game }), updatedAt: Date.now() });
 }
 
 /** Renames a team; a blank name leaves it unchanged. */
@@ -120,6 +127,11 @@ export async function setGodMode(teamId: number, on: boolean) {
   await db.teams.update(teamId, { godMode: on || undefined, updatedAt: Date.now() });
 }
 
+/** Sets the team's game (a version group), or any game when `game` is undefined. Chosen moves are kept. */
+export async function setTeamGame(teamId: number, game?: number) {
+  await db.teams.update(teamId, { game, updatedAt: Date.now() });
+}
+
 /**
  * Whether a team, stored or from a backup, is in god mode. Before v4 the flag was per member;
  * such a team is on if any member was.
@@ -128,16 +140,16 @@ export function teamGodMode(team: { godMode?: unknown; members: unknown[] }): bo
   return team.godMode === true || team.members.some((m) => (m as { godMode?: unknown } | null)?.godMode === true);
 }
 
-/** The most recently edited team, created if none exists. */
-export async function currentTeamId(): Promise<number> {
+/** The most recently edited team, created for `game` if none exists. */
+export async function currentTeamId(game?: number): Promise<number> {
   const latest = await db.teams.orderBy('updatedAt').last();
-  return latest ? latest.id : createTeam();
+  return latest ? latest.id : createTeam(undefined, game);
 }
 
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
 export async function exportTeams(): Promise<string> {
   const teams = await db.teams.toArray();
-  return JSON.stringify({ app: 'material-dex', version: 4, teams }, null, 2);
+  return JSON.stringify({ app: 'material-dex', version: 5, teams }, null, 2);
 }
 
 /** Thrown by parseBackup; the message is shown to the user as is. */
@@ -168,7 +180,7 @@ function memberProblem(m: unknown): string | null {
 }
 
 /**
- * Validates an exported backup (version 1 to 4). Throws BackupError on the first problem, so a bad
+ * Validates an exported backup (version 1 to 5). Throws BackupError on the first problem, so a bad
  * file writes nothing. Teams without a name get "Team N" numbered after `existing`.
  */
 export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
@@ -183,9 +195,10 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
 
   return teams.map((t: unknown, i) => {
     const label = `Team ${i + 1} in the file`;
-    const { name, members, godMode } = (t ?? {}) as Record<string, unknown>;
+    const { name, members, godMode, game } = (t ?? {}) as Record<string, unknown>;
     if (!Array.isArray(members)) throw new BackupError(`${label} has no members list`);
     if (godMode !== undefined && typeof godMode !== 'boolean') throw new BackupError(`${label} has an invalid god mode`);
+    if (game !== undefined && !(isInt(game) && game > 0)) throw new BackupError(`${label} has an invalid game`);
     if (members.length > TEAM_SIZE) throw new BackupError(`${label} has more than ${TEAM_SIZE} members`);
     members.forEach((m, j) => {
       const problem = memberProblem(m);
@@ -202,6 +215,7 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
         moves,
       })),
       ...(teamGodMode({ godMode, members }) && { godMode: true }),
+      ...(game !== undefined && { game: game as number }),
       updatedAt: Date.now(),
     };
   });
@@ -229,10 +243,18 @@ export function checkKnownForms(teams: Omit<Team, 'id'>[], species: Map<number, 
   );
 }
 
+/** Rejects team games that aren't version groups in versions.json. */
+export function checkKnownGames(teams: Omit<Team, 'id'>[], versions: VersionGroup[]) {
+  teams.forEach((t, i) => {
+    if (t.game !== undefined && !versions.some((v) => v.id === t.game)) throw new BackupError(`Team ${i + 1} in the file has an unknown game`);
+  });
+}
+
 export async function importTeams(json: string): Promise<number> {
   const teams = parseBackup(json, await db.teams.count());
   const formed = new Set(teams.flatMap((t) => t.members.filter((m) => m.formKey).map((m) => m.speciesId)));
-  const [moves, items, details] = await Promise.all([loadMoves(), loadItems(), Promise.all([...formed].map(loadSpecies))]);
+  const [moves, items, versions, details] = await Promise.all([loadMoves(), loadItems(), loadVersions(), Promise.all([...formed].map(loadSpecies))]);
+  checkKnownGames(teams, versions);
   checkKnownIds(teams, moves, items);
   checkKnownForms(teams, new Map(details.map((d) => [d.id, d])));
   await db.teams.bulkAdd(teams);
