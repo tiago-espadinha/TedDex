@@ -5,8 +5,7 @@ import type { ItemTable, MoveTable, SpeciesDetail } from './types';
 
 /**
  * A team slot. `formKey` is a key from the species' `forms` (absent for the default form), `nature`
- * a name from NATURES, `item` an items.json id, `moves` moves.json ids. `godMode` lets the editor pick any
- * move and any ability, not only the species' own.
+ * a name from NATURES, `item` an items.json id, `moves` moves.json ids.
  */
 export interface TeamMember {
   speciesId: number;
@@ -15,13 +14,14 @@ export interface TeamMember {
   nature?: string;
   item?: number;
   moves?: number[];
-  godMode?: boolean;
 }
 
+/** `godMode` lets the member editor pick any move and any ability for every member, not only the species' own. */
 export interface Team {
   id: number;
   name: string;
   members: TeamMember[];
+  godMode?: boolean;
   updatedAt: number;
 }
 
@@ -54,8 +54,19 @@ class DexDB extends Dexie {
           }),
       );
     // v3: members may have a formKey. Every v2 member is a valid v3 member, so nothing to upgrade.
-    // godMode came later as an optional, unindexed field, so it needs no new version.
     this.version(3).stores({ teams: '++id, updatedAt' });
+    // v4: god mode moves from the member (an optional v3 field) to the team.
+    this.version(4)
+      .stores({ teams: '++id, updatedAt' })
+      .upgrade((tx) =>
+        tx
+          .table('teams')
+          .toCollection()
+          .modify((team: Team) => {
+            if (teamGodMode(team)) team.godMode = true;
+            team.members.forEach((m) => delete (m as { godMode?: unknown }).godMode);
+          }),
+      );
   }
 }
 
@@ -104,6 +115,19 @@ export async function removeFromTeam(teamId: number, index: number) {
   await db.teams.update(teamId, { members, updatedAt: Date.now() });
 }
 
+/** Turns god mode on or off for the whole team. */
+export async function setGodMode(teamId: number, on: boolean) {
+  await db.teams.update(teamId, { godMode: on || undefined, updatedAt: Date.now() });
+}
+
+/**
+ * Whether a team, stored or from a backup, is in god mode. Before v4 the flag was per member;
+ * such a team is on if any member was.
+ */
+export function teamGodMode(team: { godMode?: unknown; members: unknown[] }): boolean {
+  return team.godMode === true || team.members.some((m) => (m as { godMode?: unknown } | null)?.godMode === true);
+}
+
 /** The most recently edited team, created if none exists. */
 export async function currentTeamId(): Promise<number> {
   const latest = await db.teams.orderBy('updatedAt').last();
@@ -113,7 +137,7 @@ export async function currentTeamId(): Promise<number> {
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
 export async function exportTeams(): Promise<string> {
   const teams = await db.teams.toArray();
-  return JSON.stringify({ app: 'material-dex', version: 3, teams }, null, 2);
+  return JSON.stringify({ app: 'material-dex', version: 4, teams }, null, 2);
 }
 
 /** Thrown by parseBackup; the message is shown to the user as is. */
@@ -123,7 +147,10 @@ const isInt = (v: unknown): v is number => Number.isInteger(v);
 const isSpecies = (v: unknown): v is number => isInt(v) && v >= 1 && v <= LAST_SPECIES;
 const NATURE_NAMES = new Set(NATURES.map((n) => n.name));
 
-/** What is wrong with a member, or null. Abilities and moves are checked for shape, not per species. */
+/**
+ * What is wrong with a member, or null. Abilities and moves are checked for shape, not per species.
+ * `godMode` is the per-member flag of backups before version 4.
+ */
 function memberProblem(m: unknown): string | null {
   if (typeof m !== 'object' || m === null) return 'is not a Pokémon';
   const { speciesId, formKey, ability, nature, item, moves, godMode } = m as Record<string, unknown>;
@@ -141,7 +168,7 @@ function memberProblem(m: unknown): string | null {
 }
 
 /**
- * Validates an exported backup (version 1 to 3). Throws BackupError on the first problem, so a bad
+ * Validates an exported backup (version 1 to 4). Throws BackupError on the first problem, so a bad
  * file writes nothing. Teams without a name get "Team N" numbered after `existing`.
  */
 export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
@@ -156,8 +183,9 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
 
   return teams.map((t: unknown, i) => {
     const label = `Team ${i + 1} in the file`;
-    const { name, members } = (t ?? {}) as Record<string, unknown>;
+    const { name, members, godMode } = (t ?? {}) as Record<string, unknown>;
     if (!Array.isArray(members)) throw new BackupError(`${label} has no members list`);
+    if (godMode !== undefined && typeof godMode !== 'boolean') throw new BackupError(`${label} has an invalid god mode`);
     if (members.length > TEAM_SIZE) throw new BackupError(`${label} has more than ${TEAM_SIZE} members`);
     members.forEach((m, j) => {
       const problem = memberProblem(m);
@@ -165,15 +193,15 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
     });
     return {
       name: typeof name === 'string' && name.trim() ? name.trim() : `Team ${existing + i + 1}`,
-      members: (members as TeamMember[]).map(({ speciesId, formKey, ability, nature, item, moves, godMode }) => ({
+      members: (members as TeamMember[]).map(({ speciesId, formKey, ability, nature, item, moves }) => ({
         speciesId,
         formKey: formKey || undefined,
         ability,
         nature,
         item,
         moves,
-        ...(godMode && { godMode }),
       })),
+      ...(teamGodMode({ godMode, members }) && { godMode: true }),
       updatedAt: Date.now(),
     };
   });

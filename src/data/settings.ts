@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
+import { parseGamePref, type GamePref } from './game';
 
 /** Small persisted preferences (per device). */
 function usePref<T extends string>(key: string, fallback: T) {
@@ -22,6 +23,33 @@ function usePref<T extends string>(key: string, fallback: T) {
   );
   return [value, set] as const;
 }
+
+const gameListeners = new Set<() => void>();
+let game: GamePref = (() => {
+  try {
+    return parseGamePref(localStorage.getItem('game'));
+  } catch {
+    return 'latest';
+  }
+})();
+function setGame(value: GamePref) {
+  game = value;
+  try {
+    localStorage.setItem('game', String(value));
+  } catch {
+    /* ignore */
+  }
+  gameListeners.forEach((l) => l());
+}
+function subscribeGame(listener: () => void) {
+  gameListeners.add(listener);
+  return () => gameListeners.delete(listener);
+}
+/**
+ * The chosen game, shared live by every screen that shows it (Settings, Moves, Locations), so picking one in a tab
+ * moves the others too.
+ */
+export const useGame = () => [useSyncExternalStore(subscribeGame, () => game), setGame] as const;
 
 export type SpriteStyle = 'sprite' | 'art';
 export const useSpriteStyle = () => usePref<SpriteStyle>('sprite-style', 'sprite');

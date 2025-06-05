@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { BackupError, checkKnownForms, checkKnownIds, parseBackup } from '../src/data/db';
+import { BackupError, checkKnownForms, checkKnownIds, parseBackup, teamGodMode } from '../src/data/db';
 import type { MoveTable, SpeciesDetail } from '../src/data/types';
 
-const backup = (teams: unknown) => JSON.stringify({ app: 'material-dex', version: 3, teams });
+const backup = (teams: unknown) => JSON.stringify({ app: 'material-dex', version: 4, teams });
 const oneMember = (member: unknown) => backup([{ name: 'A', members: [member] }]);
 
 /** Asserts parseBackup rejects `json` with a BackupError whose message matches `message`. */
@@ -66,19 +66,40 @@ describe('parseBackup', () => {
     assert.deepEqual(parseBackup(oneMember({ speciesId: 1, moves: [1, 2, 3, 4] }))[0].members[0].moves, [1, 2, 3, 4]);
   });
 
-  test('round-trips god mode, with an illegal move and ability', () => {
-    const member = { speciesId: 25, ability: 'Huge Power', moves: [147], godMode: true };
-    const [team] = parseBackup(oneMember(member));
+  test('round-trips team god mode, with an illegal move and ability', () => {
+    const member = { speciesId: 25, ability: 'Huge Power', moves: [147] };
+    const [team] = parseBackup(backup([{ name: 'A', members: [member], godMode: true }]));
+    assert.equal(team.godMode, true);
     assert.deepEqual(team.members, [{ ...member, formKey: undefined, nature: undefined, item: undefined }]);
-    assert.deepEqual(parseBackup(backup([team]))[0].members, team.members);
+    const again = parseBackup(backup([team]))[0];
+    assert.equal(again.godMode, true);
+    assert.deepEqual(again.members, team.members);
   });
 
   test('stores god mode off as no god mode', () => {
-    assert.equal('godMode' in parseBackup(oneMember({ speciesId: 25, godMode: false }))[0].members[0], false);
-    assert.equal('godMode' in parseBackup(oneMember({ speciesId: 25 }))[0].members[0], false);
+    assert.equal('godMode' in parseBackup(backup([{ name: 'A', members: [], godMode: false }]))[0], false);
+    assert.equal('godMode' in parseBackup(oneMember({ speciesId: 25 }))[0], false);
+    assert.equal('godMode' in parseBackup(oneMember({ speciesId: 25, godMode: false }))[0], false);
+  });
+
+  test('turns a team on when any member of an old backup had god mode, and drops the member flags', () => {
+    const old = JSON.stringify({
+      app: 'material-dex',
+      version: 3,
+      teams: [
+        { name: 'A', members: [{ speciesId: 1 }, { speciesId: 25, moves: [147], godMode: true }] },
+        { name: 'B', members: [{ speciesId: 4, godMode: false }] },
+      ],
+    });
+    const [a, b] = parseBackup(old);
+    assert.equal(a.godMode, true);
+    assert.equal(a.members.some((m) => 'godMode' in m), false);
+    assert.equal('godMode' in b, false);
+    assert.equal(b.members.some((m) => 'godMode' in m), false);
   });
 
   test('rejects a god mode that is not true or false', () => {
+    rejects(backup([{ name: 'A', members: [], godMode: 'yes' }]), /^Team 1 in the file has an invalid god mode$/);
     rejects(oneMember({ speciesId: 25, godMode: 'yes' }), /^Team 1 in the file: member 1 has an invalid god mode$/);
     rejects(oneMember({ speciesId: 25, godMode: 1 }), /invalid god mode/);
   });
@@ -177,5 +198,17 @@ describe('checkKnownForms', () => {
     for (const member of [{ speciesId: 38, formKey: 'galar' }, { speciesId: 6, formKey: 'mega-x' }]) {
       assert.throws(check(member), (e: unknown) => e instanceof BackupError && e.message === 'Team 1 in the file: member 1 has an unknown form');
     }
+  });
+});
+
+describe('teamGodMode', () => {
+  test('reads the team flag', () => {
+    assert.equal(teamGodMode({ godMode: true, members: [] }), true);
+    assert.equal(teamGodMode({ members: [] }), false);
+  });
+
+  test('is on when any member has the old per-member flag', () => {
+    assert.equal(teamGodMode({ members: [{ speciesId: 1 }, { speciesId: 2, godMode: true }] }), true);
+    assert.equal(teamGodMode({ members: [{ speciesId: 1, godMode: false }] }), false);
   });
 });

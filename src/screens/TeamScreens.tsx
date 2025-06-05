@@ -1,16 +1,18 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { attackingTypes, itemSpriteUrl, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { attackingTypes, itemSpriteUrl, loadAbilities, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
-import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, type Team, type TeamMember } from '../data/db';
+import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, setGodMode, type Team, type TeamMember } from '../data/db';
 import { cap, formatMultiplier, formatNo } from '../data/format';
 import { memberView, type MemberView } from '../data/forms';
 import { typeTint } from '../data/typeColors';
-import type { ItemTable, MoveTable, TypeData } from '../data/types';
+import { abilityIdByName } from '../data/peek';
+import type { AbilityTable, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip, useModalSheet } from '../components/bits';
+import { Loading, TypeChip, useModalSheet, useToast } from '../components/bits';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
+import { usePeek } from '../components/usePeek';
 
 /**
  * Resolves members to how their slot looks, loading the species file of each member that has a form.
@@ -28,9 +30,26 @@ function useMemberViews(members: TeamMember[] = []) {
   return { view, formsReady: !!details || !!error };
 }
 
-/** What is set on a member (ability, nature, item, moves), or a prompt when nothing is set yet. */
-function MemberDetails({ member: m, name, items, moves }: { member: TeamMember; name: string; items?: ItemTable; moves?: MoveTable }) {
+/**
+ * What is set on a member (ability, nature, item, moves), or a prompt when nothing is set yet. Ability, item and
+ * moves open the quick view; the rest of the card is the editor link under them.
+ */
+function MemberDetails({
+  member: m,
+  name,
+  items,
+  moves,
+  abilities,
+}: {
+  member: TeamMember;
+  name: string;
+  items?: ItemTable;
+  moves?: MoveTable;
+  abilities?: AbilityTable;
+}) {
+  const peek = usePeek();
   const item = m.item !== undefined && items?.[m.item] ? { id: m.item, name: items[m.item] } : undefined;
+  const abilityId = m.ability && abilities ? abilityIdByName(abilities, m.ability) : undefined;
   const chosen = moves && m.moves?.length ? m.moves : undefined;
   if (!m.ability && !m.nature && m.item === undefined && !m.moves?.length) return <span className="team-mon-hint">Tap to set ability, nature, item and moves</span>;
   return (
@@ -39,21 +58,27 @@ function MemberDetails({ member: m, name, items, moves }: { member: TeamMember; 
         <MonFacts>
           {m.ability && (
             <Fact k="Ability">
-              <span className="league-chip">{m.ability}</span>
+              {abilityId ? (
+                <button className="league-chip" onClick={() => peek({ kind: 'ability', id: abilityId })}>
+                  {m.ability}
+                </button>
+              ) : (
+                <span className="league-chip">{m.ability}</span>
+              )}
             </Fact>
           )}
           {m.nature && <Fact k="Nature">{m.nature}</Fact>}
           {item && (
             <Fact k="Item">
-              <span className="league-chip">
+              <button className="league-chip" onClick={() => peek({ kind: 'item', id: item.id })}>
                 <img src={itemSpriteUrl(item.id)} alt="" width={24} height={24} loading="lazy" />
                 {item.name}
-              </span>
+              </button>
             </Fact>
           )}
         </MonFacts>
       )}
-      {chosen && moves && <MonMoves name={name} moves={chosen} table={moves} plain />}
+      {chosen && moves && <MonMoves name={name} moves={chosen} table={moves} onPeek={(id) => peek({ kind: 'move', id })} />}
     </>
   );
 }
@@ -147,15 +172,19 @@ function RenameSheet({ team, onClose }: { team: Team; onClose: () => void }) {
 }
 
 // ---------------- team editor ----------------
+const godModeText = (on: boolean) => (on ? 'God mode on: any move and ability for every member' : 'God mode off: only legal moves and abilities');
+
 export function TeamEditor() {
   const id = Number(useParams().id);
   const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
   const { view } = useMemberViews(team?.members);
   const { data: items } = useLoad(loadItems, 'items');
   const { data: moves } = useLoad(loadMoves, 'moves');
+  const { data: abilities } = useLoad(loadAbilities, 'abilities');
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  const toast = useToast();
 
   if (team === undefined) return <Loading />;
   if (!team) return <p className="empty">This team no longer exists.</p>;
@@ -170,8 +199,21 @@ export function TeamEditor() {
           <h1 className="team-name">{team.name}</h1>
           <div className="sub">
             {team.members.length} of {TEAM_SIZE}
+            {team.godMode && ' · God mode'}
           </div>
         </div>
+        <button
+          className="icon-btn"
+          aria-label="God mode"
+          aria-pressed={team.godMode ?? false}
+          title={godModeText(team.godMode ?? false)}
+          onClick={async () => {
+            await setGodMode(id, !team.godMode);
+            toast({ text: godModeText(!team.godMode) });
+          }}
+        >
+          <Icon name="bolt" />
+        </button>
         <button className="icon-btn" aria-label="Rename team" onClick={() => setRenaming(true)}>
           <Icon name="pencil" />
         </button>
@@ -204,12 +246,10 @@ export function TeamEditor() {
               const name = mon?.name ?? formatNo(m.speciesId);
               return (
                 <li key={`${m.speciesId}-${i}`} className="team-mon" style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}>
-                  <Link to={`/teams/${id}/member/${i}`}>
-                    <span className="evo-member">
-                      <MonHead spriteId={mon?.mediaId ?? m.speciesId} name={name} types={mon?.types ?? []} />
-                    </span>
-                    <MemberDetails member={m} name={name} items={items} moves={moves} />
+                  <Link to={`/teams/${id}/member/${i}`} className="evo-member">
+                    <MonHead spriteId={mon?.mediaId ?? m.speciesId} name={name} types={mon?.types ?? []} />
                   </Link>
+                  <MemberDetails member={m} name={name} items={items} moves={moves} abilities={abilities} />
                   <button className="icon-btn" aria-label={`Remove ${name}`} onClick={() => removeFromTeam(id, i)}>
                     <Icon name="close" size={20} />
                   </button>

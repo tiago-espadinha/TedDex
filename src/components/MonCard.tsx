@@ -49,8 +49,8 @@ export function Fact({ k, children }: { k: string; children: ReactNode }) {
   );
 }
 
-/** The moves edged in their type colour; links to their pages unless `plain` (inside a card that is a link). */
-export function MonMoves({ name, moves, table, plain }: { name: string; moves: number[]; table: MoveTable; plain?: boolean }) {
+/** The moves edged in their type colour; links to their pages, or buttons calling `onPeek` (saved teams' quick view). */
+export function MonMoves({ name, moves, table, onPeek }: { name: string; moves: number[]; table: MoveTable; onPeek?: (move: number) => void }) {
   return (
     <ul className="league-moves" aria-label={`${name}'s moves`}>
       {moves.map((id, i) => {
@@ -65,8 +65,10 @@ export function MonMoves({ name, moves, table, plain }: { name: string; moves: n
         );
         return (
           <li key={`${id}-${i}`}>
-            {plain ? (
-              <span style={style}>{label}</span>
+            {onPeek ? (
+              <button style={style} onClick={() => onPeek(id)}>
+                {label}
+              </button>
             ) : (
               <Link to={`/reference/moves/${id}`} style={style}>
                 {label}

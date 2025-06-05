@@ -19,7 +19,7 @@
   --resist-ink: #2f6b24;
   --immune-bg: #e4e1ea;
   --neutral-cell: #edebe6;
-  /* Fixed in both themes: content on the light type tints, status, overlays. */
+  /* Content on the type tints (dark mode overrides), status, overlays. */
   --on-type: #ffffff;
   --on-tint: #1c1b1f;
   --on-tint-2: #4a4754;
@@ -45,7 +45,7 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --font: Manrope, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  /* Type palette, fixed in both themes: chips carry --on-type, tints carry --on-tint. */
+  /* Type palette: chips carry --on-type, tints carry --on-tint; dark mode darkens the tints. */
   --type-normal-chip: #6b6b55;   --type-normal-tint: #efefe8;
   --type-fire-chip: #b8410e;     --type-fire-tint: #fbe4d6;
   --type-water-chip: #1f62ad;    --type-water-tint: #dce8f7;
@@ -102,6 +102,32 @@
     --scrim: rgba(0, 0, 0, 0.6);
     --gender-male: #7eaaff;
     --gender-female: #ff85b6;
+    /* Type tints darken in dark mode (each chip 32% over #1a1820), so tint content turns light. */
+    --on-tint: #ecebf0;
+    --on-tint-2: #c9c6d2;
+    --on-tint-muted: #b5b1bf;
+    --on-tint-soft: #c4c9bd;
+    --tint-glass: rgba(0, 0, 0, 0.28);
+    --tint-selected-ink: #1f1d24;
+    --tint-press: rgba(255, 255, 255, 0.12);
+    --type-normal-tint: #343331;
+    --type-fire-tint: #4d251a;
+    --type-water-tint: #1c304d;
+    --type-grass-tint: #253824;
+    --type-electric-tint: #3f3416;
+    --type-ice-tint: #1f3943;
+    --type-fighting-tint: #462023;
+    --type-poison-tint: #392449;
+    --type-ground-tint: #3b2f23;
+    --type-flying-tint: #29304e;
+    --type-psychic-tint: #4a2138;
+    --type-bug-tint: #2f361c;
+    --type-rock-tint: #373123;
+    --type-ghost-tint: #2e2842;
+    --type-dragon-tint: #2b234e;
+    --type-dark-tint: #2b2528;
+    --type-steel-tint: #2e313c;
+    --type-fairy-tint: #46263d;
     color-scheme: dark;
   }
 }
@@ -131,6 +157,32 @@
   --scrim: rgba(0, 0, 0, 0.6);
   --gender-male: #7eaaff;
   --gender-female: #ff85b6;
+  /* Type tints darken in dark mode (each chip 32% over #1a1820), so tint content turns light. */
+  --on-tint: #ecebf0;
+  --on-tint-2: #c9c6d2;
+  --on-tint-muted: #b5b1bf;
+  --on-tint-soft: #c4c9bd;
+  --tint-glass: rgba(0, 0, 0, 0.28);
+  --tint-selected-ink: #1f1d24;
+  --tint-press: rgba(255, 255, 255, 0.12);
+  --type-normal-tint: #343331;
+  --type-fire-tint: #4d251a;
+  --type-water-tint: #1c304d;
+  --type-grass-tint: #253824;
+  --type-electric-tint: #3f3416;
+  --type-ice-tint: #1f3943;
+  --type-fighting-tint: #462023;
+  --type-poison-tint: #392449;
+  --type-ground-tint: #3b2f23;
+  --type-flying-tint: #29304e;
+  --type-psychic-tint: #4a2138;
+  --type-bug-tint: #2f361c;
+  --type-rock-tint: #373123;
+  --type-ghost-tint: #2e2842;
+  --type-dragon-tint: #2b234e;
+  --type-dark-tint: #2b2528;
+  --type-steel-tint: #2e313c;
+  --type-fairy-tint: #46263d;
   color-scheme: dark;
 }
 
@@ -335,6 +387,17 @@ main:focus, .sheet:focus { outline: none; }
 /* Closing a sheet: it sinks and the scrim fades (SHEET_CLOSE_MS in bits.tsx). */
 .sheet.closing { animation: sink 180ms ease-in forwards; }
 .scrim:has(+ .sheet.closing) { animation: fade-out 180ms ease-in forwards; }
+/* Quick view: a move, ability or item summary over the current screen. */
+.peek-head { display: flex; align-items: center; gap: 12px; margin-right: -8px; }
+.peek-head .grow { flex: 1; min-width: 0; }
+.peek-head h2 { margin: 0; font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+.peek-head .sub { font-size: 13px; font-weight: 600; color: var(--muted); }
+.peek-head .item-art { width: 40px; height: 40px; margin: 0; padding: 6px; border-radius: 14px; }
+.peek .head-facts { margin: 12px 0 16px; }
+.peek .head-facts dt { color: var(--muted); }
+.peek .head-facts dd { color: var(--ink); }
+.peek .peek-head + .flavor { margin-top: 12px; }
+.peek .primary-btn { margin-top: 6px; }
 
 /* Screen changes (View Transitions API, started by the router in main.tsx): the old screen fades out, the new one rises in. */
 ::view-transition-old(root) { animation: fade-out 120ms ease both; }
@@ -446,9 +509,9 @@ main:focus, .sheet:focus { outline: none; }
 .move-group ul { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; }
 .move-row + .move-row, .move-group li + li > .move-row { border-top: 1px solid var(--line); }
-.move-group a.move-row { color: var(--ink); text-decoration: none; }
-.move-group a.move-row:active { background: var(--surface-2); }
-.move-group a.move-row:focus-visible { outline-offset: -2px; }
+.move-group button.move-row { width: 100%; border: 0; background: transparent; color: var(--ink); text-align: left; }
+.move-group button.move-row:active { background: var(--surface-2); }
+.move-group button.move-row:focus-visible { outline-offset: -2px; }
 .move-row .lv { flex: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 12px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; font-weight: 800; }
 .move-row .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .move-row .name { font-size: 15px; font-weight: 700; }
@@ -467,8 +530,9 @@ main:focus, .sheet:focus { outline: none; }
 @media (min-width: 600px) { .move-table, .move-head { --type-col: 76px; --num-col: 40px; --col-gap: 12px; } }
 .move-table :is(a, button).move-row, .move-table .move-pick, .move-head { display: grid; grid-template-columns: var(--move-cols); column-gap: var(--col-gap); align-items: center; }
 .move-head, .learner-head { padding: 0 13px 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
-/* Clears the slot's remove button: border 1 + row padding 4 + button 44 + gap 12 + pick padding 4. */
-.move-head.with-end { padding-right: 65px; }
+/* Clears the slot's info and remove buttons: border 1 + row padding 4 + 2 × 44 + pick padding 4; stacked on phones, one 44. */
+.move-head.with-end { padding-right: 97px; }
+@media (max-width: 599px) { .move-head.with-end { padding-right: 53px; } }
 .move-head > :not(.move), .learner-head .type, .move-table .num { text-align: center; }
 .move-table .cat-icon { justify-self: center; }
 .move-table .num { font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -497,6 +561,9 @@ main:focus, .sheet:focus { outline: none; }
 .cat-fact, .gen-btn:has(.cat-icon) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .league-moves li > * { gap: 6px; }
 .loc-row .note { font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+/* Version label on a Locations row only some games of the group have. */
+.loc-row .ver { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 8px; background: var(--primary-soft); color: var(--primary-soft-ink); font-size: 11px; font-weight: 700; vertical-align: 1px; white-space: nowrap; }
+.game-fallback { margin: 0 2px 10px; }
 .place-game { margin-top: 16px; }
 .place-game h3 { margin: 0 2px 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
 .place-game .flavor { margin: 0 2px 6px; }
@@ -525,7 +592,7 @@ a.evo-member:active { background: var(--surface-2); }
 /* ---------- reference ---------- */
 .ref-kind .name { font-size: 17px; }
 .ref-kind svg { flex: none; margin-left: auto; color: var(--muted); }
-/* Guide landing: the rows share the screen height (min 72 px, so short screens scroll), on fixed tints. */
+/* Guide landing: the rows share the screen height (min 72 px, so short screens scroll), each on one type tint. */
 .app:has(> .ref-menu) { display: flex; flex-direction: column; }
 .ref-menu { flex: 1; }
 .ref-menu .ref-kind { flex: 1 1 0; min-height: 72px; border-color: transparent; color: var(--on-tint); }
@@ -547,12 +614,25 @@ a.move-row.tinted { color: var(--on-tint); }
 /* Elite Four & Champion */
 .ref-list .move-row > svg { flex: none; color: var(--muted); }
 .league-note { margin: 4px 24px 0; font-size: 13px; line-height: 1.5; }
-.league-trainer { padding-top: 18px; }
-.league-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.league-head .who { min-width: 0; }
+/* Each trainer is a card on its team's main type tint (`teamType`), --surface without one. */
+.league-trainer { margin: 12px 16px 0; padding: 0; border-radius: var(--radius-card); background: var(--surface); color: var(--on-tint); }
+.league-trainer h2.league-head-wrap { margin: 0; font-size: inherit; }
+/* The trainer row is the accordion button: tap to show or hide the team. */
+.league-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 12px; width: 100%; min-height: 88px; padding: 8px 12px 8px 8px; border: 0; border-radius: var(--radius-card); background: none; font: inherit; font-weight: 400; color: var(--on-tint); text-align: left; }
+.league-head:active { background: var(--tint-press); }
+.league-head:focus-visible { outline-offset: -2px; }
+.league-head > svg { color: var(--on-tint-muted); transition: transform 0.16s; }
+.league-trainer :is(.league-pick-label, .hint) { color: var(--on-tint-muted); }
+.league-trainer .segmented { background: var(--tint-glass); }
+.league-head[aria-expanded='true'] > svg { transform: rotate(90deg); }
+.league-head .who { min-width: 0; display: flex; flex-direction: column; }
+.league-head .trainer-name { font-size: 18px; font-weight: 800; }
 .league-head .tags { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.league-head h2 { margin: 0; font-size: 18px; }
-.trainer-sprite { flex: none; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px; background: var(--surface-2); color: var(--muted); object-fit: contain; }
+.team-strip { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.team-strip img { flex: none; width: 40px; height: 40px; image-rendering: pixelated; }
+.league-body { padding: 4px 8px 8px; animation: league-open 0.16s ease-out; }
+@keyframes league-open { from { opacity: 0; transform: translateY(-6px); } }
+.trainer-sprite { flex: none; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px; background: var(--tint-glass); color: var(--on-tint-muted); object-fit: contain; }
 .league-no-rematch { margin: 0 0 10px; font-size: 13px; }
 .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: calc(100% - 48px); min-height: 44px; margin: 8px 24px 0; padding: 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 700; color: var(--ink); }
 .switch-row .track { position: relative; flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--muted); transition: background-color 0.15s; }
@@ -560,9 +640,8 @@ a.move-row.tinted { color: var(--on-tint); }
 .switch-row[aria-checked='true'] .track { background: var(--primary); }
 .switch-row[aria-checked='true'] .track::after { transform: translateX(20px); background: var(--primary-ink); }
 .switch-row:focus-visible { outline-offset: 2px; }
-.god-mode-hint { margin: 2px 24px 0; }
-.league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--muted); }
-.league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--muted); }
+.league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
+.league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--on-tint-2); }
 .league-pick-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
 .league-pick { height: 44px; margin-bottom: 10px; }
 .league-team { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
@@ -585,7 +664,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-moves li > * { display: flex; }
 .league-facts .league-chip { display: inline-flex; gap: 6px; padding-right: 12px; color: var(--ink); }
 .league-chip img { flex: none; image-rendering: pixelated; }
-.league-moves a:focus-visible, .league-mon .evo-member:focus-visible { outline-offset: -2px; }
+.league-moves :is(a, button):focus-visible, .league-mon .evo-member:focus-visible { outline-offset: -2px; }
 .league-mon .evo-member:active { background: var(--surface-2); }
 @media (min-width: 600px) {
   .league-moves { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -649,14 +728,20 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-entry .minis img { width: 48px; height: 48px; margin: 0; }
 /* A member card is one link to the editor, on its first type's tint; the remove button sits over its top-right corner. */
 .team-members { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.team-mon { position: relative; border-radius: var(--radius-card); color: var(--on-tint); }
-.team-mon > a { display: block; padding-bottom: 10px; border-radius: inherit; color: inherit; text-decoration: none; }
-.team-mon > a:active { background-color: var(--tint-press); }
-.team-mon > a:focus-visible { outline-offset: -2px; }
+.team-mon { position: relative; padding-bottom: 10px; border-radius: var(--radius-card); color: var(--on-tint); }
+/* The head links to the member editor and its hit area covers the card; the chips and ✕ sit above it. */
+.team-mon > a::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-card); }
+.team-mon > a:active { background: none; }
+.team-mon > a:active::after { background-color: var(--tint-press); }
+.team-mon > a:focus-visible { outline: none; }
+.team-mon > a:focus-visible::after { outline: 2px solid var(--primary); outline-offset: -2px; }
+.team-mon :is(button.league-chip, .league-moves button) { position: relative; z-index: 1; border-top: 0; border-right: 0; border-bottom: 0; text-align: left; }
+.team-mon .league-moves button { width: 100%; }
+.team-mon :is(button.league-chip, .league-moves button):active { background: var(--tint-press); }
 .team-mon .evo-member { padding-right: 52px; color: inherit; }
 /* The card already carries the tint, so the sprite drops the tile MonHead paints inline. */
 .team-mon .evo-member img { background: transparent !important; }
-.team-mon > .icon-btn { position: absolute; top: 6px; right: 4px; color: var(--on-tint-2); }
+.team-mon > .icon-btn { position: absolute; z-index: 1; top: 6px; right: 4px; color: var(--on-tint-2); }
 .team-mon :is(.league-chip, .league-moves li > *) { background: var(--tint-glass); color: var(--on-tint); }
 .team-mon .league-facts dt { color: var(--on-tint-muted); }
 .team-mon .league-facts dd { color: var(--on-tint); }
@@ -668,18 +753,22 @@ a.move-row.tinted { color: var(--on-tint); }
 
 /* ---------- member editor ---------- */
 button.ability { text-align: left; min-height: 44px; }
-a.ability { color: inherit; text-decoration: none; min-height: 44px; display: flex; align-items: center; }
 .method-pick { margin-top: 12px; }
 .ability[aria-checked='true'] { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); }
 .ability[aria-checked='true'] small { color: inherit; }
 .game-select .sr-only + select { padding-left: 0; }
 .pick-field { display: flex; align-items: center; gap: 4px; }
+.field-head { display: flex; align-items: center; justify-content: space-between; margin: -6px -10px 0 0; }
+.field-head h2 { margin-bottom: 4px; }
 button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .game-select .v { flex: 1; min-width: 0; padding-right: 24px; font-size: 15px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .game-select .v.none, .game-select select.none { color: var(--muted); font-weight: 600; }
 .move-slots { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.move-slots .move-row { padding: 0 4px 0 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.move-slots .move-row { gap: 0; padding: 0 4px 0 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-slots .add-slot { width: 100%; }
+/* Info and remove sit side by side, stacked on phones so the move name keeps its room. */
+.slot-actions { flex: none; display: flex; }
+@media (max-width: 599px) { .slot-actions { flex-direction: column; } }
 .ability-any { width: 100%; margin-top: 8px; }
 .ability-any:disabled { opacity: 0.6; }
 .move-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 4px 8px 12px; border: 0; background: transparent; text-align: left; border-radius: 16px; }
@@ -749,7 +838,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 /* The header is a bar here: the chip row under it gets as much space above as below. */
 [data-design='b'] .chip-row { padding-top: 12px; }
 [data-design='b'] .dex-head h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
-[data-design='b'] :is(.topbar h1, .sheet-head h2, .placeholder h1) { font-weight: 600; }
+[data-design='b'] :is(.topbar h1, .sheet-head h2, .peek-head h2, .placeholder h1) { font-weight: 600; }
 [data-design='b'] .search:not(.sheet .search, .in-head) { margin: 8px 6px 0; }
 [data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
 [data-design='b'] .list-row { padding: 0 6px; }
@@ -776,9 +865,11 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .move-row .lv { border-radius: 50%; border-width: 2px; border-style: solid; background: var(--bg); color: var(--ink); font-weight: 500; }
 /* Poppins runs wider and heavier than Manrope: lighter small text, muted plum actions. */
 [data-design='b'] .cat-icon { border-radius: 3px; }
-[data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .team-row .meta, .hint) { font-weight: 400; }
+[data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .peek-head .sub, .team-row .meta, .hint) { font-weight: 400; }
 [data-design='b'] .topbar:not(.tinted) .sub { color: var(--ink-2); }
-[data-design='b'] :is(.section h2, .move-group h2, .eff-group h3, .place-game h3) { font-weight: 600; }
+/* --primary-soft is the bar colour in Design B, so a pressed header button takes the primary fill. */
+[data-design='b'] .topbar:not(.tinted) > .icon-btn[aria-pressed='true'] { background: var(--primary); color: var(--primary-ink); }
+[data-design='b'] :is(.section h2, .league-head .trainer-name, .move-group h2, .eff-group h3, .place-game h3) { font-weight: 600; }
 [data-design='b'] .ref-list .name { font-weight: 500; }
 [data-design='b'] .form-btn { border-radius: 4px; font-weight: 500; }
 [data-design='b'] :is(.fab, .primary-btn) { border-radius: 4px; background: var(--bar); color: var(--ink); box-shadow: var(--shadow-fab); font-weight: 500; letter-spacing: 0.5px; }
