@@ -176,6 +176,8 @@ export interface Game {
   id: number;
   label: string;
   gen: number;
+  /** Its version group (`VersionGroup.id`), e.g. Ruby, Sapphire and Emerald are 5, 5 and 6. */
+  group: number;
 }
 
 /**

@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
+import { loadVersions, useLoad } from '../data/api';
 import { BackupError, exportTeams, importTeams } from '../data/db';
-import { applyDesign, applyTheme, useDesign, useSpriteStyle, useTheme, type Theme } from '../data/settings';
+import { parseGamePref } from '../data/game';
+import { applyDesign, applyTheme, useDesign, useGame, useSpriteStyle, useTheme, type Theme } from '../data/settings';
+import { Icon } from '../components/Icon';
 import { useToast } from '../components/bits';
 
 export function MoreScreen() {
   const [design, setDesign] = useDesign();
   const [theme, setTheme] = useTheme();
   const [sprite, setSprite] = useSpriteStyle();
+  const [game, setGame] = useGame();
+  const versions = useLoad(loadVersions, 'versions').data;
   const [dataVersion, setDataVersion] = useState<string>();
   const fileInput = useRef<HTMLInputElement>(null);
   const toast = useToast();
@@ -77,6 +82,27 @@ export function MoreScreen() {
             Artwork
           </button>
         </div>
+
+        <h2 style={{ marginTop: 22 }}>Game</h2>
+        <p id="game-hint" className="hint" style={{ marginBottom: 10 }}>
+          Moves and Locations open on this game. Latest shows each Pokémon's newest game.
+        </p>
+        <label className="game-select" hidden={!versions}>
+          <span className="sr-only">Game</span>
+          <select
+            value={game}
+            aria-describedby="game-hint"
+            onChange={(e) => setGame(parseGamePref(e.target.value))}
+          >
+            <option value="latest">Latest</option>
+            {versions?.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+          <Icon name="next" size={18} />
+        </label>
 
         <h2 style={{ marginTop: 22 }}>Team backup</h2>
         <p className="hint" style={{ marginBottom: 10 }}>

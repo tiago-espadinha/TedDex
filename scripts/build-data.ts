@@ -19,8 +19,9 @@
  *                             (no "Held: " preamble), wild holders as [version group, species, rarity %]; every named item
  *                             but unused ones
  *   reference/moves/<id>.json move description, full effect, and its learners per method as [species, generation bitmask]
- *   locations/<id>.json   wild encounters per game (version id) as tuples into a string table, any form
- *   games.json            games (versions) with encounter data, oldest first
+ *   locations/<id>.json   wild encounters per game (version id) as tuples into a string table, any form;
+ *                         expansion versions (The Isle of Armor…) count as their base game
+ *   games.json            games (versions) with encounter data and their version group, oldest first
  *   meta.json             data version + build time (the HEAD commit date, so it never postdates the history)
  */
 import { execFileSync } from 'node:child_process';
@@ -56,6 +57,8 @@ function buildTime(): Date {
 const SKIPPED_VERSION_GROUPS = new Set(['12', '13', '28', '29', '32']);
 /** Let's Go Pikachu/Eevee: PokeAPI gives every slot 100%, so the Locations tab shows no chance there. */
 const LETS_GO = '19';
+/** Expansion versions → their base game: their areas are their own, so the Locations tab lists them under it. */
+const EXPANSION_BASE: Record<string, string> = { '35': '33', '36': '33', '50': '34', '51': '34' };
 /** pokemon_move_methods ids the Moves tab shows. */
 const LEARN_METHODS: Record<string, 'level' | 'machine' | 'tutor' | 'egg'> = {
   '1': 'level',
@@ -922,7 +925,9 @@ async function main() {
   const encounterForm = (pokemonId: string) =>
     defaultPokemonIds.has(pokemonId) ? undefined : formName.get(defaultFormOf.get(pokemonId)?.id ?? '')?.form_name || undefined;
 
-  const wild = encounters.filter((e) => gameVersions.has(e.version_id) && (speciesOfPokemon.get(e.pokemon_id) ?? Infinity) <= index.length);
+  const wild = encounters
+    .filter((e) => gameVersions.has(e.version_id) && (speciesOfPokemon.get(e.pokemon_id) ?? Infinity) <= index.length)
+    .map((e) => (EXPANSION_BASE[e.version_id] ? { ...e, version_id: EXPANSION_BASE[e.version_id] } : e));
   /** Condition values used for each game, area and method, so a note only names a real limit. */
   const seenInArea = new Map<string, Set<string>>();
   for (const e of wild) {
@@ -982,6 +987,7 @@ async function main() {
       id: Number(v.id),
       label: versionName.get(v.id) ?? v.identifier,
       gen: Number(versionGroupById.get(v.version_group_id)?.generation_id),
+      group: Number(v.version_group_id),
     }));
 
   const builtAt = buildTime().toISOString();

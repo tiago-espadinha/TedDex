@@ -1,17 +1,18 @@
-import { useState } from 'react';
-import { loadGames, loadLocations, useLoad } from '../data/api';
-import { encountersIn } from '../data/locations';
+import { loadGames, loadLocations, loadVersions, useLoad } from '../data/api';
+import { resolveGame } from '../data/game';
+import { encountersInGroup } from '../data/locations';
+import { useGame } from '../data/settings';
 import type { SpeciesDetail } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading } from '../components/bits';
 
-const loadAll = (id: number) => Promise.all([loadLocations(id), loadGames()]);
+const loadAll = (id: number) => Promise.all([loadLocations(id), loadGames(), loadVersions()]);
 
 const COVERAGE = 'Encounter data covers Red, Blue and Yellow to Sword and Shield. Brilliant Diamond, Shining Pearl, Legends: Arceus and Scarlet and Violet are not included.';
 
 export function LocationsTab({ mon }: { mon: SpeciesDetail }) {
   const { data, error } = useLoad(() => loadAll(mon.id), mon.id);
-  const [pick, setPick] = useState<number>();
+  const [chosen, setChosen] = useGame();
 
   if (error) {
     return (
@@ -23,9 +24,13 @@ export function LocationsTab({ mon }: { mon: SpeciesDetail }) {
   }
   if (!data) return <Loading minHeight={160} />;
 
-  const [locations, allGames] = data;
-  const games = allGames.filter((g) => locations.games[g.id]);
-  if (!games.length) {
+  const [locations, allGames, versions] = data;
+  const groups = versions.filter((vg) => allGames.some((g) => g.group === vg.id && locations.games[g.id]));
+  const shown = resolveGame(
+    groups.map((g) => g.id),
+    chosen,
+  );
+  if (!shown) {
     return (
       <div className="section">
         <h2>Locations</h2>
@@ -34,15 +39,23 @@ export function LocationsTab({ mon }: { mon: SpeciesDetail }) {
     );
   }
 
-  const game = pick ?? games[games.length - 1].id;
+  const label = (id: number) => versions.find((v) => v.id === id)?.label ?? 'the chosen game';
+  const { missed } = shown;
+  const fallback =
+    missed !== undefined &&
+    `${allGames.some((g) => g.group === missed) ? `${mon.name} has no encounters in ${label(missed)}` : `Encounter data doesn't cover ${label(missed)}`}. Showing ${label(shown.group)}.`;
 
   return (
     <div className="section">
       <h2>Locations</h2>
       <label className="game-select">
         <span className="k">Game</span>
-        <select value={game} onChange={(e) => setPick(Number(e.target.value))}>
-          {games.map((g) => (
+        <select
+          value={shown.group}
+          onChange={(e) => setChosen(Number(e.target.value))}
+          aria-describedby={fallback ? 'loc-fallback' : undefined}
+        >
+          {groups.map((g) => (
             <option key={g.id} value={g.id}>
               {g.label}
             </option>
@@ -50,13 +63,29 @@ export function LocationsTab({ mon }: { mon: SpeciesDetail }) {
         </select>
         <Icon name="next" size={18} />
       </label>
+      {fallback && (
+        <p id="loc-fallback" className="hint game-fallback">
+          {fallback}
+        </p>
+      )}
 
       <div className="move-group">
         <ul>
-          {encountersIn(locations, game).map((e, i) => (
+          {encountersInGroup(
+            locations,
+            allGames.filter((g) => g.group === shown.group),
+          ).map((e, i) => (
             <li key={i} className="move-row loc-row">
               <span className="body">
-                <span className="name">{e.area}</span>
+                <span className="name">
+                  {e.area}
+                  {e.versions.length > 0 && (
+                    <span className="ver">
+                      <span className="sr-only">, only in </span>
+                      {e.versions.join(', ')}
+                    </span>
+                  )}
+                </span>
                 <span className="meta">
                   <span>{e.method}</span>
                   <span>{e.levels}</span>
