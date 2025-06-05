@@ -4,12 +4,14 @@ import { Link, useParams } from 'react-router-dom';
 import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
 import { MOVE_SLOTS, db, updateMember, type TeamMember } from '../data/db';
 import { applyForm } from '../data/forms';
+import { abilityIdByName } from '../data/peek';
 import { moveChoices, otherAbilities } from '../data/memberOptions';
 import { NATURES, natureLabel } from '../data/natures';
 import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useModalSheet } from '../components/bits';
+import { usePeek } from '../components/usePeek';
 import { MoveCells, MoveHead } from './MovesTab';
 
 const loadAll = (id: number) => Promise.all([loadSpecies(id), loadLearnsets(id), loadMoves(), loadItems()]);
@@ -27,6 +29,7 @@ export function MemberEditor() {
   // Every ability is only needed in god mode, so it loads then.
   const { data: abilities, error: abilitiesError } = useLoad(() => (godMode ? loadAbilities() : Promise.resolve(undefined)), godMode);
   const [picking, setPicking] = useState<Picking>();
+  const peek = usePeek();
   const choices = useMemo(() => (data ? moveChoices(data[1], data[2], godMode) : []), [data, godMode]);
   const itemOptions = useMemo(
     () => Object.entries(data?.[3] ?? {}).map(([id, name]) => ({ id: Number(id), name })).sort((a, b) => a.name.localeCompare(b.name)),
@@ -47,6 +50,10 @@ export function MemberEditor() {
   // Learnsets stay species-level; name, types and abilities follow the member's form.
   const { view: mon, form, mediaId } = applyForm(species, member.formKey ?? null);
   const chosen = (member.moves ?? []).filter((id) => moves[id]);
+  // Its own abilities carry their id; one picked in god mode is found in the full list.
+  const abilityId = member.ability
+    ? (mon.abilities.find((a) => a.name === member.ability)?.id ?? (abilities && abilityIdByName(abilities, member.ability)))
+    : undefined;
   const save = (patch: Partial<TeamMember>) => updateMember(teamId, index, (m) => ({ ...m, ...patch }));
   const setMove = (slot: number, move?: number) =>
     updateMember(teamId, index, (m) => {
@@ -104,7 +111,12 @@ export function MemberEditor() {
         </Field>
       )}
 
-      <Field title="Ability">
+      <Field
+        title="Ability"
+        action={
+          abilityId !== undefined && <InfoButton name={member.ability!} onClick={() => peek({ kind: 'ability', id: abilityId })} />
+        }
+      >
         <div className="ability-row" role="radiogroup" aria-label="Ability">
           {mon.abilities.map((a) => (
             <button
@@ -154,6 +166,9 @@ export function MemberEditor() {
             <span className={member.item ? 'v' : 'v none'}>{member.item ? (items[member.item] ?? 'Unknown item') : 'None'}</span>
             <Icon name="next" size={18} />
           </button>
+          {member.item !== undefined && items[member.item] && (
+            <InfoButton name={items[member.item]} onClick={() => peek({ kind: 'item', id: member.item! })} />
+          )}
           {member.item !== undefined && (
             <button className="icon-btn" aria-label="Remove held item" onClick={() => save({ item: undefined })}>
               <Icon name="close" size={20} />
@@ -163,7 +178,14 @@ export function MemberEditor() {
       </Field>
 
       <Field title={`Moves · ${chosen.length} of ${MOVE_SLOTS}`}>
-        <MoveSlots chosen={chosen} moves={moves} canAdd={choices.length > 0} onPick={(slot) => setPicking({ kind: 'move', slot })} onRemove={(slot) => setMove(slot)} />
+        <MoveSlots
+          chosen={chosen}
+          moves={moves}
+          canAdd={choices.length > 0}
+          onPick={(slot) => setPicking({ kind: 'move', slot })}
+          onPeek={(id) => peek({ kind: 'move', id })}
+          onRemove={(slot) => setMove(slot)}
+        />
         {!choices.length && <p className="hint">No move data for {mon.name}.</p>}
       </Field>
 
@@ -204,12 +226,28 @@ export function MemberEditor() {
   );
 }
 
-function Field({ title, children }: { title: string; children: ReactNode }) {
+function Field({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="section">
-      <h2>{title}</h2>
+      {action ? (
+        <div className="field-head">
+          <h2>{title}</h2>
+          {action}
+        </div>
+      ) : (
+        <h2>{title}</h2>
+      )}
       {children}
     </section>
+  );
+}
+
+/** Opens the quick view for a chosen ability, item or move. */
+function InfoButton({ name, onClick }: { name: string; onClick: () => void }) {
+  return (
+    <button className="icon-btn" aria-label={`About ${name}`} onClick={onClick}>
+      <Icon name="info" size={20} />
+    </button>
   );
 }
 
@@ -218,12 +256,14 @@ function MoveSlots({
   moves,
   canAdd,
   onPick,
+  onPeek,
   onRemove,
 }: {
   chosen: number[];
   moves: MoveTable;
   canAdd: boolean;
   onPick: (slot: number) => void;
+  onPeek: (move: number) => void;
   onRemove: (slot: number) => void;
 }) {
   return (
@@ -247,9 +287,12 @@ function MoveSlots({
               <button className="move-pick" aria-label={`Replace ${m.name}`} onClick={() => onPick(slot)}>
                 <MoveCells move={m} />
               </button>
-              <button className="icon-btn" aria-label={`Remove ${m.name}`} onClick={() => onRemove(slot)}>
-                <Icon name="close" size={20} />
-              </button>
+              <span className="slot-actions">
+                <InfoButton name={m.name} onClick={() => onPeek(id)} />
+                <button className="icon-btn" aria-label={`Remove ${m.name}`} onClick={() => onRemove(slot)}>
+                  <Icon name="close" size={20} />
+                </button>
+              </span>
             </li>
           );
         })}

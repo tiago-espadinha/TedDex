@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
 import { loadLearnsets, loadMoves, loadVersions, useLoad } from '../data/api';
 import { resolveGame } from '../data/game';
 import { useGame } from '../data/settings';
 import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types';
 import { signed } from '../data/format';
+import type { Peek } from '../data/peek';
 import { typeChip } from '../data/typeColors';
 import { Icon } from '../components/Icon';
 import { CategoryIcon, Loading, TypeChip } from '../components/bits';
+import { usePeek } from '../components/usePeek';
 
 type Method = keyof Learnset;
 const METHODS: { key: Method; title: string }[] = [
@@ -23,6 +24,7 @@ export function MovesTab({ mon }: { mon: SpeciesDetail }) {
   const { data, error } = useLoad(() => loadAll(mon.id), mon.id);
   const [chosen, setChosen] = useGame();
   const [method, setMethod] = useState<Method>('level');
+  const peek = usePeek();
 
   if (error) return <Note>Couldn't load moves. {error.message}</Note>;
   if (!data) return <Loading minHeight={320} />;
@@ -76,8 +78,8 @@ export function MovesTab({ mon }: { mon: SpeciesDetail }) {
       {shown && (
         <MoveGroup title={`${shown.title} · ${set[shown.key].length}`} level={shown.key === 'level'}>
           {shown.key === 'level'
-            ? set.level.map(([move, level]) => <MoveRow key={`${move}-${level}`} move={move} moves={moves} level={level} />)
-            : [...set[shown.key]].sort(byName).map((move) => <MoveRow key={move} move={move} moves={moves} />)}
+            ? set.level.map(([move, level]) => <MoveRow key={`${move}-${level}`} move={move} moves={moves} level={level} onPeek={peek} />)
+            : [...set[shown.key]].sort(byName).map((move) => <MoveRow key={move} move={move} moves={moves} onPeek={peek} />)}
         </MoveGroup>
       )}
     </div>
@@ -102,11 +104,11 @@ function MoveGroup({ title, level, children }: { title: string; level: boolean; 
   );
 }
 
-function MoveRow({ move, moves, level }: { move: number; moves: MoveTable; level?: number }) {
+function MoveRow({ move, moves, level, onPeek }: { move: number; moves: MoveTable; level?: number; onPeek: (peek: Peek) => void }) {
   const m = moves[move];
   return (
     <li>
-      <Link className="move-row" to={`/reference/moves/${move}`}>
+      <button className="move-row" onClick={() => onPeek({ kind: 'move', id: move })}>
         {level !== undefined && (
           <span className="lv" style={{ borderColor: typeChip(m.type) }}>
             {level === 0 ? (
@@ -123,7 +125,7 @@ function MoveRow({ move, moves, level }: { move: number; moves: MoveTable; level
           </span>
         )}
         <MoveCells move={m} />
-      </Link>
+      </button>
     </li>
   );
 }

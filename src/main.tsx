@@ -9,6 +9,7 @@ import { LeagueGameScreen, LeagueList } from './screens/LeagueScreens';
 import { MoreScreen } from './screens/OtherScreens';
 import { ReferenceEntry, ReferenceList, ReferenceScreen } from './screens/ReferenceScreens';
 import { MemberEditor } from './screens/MemberEditor';
+import { QuickView } from './screens/QuickView';
 import { CoverageScreen, TeamEditor, TeamsScreen } from './screens/TeamScreens';
 import './styles.css';
 
@@ -37,6 +38,7 @@ function Shell() {
         <Outlet />
       </main>
       {!pushed && <BottomNav />}
+      <QuickView />
       <ScrollRestoration getKey={(loc) => loc.pathname + loc.search} />
     </ToastProvider>
   );
@@ -74,6 +76,30 @@ router.navigate = ((to: Parameters<typeof navigate>[0], opts?: Parameters<typeof
   const path = typeof to === 'string' ? new URL(to, location.href).pathname : to?.pathname;
   return navigate(to, { ...opts, viewTransition: opts?.viewTransition ?? (path != null && path !== location.pathname) });
 }) as typeof navigate;
+
+// Back replays a transition into any path that ever animated, even when only the search changes (closing the
+// quick view). Skip those: nothing visible changes, and a running transition swallows taps.
+let shownPath = location.pathname;
+let previousPath = shownPath;
+let shownLocation = router.state.location;
+router.subscribe((state) => {
+  // Only location changes count: loading and fetcher updates would make every path look unchanged.
+  if (state.location === shownLocation) return;
+  shownLocation = state.location;
+  previousPath = shownPath;
+  shownPath = state.location.pathname;
+});
+const startViewTransition = document.startViewTransition?.bind(document);
+if (startViewTransition) {
+  document.startViewTransition = ((arg: Parameters<typeof startViewTransition>[0]) => {
+    const transition = startViewTransition(arg);
+    if (previousPath === shownPath) {
+      transition.ready.catch(() => {});
+      transition.skipTransition();
+    }
+    return transition;
+  }) as typeof document.startViewTransition;
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

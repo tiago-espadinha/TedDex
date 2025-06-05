@@ -335,22 +335,6 @@ function MoveEntry({ id, one }: EntryProps) {
   );
   const move = data?.[0][n];
   const ref = data?.[2];
-  const facts: [string, ReactNode][] = move
-    ? [
-        ['Type', <TypeChip key="type" type={move.type} />],
-        [
-          'Category',
-          <span key="cat" className="cat-fact">
-            <CategoryIcon category={move.category} decorative />
-            {cap(move.category)}
-          </span>,
-        ],
-        ['Power', move.power ?? '—'],
-        ['Accuracy', move.accuracy ? `${move.accuracy}%` : '—'],
-        ['PP', move.pp ?? '—'],
-        ['Priority', signed(move.priority)],
-      ]
-    : [];
   return (
     <EntryFrame
       one={one}
@@ -358,7 +342,7 @@ function MoveEntry({ id, one }: EntryProps) {
       error={error}
       loaded={!!data}
       tint={move?.type}
-      head={<Facts facts={facts} />}
+      head={move && <MoveFacts move={move} />}
     >
       {move && ref && data && (
         <>
@@ -387,6 +371,41 @@ function Facts({ facts }: { facts: [string, ReactNode][] }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+/** A move's header facts, on its page and in the quick view. */
+export function MoveFacts({ move }: { move: MoveInfo }) {
+  return (
+    <Facts
+      facts={[
+        ['Type', <TypeChip key="type" type={move.type} />],
+        [
+          'Category',
+          <span key="cat" className="cat-fact">
+            <CategoryIcon category={move.category} decorative />
+            {cap(move.category)}
+          </span>,
+        ],
+        ['Power', move.power ?? '—'],
+        ['Accuracy', move.accuracy ? `${move.accuracy}%` : '—'],
+        ['PP', move.pp ?? '—'],
+        ['Priority', signed(move.priority)],
+      ]}
+    />
+  );
+}
+
+/** An item's header facts, on its page and in the quick view. */
+export function ItemFacts({ item }: { item: ItemInfo }) {
+  return (
+    <Facts
+      facts={[
+        ['Category', item.category],
+        ['Introduced', `Gen ${roman(item.gen)}`],
+        ['Price', item.cost ? formatPrice(item.cost) : 'Not sold'],
+      ]}
+    />
   );
 }
 
@@ -463,20 +482,13 @@ function ItemEntry({ id, one }: EntryProps) {
     n,
   );
   const item = data?.[0][n];
-  const facts: [string, ReactNode][] = item
-    ? [
-        ['Category', item.category],
-        ['Introduced', `Gen ${roman(item.gen)}`],
-        ['Price', item.cost ? formatPrice(item.cost) : 'Not sold'],
-      ]
-    : [];
   return (
     <EntryFrame
       one={one}
       name={item?.name}
       error={error}
       loaded={!!data}
-      head={<Facts facts={facts} />}
+      head={item && <ItemFacts item={item} />}
       art={<img className="item-art" src={itemSpriteUrl(id)} alt="" width={64} height={64} />}
     >
       {item && data && (

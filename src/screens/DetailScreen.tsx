@@ -10,6 +10,7 @@ import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/typ
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useToast } from '../components/bits';
 import { usePager } from '../components/usePager';
+import { usePeek } from '../components/usePeek';
 import { EvolutionTab } from './EvolutionTab';
 import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
@@ -362,6 +363,7 @@ function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail })
 }
 
 function Stats({ mon, typeData }: { mon: SpeciesDetail; typeData?: TypeData }) {
+  const peek = usePeek();
   return (
     <>
       <div className="section">
@@ -389,10 +391,10 @@ function Stats({ mon, typeData }: { mon: SpeciesDetail; typeData?: TypeData }) {
         <div className="ability-row">
           {!mon.abilities.length && <p className="hint">Not in the data yet</p>}
           {mon.abilities.map((a) => (
-            <Link className="ability link" key={a.name} to={`/reference/abilities/${a.id}`}>
+            <button className="ability" key={a.name} onClick={() => peek({ kind: 'ability', id: a.id })}>
               {a.name}
               {a.hidden && <small>hidden</small>}
-            </Link>
+            </button>
           ))}
         </div>
       </div>

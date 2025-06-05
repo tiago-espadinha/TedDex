@@ -97,15 +97,19 @@ const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:
  * focus moves in (to a `data-autofocus` field, else the sheet), Tab stays inside, and
  * focus goes back to the opener on close (or to <main> if the opener is gone).
  * Returns the sheet's ref and `close(then?)`, which plays the closing animation and then
- * calls `then` (default: `onClose`).
+ * calls `then` (default: `onClose`). Only the first call counts: a tap on the scrim while the
+ * sheet sinks must not close it twice (the quick view would step back twice).
  */
 export function useModalSheet<T extends HTMLElement>(onClose: () => void) {
   const ref = useRef<T>(null);
+  const closing = useRef(false);
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
   });
   const close = useCallback((then?: () => void) => {
+    if (closing.current) return;
+    closing.current = true;
     const done = then ?? onCloseRef.current;
     if (!ref.current || matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
     ref.current.classList.add('closing');

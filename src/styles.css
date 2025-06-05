@@ -387,6 +387,17 @@ main:focus, .sheet:focus { outline: none; }
 /* Closing a sheet: it sinks and the scrim fades (SHEET_CLOSE_MS in bits.tsx). */
 .sheet.closing { animation: sink 180ms ease-in forwards; }
 .scrim:has(+ .sheet.closing) { animation: fade-out 180ms ease-in forwards; }
+/* Quick view: a move, ability or item summary over the current screen. */
+.peek-head { display: flex; align-items: center; gap: 12px; margin-right: -8px; }
+.peek-head .grow { flex: 1; min-width: 0; }
+.peek-head h2 { margin: 0; font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+.peek-head .sub { font-size: 13px; font-weight: 600; color: var(--muted); }
+.peek-head .item-art { width: 40px; height: 40px; margin: 0; padding: 6px; border-radius: 14px; }
+.peek .head-facts { margin: 12px 0 16px; }
+.peek .head-facts dt { color: var(--muted); }
+.peek .head-facts dd { color: var(--ink); }
+.peek .peek-head + .flavor { margin-top: 12px; }
+.peek .primary-btn { margin-top: 6px; }
 
 /* Screen changes (View Transitions API, started by the router in main.tsx): the old screen fades out, the new one rises in. */
 ::view-transition-old(root) { animation: fade-out 120ms ease both; }
@@ -498,9 +509,9 @@ main:focus, .sheet:focus { outline: none; }
 .move-group ul { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; }
 .move-row + .move-row, .move-group li + li > .move-row { border-top: 1px solid var(--line); }
-.move-group a.move-row { color: var(--ink); text-decoration: none; }
-.move-group a.move-row:active { background: var(--surface-2); }
-.move-group a.move-row:focus-visible { outline-offset: -2px; }
+.move-group button.move-row { width: 100%; border: 0; background: transparent; color: var(--ink); text-align: left; }
+.move-group button.move-row:active { background: var(--surface-2); }
+.move-group button.move-row:focus-visible { outline-offset: -2px; }
 .move-row .lv { flex: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 12px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; font-weight: 800; }
 .move-row .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .move-row .name { font-size: 15px; font-weight: 700; }
@@ -519,8 +530,9 @@ main:focus, .sheet:focus { outline: none; }
 @media (min-width: 600px) { .move-table, .move-head { --type-col: 76px; --num-col: 40px; --col-gap: 12px; } }
 .move-table :is(a, button).move-row, .move-table .move-pick, .move-head { display: grid; grid-template-columns: var(--move-cols); column-gap: var(--col-gap); align-items: center; }
 .move-head, .learner-head { padding: 0 13px 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
-/* Clears the slot's remove button: border 1 + row padding 4 + button 44 + gap 12 + pick padding 4. */
-.move-head.with-end { padding-right: 65px; }
+/* Clears the slot's info and remove buttons: border 1 + row padding 4 + 2 × 44 + pick padding 4; stacked on phones, one 44. */
+.move-head.with-end { padding-right: 97px; }
+@media (max-width: 599px) { .move-head.with-end { padding-right: 53px; } }
 .move-head > :not(.move), .learner-head .type, .move-table .num { text-align: center; }
 .move-table .cat-icon { justify-self: center; }
 .move-table .num { font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -652,7 +664,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-moves li > * { display: flex; }
 .league-facts .league-chip { display: inline-flex; gap: 6px; padding-right: 12px; color: var(--ink); }
 .league-chip img { flex: none; image-rendering: pixelated; }
-.league-moves a:focus-visible, .league-mon .evo-member:focus-visible { outline-offset: -2px; }
+.league-moves :is(a, button):focus-visible, .league-mon .evo-member:focus-visible { outline-offset: -2px; }
 .league-mon .evo-member:active { background: var(--surface-2); }
 @media (min-width: 600px) {
   .league-moves { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -716,14 +728,20 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-entry .minis img { width: 48px; height: 48px; margin: 0; }
 /* A member card is one link to the editor, on its first type's tint; the remove button sits over its top-right corner. */
 .team-members { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.team-mon { position: relative; border-radius: var(--radius-card); color: var(--on-tint); }
-.team-mon > a { display: block; padding-bottom: 10px; border-radius: inherit; color: inherit; text-decoration: none; }
-.team-mon > a:active { background-color: var(--tint-press); }
-.team-mon > a:focus-visible { outline-offset: -2px; }
+.team-mon { position: relative; padding-bottom: 10px; border-radius: var(--radius-card); color: var(--on-tint); }
+/* The head links to the member editor and its hit area covers the card; the chips and ✕ sit above it. */
+.team-mon > a::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-card); }
+.team-mon > a:active { background: none; }
+.team-mon > a:active::after { background-color: var(--tint-press); }
+.team-mon > a:focus-visible { outline: none; }
+.team-mon > a:focus-visible::after { outline: 2px solid var(--primary); outline-offset: -2px; }
+.team-mon :is(button.league-chip, .league-moves button) { position: relative; z-index: 1; border-top: 0; border-right: 0; border-bottom: 0; text-align: left; }
+.team-mon .league-moves button { width: 100%; }
+.team-mon :is(button.league-chip, .league-moves button):active { background: var(--tint-press); }
 .team-mon .evo-member { padding-right: 52px; color: inherit; }
 /* The card already carries the tint, so the sprite drops the tile MonHead paints inline. */
 .team-mon .evo-member img { background: transparent !important; }
-.team-mon > .icon-btn { position: absolute; top: 6px; right: 4px; color: var(--on-tint-2); }
+.team-mon > .icon-btn { position: absolute; z-index: 1; top: 6px; right: 4px; color: var(--on-tint-2); }
 .team-mon :is(.league-chip, .league-moves li > *) { background: var(--tint-glass); color: var(--on-tint); }
 .team-mon .league-facts dt { color: var(--on-tint-muted); }
 .team-mon .league-facts dd { color: var(--on-tint); }
@@ -735,18 +753,22 @@ a.move-row.tinted { color: var(--on-tint); }
 
 /* ---------- member editor ---------- */
 button.ability { text-align: left; min-height: 44px; }
-a.ability { color: inherit; text-decoration: none; min-height: 44px; display: flex; align-items: center; }
 .method-pick { margin-top: 12px; }
 .ability[aria-checked='true'] { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); }
 .ability[aria-checked='true'] small { color: inherit; }
 .game-select .sr-only + select { padding-left: 0; }
 .pick-field { display: flex; align-items: center; gap: 4px; }
+.field-head { display: flex; align-items: center; justify-content: space-between; margin: -6px -10px 0 0; }
+.field-head h2 { margin-bottom: 4px; }
 button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .game-select .v { flex: 1; min-width: 0; padding-right: 24px; font-size: 15px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .game-select .v.none, .game-select select.none { color: var(--muted); font-weight: 600; }
 .move-slots { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.move-slots .move-row { padding: 0 4px 0 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.move-slots .move-row { gap: 0; padding: 0 4px 0 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-slots .add-slot { width: 100%; }
+/* Info and remove sit side by side, stacked on phones so the move name keeps its room. */
+.slot-actions { flex: none; display: flex; }
+@media (max-width: 599px) { .slot-actions { flex-direction: column; } }
 .ability-any { width: 100%; margin-top: 8px; }
 .ability-any:disabled { opacity: 0.6; }
 .move-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 4px 8px 12px; border: 0; background: transparent; text-align: left; border-radius: 16px; }
@@ -816,7 +838,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 /* The header is a bar here: the chip row under it gets as much space above as below. */
 [data-design='b'] .chip-row { padding-top: 12px; }
 [data-design='b'] .dex-head h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
-[data-design='b'] :is(.topbar h1, .sheet-head h2, .placeholder h1) { font-weight: 600; }
+[data-design='b'] :is(.topbar h1, .sheet-head h2, .peek-head h2, .placeholder h1) { font-weight: 600; }
 [data-design='b'] .search:not(.sheet .search, .in-head) { margin: 8px 6px 0; }
 [data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
 [data-design='b'] .list-row { padding: 0 6px; }
@@ -843,7 +865,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .move-row .lv { border-radius: 50%; border-width: 2px; border-style: solid; background: var(--bg); color: var(--ink); font-weight: 500; }
 /* Poppins runs wider and heavier than Manrope: lighter small text, muted plum actions. */
 [data-design='b'] .cat-icon { border-radius: 3px; }
-[data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .team-row .meta, .hint) { font-weight: 400; }
+[data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .peek-head .sub, .team-row .meta, .hint) { font-weight: 400; }
 [data-design='b'] .topbar:not(.tinted) .sub { color: var(--ink-2); }
 /* --primary-soft is the bar colour in Design B, so a pressed header button takes the primary fill. */
 [data-design='b'] .topbar:not(.tinted) > .icon-btn[aria-pressed='true'] { background: var(--primary); color: var(--primary-ink); }
