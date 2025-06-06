@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import type {
-  AbilityTable, EvolutionMember, Game, IndexEntry, ItemPlaces, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary, Learnsets, Locations,
+  AbilityTable, EvolutionMember, Game, IndexEntry, ItemPlaces, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary,
   MoveReference, MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from './types';
+import { chunkPath, unpackLearnsets, unpackLocations, type ChunkKind, type PackedLearnsets, type PackedLocations } from './chunks';
 
 /**
  * Data access. Everything is static JSON under /data (precached by the
@@ -23,20 +24,30 @@ function getJson<T>(path: string): Promise<T> {
   return p;
 }
 
+/** One id's entry from its chunk file (see chunks.ts); `pick` reads it out of the file. */
+function getEntry<F, T>(kind: ChunkKind, id: number, pick: (file: F) => T | undefined): Promise<T> {
+  return getJson<F>(chunkPath(kind, id)).then((file) => {
+    const entry = pick(file);
+    if (entry === undefined) throw new Error(`No ${kind} entry for ${id}`);
+    return entry;
+  });
+}
+const plainEntry = <T>(kind: ChunkKind, id: number) => getEntry(kind, id, (file: Record<number, T>) => file[id]);
+
 export const loadIndex = () => getJson<IndexEntry[]>('/data/index.json');
 export const loadTypes = () => getJson<TypeData>('/data/types.json');
-export const loadSpecies = (id: number) => getJson<SpeciesDetail>(`/data/species/${id}.json`);
-export const loadLearnsets = (id: number) => getJson<Learnsets>(`/data/learnsets/${id}.json`);
+export const loadSpecies = (id: number) => plainEntry<SpeciesDetail>('species', id);
+export const loadLearnsets = (id: number) => getEntry('learnsets', id, (file: Record<number, PackedLearnsets>) => file[id] && unpackLearnsets(file[id]));
 export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
 export const loadItems = () => getJson<ItemTable>('/data/items.json');
-export const loadEvolution = (chainId: number) => getJson<EvolutionMember[]>(`/data/evolution/${chainId}.json`);
-export const loadLocations = (id: number) => getJson<Locations>(`/data/locations/${id}.json`);
+export const loadEvolution = (chainId: number) => plainEntry<EvolutionMember[]>('evolution', chainId);
+export const loadLocations = (id: number) => getEntry('locations', id, (file: PackedLocations) => unpackLocations(file, id));
 export const loadGames = () => getJson<Game[]>('/data/games.json');
-export const loadMoveReference = (id: number) => getJson<MoveReference>(`/data/reference/moves/${id}.json`);
+export const loadMoveReference = (id: number) => plainEntry<MoveReference>('reference/moves', id);
 export const loadAbilities = () => getJson<AbilityTable>('/data/reference/abilities.json');
 export const loadItemReference = () => getJson<ItemReferenceTable>('/data/reference/items.json');
-export const loadItemPlaces = (id: number) => getJson<ItemPlaces>(`/data/reference/places/${id}.json`);
+export const loadItemPlaces = (id: number) => plainEntry<ItemPlaces>('reference/places', id);
 /** Trainer data folders: Elite Four & Champion, and Gym Leaders. */
 export type TrainerKind = 'league' | 'gyms';
 export const loadTrainerGames = (kind: TrainerKind) => getJson<LeagueSummary[]>(`/data/${kind}/index.json`);

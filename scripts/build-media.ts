@@ -5,7 +5,7 @@
  *   npm run media             # download missing sources (cached in .cache/media/) and convert
  *   npm run media -- --fresh  # re-download and re-convert everything
  *
- * Reads the species list from public/data/index.json, their forms from species/<id>.json and the items from
+ * Reads the species list from public/data/index.json, their forms from the species/ chunks and the items from
  * reference/items.json (with their PokeAPI names from the CSV cache), so run `npm run data` first.
  *
  * Output (all under public/media/; forms use their Pokémon id, e.g. 10034 for Mega Charizard X):
@@ -17,7 +17,7 @@
  */
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
@@ -155,11 +155,10 @@ async function main() {
   const index = JSON.parse(await readFile(join(ROOT, 'public', 'data', 'index.json'), 'utf8')) as { id: number }[];
   const ids = index.map((s) => s.id);
   const formIds: number[] = [];
-  for (const id of ids) {
-    const detail = JSON.parse(await readFile(join(ROOT, 'public', 'data', 'species', `${id}.json`), 'utf8')) as {
-      forms?: { pokemonId: number }[];
-    };
-    for (const f of detail.forms?.slice(1) ?? []) formIds.push(f.pokemonId);
+  const speciesDir = join(ROOT, 'public', 'data', 'species');
+  for (const file of await readdir(speciesDir)) {
+    const chunk = JSON.parse(await readFile(join(speciesDir, file), 'utf8')) as Record<number, { forms?: { pokemonId: number }[] }>;
+    for (const detail of Object.values(chunk)) for (const f of detail.forms?.slice(1) ?? []) formIds.push(f.pokemonId);
   }
   const itemIds = Object.keys(JSON.parse(await readFile(join(ROOT, 'public', 'data', 'reference', 'items.json'), 'utf8'))).map(Number);
   const itemsCsv = await readFile(join(ROOT, '.cache', 'csv', 'items.csv'), 'utf8').catch(() => {

@@ -1,1 +1,0 @@
-{"description":"The user materializes an odd psychic wave to attack the target. This move deals physical damage.","effect":"Inflicts regular damage. Damage calculation always uses the target’s Defense, regardless of this move’s damage class.","learners":{"level":[[150,496]]}}

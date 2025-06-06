@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
 import { CATEGORY_LABELS, DEFAULT_FILTERS, SORT_LABELS, type DexFilters, type SortKey } from '../data/dexState';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
-import type { Category, TypeName } from '../data/types';
+import type { Category, TypeName, VersionGroup } from '../data/types';
 import { roman } from '../data/format';
 
 const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -14,11 +14,14 @@ const toggle = <T,>(list: T[], x: T) => (list.includes(x) ? list.filter((y) => y
 
 export function FilterSheet({
   value,
+  game,
   countFor,
   onApply,
   onClose,
 }: {
   value: DexFilters;
+  /** The game chosen in Settings, when one is: the sheet offers its limit. */
+  game?: VersionGroup;
   countFor: (f: DexFilters) => number;
   onApply: (f: DexFilters) => void;
   onClose: () => void;
@@ -38,6 +41,22 @@ export function FilterSheet({
             Reset
           </button>
         </div>
+
+        {game && (
+          <>
+            <h3 id="filter-game">Game</h3>
+            <div className="cat-grid" role="group" aria-labelledby="filter-game">
+              <button
+                className="gen-btn"
+                aria-pressed={draft.liftedGame !== game.id}
+                onClick={() => setDraft((d) => ({ ...d, liftedGame: d.liftedGame === game.id ? null : game.id }))}
+              >
+                Up to {game.label}
+              </button>
+            </div>
+            <p className="hint">Pokémon up to Gen {roman(game.gen)}, from the game chosen in Settings.</p>
+          </>
+        )}
 
         <ToggleAllHeading
           title="Generation"

@@ -1,1 +1,0 @@
-[{"id":236,"from":null,"conditions":[]},{"id":106,"from":236,"conditions":["Lv. 20 · Attack > Defense"]},{"id":107,"from":236,"conditions":["Lv. 20 · Attack < Defense"]},{"id":237,"from":236,"conditions":["Lv. 20 · Attack = Defense"]}]

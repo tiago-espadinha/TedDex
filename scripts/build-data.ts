@@ -4,22 +4,22 @@
  *   npm run data          # download (cached in .cache/) and emit public/data/
  *   npm run data -- --fresh   # ignore the cache and re-download
  *
- * Output (all under public/data/):
+ * Output (all under public/data/; `<kind>/c<n>.json` files hold ids n*64 to n*64+63, see src/data/chunks.ts):
  *   index.json            one row per species (default form, its other forms in `forms`): grid, search, filters, sorting by stat and size
  *   types.json            18 types + full damage matrix (attacker -> defender -> factor)
- *   species/<id>.json     detail page data (incl. catch rate, EV yield, growth rate, egg groups, gender), loaded on demand;
+ *   species/c<n>.json     detail page data (incl. catch rate, EV yield, growth rate, egg groups, gender), loaded on demand;
  *                         `forms` lists battle forms (regional, mega, gmax…), each but the default with the `games` it exists in
- *   learnsets/<id>.json   moves per version group (level-up, TM, tutor, egg), loaded by the Moves tab
+ *   learnsets/c<n>.json   moves per version group (level-up, TM, tutor, egg), each distinct list once per species, loaded by the Moves tab
  *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP, priority, generation
  *   versions.json         main-series version groups that have learnsets, oldest first
- *   evolution/<chain>.json  evolution chain members with English condition text, loaded by the Evolution tab
+ *   evolution/c<n>.json   evolution chain members with English condition text, loaded by the Evolution tab
  *   items.json            held items a team member can carry: item id -> English name
  *   reference/abilities.json  ability id -> name, short effect, full details, generation, species that have it (any form)
  *   reference/items.json      item id -> name, category, generation introduced, price (0 = not sold), short effect
  *                             (no "Held: " preamble), wild holders as [version group, species, rarity %]; every named item
  *                             but unused ones
- *   reference/moves/<id>.json move description, full effect, and its learners per method as [species, generation bitmask]
- *   locations/<id>.json   wild encounters per game (version id) as tuples into a string table, any form;
+ *   reference/moves/c<n>.json move description, full effect, and its learners per method as [species, generation bitmask]
+ *   locations/c<n>.json   wild encounters per game (version id) as tuples into one string table per chunk, any form;
  *                         expansion versions (The Isle of Armor…) count as their base game
  *   games.json            games (versions) with encounter data and their version group, oldest first
  *   meta.json             data version + build time (the HEAD commit date, so it never postdates the history)
@@ -30,6 +30,8 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { summariseSlots, type ConditionValue } from './encounters';
 import { POKEAPI_ITEM_CATEGORIES } from '../src/data/itemCategories';
+import { packLearnsets, packLocations, toChunks } from '../src/data/chunks';
+import type { Locations } from '../src/data/types';
 
 const CSV_BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv';
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -473,6 +475,12 @@ async function main() {
   await rm(OUT, { recursive: true, force: true });
   await mkdir(join(OUT, 'species'), { recursive: true });
   await mkdir(join(OUT, 'learnsets'), { recursive: true });
+  /** Writes per-id entries as the chunk files `src/data/chunks.ts` reads. */
+  const writeChunks = async <T>(dir: string, entries: Iterable<[number, T]>, pack: (chunk: Record<number, T>) => unknown = (c) => c) => {
+    for (const [n, chunk] of toChunks(entries)) await writeFile(join(OUT, dir, `c${n}.json`), JSON.stringify(pack(chunk)));
+  };
+  const speciesOut = new Map<number, unknown>();
+  const learnsetsOut = new Map<number, unknown>();
 
   /** What a Pokémon (default or form) brings to battle, plus its size. */
   function battleData(p: Row) {
@@ -637,7 +645,7 @@ async function main() {
       evolutionChainId: Number(s.evolution_chain_id) || null,
       ...(forms && { forms }),
     };
-    await writeFile(join(OUT, 'species', `${id}.json`), JSON.stringify(detail));
+    speciesOut.set(id, detail);
 
     const learnset: Record<string, Learnset> = {};
     const rows = (movesByPokemon.get(p.id) ?? []).sort(
@@ -657,8 +665,10 @@ async function main() {
       bySpecies.set(id, (bySpecies.get(id) ?? 0) | (1 << (genOfVersionGroup.get(r.version_group_id)! - 1)));
       usedVersionGroups.add(r.version_group_id);
     }
-    await writeFile(join(OUT, 'learnsets', `${id}.json`), JSON.stringify(learnset));
+    learnsetsOut.set(id, packLearnsets(learnset));
   }
+  await writeChunks('species', speciesOut);
+  await writeChunks('learnsets', learnsetsOut);
 
   // --- moves referenced by any learnset ---
   const moveName = new Map(
@@ -792,6 +802,7 @@ async function main() {
 
   await mkdir(join(OUT, 'evolution'), { recursive: true });
   const shipped = new Set(index.map((m) => String(m.id)));
+  const evolutionOut = new Map<number, unknown>();
   const chains = groupBy(
     species.filter((s) => s.evolution_chain_id && shipped.has(s.id)),
     (s) => s.evolution_chain_id,
@@ -805,8 +816,9 @@ async function main() {
       for (const c of (children.get(s.id) ?? []).sort((a, b) => Number(a.id) - Number(b.id))) walk(c);
     };
     for (const root of members.filter((s) => !s.evolves_from_species_id)) walk(root);
-    await writeFile(join(OUT, 'evolution', `${chainId}.json`), JSON.stringify(out));
+    evolutionOut.set(Number(chainId), out);
   }
+  await writeChunks('evolution', evolutionOut);
 
   // --- held items ---
   const heldCategories = new Set(itemCategories.filter((c) => HELD_ITEM_CATEGORIES.has(c.identifier)).map((c) => c.id));
@@ -843,6 +855,7 @@ async function main() {
   const moveProseIds = new Map<string, string>();
   for (const p of moveEffectProse) if (Number(p.local_language_id) === ENGLISH) moveProseIds.set(p.move_effect_id, paragraphs(p.effect));
   const moveFlavorText = effectText([], '', moveFlavor, 'move_id');
+  const moveReferenceOut = new Map<number, unknown>();
   for (const m of moves) {
     if (!usedMoves.has(m.id)) continue;
     const description = moveFlavorText.get(m.id) ?? '';
@@ -851,8 +864,9 @@ async function main() {
     for (const [method, bySpecies] of Object.entries(learnersByMove.get(m.id) ?? {})) {
       learners[method] = [...bySpecies].sort(([a], [b]) => a - b);
     }
-    await writeFile(join(OUT, 'reference', 'moves', `${m.id}.json`), JSON.stringify({ description, effect, learners }));
+    moveReferenceOut.set(Number(m.id), { description, effect, learners });
   }
+  await writeChunks('reference/moves', moveReferenceOut);
 
   const abilityEffect = effectText(abilityProse, 'ability_id', abilityFlavor, 'ability_id');
   const abilityDetails = new Map(
@@ -977,6 +991,7 @@ async function main() {
   await mkdir(join(OUT, 'locations'), { recursive: true });
   const wildBySpecies = groupBy(wild, (e) => speciesOfPokemon.get(e.pokemon_id)!);
   const gamesWithEncounters = new Set<string>();
+  const locationsOut = new Map<number, Locations>();
   for (const { id } of index) {
     // Area, method, note and form repeat across games, so rows point into one string table; 0 is "".
     const strings = [''];
@@ -1010,8 +1025,9 @@ async function main() {
       ]);
       gamesWithEncounters.add(versionId);
     }
-    await writeFile(join(OUT, 'locations', `${id}.json`), JSON.stringify({ strings, games: byGame }));
+    locationsOut.set(id, { strings, games: byGame as Locations['games'] });
   }
+  await writeChunks('locations', locationsOut, packLocations);
   const versionGroupById = new Map(versionGroups.map((g) => [g.id, g]));
   const gameList = [...gamesWithEncounters]
     .map((id) => gameVersions.get(id)!)

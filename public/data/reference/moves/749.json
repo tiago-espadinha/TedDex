@@ -1,1 +1,0 @@
-{"description":"The user pours sticky tar over the target, lowering the target's Speed stat. The target becomes weaker to Fire-type moves.","effect":"Lowers the target's Speed by 1 stage. Until the target switches out, the effectiveness of Fire-type moves is doubled against it.","learners":{"level":[[839,384]]}}

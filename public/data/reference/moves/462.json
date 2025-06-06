@@ -1,1 +1,0 @@
-{"description":"The target is crushed with great force. The more HP the target has left, the greater the move's power.","effect":"Inflicts regular damage. Power directly relates to the target’s relative remaining HP, given by `1 + 120 * current HP / max HP`, to a maximum of 121.","learners":{"level":[[486,504]]}}

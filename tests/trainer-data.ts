@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
 import type { IndexEntry, LeagueGame, LeagueSummary, LeagueTeam, SpeciesDetail } from '../src/data/types';
+import { dataEntry } from './data-files';
 
 /** Reader for one folder of `npm run league` output (league/ or gyms/), plus the checks both folders share. */
 export function trainerData(folder: string) {
@@ -52,7 +53,7 @@ export function trainerData(folder: string) {
         for (const t of game(id).trainers) {
           for (const team of [...t.teams, ...(t.rematches ?? []).flatMap((r) => r.teams)]) {
             for (const m of team.members) {
-              const forms = (read<SpeciesDetail>(`../species/${m.id}.json`).forms ?? []).map((f) => f.key);
+              const forms = (dataEntry<SpeciesDetail>('species', m.id).forms ?? []).map((f) => f.key);
               for (const key of [m.form, m.battleForm]) if (key) assert.ok(forms.includes(key), `${id} / ${t.name}: ${m.id} form ${key}`);
             }
           }

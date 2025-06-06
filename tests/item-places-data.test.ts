@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 import type { ItemPlaces, ItemReferenceTable } from '../src/data/types';
+import { dataEntry } from './data-files';
 
 // The committed output of `npm run item-places`.
 const read = <T>(path: string) => JSON.parse(readFileSync(new URL(`../public/data/reference/${path}`, import.meta.url), 'utf8')) as T;
 
 describe('item places data', () => {
   const items = read<ItemReferenceTable>('items.json');
-  const places = new Map(Object.keys(items).map((id) => [items[Number(id)].name, read<ItemPlaces>(`places/${id}.json`)]));
+  const places = new Map(Object.keys(items).map((id) => [items[Number(id)].name, dataEntry<ItemPlaces>('reference/places', Number(id))]));
 
   test('Leftovers: held by wild Snorlax and found in places that are not wild Pokémon', () => {
     const leftovers = places.get('Leftovers')!;

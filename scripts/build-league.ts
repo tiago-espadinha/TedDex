@@ -22,6 +22,7 @@ import type {
   AbilityTable, IndexEntry, ItemReferenceTable, LeagueGame, LeagueMember, LeagueRematch, LeagueTeam, LeagueTrainer, MoveTable,
   SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from '../src/data/types';
+import { chunkOf } from '../src/data/chunks';
 import { nameKey, parseLevel, parseParties, plainText, type RawMember, type RawParty } from './league';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -132,7 +133,7 @@ const formKeys = new Map<number, Promise<string[]>>();
 function speciesForms(id: number): Promise<string[]> {
   let keys = formKeys.get(id);
   if (!keys) {
-    keys = readJson<SpeciesDetail>(join(DATA, 'species', `${id}.json`)).then((s) => (s.forms ?? []).map((f) => f.key));
+    keys = readJson<Record<number, SpeciesDetail>>(join(DATA, 'species', `c${chunkOf(id)}.json`)).then((c) => (c[id].forms ?? []).map((f) => f.key));
     formKeys.set(id, keys);
   }
   return keys;
