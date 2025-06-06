@@ -1,11 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, spriteUrl, useLoad } from '../data/api';
+import { loadAbilities, loadItemReference, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVersions, spriteUrl, useLoad } from '../data/api';
 import { MOVE_SLOTS, db, updateMember, type TeamMember } from '../data/db';
+import { detailPath } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { abilityIdByName } from '../data/peek';
-import { moveChoices, otherAbilities } from '../data/memberOptions';
+import { FIRST_GEN, abilityInGame, formInGame, itemInGame, learnable, moveChoices, otherAbilities } from '../data/memberOptions';
 import { NATURES, natureLabel } from '../data/natures';
 import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
@@ -14,7 +15,7 @@ import { Loading, TypeChip, useModalSheet } from '../components/bits';
 import { usePeek } from '../components/usePeek';
 import { MoveCells, MoveHead } from './MovesTab';
 
-const loadAll = (id: number) => Promise.all([loadSpecies(id), loadLearnsets(id), loadMoves(), loadItems()]);
+const loadAll = (id: number) => Promise.all([loadSpecies(id), loadLearnsets(id), loadMoves(), loadItems(), loadVersions()]);
 
 type Picking = { kind: 'item' } | { kind: 'ability' } | { kind: 'move'; slot: number };
 
@@ -26,15 +27,20 @@ export function MemberEditor() {
   const member = team?.members[index];
   const { data, error } = useLoad(() => (member ? loadAll(member.speciesId) : Promise.resolve(undefined)), member?.speciesId);
   const godMode = team?.godMode ?? false;
-  // Every ability is only needed in god mode, so it loads then.
-  const { data: abilities, error: abilitiesError } = useLoad(() => (godMode ? loadAbilities() : Promise.resolve(undefined)), godMode);
+  const game = team?.game;
+  // Every ability is only needed in god mode and, for the generation each came in, with a team game.
+  const needAbilities = godMode || game !== undefined;
+  const { data: abilities, error: abilitiesError } = useLoad(() => (needAbilities ? loadAbilities() : Promise.resolve(undefined)), needAbilities);
+  // Item generations, only needed with a team game.
+  const { data: itemInfo } = useLoad(() => (game !== undefined ? loadItemReference() : Promise.resolve(undefined)), game !== undefined);
   const [picking, setPicking] = useState<Picking>();
   const peek = usePeek();
-  const choices = useMemo(() => (data ? moveChoices(data[1], data[2], godMode) : []), [data, godMode]);
-  const itemOptions = useMemo(
-    () => Object.entries(data?.[3] ?? {}).map(([id, name]) => ({ id: Number(id), name })).sort((a, b) => a.name.localeCompare(b.name)),
-    [data],
-  );
+  const choices = useMemo(() => (data ? moveChoices(data[1], data[2], godMode, game) : []), [data, godMode, game]);
+  // With a team game, chosen moves it can't learn there are kept and labelled.
+  const legal = useMemo(() => (data && game !== undefined ? learnable(data[1], game) : undefined), [data, game]);
+  const gen = game !== undefined ? data?.[4].find((v) => v.id === game)?.gen : undefined;
+  // With a team game, an item counts as in it once its generation is known.
+  const itemOk = (id: number) => itemInGame(gen, itemInfo?.[id]?.gen ?? 1);
   const formKey = member?.formKey ?? null;
   const abilityOptions = useMemo(
     () => (data && abilities ? otherAbilities(applyForm(data[0], formKey).view.abilities, abilities) : []),
@@ -46,14 +52,34 @@ export function MemberEditor() {
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
   if (!data) return <Loading />;
 
-  const [species, , moves, items] = data;
-  // Learnsets stay species-level; name, types and abilities follow the member's form.
+  const [species, learnsets, moves, items, versions] = data;
+  const gameLabel = game !== undefined ? (versions.find((v) => v.id === game)?.label ?? 'Unknown game') : undefined;
+  const moveNote = (id: number) => (legal && !legal.has(id) ? notIn : undefined);
+  const notInGame = game !== undefined && !learnsets[game];
+  const notIn = `Not in ${gameLabel}`;
+  // Learnsets stay species-level; name, types and abilities follow the member's form (set when it was added).
   const { view: mon, form, mediaId } = applyForm(species, member.formKey ?? null);
   const chosen = (member.moves ?? []).filter((id) => moves[id]);
   // Its own abilities carry their id; one picked in god mode is found in the full list.
   const abilityId = member.ability
     ? (mon.abilities.find((a) => a.name === member.ability)?.id ?? (abilities && abilityIdByName(abilities, member.ability)))
     : undefined;
+  // What the team's game lacks: offered only in god mode, flagged when already chosen.
+  const hasAbilities = gen === undefined || gen >= FIRST_GEN.ability;
+  const hasItems = gen === undefined || gen >= FIRST_GEN.item;
+  // Until abilities.json loads only the hidden ability rule applies.
+  const abilityOk = (id: number | undefined, hidden = false) =>
+    abilityInGame(gen, (id !== undefined && abilities?.[id]?.gen) || 1, hidden);
+  const ownAbilities = mon.abilities.filter((a) => godMode || member.ability === a.name || abilityOk(a.id, a.hidden));
+  // A game with none at all says so once instead of labelling each one.
+  const flagAbility = (id: number | undefined, hidden = false) => hasAbilities && !abilityOk(id, hidden);
+  const showAbility = godMode || !!member.ability || hasAbilities;
+  const showItem = godMode || member.item !== undefined || hasItems;
+  const itemOptions = Object.entries(items)
+    .map(([id, name]) => ({ id: Number(id), name }))
+    .filter((o) => godMode || itemOk(o.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const formMissing = !notInGame && !formInGame(form, game);
   const save = (patch: Partial<TeamMember>) => updateMember(teamId, index, (m) => ({ ...m, ...patch }));
   const setMove = (slot: number, move?: number) =>
     updateMember(teamId, index, (m) => {
@@ -61,16 +87,6 @@ export function MemberEditor() {
       if (move === undefined) next.splice(slot, 1);
       else if (!next.includes(move) && slot < MOVE_SLOTS) next[Math.min(slot, next.length)] = move;
       return { ...m, moves: next };
-    });
-  /**
-   * Switches form, dropping the chosen ability if it was the old form's own and the new form doesn't have it.
-   * God mode, and an ability picked in god mode, keep it.
-   */
-  const setForm = (key: string) =>
-    updateMember(teamId, index, (m) => {
-      const own = (formKey: string | null) => applyForm(species, formKey).view.abilities.some((a) => a.name === m.ability);
-      const keep = godMode || !own(m.formKey ?? null) || own(key);
-      return { ...m, formKey: key || undefined, ability: keep ? m.ability : undefined };
     });
 
   return (
@@ -83,13 +99,14 @@ export function MemberEditor() {
           <h1>{mon.name}</h1>
           <div className="sub">
             {team.name}
+            {gameLabel && ` · ${gameLabel}`}
             {godMode && ' · God mode'}
           </div>
         </div>
       </header>
 
       <div className="list">
-        <Link to={`/pokemon/${mon.id}${form?.key ? `?${new URLSearchParams({ form: form.key })}` : ''}`} className="slot member-hero" style={{ backgroundColor: typeTint(mon.types[0]) }}>
+        <Link to={detailPath(mon.id, form?.key)} className="slot member-hero" style={{ backgroundColor: typeTint(mon.types[0]) }}>
           <img src={spriteUrl(mediaId)} alt="" width={64} height={64} />
           <div style={{ minWidth: 0 }}>
             <div className="chips">{mon.types.map((t) => <TypeChip key={t} type={t} />)}</div>
@@ -97,53 +114,47 @@ export function MemberEditor() {
           </div>
           <Icon name="next" size={20} />
         </Link>
+        {formMissing && <p className="hint">{mon.name} isn't in {gameLabel}.</p>}
       </div>
 
-      {species.forms && (
-        <Field title="Form">
-          <div className="ability-row" role="radiogroup" aria-label="Form">
-            {species.forms.map((f) => (
-              <button key={f.key} className="ability" role="radio" aria-checked={f.key === (form?.key ?? '')} onClick={() => setForm(f.key)}>
-                {f.label}
+      {showAbility && (
+        <Field
+          title="Ability"
+          action={
+            abilityId !== undefined && <InfoButton name={member.ability!} onClick={() => peek({ kind: 'ability', id: abilityId })} />
+          }
+        >
+          <div className="ability-row" role="radiogroup" aria-label="Ability">
+            {ownAbilities.map((a) => (
+              <button
+                key={a.name}
+                className="ability"
+                role="radio"
+                aria-checked={member.ability === a.name}
+                onClick={() => save({ ability: member.ability === a.name ? undefined : a.name })}
+              >
+                {a.name}
+                {a.hidden && <small>Hidden</small>}
+                {flagAbility(a.id, a.hidden) && <small>{notIn}</small>}
               </button>
             ))}
+            {member.ability && !mon.abilities.some((a) => a.name === member.ability) && (
+              <button className="ability" role="radio" aria-checked onClick={() => save({ ability: undefined })}>
+                {member.ability}
+                <small>Not its own</small>
+                {flagAbility(abilityId) && <small>{notIn}</small>}
+              </button>
+            )}
           </div>
-        </Field>
-      )}
-
-      <Field
-        title="Ability"
-        action={
-          abilityId !== undefined && <InfoButton name={member.ability!} onClick={() => peek({ kind: 'ability', id: abilityId })} />
-        }
-      >
-        <div className="ability-row" role="radiogroup" aria-label="Ability">
-          {mon.abilities.map((a) => (
-            <button
-              key={a.name}
-              className="ability"
-              role="radio"
-              aria-checked={member.ability === a.name}
-              onClick={() => save({ ability: member.ability === a.name ? undefined : a.name })}
-            >
-              {a.name}
-              {a.hidden && <small>Hidden</small>}
-            </button>
-          ))}
-          {member.ability && !mon.abilities.some((a) => a.name === member.ability) && (
-            <button className="ability" role="radio" aria-checked onClick={() => save({ ability: undefined })}>
-              {member.ability}
-              <small>Not its own</small>
+          {godMode && (
+            <button className="add-slot ability-any" onClick={() => setPicking({ kind: 'ability' })} disabled={!abilities}>
+              <Icon name="plus" size={18} /> Any ability
             </button>
           )}
-        </div>
-        {godMode && (
-          <button className="add-slot ability-any" onClick={() => setPicking({ kind: 'ability' })} disabled={!abilities}>
-            <Icon name="plus" size={18} /> Any ability
-          </button>
-        )}
-        {godMode && abilitiesError && <p className="hint">Couldn't load the ability list. {abilitiesError.message}</p>}
-      </Field>
+          {!hasAbilities && <p className="hint">{gameLabel} has no abilities.</p>}
+          {abilitiesError && <p className="hint">Couldn't load the ability list. {abilitiesError.message}</p>}
+        </Field>
+      )}
 
       <Field title="Nature">
         <label className="game-select">
@@ -160,33 +171,44 @@ export function MemberEditor() {
         </label>
       </Field>
 
-      <Field title="Held item">
-        <div className="pick-field">
-          <button className="game-select" onClick={() => setPicking({ kind: 'item' })}>
-            <span className={member.item ? 'v' : 'v none'}>{member.item ? (items[member.item] ?? 'Unknown item') : 'None'}</span>
-            <Icon name="next" size={18} />
-          </button>
-          {member.item !== undefined && items[member.item] && (
-            <InfoButton name={items[member.item]} onClick={() => peek({ kind: 'item', id: member.item! })} />
-          )}
-          {member.item !== undefined && (
-            <button className="icon-btn" aria-label="Remove held item" onClick={() => save({ item: undefined })}>
-              <Icon name="close" size={20} />
+      {showItem && (
+        <Field title="Held item">
+          <div className="pick-field">
+            {/* A game without held items keeps the chosen one, with nothing to swap it for. */}
+            <button className="game-select" disabled={!godMode && !hasItems} onClick={() => setPicking({ kind: 'item' })}>
+              <span className={member.item ? 'v' : 'v none'}>{member.item ? (items[member.item] ?? 'Unknown item') : 'None'}</span>
+              <Icon name="next" size={18} />
             </button>
-          )}
-        </div>
-      </Field>
+            {member.item !== undefined && items[member.item] && (
+              <InfoButton name={items[member.item]} onClick={() => peek({ kind: 'item', id: member.item! })} />
+            )}
+            {member.item !== undefined && (
+              <button className="icon-btn" aria-label="Remove held item" onClick={() => save({ item: undefined })}>
+                <Icon name="close" size={20} />
+              </button>
+            )}
+          </div>
+          {!hasItems && <p className="hint">{gameLabel} has no held items.</p>}
+          {hasItems && member.item !== undefined && items[member.item] && !itemOk(member.item) && <p className="hint">{items[member.item]} isn't in {gameLabel}.</p>}
+        </Field>
+      )}
 
       <Field title={`Moves · ${chosen.length} of ${MOVE_SLOTS}`}>
         <MoveSlots
           chosen={chosen}
           moves={moves}
           canAdd={choices.length > 0}
+          note={moveNote}
           onPick={(slot) => setPicking({ kind: 'move', slot })}
           onPeek={(id) => peek({ kind: 'move', id })}
           onRemove={(slot) => setMove(slot)}
         />
-        {!choices.length && <p className="hint">No move data for {mon.name}.</p>}
+        {notInGame && (
+          <p className="hint">
+            {mon.name} isn't in {gameLabel}.{!godMode && " Change the team's game or turn on god mode to add moves."}
+          </p>
+        )}
+        {!choices.length && !notInGame && <p className="hint">No move data for {mon.name}.</p>}
       </Field>
 
       {picking?.kind === 'item' && (
@@ -255,6 +277,7 @@ function MoveSlots({
   chosen,
   moves,
   canAdd,
+  note,
   onPick,
   onPeek,
   onRemove,
@@ -262,6 +285,8 @@ function MoveSlots({
   chosen: number[];
   moves: MoveTable;
   canAdd: boolean;
+  /** A label under a chosen move's name (it isn't learnable in the team's game). */
+  note: (move: number) => string | undefined;
   onPick: (slot: number) => void;
   onPeek: (move: number) => void;
   onRemove: (slot: number) => void;
@@ -284,8 +309,8 @@ function MoveSlots({
           const m = moves[id];
           return (
             <li key={slot} className="move-row">
-              <button className="move-pick" aria-label={`Replace ${m.name}`} onClick={() => onPick(slot)}>
-                <MoveCells move={m} />
+              <button className="move-pick" aria-label={`Replace ${m.name}`} disabled={!canAdd} onClick={() => onPick(slot)}>
+                <MoveCells move={m} note={note(id)} />
               </button>
               <span className="slot-actions">
                 <InfoButton name={m.name} onClick={() => onPeek(id)} />

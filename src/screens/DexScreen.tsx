@@ -4,15 +4,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { artworkUrl, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { cap, formatNo, roman } from '../data/format';
+import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
-import { CATEGORY_LABELS, SORT_LABELS, saveOrder, useDexFilters, type SortKey } from '../data/dexState';
+import { CATEGORY_LABELS, SORT_LABELS, detailPath, saveOrder, useDexFilters, type SortKey } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
-import type { IndexEntry } from '../data/types';
-import { FUSE_OPTIONS, applyFilters, sortValue } from '../data/filter';
+import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
-import { useDexView, useSpriteStyle } from '../data/settings';
+import { useDexForms, useDexView, useSpriteStyle } from '../data/settings';
 
 const ROW_H = 118; // card 108 + gap 10
 const LIST_ROW_H = 108; // row 100 + gap 8
@@ -35,28 +35,33 @@ export function DexScreen() {
   const fab = useRef<HTMLButtonElement>(null);
   const [params] = useSearchParams();
   const pickTeam = params.get('pick') ? Number(params.get('pick')) : null;
+  const compareSlot = SLOTS.find((s) => s === params.get('compare'));
   const navigate = useNavigate();
+  const backToCompare = (slot?: SlotName, id?: number, form?: string) =>
+    navigate(comparePath({ ...parseCompare(params), ...(slot && id ? { [slot]: { id, form } } : {}) }), { replace: true });
   const toast = useToast();
   const cols = useColumns();
   const [spriteStyle] = useSpriteStyle();
   const [view, setView] = useDexView();
+  const [formKinds] = useDexForms();
   const perRow = view === 'list' ? 1 : cols;
 
-  const fuse = useMemo(() => (all ? new Fuse(all, FUSE_OPTIONS) : null), [all]);
-  const list = useMemo(() => (all ? applyFilters(all, fuse, filters) : []), [all, fuse, filters]);
-  useEffect(() => saveOrder(list.map((m) => m.id)), [list]);
+  const rows = useMemo(() => (all ? dexRows(all, formKinds) : null), [all, formKinds]);
+  const fuse = useMemo(() => (rows ? new Fuse(rows, FUSE_OPTIONS) : null), [rows]);
+  const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters) : []), [rows, fuse, filters]);
+  useEffect(() => saveOrder(list.map((m) => detailPath(m.id, m.form?.key))), [list]);
 
-  const rows = Math.ceil(list.length / perRow);
+  const lines = Math.ceil(list.length / perRow);
   const rowHeight = view === 'list' ? LIST_ROW_H : ROW_H;
-  const virtual = useWindowVirtualizer({ count: rows, estimateSize: () => rowHeight, overscan: 4 });
+  const virtual = useWindowVirtualizer({ count: lines, estimateSize: () => rowHeight, overscan: 4 });
   // Row heights differ between the views: measure again when switching.
   useEffect(() => virtual.measure(), [virtual, rowHeight]);
 
   const activeCount = filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
 
-  async function pick(id: number) {
+  async function pick(id: number, formKey?: string) {
     if (pickTeam == null) return;
-    const ok = await addToTeam(pickTeam, id);
+    const ok = await addToTeam(pickTeam, id, formKey);
     const team = await db.teams.get(pickTeam);
     if (!ok) toast({ text: 'That team is already full' });
     navigate(`/teams/${pickTeam}`, { replace: true });
@@ -115,6 +120,13 @@ export function DexScreen() {
         </div>
       )}
 
+      {compareSlot && (
+        <div className="pick-banner">
+          Tap a Pokémon to compare
+          <button onClick={() => backToCompare()}>Cancel</button>
+        </div>
+      )}
+
       {pickTeam != null && (
         <div className="pick-banner">
           Tap a Pokémon to add it
@@ -137,12 +149,18 @@ export function DexScreen() {
             >
               {items.map((m) => (
                 <MonCard
-                  key={m.id}
+                  key={detailPath(m.id, m.form?.key)}
                   mon={m}
                   art={spriteStyle === 'art'}
                   row={view === 'list'}
                   value={sortedBy(m, filters.sort)}
-                  onPick={pickTeam != null ? () => pick(m.id) : undefined}
+                  onPick={
+                    compareSlot
+                      ? () => backToCompare(compareSlot, m.id, m.form?.key)
+                      : pickTeam != null
+                        ? () => pick(m.id, m.form?.key)
+                        : undefined
+                  }
                 />
               ))}
             </div>
@@ -167,7 +185,7 @@ export function DexScreen() {
       {sheetOpen && (
         <FilterSheet
           value={filters}
-          countFor={(f) => (all ? applyFilters(all, fuse, f).length : 0)}
+          countFor={(f) => (rows ? applyFilters(rows, fuse, f).length : 0)}
           onApply={(f) => {
             setFilters(f);
             setSheetOpen(false);
@@ -181,7 +199,7 @@ export function DexScreen() {
 }
 
 /** What the card shows for the current sort, e.g. "Attack 84" or "90.5 kg"; nothing for number and name. */
-function sortedBy(m: IndexEntry, sort: SortKey): string | undefined {
+function sortedBy(m: DexRow, sort: SortKey): string | undefined {
   const v = sortValue(m, sort);
   if (v === undefined) return undefined;
   if (sort === 'height') return `${v} m`;
@@ -189,12 +207,14 @@ function sortedBy(m: IndexEntry, sort: SortKey): string | undefined {
   return `${SORT_LABELS[sort]} ${v}`;
 }
 
-/** A species in the grid (card) or in list view (`row`: sprite on the left, number over name). */
-function MonCard({ mon, art, row, value, onPick }: { mon: IndexEntry; art: boolean; row: boolean; value?: string; onPick?: () => void }) {
+/** A species or form in the grid (card) or in list view (`row`: sprite on the left, number over name). */
+function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; row: boolean; value?: string; onPick?: () => void }) {
+  const mediaId = mon.form?.pokemonId ?? mon.id;
   const body = (
     <>
       <div className="no">
         {formatNo(mon.id)}
+        {mon.form && <span className="form-label"> · {mon.form.label}</span>}
         {value && <span className="sort-val"> · {value}</span>}
       </div>
       <div className="name">{mon.name}</div>
@@ -204,11 +224,13 @@ function MonCard({ mon, art, row, value, onPick }: { mon: IndexEntry; art: boole
         ))}
       </div>
       <img
-        src={art ? artworkUrl(mon.id) : spriteUrl(mon.id)}
+        src={art ? artworkUrl(mediaId) : spriteUrl(mediaId)}
         onError={(e) => {
-          // Artwork that was never viewed isn't cached offline: show the precached sprite instead.
-          const sprite = spriteUrl(mon.id);
-          if (!e.currentTarget.src.endsWith(sprite)) e.currentTarget.src = sprite;
+          // Artwork that was never viewed isn't cached offline: show the precached sprite instead, and the
+          // species' sprite for a form without one (Mega Zygarde).
+          const next = [spriteUrl(mediaId), spriteUrl(mon.id)];
+          const at = next.findIndex((url) => e.currentTarget.src.endsWith(url));
+          if (at < next.length - 1 && next[at + 1] !== next[at]) e.currentTarget.src = next[at + 1];
         }}
         alt=""
         loading="lazy"
@@ -227,7 +249,7 @@ function MonCard({ mon, art, row, value, onPick }: { mon: IndexEntry; art: boole
       </button>
     );
   return (
-    <Link to={`/pokemon/${mon.id}`} className={cls} style={style}>
+    <Link to={detailPath(mon.id, mon.form?.key)} className={cls} style={style}>
       {body}
     </Link>
   );

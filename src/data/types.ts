@@ -21,7 +21,23 @@ export interface IndexEntry {
   weightKg: number;
   /** Absent when the species is in no category. */
   tags?: Category[];
+  /** Its other battle forms, for the Dex form switches; absent when it has none. */
+  forms?: IndexForm[];
 }
+
+/** Which Dex switch shows a form as its own row. */
+export type FormKind = 'mega' | 'regional' | 'gmax' | 'other';
+
+/** A form in the grid index: what its Dex row shows, filters and sorts by. */
+export type IndexForm = Pick<IndexEntry, 'name' | 'types' | 'total' | 'stats' | 'heightM' | 'weightKg'> & {
+  /** The species file's form key, used in `?form=`. */
+  key: string;
+  /** Short label, unique in the species, e.g. "Mega X" (full names can repeat: two "10% Zygarde"). */
+  label: string;
+  kind: FormKind;
+  /** The id its sprite and artwork use. */
+  pokemonId: number;
+};
 
 export interface StatBlock {
   hp: number;
@@ -32,7 +48,7 @@ export interface StatBlock {
   spe: number;
 }
 
-export interface SpeciesDetail extends IndexEntry {
+export interface SpeciesDetail extends Omit<IndexEntry, 'forms'> {
   slug: string;
   genus: string;
   /** `id` is the reference/abilities.json id. */
@@ -61,6 +77,8 @@ export type FormVariant = Pick<SpeciesDetail, 'name' | 'types' | 'stats' | 'tota
   key: string;
   /** Short chip label, e.g. "Mega X". */
   label: string;
+  /** Version groups it exists in, oldest first; absent on the default form (its learnsets tell). */
+  games?: number[];
 };
 
 export interface TypeData {

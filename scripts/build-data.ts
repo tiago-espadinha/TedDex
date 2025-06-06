@@ -5,10 +5,10 @@
  *   npm run data -- --fresh   # ignore the cache and re-download
  *
  * Output (all under public/data/):
- *   index.json            one row per species (default form): grid, search, filters, sorting by stat and size
+ *   index.json            one row per species (default form, its other forms in `forms`): grid, search, filters, sorting by stat and size
  *   types.json            18 types + full damage matrix (attacker -> defender -> factor)
  *   species/<id>.json     detail page data (incl. catch rate, EV yield, growth rate, egg groups, gender), loaded on demand;
- *                         `forms` lists battle forms (regional, mega, gmax…)
+ *                         `forms` lists battle forms (regional, mega, gmax…), each but the default with the `games` it exists in
  *   learnsets/<id>.json   moves per version group (level-up, TM, tutor, egg), loaded by the Moves tab
  *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP, priority, generation
  *   versions.json         main-series version groups that have learnsets, oldest first
@@ -57,6 +57,8 @@ function buildTime(): Date {
 const SKIPPED_VERSION_GROUPS = new Set(['12', '13', '28', '29', '32']);
 /** Let's Go Pikachu/Eevee: PokeAPI gives every slot 100%, so the Locations tab shows no chance there. */
 const LETS_GO = '19';
+/** Sword and Shield: the only games with Gigantamax. */
+const SWORD_SHIELD = 20;
 /** Expansion versions → their base game: their areas are their own, so the Locations tab lists them under it. */
 const EXPANSION_BASE: Record<string, string> = { '35': '33', '36': '33', '50': '34', '51': '34' };
 /** pokemon_move_methods ids the Moves tab shows. */
@@ -201,6 +203,13 @@ const EGG_GROUPS: Record<string, string> = {
 };
 /** Form keys of regional variants: "alola", "galar-zen", "paldea-aqua-breed"… */
 const REGIONAL_FORM = /^(alola|galar|hisui|paldea)\b/;
+/** Which Dex switch shows a form as its own row: Gigantamax first ("amped-gmax"), then Megas and Primals ("curly-mega"). */
+function formKind(key: string): 'mega' | 'regional' | 'gmax' | 'other' {
+  if (/gmax$/.test(key)) return 'gmax';
+  if (/(^|-)mega($|-)/.test(key) || key === 'primal') return 'mega';
+  if (REGIONAL_FORM.test(key)) return 'regional';
+  return 'other';
+}
 const TIMES: Record<string, string> = { day: 'during the day', night: 'at night', dusk: 'at dusk', 'full-moon': 'under a full moon' };
 
 type Row = Record<string, string>;
@@ -395,6 +404,17 @@ async function main() {
     pokemon.filter((p) => p.is_default === '0' && !p.identifier.includes('totem')),
     (p) => p.species_id,
   );
+  /** Version groups a Pokémon has moves in (main-series games): where a form exists. */
+  const gamesByPokemon = new Map<string, Set<number>>();
+  for (const r of pokemonMoves) {
+    if (SKIPPED_VERSION_GROUPS.has(r.version_group_id)) continue;
+    let games = gamesByPokemon.get(r.pokemon_id);
+    if (!games) gamesByPokemon.set(r.pokemon_id, (games = new Set()));
+    games.add(Number(r.version_group_id));
+  }
+  /** Where a form exists: Gigantamax only in Sword and Shield (PokeAPI gives them no moves), else its learnset's games. */
+  const formGames = (alt: Row, key: string) =>
+    formKind(key) === 'gmax' ? [SWORD_SHIELD] : [...(gamesByPokemon.get(alt.id) ?? [])].sort((a, b) => a - b);
   /** English names of each Pokémon's default form, e.g. "Alolan Form" / "Alolan Vulpix". */
   const defaultFormOf = new Map(pokemonForms.filter((f) => f.is_default === '1').map((f) => [f.pokemon_id, f]));
   const formName = new Map(
@@ -508,7 +528,10 @@ async function main() {
       );
     if (!alts.length) return undefined;
     const first = { pokemonId: Number(p.id), ...formLabels(p, s, speciesName), ...base };
-    const forms = [first, ...alts.map(({ alt, data, labels }) => ({ pokemonId: Number(alt.id), ...labels, ...data }))];
+    const forms = [
+      first,
+      ...alts.map(({ alt, data, labels }) => ({ pokemonId: Number(alt.id), ...labels, ...data, games: formGames(alt, labels.key) })),
+    ];
     // Forms sharing a label: name the ability when that tells them apart (Zygarde 10% with Power Construct),
     // else spell out the key (Meowstic "Male Mega" / "Female Mega").
     for (const group of groupBy(forms, (f) => f.label).values()) {
@@ -540,7 +563,7 @@ async function main() {
   function tagsOf(s: Row, forms: { key: string }[] = []) {
     const tags: string[] = [];
     if (starters.has(s.id)) tags.push('starter');
-    if (forms.some((f) => f.key.startsWith('mega'))) tags.push('mega');
+    if (forms.some((f) => f.key && formKind(f.key) === 'mega')) tags.push('mega');
     if (fossils.has(s.id)) tags.push('fossil');
     if (s.evolution_chain_id === EEVEE_CHAIN) tags.push('eeveelution');
     if (s.is_legendary === '1') tags.push('legendary');
@@ -575,6 +598,20 @@ async function main() {
       heightM,
       weightKg,
       ...(tags.length && { tags }),
+      ...(forms && {
+        forms: forms.slice(1).map((f) => ({
+          key: f.key,
+          label: f.label,
+          kind: formKind(f.key),
+          pokemonId: f.pokemonId,
+          name: f.name,
+          types: f.types,
+          total: f.total,
+          stats: f.stats,
+          heightM: f.heightM,
+          weightKg: f.weightKg,
+        })),
+      }),
     });
 
     const detail = {

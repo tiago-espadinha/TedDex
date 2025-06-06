@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadVersions, useLoad } from '../data/api';
-import { BackupError, exportTeams, importTeams } from '../data/db';
+import { BackupError, exportBackup, importBackup } from '../data/db';
 import { parseGamePref } from '../data/game';
-import { applyDesign, applyTheme, useDesign, useGame, useSpriteStyle, useTheme, type Theme } from '../data/settings';
+import { FORM_KIND_LABELS } from '../data/dexState';
+import { applyDesign, applyTheme, useDesign, useDexForms, useGame, useSpriteStyle, useTheme, type Theme } from '../data/settings';
+import type { FormKind } from '../data/types';
 import { Icon } from '../components/Icon';
 import { useToast } from '../components/bits';
 
@@ -10,6 +12,7 @@ export function MoreScreen() {
   const [design, setDesign] = useDesign();
   const [theme, setTheme] = useTheme();
   const [sprite, setSprite] = useSpriteStyle();
+  const [formKinds, setFormKinds] = useDexForms();
   const [game, setGame] = useGame();
   const versions = useLoad(loadVersions, 'versions').data;
   const [dataVersion, setDataVersion] = useState<string>();
@@ -26,19 +29,20 @@ export function MoreScreen() {
   }, []);
 
   async function doExport() {
-    const blob = new Blob([await exportTeams()], { type: 'application/json' });
+    const blob = new Blob([await exportBackup()], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `teddex-teams-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `teddex-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
   async function doImport(file: File) {
     try {
-      const n = await importTeams(await file.text());
-      toast({ text: `Imported ${n} team${n === 1 ? '' : 's'}` });
+      const { teams, pokedexes } = await importBackup(await file.text());
+      const plural = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`;
+      toast({ text: `Imported ${plural(teams, 'team')}${pokedexes ? ` and ${plural(pokedexes, 'Pokédex')}` : ''}` });
     } catch (err) {
       toast({ text: err instanceof BackupError ? err.message : "Couldn't import that file" });
     }
@@ -83,6 +87,31 @@ export function MoreScreen() {
           </button>
         </div>
 
+        <h2 style={{ marginTop: 22 }} id="forms-head">
+          Forms in the Dex
+        </h2>
+        <p id="forms-hint" className="hint">
+          Show these forms as their own rows, right after their species.
+        </p>
+        <div className="switch-list" role="group" aria-labelledby="forms-head" aria-describedby="forms-hint">
+          {(Object.entries(FORM_KIND_LABELS) as [FormKind, string][]).map(([kind, label]) => {
+            const on = formKinds.includes(kind);
+            return (
+              <button
+                key={kind}
+                type="button"
+                className="switch-row"
+                role="switch"
+                aria-checked={on}
+                onClick={() => setFormKinds(on ? formKinds.filter((k) => k !== kind) : [...formKinds, kind])}
+              >
+                {label}
+                <span className="track" aria-hidden="true" />
+              </button>
+            );
+          })}
+        </div>
+
         <h2 style={{ marginTop: 22 }}>Game</h2>
         <p id="game-hint" className="hint" style={{ marginBottom: 10 }}>
           Moves and Locations open on this game. Latest shows each Pokémon's newest game.
@@ -104,9 +133,9 @@ export function MoreScreen() {
           <Icon name="next" size={18} />
         </label>
 
-        <h2 style={{ marginTop: 22 }}>Team backup</h2>
+        <h2 style={{ marginTop: 22 }}>Backup</h2>
         <p className="hint" style={{ marginBottom: 10 }}>
-          Teams are stored only on this device. Export a backup, or move them to another device.
+          Teams and Pokédexes are stored only on this device. Export a backup, or move them to another device.
         </p>
         <div className="add-grid">
           <button className="add-slot" style={{ borderStyle: 'solid' }} onClick={doExport}>

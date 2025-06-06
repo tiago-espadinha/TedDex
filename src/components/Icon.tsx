@@ -31,6 +31,7 @@ const paths = {
     </>
   ),
   close: <path d="M6 6l12 12M18 6L6 18" />,
+  compare: <path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4" />,
   more: (
     <>
       <circle cx="12" cy="5" r="1.5" />
@@ -81,6 +82,20 @@ const paths = {
   shield: <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />,
   pencil: <path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" />,
   bolt: <path d="M13 3L5 14h6l-1 7 8-11h-6z" />,
+  ball: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h6M15 12h6" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  star: <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />,
   height: (
     <g transform="rotate(-45 12 12)">
       <rect x="3" y="8" width="18" height="8" rx="1.5" />

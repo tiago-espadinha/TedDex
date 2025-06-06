@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { compareFrom } from '../data/compare';
 import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText } from '../data/format';
+import { teamGame } from '../data/game';
+import { useGame } from '../data/settings';
+import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText, statColor } from '../data/format';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
@@ -28,8 +31,6 @@ const STAT_ROWS: [keyof SpeciesDetail['stats'], string][] = [
   ['spe', 'Speed'],
 ];
 
-const statColor = (v: number) => (v >= 90 ? 'var(--stat-high)' : v >= 60 ? 'var(--stat-mid)' : 'var(--stat-low)');
-
 export function DetailScreen() {
   const id = Number(useParams().id);
   const [params, setParams] = useSearchParams();
@@ -45,8 +46,9 @@ export function DetailScreen() {
   };
   const navigate = useNavigate();
   const toast = useToast();
-  const { prev, next } = neighbours(id);
-  // A sideways swipe on the hero steps through species; the panel below pages through the tabs.
+  const [game] = useGame();
+  const { prev, next } = neighbours(id, params.get('form') ?? undefined);
+  // A sideways swipe on the hero steps through the Dex rows; the panel below pages through the tabs.
   const touch = useRef<Point | null>(null);
   const { ref: panelRef, target: selected, turn: showTab, handlers: swipe } = usePager<HTMLDivElement>(TABS.indexOf(tab), TABS.length, (i) => setTab(TABS[i]));
 
@@ -62,7 +64,7 @@ export function DetailScreen() {
   // Offline, artwork that was never viewed isn't cached: show the precached sprite and say so.
   const [noArtworkFor, setNoArtworkFor] = useState<number>();
 
-  const go = (target?: number) => target && navigate(`/pokemon/${target}`, { replace: true });
+  const go = (target?: string) => target && navigate(target, { replace: true });
   const pickForm = (key: string) => setParams(key ? { form: key } : {}, { replace: true });
 
   /** Arrow keys, Home and End move between tabs (ARIA tabs pattern, selection follows focus). */
@@ -76,9 +78,9 @@ export function DetailScreen() {
     document.getElementById(`tab-${TABS[t]}`)?.focus();
   }
 
-  /** Adds this species, in the form shown (`formKey`), to the most recently edited team. */
+  /** Adds this species, in the form shown (`formKey`), to the most recently edited team (a new one starts on the chosen game). */
   async function addToCurrentTeam(formKey?: string) {
-    const teamId = await currentTeamId();
+    const teamId = await currentTeamId(teamGame(game));
     const team = await db.teams.get(teamId);
     const ok = await addToTeam(teamId, id, formKey);
     toast(
@@ -127,6 +129,9 @@ export function DetailScreen() {
             <button className={playing ? 'icon-btn playing' : 'icon-btn'} aria-label={playing ? 'Playing cry' : 'Play cry'} onClick={playCry}>
               <Icon name="sound" />
             </button>
+            <Link className="icon-btn" aria-label="Compare" to={compareFrom({ id: mon.id, form: form?.key })}>
+              <Icon name="compare" />
+            </Link>
             <button className="icon-btn" aria-label="Add to team" onClick={() => addToCurrentTeam(form?.key)}>
               <Icon name="plus" />
             </button>
@@ -215,7 +220,7 @@ function swipeStep(start: Point | null, end: { clientX: number; clientY: number 
 }
 
 /** Prev/next arrow; at either end of the list it is shown dimmed and leaves the tab order. */
-function StepLink({ to, label, icon }: { to?: number; label: string; icon: 'back' | 'next' }) {
+function StepLink({ to, label, icon }: { to?: string; label: string; icon: 'back' | 'next' }) {
   if (!to)
     return (
       <span className="nav-round" aria-disabled="true" aria-hidden="true">
@@ -223,7 +228,7 @@ function StepLink({ to, label, icon }: { to?: number; label: string; icon: 'back
       </span>
     );
   return (
-    <Link className="nav-round" to={`/pokemon/${to}`} replace aria-label={label}>
+    <Link className="nav-round" to={to} replace aria-label={label}>
       <Icon name={icon} size={20} />
     </Link>
   );

@@ -72,6 +72,10 @@
   /* Gender symbols in the gender ratio (text on --surface, ≥ 4.5:1). */
   --gender-male: #2a5fc7;
   --gender-female: #c22a6e;
+  /* Pokédex tracker: shiny cells (ink on bg ≥ 4.5:1) and the silhouette of species not seen yet. */
+  --shiny-bg: #fbe7a8;
+  --shiny-ink: #5c4000;
+  --silhouette: brightness(0) opacity(0.22);
   color-scheme: light;
 }
 
@@ -102,6 +106,9 @@
     --scrim: rgba(0, 0, 0, 0.6);
     --gender-male: #7eaaff;
     --gender-female: #ff85b6;
+    --shiny-bg: #4d3d0f;
+    --shiny-ink: #ffdf80;
+    --silhouette: brightness(0) invert(1) opacity(0.2);
     /* Type tints darken in dark mode (each chip 32% over #1a1820), so tint content turns light. */
     --on-tint: #ecebf0;
     --on-tint-2: #c9c6d2;
@@ -157,6 +164,9 @@
   --scrim: rgba(0, 0, 0, 0.6);
   --gender-male: #7eaaff;
   --gender-female: #ff85b6;
+  --shiny-bg: #4d3d0f;
+  --shiny-ink: #ffdf80;
+  --silhouette: brightness(0) invert(1) opacity(0.2);
   /* Type tints darken in dark mode (each chip 32% over #1a1820), so tint content turns light. */
   --on-tint: #ecebf0;
   --on-tint-2: #c9c6d2;
@@ -250,6 +260,9 @@
   --cat-status: #5c5a63;
   --gender-male: #7eaaff;
   --gender-female: #ff85b6;
+  --shiny-bg: #4d3d0f;
+  --shiny-ink: #ffdf80;
+  --silhouette: brightness(0) invert(1) opacity(0.2);
   color-scheme: dark;
 }
 
@@ -316,9 +329,9 @@ main:focus, .sheet:focus { outline: none; }
 .mon-card { position: relative; display: block; height: 108px; border-radius: var(--radius-card); padding: 12px 12px 12px 14px; color: var(--on-tint); text-decoration: none; overflow: hidden; transition: transform 120ms ease; }
 .mon-card:active { transform: scale(0.97); }
 /* Fixed line heights: two stacked type chips fit above the 12 px bottom padding in both designs' fonts. */
-.mon-card .no { font-size: 12px; line-height: 16px; font-weight: 700; color: var(--on-tint-muted); }
+.mon-card .no { font-size: 12px; line-height: 16px; font-weight: 700; color: var(--on-tint-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mon-card .no, .mon-card .name, .mon-card .types { position: relative; z-index: 1; }
-.mon-card .sort-val { font-weight: 800; color: var(--on-tint); }
+.mon-card :is(.sort-val, .form-label) { font-weight: 800; color: var(--on-tint); }
 .mon-card .name { font-size: 15px; line-height: 20px; font-weight: 800; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mon-card .types { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 6px; }
 .mon-card .type-chip { line-height: 14px; }
@@ -330,7 +343,7 @@ main:focus, .sheet:focus { outline: none; }
 .mon-card.row img { position: static; grid-area: 1 / 1 / 3 / 2; align-self: center; width: 96px; height: 96px; margin: -8px; }
 /* Artwork fills its frame: keep it inside the row. */
 .mon-card.row.sprite-art img { width: 80px; height: 80px; margin: 0; }
-.mon-card.row .no { grid-area: 1 / 2; align-self: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mon-card.row .no { grid-area: 1 / 2; align-self: end; }
 .mon-card.row .name { grid-area: 2 / 2; align-self: start; margin: 0; font-size: 16px; }
 .mon-card.row .types { grid-area: 1 / 3 / 3 / 4; align-self: center; align-items: stretch; margin: 0; text-align: center; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
@@ -363,11 +376,11 @@ main:focus, .sheet:focus { outline: none; }
 .type-toggle:disabled { opacity: 0.4; }
 .segmented { --seg-r: 20px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border: 1px solid var(--outline); border-radius: var(--seg-r); height: 40px; }
 /* No overflow clip (it would cut the buttons' hit areas), so the end buttons round themselves. */
-.segmented button:first-child { border-radius: calc(var(--seg-r) - 1px) 0 0 calc(var(--seg-r) - 1px); }
-.segmented button:last-child { border-radius: 0 calc(var(--seg-r) - 1px) calc(var(--seg-r) - 1px) 0; }
-.segmented button { border: 0; background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
-.segmented button + button { border-left: 1px solid var(--outline); }
-.segmented button[aria-checked='true'] { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 800; }
+.segmented :is(button, a):first-child { border-radius: calc(var(--seg-r) - 1px) 0 0 calc(var(--seg-r) - 1px); }
+.segmented :is(button, a):last-child { border-radius: 0 calc(var(--seg-r) - 1px) calc(var(--seg-r) - 1px) 0; }
+.segmented :is(button, a) { border: 0; background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.segmented :is(button, a) + :is(button, a) { border-left: 1px solid var(--outline); }
+.segmented :is(button[aria-checked='true'], a[aria-current='page']) { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 800; }
 .segmented button:disabled { opacity: 0.45; cursor: default; }
 .primary-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--primary); color: var(--primary-ink); font-size: 16px; font-weight: 800; text-decoration: none; }
 .hint { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
@@ -473,6 +486,46 @@ main:focus, .sheet:focus { outline: none; }
 .ability { flex: 1 1 140px; padding: 10px 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; font-weight: 700; }
 .ability small { font-size: 11px; font-weight: 600; color: var(--muted); margin-left: 4px; }
 .chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+/* ---------- compare ---------- */
+.cmp-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 4px 24px 8px; }
+.cmp-slot { min-width: 0; border-radius: var(--radius-card); padding: 8px 10px 12px; color: var(--on-tint); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; }
+.cmp-slot.empty-slot { min-height: 196px; justify-content: center; gap: 6px; border: 1.5px dashed var(--outline); background: transparent; color: var(--ink-2); font: inherit; font-size: 14px; font-weight: 700; }
+.cmp-pick { border: 0; background: transparent; padding: 0; border-radius: 16px; }
+.cmp-pick:active { background: var(--tint-press); }
+.cmp-pick img { display: block; width: 96px; height: 96px; image-rendering: pixelated; }
+.cmp-slot .no { font-size: 12px; font-weight: 700; color: var(--on-tint-muted); }
+.cmp-slot .name { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; font-size: 16px; line-height: 20px; font-weight: 800; color: inherit; text-wrap: balance; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.cmp-slot .types { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 2px; }
+.cmp-form { position: relative; width: 100%; margin-top: auto; padding-top: 8px; }
+.cmp-form select { appearance: none; width: 100%; min-height: 44px; padding: 0 32px 0 14px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); font: inherit; font-size: 14px; font-weight: 700; text-overflow: ellipsis; }
+.cmp-form select:active { background: var(--tint-press); }
+.cmp-form svg { position: absolute; right: 12px; bottom: 14px; transform: rotate(90deg); pointer-events: none; }
+.cmp-error { font-size: 13px; font-weight: 600; color: var(--muted); }
+.cmp-hits { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cmp-hits li { display: grid; grid-template-columns: 84px 44px 1fr; align-items: center; gap: 8px; min-height: 28px; }
+.cmp-hits .type-chip { justify-self: start; }
+.cmp-mult { justify-self: start; min-width: 36px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 800; text-align: center; }
+.cmp-mult.weak { background: var(--weak-bg); color: var(--weak-ink); }
+.cmp-mult.resist { background: var(--resist-bg); color: var(--resist-ink); }
+.cmp-mult.immune { background: var(--immune-bg); color: var(--ink); }
+.cmp-mult.neutral { background: var(--neutral-cell); color: var(--ink); }
+.cmp-hit-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 28px; }
+.cmp-row.total { border-top: 1px solid var(--line); padding-top: 6px; margin-top: 4px; }
+.cmp-names { font-size: 12px; font-weight: 700; color: var(--muted); }
+.cmp-names > :last-child { text-align: right; }
+.cmp-label { font-size: 13px; font-weight: 600; color: var(--muted); text-align: center; }
+.cmp-row.total .cmp-label { color: var(--ink); font-weight: 700; }
+.cmp-cell { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cmp-row > .cmp-cell:last-child { flex-direction: row-reverse; }
+.cmp-cell .val { flex: none; min-width: 28px; font-size: 14px; font-weight: 500; color: var(--ink-2); }
+.cmp-row > .cmp-cell:last-child .val { text-align: right; }
+.cmp-cell .val.more { font-weight: 800; color: var(--ink); }
+.cmp-cell .track { flex: 1; display: flex; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.cmp-row > .cmp-cell:first-child .track { justify-content: flex-end; }
+.cmp-cell .fill { height: 8px; border-radius: 4px; animation: grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.cmp-row > .cmp-cell:first-child .fill { transform-origin: right; }
+.cmp-row > .cmp-cell:last-child .fill { transform-origin: left; }
 .eff-group { margin-bottom: 12px; }
 .eff-group h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -504,6 +557,8 @@ main:focus, .sheet:focus { outline: none; }
 .game-select select { appearance: none; flex: 1; min-width: 0; height: 46px; padding: 0 32px 0 10px; border: 0; background: transparent; font-size: 15px; font-weight: 800; text-overflow: ellipsis; }
 .game-select svg { position: absolute; right: 12px; transform: rotate(90deg); pointer-events: none; color: var(--muted); }
 .game-select:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
+.game-select:disabled { cursor: default; }
+.game-select:disabled svg { display: none; }
 .game-select select:focus-visible { outline: none; }
 .move-group { margin-top: 14px; }
 .move-group ul { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
@@ -640,6 +695,8 @@ a.move-row.tinted { color: var(--on-tint); }
 .switch-row[aria-checked='true'] .track { background: var(--primary); }
 .switch-row[aria-checked='true'] .track::after { transform: translateX(20px); background: var(--primary-ink); }
 .switch-row:focus-visible { outline-offset: 2px; }
+.switch-list { margin-top: 4px; }
+.switch-list .switch-row { width: 100%; margin: 0; }
 .league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
 .league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--on-tint-2); }
 .league-pick-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
@@ -746,6 +803,34 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-mon .league-facts dt { color: var(--on-tint-muted); }
 .team-mon .league-facts dd { color: var(--on-tint); }
 .team-mon-hint { display: block; margin: -4px 12px 0 80px; font-size: 13px; font-weight: 600; color: var(--on-tint-muted); }
+.team-mon-flag { margin-bottom: 8px; font-weight: 800; color: var(--on-tint); }
+/* Moves, abilities and items not in the team's game: a dashed edge and a note under the name. */
+.league-moves .not-in-game > *, .league-facts .league-chip.not-in-game { flex-wrap: wrap; align-content: center; padding-block: 4px; border-left-style: dashed; }
+.league-facts .league-chip.not-in-game { row-gap: 0; }
+.team-mon .league-moves li > * { height: 100%; }
+.move-flag { flex-basis: 100%; font-size: 12px; font-weight: 600; color: var(--muted); }
+.team-mon .move-flag { color: var(--on-tint-muted); }
+.move-table .move-note { font-weight: 700; color: var(--ink-2); }
+.team-game { margin: 0 0 4px; }
+/* Teams | Pokédexes on the Team tab: links in the segmented look, 44 px tall. */
+.team-tabs { height: 44px; margin: 4px 16px 0; --seg-r: 22px; }
+.team-tabs a { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+
+/* Pokédex tracker: counts, then a grid of species cells that cycle not seen → seen → caught → shiny. */
+.dex-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dex-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.dex-count b { font-size: 20px; font-weight: 800; color: var(--ink); }
+.dex-count svg { align-self: center; }
+.dex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; margin: 0; padding: 0 16px 16px; list-style: none; }
+.dex-cell { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 84px; padding: 4px 2px 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--muted); transition: transform 120ms; }
+.dex-cell:active { transform: scale(0.95); }
+.dex-cell img { width: 56px; height: 56px; image-rendering: pixelated; }
+.dex-cell .no { font-size: 12px; font-weight: 700; }
+.dex-cell .badge { position: absolute; top: 5px; right: 5px; display: flex; }
+.dex-cell.s0 img { filter: var(--silhouette); }
+.dex-cell.s1 { color: var(--ink-2); }
+.dex-cell.s2 { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); background: var(--primary-soft); color: var(--primary-soft-ink); }
+.dex-cell.s3 { border-color: var(--shiny-ink); box-shadow: inset 0 0 0 1px var(--shiny-ink); background: var(--shiny-bg); color: var(--shiny-ink); }
 .add-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .add-slot { height: 56px; border-radius: var(--radius-card); border: 1.5px dashed var(--outline); background: transparent; font-size: 14px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
 .member-hero { text-decoration: none; padding-right: 12px; }
@@ -843,7 +928,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
 [data-design='b'] .list-row { padding: 0 6px; }
 [data-design='b'] .mon-card.row { background-image: linear-gradient(90deg, transparent 20%, var(--surface) 70%); }
-[data-design='b'] :is(.mon-card, .slot, .team-mon) { box-shadow: var(--shadow-card); }
+[data-design='b'] :is(.mon-card, .slot, .team-mon, .cmp-slot:not(.empty-slot)) { box-shadow: var(--shadow-card); }
 [data-design='b'] .mon-card { background-image: linear-gradient(180deg, transparent 0%, var(--surface) 85%); }
 [data-design='b'] :is(.slot, .team-mon) { background-image: linear-gradient(90deg, transparent 34%, var(--surface) 72%); }
 [data-design='b'] :is(.mon-card .name, .slot .name, .team-mon .name, .team-row .name) { font-weight: 500; }
@@ -856,7 +941,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .evo-list, .learner-row img, .league-team, .picker-list,
+[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-count, .dex-cell, .evo-list, .learner-row img, .league-team, .picker-list,
   .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }

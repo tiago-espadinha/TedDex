@@ -73,6 +73,7 @@ const MENU: { to: string; title: string; blurb: string; sprite: string; tint: Ty
   ...KINDS.map((k) => ({ to: `/reference/${k.kind}`, title: k.title, blurb: k.blurb, ...MENU_LOOK[k.kind] })),
   { to: '/reference/league', title: 'Elite Four & Champion', blurb: "Every game's league teams and movesets", sprite: itemSpriteUrl(1), tint: 'dragon' },
   { to: '/reference/gyms', title: 'Gym Leaders', blurb: "Every game's Gym teams, badges and rematches", sprite: itemSpriteUrl(50), tint: 'rock' },
+  { to: '/compare', title: 'Compare', blurb: 'Two Pokémon side by side: types, stats and size', sprite: itemSpriteUrl(671), tint: 'electric' },
 ];
 
 export function ReferenceScreen() {

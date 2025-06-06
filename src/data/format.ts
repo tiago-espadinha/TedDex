@@ -35,3 +35,6 @@ export function genderText(rate: number): string {
 
 /** Shop price in Pokédollars: 4000 → "₽4,000"; 0 (not sold) → "—". */
 export const formatPrice = (cost: number) => (cost > 0 ? `₽${cost.toLocaleString('en-US')}` : '—');
+
+/** A base stat bar's colour: high from 90, mid from 60, else low. */
+export const statColor = (v: number) => (v >= 90 ? 'var(--stat-high)' : v >= 60 ? 'var(--stat-mid)' : 'var(--stat-low)');

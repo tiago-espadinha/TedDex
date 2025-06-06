@@ -1,5 +1,7 @@
-import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
+import { parseFormKinds } from './dexState';
 import { parseGamePref, type GamePref } from './game';
+import type { FormKind } from './types';
 
 /** Small persisted preferences (per device). */
 function usePref<T extends string>(key: string, fallback: T) {
@@ -57,6 +59,14 @@ export const useSpriteStyle = () => usePref<SpriteStyle>('sprite-style', 'sprite
 /** The Dex as a grid of cards or a dense list of rows. */
 export type DexView = 'grid' | 'list';
 export const useDexView = () => usePref<DexView>('dex-view', 'grid');
+
+/** The form kinds the Dex shows as rows of their own; none by default. */
+export function useDexForms() {
+  const [raw, setRaw] = usePref<string>('dex-forms', '');
+  const kinds = useMemo(() => parseFormKinds(raw), [raw]);
+  const set = useCallback((next: FormKind[]) => setRaw(next.join(',')), [setRaw]);
+  return [kinds, set] as const;
+}
 
 export type Theme = 'system' | 'light' | 'dark';
 export const useTheme = () => usePref<Theme>('theme', 'system');
