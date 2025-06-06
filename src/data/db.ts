@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { loadItems, loadMoves, loadSpecies, loadVersions } from './api';
 import { NATURES } from './natures';
+import { isDexState, lastSpecies, nextState, type DexState } from './pokedex';
 import type { ItemTable, MoveTable, SpeciesDetail, VersionGroup } from './types';
 
 /**
@@ -29,13 +30,24 @@ export interface Team {
   updatedAt: number;
 }
 
+/**
+ * A Pokédex tracker. `game` is a version group (versions.json) whose generation sets how many species it lists;
+ * absent means any game. `states` maps species ids to their state; species not in it are not seen.
+ */
+export interface Pokedex {
+  id: number;
+  name: string;
+  game?: number;
+  states: Record<number, DexState>;
+  updatedAt: number;
+}
+
 export const TEAM_SIZE = 6;
 export const MOVE_SLOTS = 4;
-/** Highest national dex number in public/data (default forms only). */
-const LAST_SPECIES = 1025;
 
 class DexDB extends Dexie {
   teams!: EntityTable<Team, 'id'>;
+  pokedexes!: EntityTable<Pokedex, 'id'>;
   constructor() {
     super('material-dex');
     this.version(1).stores({ teams: '++id, updatedAt' });
@@ -73,6 +85,8 @@ class DexDB extends Dexie {
       );
     // v5: teams may have a game. Every v4 team is a valid v5 team (any game), so nothing to upgrade.
     this.version(5).stores({ teams: '++id, updatedAt' });
+    // v6: Pokédex trackers in their own table.
+    this.version(6).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt' });
   }
 }
 
@@ -132,6 +146,36 @@ export async function setTeamGame(teamId: number, game?: number) {
   await db.teams.update(teamId, { game, updatedAt: Date.now() });
 }
 
+/** Creates a Pokédex for `game` (a version group; absent for any game). */
+export async function createPokedex(game?: number): Promise<number> {
+  const count = await db.pokedexes.count();
+  return db.pokedexes.add({ name: `Pokédex ${count + 1}`, ...(game !== undefined && { game }), states: {}, updatedAt: Date.now() });
+}
+
+/** Renames a Pokédex; a blank name leaves it unchanged. */
+export async function renamePokedex(dexId: number, name: string) {
+  const trimmed = name.trim();
+  if (trimmed) await db.pokedexes.update(dexId, { name: trimmed, updatedAt: Date.now() });
+}
+
+/** Sets the Pokédex's game, or any game when `game` is undefined. States of species it no longer lists are kept. */
+export async function setPokedexGame(dexId: number, game?: number) {
+  await db.pokedexes.update(dexId, { game, updatedAt: Date.now() });
+}
+
+/** Moves a species to its next state, reading the stored states so quick taps don't overwrite each other. */
+export async function cycleDexState(dexId: number, speciesId: number) {
+  return db.transaction('rw', db.pokedexes, async () => {
+    const dex = await db.pokedexes.get(dexId);
+    if (!dex) return;
+    const states = { ...dex.states };
+    const next = nextState(states[speciesId] ?? 0);
+    if (next) states[speciesId] = next;
+    else delete states[speciesId];
+    await db.pokedexes.update(dexId, { states, updatedAt: Date.now() });
+  });
+}
+
 /**
  * Whether a team, stored or from a backup, is in god mode. Before v4 the flag was per member;
  * such a team is on if any member was.
@@ -147,16 +191,16 @@ export async function currentTeamId(game?: number): Promise<number> {
 }
 
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
-export async function exportTeams(): Promise<string> {
-  const teams = await db.teams.toArray();
-  return JSON.stringify({ app: 'material-dex', version: 5, teams }, null, 2);
+export async function exportBackup(): Promise<string> {
+  const [teams, pokedexes] = await Promise.all([db.teams.toArray(), db.pokedexes.toArray()]);
+  return JSON.stringify({ app: 'material-dex', version: 6, teams, pokedexes }, null, 2);
 }
 
 /** Thrown by parseBackup; the message is shown to the user as is. */
 export class BackupError extends Error {}
 
 const isInt = (v: unknown): v is number => Number.isInteger(v);
-const isSpecies = (v: unknown): v is number => isInt(v) && v >= 1 && v <= LAST_SPECIES;
+const isSpecies = (v: unknown): v is number => isInt(v) && v >= 1 && v <= lastSpecies();
 const NATURE_NAMES = new Set(NATURES.map((n) => n.name));
 
 /**
@@ -180,7 +224,7 @@ function memberProblem(m: unknown): string | null {
 }
 
 /**
- * Validates an exported backup (version 1 to 5). Throws BackupError on the first problem, so a bad
+ * Validates an exported backup (version 1 to 6). Throws BackupError on the first problem, so a bad
  * file writes nothing. Teams without a name get "Team N" numbered after `existing`.
  */
 export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
@@ -243,20 +287,56 @@ export function checkKnownForms(teams: Omit<Team, 'id'>[], species: Map<number, 
   );
 }
 
-/** Rejects team games that aren't version groups in versions.json. */
-export function checkKnownGames(teams: Omit<Team, 'id'>[], versions: VersionGroup[]) {
-  teams.forEach((t, i) => {
-    if (t.game !== undefined && !versions.some((v) => v.id === t.game)) throw new BackupError(`Team ${i + 1} in the file has an unknown game`);
+/**
+ * Validates the Pokédexes of a backup (version 6; older backups have none). Throws BackupError on the first problem.
+ * Pokédexes without a name get "Pokédex N" numbered after `existing`. Call after parseBackup, which checks the file.
+ */
+export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[] {
+  const dexes = (JSON.parse(json) as { pokedexes?: unknown }).pokedexes;
+  if (dexes === undefined) return [];
+  if (!Array.isArray(dexes)) throw new BackupError('The Pokédexes in the file are not a list');
+
+  return dexes.map((d: unknown, i) => {
+    const label = `Pokédex ${i + 1} in the file`;
+    const { name, game, states } = (d ?? {}) as Record<string, unknown>;
+    if (game !== undefined && !(isInt(game) && game > 0)) throw new BackupError(`${label} has an invalid game`);
+    if (typeof states !== 'object' || states === null || Array.isArray(states)) throw new BackupError(`${label} has no states`);
+    // Rebuilt with plain number keys, so a key like "025" can't hide from the grid.
+    const clean: Record<number, DexState> = {};
+    for (const [id, state] of Object.entries(states)) {
+      if (String(Number(id)) !== id || !isSpecies(Number(id))) throw new BackupError(`${label} has an unknown Pokémon`);
+      if (!isDexState(state)) throw new BackupError(`${label} has an invalid state`);
+      clean[Number(id)] = state;
+    }
+    return {
+      name: typeof name === 'string' && name.trim() ? name.trim() : `Pokédex ${existing + i + 1}`,
+      ...(game !== undefined && { game: game as number }),
+      states: clean,
+      updatedAt: Date.now(),
+    };
   });
 }
 
-export async function importTeams(json: string): Promise<number> {
+/** Rejects games that aren't version groups in versions.json; `noun` names the entry ("Team", "Pokédex"). */
+export function checkKnownGames<T extends { game?: number }>(entries: T[], versions: VersionGroup[], noun = 'Team') {
+  entries.forEach((t, i) => {
+    if (t.game !== undefined && !versions.some((v) => v.id === t.game)) throw new BackupError(`${noun} ${i + 1} in the file has an unknown game`);
+  });
+}
+
+/** Imports a backup's teams and Pokédexes next to the existing ones; all or nothing. */
+export async function importBackup(json: string): Promise<{ teams: number; pokedexes: number }> {
   const teams = parseBackup(json, await db.teams.count());
+  const pokedexes = parsePokedexes(json, await db.pokedexes.count());
   const formed = new Set(teams.flatMap((t) => t.members.filter((m) => m.formKey).map((m) => m.speciesId)));
   const [moves, items, versions, details] = await Promise.all([loadMoves(), loadItems(), loadVersions(), Promise.all([...formed].map(loadSpecies))]);
   checkKnownGames(teams, versions);
+  checkKnownGames(pokedexes, versions, 'Pokédex');
   checkKnownIds(teams, moves, items);
   checkKnownForms(teams, new Map(details.map((d) => [d.id, d])));
-  await db.teams.bulkAdd(teams);
-  return teams.length;
+  await db.transaction('rw', db.teams, db.pokedexes, async () => {
+    await db.teams.bulkAdd(teams);
+    await db.pokedexes.bulkAdd(pokedexes);
+  });
+  return { teams: teams.length, pokedexes: pokedexes.length };
 }

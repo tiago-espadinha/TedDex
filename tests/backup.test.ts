@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { BackupError, checkKnownForms, checkKnownGames, checkKnownIds, parseBackup, teamGodMode } from '../src/data/db';
+import { BackupError, checkKnownForms, checkKnownGames, checkKnownIds, parseBackup, parsePokedexes, teamGodMode } from '../src/data/db';
 import type { MoveTable, SpeciesDetail, VersionGroup } from '../src/data/types';
 
 const backup = (teams: unknown) => JSON.stringify({ app: 'material-dex', version: 4, teams });
@@ -241,5 +241,54 @@ describe('teamGodMode', () => {
   test('is on when any member has the old per-member flag', () => {
     assert.equal(teamGodMode({ members: [{ speciesId: 1 }, { speciesId: 2, godMode: true }] }), true);
     assert.equal(teamGodMode({ members: [{ speciesId: 1, godMode: false }] }), false);
+  });
+});
+
+describe('parsePokedexes', () => {
+  const v6 = (pokedexes: unknown) => JSON.stringify({ app: 'material-dex', version: 6, teams: [], pokedexes });
+  const rejectsDex = (json: string, message: RegExp) =>
+    assert.throws(
+      () => parsePokedexes(json),
+      (e: unknown) => e instanceof BackupError && message.test(e.message),
+    );
+
+  test('round-trips a Pokédex with every state', () => {
+    const [dex] = parsePokedexes(v6([{ id: 3, name: ' Kanto ', game: 1, states: { 1: 1, 25: 2, 151: 3 }, updatedAt: 1 }]));
+    assert.equal(dex.name, 'Kanto');
+    assert.equal(dex.game, 1);
+    assert.deepEqual(dex.states, { 1: 1, 25: 2, 151: 3 });
+    assert.equal('id' in dex, false);
+    assert.ok(dex.updatedAt > 1);
+  });
+
+  test('older backups have no Pokédexes', () => {
+    for (const version of [1, 2, 3, 4, 5]) {
+      assert.deepEqual(parsePokedexes(JSON.stringify({ app: 'material-dex', version, teams: [{ name: 'A', members: [] }] })), []);
+    }
+  });
+
+  test('a Pokédex without a game is any game, and unnamed ones are numbered after the existing ones', () => {
+    const dexes = parsePokedexes(v6([{ states: {} }, { name: '  ', states: {} }]), 2);
+    assert.deepEqual(dexes.map((d) => d.name), ['Pokédex 3', 'Pokédex 4']);
+    assert.ok(!('game' in dexes[0]));
+  });
+
+  test('rejects a list that is not a list, and Pokédexes without states', () => {
+    rejectsDex(v6({}), /not a list/);
+    for (const states of [undefined, null, [1, 2], 'x']) rejectsDex(v6([{ name: 'A', states }]), /Pokédex 1 in the file has no states/);
+  });
+
+  test('rejects an invalid state or species', () => {
+    for (const state of [0, 4, '2', 1.5, null]) rejectsDex(v6([{ states: { 25: state } }]), /invalid state/);
+    for (const id of ['0', '025', '1026', '2.5', 'pikachu']) rejectsDex(v6([{ states: { [id]: 1 } }]), /unknown Pokémon/);
+  });
+
+  test('rejects a game that is not a positive whole number', () => {
+    for (const game of [0, -1, 1.5, '1', null]) rejectsDex(v6([{ states: {}, game }]), /Pokédex 1 in the file has an invalid game/);
+  });
+
+  test('checkKnownGames names the Pokédex with an unknown game', () => {
+    const versions = [{ id: 1, label: 'Red / Blue', gen: 1 }] as VersionGroup[];
+    assert.throws(() => checkKnownGames([{ game: 1 }, { game: 99 }], versions, 'Pokédex'), /Pokédex 2 in the file has an unknown game/);
   });
 });

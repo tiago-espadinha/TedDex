@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
 import {
   attackingTypes,
   itemSpriteUrl,
@@ -163,6 +163,7 @@ export function TeamsScreen() {
       <header className="dex-head">
         <h1>Teams</h1>
       </header>
+      <TeamTabs />
       <div className="list">
         {!teams && <Loading />}
         {teams?.length === 0 && <p className="empty">No teams yet. Create one, or tap + on any Pokémon.</p>}
@@ -191,14 +192,29 @@ export function TeamsScreen() {
           <Icon name="plus" size={18} /> New team
         </button>
       </div>
-      {renaming && <RenameSheet team={renaming} onClose={() => setRenaming(undefined)} />}
+      {renaming && <RenameSheet noun="team" name={renaming.name} onSave={(name) => renameTeam(renaming.id, name)} onClose={() => setRenaming(undefined)} />}
     </>
   );
 }
 
-function RenameSheet({ team, onClose }: { team: Team; onClose: () => void }) {
+/** The Team tab's two lists. */
+export function TeamTabs() {
+  return (
+    <nav className="segmented team-tabs" aria-label="Lists">
+      <NavLink to="/teams" end>
+        Teams
+      </NavLink>
+      <NavLink to="/teams/pokedex" end>
+        Pokédexes
+      </NavLink>
+    </nav>
+  );
+}
+
+/** A sheet that renames a team or Pokédex; `onSave` runs only when the name changed. */
+export function RenameSheet({ noun, name: current, onSave, onClose }: { noun: string; name: string; onSave: (name: string) => void; onClose: () => void }) {
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
-  const [name, setName] = useState(team.name);
+  const [name, setName] = useState(current);
   const headingId = useId();
   return (
     <>
@@ -208,18 +224,18 @@ function RenameSheet({ team, onClose }: { team: Team; onClose: () => void }) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (name.trim() !== team.name) renameTeam(team.id, name);
+            if (name.trim() !== current) onSave(name);
             close();
           }}
         >
           <div className="sheet-head">
-            <h2 id={headingId}>Rename team</h2>
+            <h2 id={headingId}>Rename {noun}</h2>
             <button type="button" className="text-btn" onClick={() => close()}>
               Cancel
             </button>
           </div>
           <label className="search rename-field">
-            <span className="sr-only">Team name</span>
+            <span className="sr-only">{cap(noun)} name</span>
             <input
               data-autofocus
               value={name}
@@ -371,7 +387,7 @@ export function TeamEditor() {
           </Link>
         </div>
       )}
-      {renaming && <RenameSheet team={team} onClose={() => setRenaming(false)} />}
+      {renaming && <RenameSheet noun="team" name={team.name} onSave={(name) => renameTeam(id, name)} onClose={() => setRenaming(false)} />}
     </>
   );
 }
