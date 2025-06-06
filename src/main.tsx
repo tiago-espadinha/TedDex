@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation } from 'react-router-dom';
 import { BottomNav, ToastProvider } from './components/bits';
 import { applyDesign, applyTheme, type Design, type Theme } from './data/settings';
+import { CompareScreen } from './screens/CompareScreen';
 import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
 import { LeagueGameScreen, LeagueList } from './screens/LeagueScreens';
@@ -24,7 +25,7 @@ try {
 function Shell() {
   const { pathname } = useLocation();
   const pushed =
-    pathname.startsWith('/pokemon/') || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
+    pathname.startsWith('/pokemon/') || pathname === '/compare' || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
   const main = useRef<HTMLElement>(null);
   // When navigation removes the focused control, start keyboard and screen reader users at the
   // top of the new screen. Controls that survive (prev/next on detail) keep focus.
@@ -50,6 +51,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <DexScreen /> },
       { path: '/pokemon/:id', element: <DetailScreen /> },
+      { path: '/compare', element: <CompareScreen /> },
       { path: '/teams', element: <TeamsScreen /> },
       { path: '/teams/:id', element: <TeamEditor /> },
       { path: '/teams/:id/member/:index', element: <MemberEditor /> },

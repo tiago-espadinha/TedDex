@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { compareFrom } from '../data/compare';
 import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { teamGame } from '../data/game';
 import { useGame } from '../data/settings';
-import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText } from '../data/format';
+import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText, statColor } from '../data/format';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
@@ -29,8 +30,6 @@ const STAT_ROWS: [keyof SpeciesDetail['stats'], string][] = [
   ['spd', 'Sp. Def'],
   ['spe', 'Speed'],
 ];
-
-const statColor = (v: number) => (v >= 90 ? 'var(--stat-high)' : v >= 60 ? 'var(--stat-mid)' : 'var(--stat-low)');
 
 export function DetailScreen() {
   const id = Number(useParams().id);
@@ -130,6 +129,9 @@ export function DetailScreen() {
             <button className={playing ? 'icon-btn playing' : 'icon-btn'} aria-label={playing ? 'Playing cry' : 'Play cry'} onClick={playCry}>
               <Icon name="sound" />
             </button>
+            <Link className="icon-btn" aria-label="Compare" to={compareFrom({ id: mon.id, form: form?.key })}>
+              <Icon name="compare" />
+            </Link>
             <button className="icon-btn" aria-label="Add to team" onClick={() => addToCurrentTeam(form?.key)}>
               <Icon name="plus" />
             </button>

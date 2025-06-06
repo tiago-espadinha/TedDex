@@ -473,6 +473,46 @@ main:focus, .sheet:focus { outline: none; }
 .ability { flex: 1 1 140px; padding: 10px 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; font-weight: 700; }
 .ability small { font-size: 11px; font-weight: 600; color: var(--muted); margin-left: 4px; }
 .chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+/* ---------- compare ---------- */
+.cmp-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 4px 24px 8px; }
+.cmp-slot { min-width: 0; border-radius: var(--radius-card); padding: 8px 10px 12px; color: var(--on-tint); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; }
+.cmp-slot.empty-slot { min-height: 196px; justify-content: center; gap: 6px; border: 1.5px dashed var(--outline); background: transparent; color: var(--ink-2); font: inherit; font-size: 14px; font-weight: 700; }
+.cmp-pick { border: 0; background: transparent; padding: 0; border-radius: 16px; }
+.cmp-pick:active { background: var(--tint-press); }
+.cmp-pick img { display: block; width: 96px; height: 96px; image-rendering: pixelated; }
+.cmp-slot .no { font-size: 12px; font-weight: 700; color: var(--on-tint-muted); }
+.cmp-slot .name { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; font-size: 16px; line-height: 20px; font-weight: 800; color: inherit; text-wrap: balance; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.cmp-slot .types { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 2px; }
+.cmp-form { position: relative; width: 100%; margin-top: auto; padding-top: 8px; }
+.cmp-form select { appearance: none; width: 100%; min-height: 44px; padding: 0 32px 0 14px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); font: inherit; font-size: 14px; font-weight: 700; text-overflow: ellipsis; }
+.cmp-form select:active { background: var(--tint-press); }
+.cmp-form svg { position: absolute; right: 12px; bottom: 14px; transform: rotate(90deg); pointer-events: none; }
+.cmp-error { font-size: 13px; font-weight: 600; color: var(--muted); }
+.cmp-hits { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cmp-hits li { display: grid; grid-template-columns: 84px 44px 1fr; align-items: center; gap: 8px; min-height: 28px; }
+.cmp-hits .type-chip { justify-self: start; }
+.cmp-mult { justify-self: start; min-width: 36px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 800; text-align: center; }
+.cmp-mult.weak { background: var(--weak-bg); color: var(--weak-ink); }
+.cmp-mult.resist { background: var(--resist-bg); color: var(--resist-ink); }
+.cmp-mult.immune { background: var(--immune-bg); color: var(--ink); }
+.cmp-mult.neutral { background: var(--neutral-cell); color: var(--ink); }
+.cmp-hit-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 28px; }
+.cmp-row.total { border-top: 1px solid var(--line); padding-top: 6px; margin-top: 4px; }
+.cmp-names { font-size: 12px; font-weight: 700; color: var(--muted); }
+.cmp-names > :last-child { text-align: right; }
+.cmp-label { font-size: 13px; font-weight: 600; color: var(--muted); text-align: center; }
+.cmp-row.total .cmp-label { color: var(--ink); font-weight: 700; }
+.cmp-cell { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cmp-row > .cmp-cell:last-child { flex-direction: row-reverse; }
+.cmp-cell .val { flex: none; min-width: 28px; font-size: 14px; font-weight: 500; color: var(--ink-2); }
+.cmp-row > .cmp-cell:last-child .val { text-align: right; }
+.cmp-cell .val.more { font-weight: 800; color: var(--ink); }
+.cmp-cell .track { flex: 1; display: flex; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.cmp-row > .cmp-cell:first-child .track { justify-content: flex-end; }
+.cmp-cell .fill { height: 8px; border-radius: 4px; animation: grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.cmp-row > .cmp-cell:first-child .fill { transform-origin: right; }
+.cmp-row > .cmp-cell:last-child .fill { transform-origin: left; }
 .eff-group { margin-bottom: 12px; }
 .eff-group h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -856,7 +896,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
 [data-design='b'] .list-row { padding: 0 6px; }
 [data-design='b'] .mon-card.row { background-image: linear-gradient(90deg, transparent 20%, var(--surface) 70%); }
-[data-design='b'] :is(.mon-card, .slot, .team-mon) { box-shadow: var(--shadow-card); }
+[data-design='b'] :is(.mon-card, .slot, .team-mon, .cmp-slot:not(.empty-slot)) { box-shadow: var(--shadow-card); }
 [data-design='b'] .mon-card { background-image: linear-gradient(180deg, transparent 0%, var(--surface) 85%); }
 [data-design='b'] :is(.slot, .team-mon) { background-image: linear-gradient(90deg, transparent 34%, var(--surface) 72%); }
 [data-design='b'] :is(.mon-card .name, .slot .name, .team-mon .name, .team-row .name) { font-weight: 500; }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { artworkUrl, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { cap, formatNo, roman } from '../data/format';
+import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
 import { CATEGORY_LABELS, SORT_LABELS, detailPath, saveOrder, useDexFilters, type SortKey } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
@@ -34,7 +35,10 @@ export function DexScreen() {
   const fab = useRef<HTMLButtonElement>(null);
   const [params] = useSearchParams();
   const pickTeam = params.get('pick') ? Number(params.get('pick')) : null;
+  const compareSlot = SLOTS.find((s) => s === params.get('compare'));
   const navigate = useNavigate();
+  const backToCompare = (slot?: SlotName, id?: number, form?: string) =>
+    navigate(comparePath({ ...parseCompare(params), ...(slot && id ? { [slot]: { id, form } } : {}) }), { replace: true });
   const toast = useToast();
   const cols = useColumns();
   const [spriteStyle] = useSpriteStyle();
@@ -116,6 +120,13 @@ export function DexScreen() {
         </div>
       )}
 
+      {compareSlot && (
+        <div className="pick-banner">
+          Tap a Pokémon to compare
+          <button onClick={() => backToCompare()}>Cancel</button>
+        </div>
+      )}
+
       {pickTeam != null && (
         <div className="pick-banner">
           Tap a Pokémon to add it
@@ -143,7 +154,13 @@ export function DexScreen() {
                   art={spriteStyle === 'art'}
                   row={view === 'list'}
                   value={sortedBy(m, filters.sort)}
-                  onPick={pickTeam != null ? () => pick(m.id, m.form?.key) : undefined}
+                  onPick={
+                    compareSlot
+                      ? () => backToCompare(compareSlot, m.id, m.form?.key)
+                      : pickTeam != null
+                        ? () => pick(m.id, m.form?.key)
+                        : undefined
+                  }
                 />
               ))}
             </div>

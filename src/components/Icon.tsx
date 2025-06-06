@@ -31,6 +31,7 @@ const paths = {
     </>
   ),
   close: <path d="M6 6l12 12M18 6L6 18" />,
+  compare: <path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4" />,
   more: (
     <>
       <circle cx="12" cy="5" r="1.5" />
