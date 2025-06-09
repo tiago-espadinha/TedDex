@@ -1,10 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
-  defensiveMultipliers, itemSpriteUrl, loadAbilities, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes,
+  defensiveMultipliers, itemSpriteUrl, loadAbilities, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes, loadVersions,
   offensiveMultipliers, spriteUrl, useLoad,
 } from '../data/api';
 import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters } from '../data/abilityFilter';
+import { resolveGame } from '../data/game';
+import { useGame } from '../data/settings';
 import { cap, formatMultiplier, formatNo, formatPrice, roman, signed } from '../data/format';
 import { activeItemFilters, filterItems, itemFilterParams, readItemFilters } from '../data/itemFilter';
 import { NATURES, dislikedFlavor, likedFlavor } from '../data/natures';
@@ -334,8 +336,12 @@ function MoveEntry({ id, one }: EntryProps) {
     () => Promise.all([loadMoves(), loadIndex()]).then(async ([moves, index]) => [moves, index, moves[n] && (await loadMoveReference(n))] as const),
     n,
   );
+  // "Learned by" opens on the generation of the game chosen in Settings.
+  const [game] = useGame();
+  const { data: versions } = useLoad(loadVersions, 'versions');
   const move = data?.[0][n];
   const ref = data?.[2];
+  const gameGen = game === 'latest' ? undefined : versions?.find((v) => v.id === game)?.gen;
   return (
     <EntryFrame
       one={one}
@@ -354,7 +360,7 @@ function MoveEntry({ id, one }: EntryProps) {
             </div>
           )}
           <Effect text={ref.effect} />
-          <MoveLearners learners={ref.learners} index={data[1]} />
+          <MoveLearners learners={ref.learners} index={data[1]} gameGen={gameGen} />
         </>
       )}
     </EntryFrame>
@@ -417,15 +423,20 @@ const LEARN_METHODS: [LearnMethod, string][] = [
   ['egg', 'Egg move'],
 ];
 
-/** Who learns the move in one generation, one learn method at a time (a species can be in several). */
-function MoveLearners({ learners, index }: { learners: MoveReference['learners']; index: IndexEntry[] }) {
+/**
+ * Who learns the move in one generation, one learn method at a time (a species can be in several). It opens on
+ * `gameGen` (the global game's) when the move is learnable then, else on the newest with a note.
+ */
+function MoveLearners({ learners, index, gameGen }: { learners: MoveReference['learners']; index: IndexEntry[]; gameGen?: number }) {
   const all = Object.values(learners).flat();
   const gens = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((g) => all.some(([, mask]) => mask & (1 << (g - 1))));
   const [pickGen, setGen] = useState<number>();
   const [pickMethod, setMethod] = useState<LearnMethod>('level');
   if (!gens.length) return <SpeciesList title="Learned by" ids={[]} index={index} none="No Pokémon learn it in the main-series games." />;
 
-  const gen = pickGen && gens.includes(pickGen) ? pickGen : gens[gens.length - 1];
+  const opened = resolveGame(gens, gameGen ?? 'latest')!;
+  const gen = pickGen && gens.includes(pickGen) ? pickGen : opened.group;
+  const fallback = gen === opened.group && opened.missed !== undefined && `No Pokémon learn it in Gen ${roman(opened.missed)}. Showing Gen ${roman(gen)}.`;
   const inGen = (method: LearnMethod) => (learners[method] ?? []).filter(([, mask]) => mask & (1 << (gen - 1))).map(([s]) => s);
   const methods = LEARN_METHODS.filter(([m]) => inGen(m).length > 0);
   const [method, title] = methods.find(([m]) => m === pickMethod) ?? methods[0];
@@ -436,7 +447,7 @@ function MoveLearners({ learners, index }: { learners: MoveReference['learners']
         <h2>Learned by</h2>
         <label className="game-select">
           <span className="k">Generation</span>
-          <select value={gen} onChange={(e) => setGen(Number(e.target.value))}>
+          <select value={gen} onChange={(e) => setGen(Number(e.target.value))} aria-describedby={fallback ? 'learners-fallback' : undefined}>
             {gens.map((g) => (
               <option key={g} value={g}>
                 Gen {roman(g)}
@@ -445,6 +456,11 @@ function MoveLearners({ learners, index }: { learners: MoveReference['learners']
           </select>
           <Icon name="next" size={18} />
         </label>
+        {fallback && (
+          <p id="learners-fallback" className="hint game-fallback">
+            {fallback}
+          </p>
+        )}
         {methods.length > 1 && (
           <div className="segmented method-pick" role="radiogroup" aria-label="How they learn it">
             {methods.map(([m, label]) => (

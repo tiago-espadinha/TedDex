@@ -2,17 +2,18 @@ import Fuse from 'fuse.js';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { artworkUrl, loadIndex, spriteUrl, useLoad } from '../data/api';
+import { artworkUrl, loadIndex, loadVersions, spriteUrl, useLoad } from '../data/api';
 import { cap, formatNo, roman } from '../data/format';
 import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
-import { CATEGORY_LABELS, SORT_LABELS, detailPath, saveOrder, useDexFilters, type SortKey } from '../data/dexState';
+import { CATEGORY_LABELS, SORT_LABELS, detailPath, saveOrder, useDexFilters, type DexFilters, type SortKey } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
 import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
-import { useDexForms, useDexView, useSpriteStyle } from '../data/settings';
+import { useDexForms, useDexView, useGame, useSpriteStyle } from '../data/settings';
+import { lastSpecies } from '../data/pokedex';
 
 const ROW_H = 118; // card 108 + gap 10
 const LIST_ROW_H = 108; // row 100 + gap 8
@@ -45,10 +46,18 @@ export function DexScreen() {
   const [view, setView] = useDexView();
   const [formKinds] = useDexForms();
   const perRow = view === 'list' ? 1 : cols;
+  // A chosen game limits the list to the species up to its generation, until the chip lifts it (`liftedGame`).
+  // Without the versions file the list shows unlimited rather than loading forever.
+  const [game] = useGame();
+  const { data: versions, error: versionsError } = useLoad(loadVersions, 'versions');
+  const limit = game === 'latest' ? undefined : versions?.find((v) => v.id === game);
+  const upTo = (f: DexFilters) => (limit && f.liftedGame !== limit.id ? lastSpecies(limit.gen) : undefined);
+  const waiting = game !== 'latest' && !versions && !versionsError;
 
-  const rows = useMemo(() => (all ? dexRows(all, formKinds) : null), [all, formKinds]);
+  const rows = useMemo(() => (all && !waiting ? dexRows(all, formKinds) : null), [all, waiting, formKinds]);
   const fuse = useMemo(() => (rows ? new Fuse(rows, FUSE_OPTIONS) : null), [rows]);
-  const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters) : []), [rows, fuse, filters]);
+  const limitTo = upTo(filters);
+  const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters, limitTo) : []), [rows, fuse, filters, limitTo]);
   useEffect(() => saveOrder(list.map((m) => detailPath(m.id, m.form?.key))), [list]);
 
   const lines = Math.ceil(list.length / perRow);
@@ -57,7 +66,7 @@ export function DexScreen() {
   // Row heights differ between the views: measure again when switching.
   useEffect(() => virtual.measure(), [virtual, rowHeight]);
 
-  const activeCount = filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
+  const activeCount = (limitTo ? 1 : 0) + filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
 
   async function pick(id: number, formKey?: string) {
     if (pickTeam == null) return;
@@ -96,8 +105,21 @@ export function DexScreen() {
         />
       </header>
 
-      {(chips.length > 0 || filters.category) && (
+      {(chips.length > 0 || filters.category || limitTo) && (
         <div className="chip-row">
+          {limit && limitTo && (
+            <button
+              className="filter-chip on removable"
+              aria-label={`Show Pokémon from every game, not only up to ${limit.label}`}
+              onClick={() => {
+                setFilters({ ...filters, liftedGame: limit.id });
+                fab.current?.focus();
+              }}
+            >
+              Up to {limit.label}
+              <Icon name="close" size={16} />
+            </button>
+          )}
           {filters.category && (
             <button
               className="filter-chip on removable"
@@ -135,8 +157,8 @@ export function DexScreen() {
       )}
 
       {error && <p className="empty">Couldn't load the dex data. {error.message}</p>}
-      {!all && !error && <Loading />}
-      {all && list.length === 0 && <p className="empty">No Pokémon match these filters.</p>}
+      {!rows && !error && <Loading />}
+      {rows && list.length === 0 && <p className="empty">No Pokémon match these filters.</p>}
 
       <div className="dex-list" style={{ height: virtual.getTotalSize(), position: 'relative' }}>
         {virtual.getVirtualItems().map((row) => {
@@ -185,7 +207,8 @@ export function DexScreen() {
       {sheetOpen && (
         <FilterSheet
           value={filters}
-          countFor={(f) => (rows ? applyFilters(rows, fuse, f).length : 0)}
+          game={limit}
+          countFor={(f) => (rows ? applyFilters(rows, fuse, f, upTo(f)).length : 0)}
           onApply={(f) => {
             setFilters(f);
             setSheetOpen(false);

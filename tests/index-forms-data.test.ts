@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 import type { IndexEntry, SpeciesDetail } from '../src/data/types';
+import { dataEntry } from './data-files';
 
 // The committed output of `npm run data`.
 const index = JSON.parse(readFileSync('public/data/index.json', 'utf8')) as IndexEntry[];
-const species = (id: number) => JSON.parse(readFileSync(`public/data/species/${id}.json`, 'utf8')) as SpeciesDetail;
+const species = (id: number) => dataEntry<SpeciesDetail>('species', id);
 const formsOf = (id: number) => index.find((m) => m.id === id)?.forms ?? [];
 
 describe('index.json forms', () => {

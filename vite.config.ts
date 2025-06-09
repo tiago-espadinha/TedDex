@@ -1,10 +1,39 @@
+import { createHash } from 'node:crypto';
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+/** Sprite folders under public/media/: kept offline by the app's warm-up (src/data/spriteCache.ts), not the precache. */
+const SPRITE_DIRS = ['sprites', 'items', 'guide', 'trainers'];
+const MEDIA = fileURLToPath(new URL('./public/media/', import.meta.url));
+const spriteFiles = Object.fromEntries(
+  SPRITE_DIRS.map((dir) => [dir, readdirSync(`${MEDIA}${dir}`).filter((f) => f.endsWith('.webp')).map((f) => f.slice(0, -5)).sort()]),
+);
+/** Changes whenever any sprite does, so the app refetches them into a fresh cache. */
+const spriteVersion = (() => {
+  const hash = createHash('sha256');
+  for (const dir of SPRITE_DIRS) for (const name of spriteFiles[dir]) hash.update(`${dir}/${name}`).update(readFileSync(`${MEDIA}${dir}/${name}.webp`));
+  return hash.digest('hex').slice(0, 12);
+})();
+
+/** Artwork (species and forms) and cries, cached on first view: the runtime cache must hold all of them. */
+const mediaFiles = ['artwork', 'cries'].reduce((n, dir) => n + readdirSync(`${MEDIA}${dir}`).length, 0);
+
+/** Emits data/sprites.json (version + file names per folder) for the warm-up; it is precached with the other data. */
+const spriteList = (): Plugin => ({
+  name: 'sprite-list',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: 'data/sprites.json', source: JSON.stringify({ version: spriteVersion, files: spriteFiles }) });
+  },
+});
 
 export default defineConfig({
   plugins: [
     react(),
+    spriteList(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon-180.png'],
@@ -25,23 +54,30 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // App shell, every data file and every sprite are precached, so the dex works fully offline.
-        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}', 'media/sprites/*.webp', 'media/items/*.webp', 'media/guide/*.webp', 'media/trainers/*.webp'],
+        // App shell and every data file are precached; sprites (~3,600 files) would bloat the precache manifest,
+        // so the app warms the sprite cache below in the background instead. Either way the dex works fully offline.
+        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
-            // Artwork and cries (~31 MB in total) are cached the first time they are seen.
+            // Same folders as SPRITE_DIRS, spelled out: Workbox copies this function into sw.js as source.
+            urlPattern: ({ url }) => /^\/media\/(sprites|items|guide|trainers)\//.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: `sprites-${spriteVersion}`, cacheableResponse: { statuses: [200] } },
+          },
+          {
+            // Artwork and cries (~27 MB in total) are cached the first time they are seen.
             // Range support lets Safari play a cached cry, since it requests audio in byte ranges.
-            // Up to 2100 entries: artwork + cry for each of the 1025 species, with headroom.
-            // Files never change, so ignore Vary (the warm-up fetch and Safari's audio request differ).
+            // Room for every artwork and cry, with headroom for new forms.
+            // A media rebuild keeps the URLs (a copy cached earlier stays valid), so ignore Vary (the warm-up fetch and Safari's audio request differ).
             urlPattern: ({ url }) => /^\/media\/(artwork|cries)\//.test(url.pathname),
             handler: 'CacheFirst',
             options: {
               cacheName: 'media',
               rangeRequests: true,
               matchOptions: { ignoreVary: true },
-              expiration: { maxEntries: 2100, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              expiration: { maxEntries: Math.ceil(mediaFiles * 1.1), maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [200] },
             },
           },

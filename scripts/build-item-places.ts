@@ -1,6 +1,6 @@
 /**
  * "Where to find" build: each item's acquisition table from its Bulbapedia page, merged with PokeAPI's wild held
- * items (reference/items.json), into one file per item for the Reference tab.
+ * items (reference/items.json), into chunk files (64 items each, `src/data/chunks.ts`) for the Reference tab.
  *
  *   npm run item-places            # download pages (cached in .cache/bulbapedia/items/) and emit reference/places/
  *   npm run item-places -- --fresh # ignore the cache and re-download
@@ -15,6 +15,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { join } from 'node:path';
 import type { ItemInfo, ItemPlaceGame, ItemPlaces, ItemReferenceTable } from '../src/data/types';
+import { toChunks } from '../src/data/chunks';
 import { gameOfGroup, parseAcquisition, type AcquisitionRow } from './itemPlaces';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -138,11 +139,11 @@ async function places(name: string, wild: ItemInfo['wild']): Promise<ItemPlaces>
 async function main() {
   await mkdir(CACHE, { recursive: true });
   const items = JSON.parse(await readFile(join(DATA, 'items.json'), 'utf8')) as ItemReferenceTable;
-  const built: [string, ItemPlaces][] = [];
-  for (const [id, item] of Object.entries(items)) built.push([id, await places(item.name, item.wild)]);
+  const built: [number, ItemPlaces][] = [];
+  for (const [id, item] of Object.entries(items)) built.push([Number(id), await places(item.name, item.wild)]);
   await rm(OUT, { recursive: true, force: true });
   await mkdir(OUT, { recursive: true });
-  for (const [id, p] of built) await writeFile(join(OUT, `${id}.json`), JSON.stringify(p));
+  for (const [n, chunk] of toChunks(built)) await writeFile(join(OUT, `c${n}.json`), JSON.stringify(chunk));
   const withSource = built.filter(([, p]) => p.source).length;
   const withAny = built.filter(([, p]) => p.games.length).length;
   console.log(`${built.length} items, ${withAny} with places, ${withSource} from Bulbapedia → public/data/reference/places/`);

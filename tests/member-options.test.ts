@@ -1,17 +1,16 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 import { abilityInGame, formInGame, itemInGame, learnable, moveChoices, otherAbilities } from '../src/data/memberOptions';
 import type { AbilityTable, ItemReferenceTable, Learnsets, MoveTable, SpeciesDetail } from '../src/data/types';
+import { dataEntry, readData } from './data-files';
 
-const read = <T>(path: string): T => JSON.parse(readFileSync(new URL(`../public/data/${path}`, import.meta.url), 'utf8')) as T;
-const moves = read<MoveTable>('moves.json');
-const abilities = read<AbilityTable>('reference/abilities.json');
-const pikachu = read<SpeciesDetail>('species/25.json');
-const charizard = read<SpeciesDetail>('species/6.json');
-const raichu = read<SpeciesDetail>('species/26.json');
-const items = read<ItemReferenceTable>('reference/items.json');
-const learnsets = read<Learnsets>('learnsets/25.json');
+const moves = readData<MoveTable>('moves.json');
+const abilities = readData<AbilityTable>('reference/abilities.json');
+const pikachu = dataEntry<SpeciesDetail>('species', 25);
+const charizard = dataEntry<SpeciesDetail>('species', 6);
+const raichu = dataEntry<SpeciesDetail>('species', 26);
+const items = readData<ItemReferenceTable>('reference/items.json');
+const learnsets = dataEntry<Learnsets>('learnsets', 25);
 const SPORE = 147;
 const THUNDERBOLT = 85;
 const THUNDER_PUNCH = 9;

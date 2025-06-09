@@ -120,10 +120,10 @@ export interface Learnset {
   egg: number[];
 }
 
-/** learnsets/<id>.json: version group id → learnset (only games the species is in). */
+/** One species in learnsets/c<n>.json (packed, see chunks.ts): version group id → learnset (only games the species is in). */
 export type Learnsets = Record<number, Learnset>;
 
-/** evolution/<chainId>.json: chain members in tree order (each parent before its children). */
+/** One chain in evolution/c<n>.json: chain members in tree order (each parent before its children). */
 export interface EvolutionMember {
   id: number;
   /** Species it evolves from; null for the chain's base. */
@@ -139,7 +139,7 @@ export type ItemTable = Record<number, string>;
 export type LearnMethod = keyof Learnset;
 
 /**
- * reference/moves/<id>.json: the in-game description, the full effect (paragraphs split by a blank line), and
+ * One move in reference/moves/c<n>.json: the in-game description, the full effect (paragraphs split by a blank line), and
  * who learns it: per method, [species id, bitmask of generations (bit n-1 = Gen n)], default forms, by species id.
  */
 export interface MoveReference {
@@ -171,7 +171,7 @@ export interface ItemInfo {
 }
 
 /**
- * reference/places/<id>.json: where to find an item, newest game first ("Other" last). `held` is PokeAPI's wild
+ * One item in reference/places/c<n>.json: where to find an item, newest game first ("Other" last). `held` is PokeAPI's wild
  * holders as [species, chance in percent]; `once` and `repeat` are Bulbapedia's one-time and repeatable ways as
  * text, and `source` is the Bulbapedia page they come from (absent when the page gave nothing).
  */
@@ -204,7 +204,7 @@ export interface Game {
  */
 export type EncounterRow = [area: number, method: number, min: number, max: number, rate: number, upTo: 0 | 1, note: number, form: number];
 
-/** locations/<id>.json: wild encounters per game id (only games the species appears in). */
+/** One species' encounters, unpacked from locations/c<n>.json by chunks.ts: wild encounters per game id (only games the species appears in). */
 export interface Locations {
   strings: string[];
   games: Record<number, EncounterRow[]>;

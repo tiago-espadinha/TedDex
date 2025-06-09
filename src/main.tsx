@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation } from 'react-router-dom';
 import { BottomNav, ToastProvider } from './components/bits';
 import { applyDesign, applyTheme, type Design, type Theme } from './data/settings';
+import { warmSprites } from './data/spriteCache';
 import { CompareScreen } from './screens/CompareScreen';
 import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
@@ -111,3 +112,6 @@ createRoot(document.getElementById('root')!).render(
     <RouterProvider router={router} />
   </StrictMode>,
 );
+
+// Fill the offline sprite cache once the first screen has loaded (see spriteCache.ts).
+window.addEventListener('load', () => warmSprites().catch((err) => console.warn('Sprite warm-up stopped:', err)), { once: true });

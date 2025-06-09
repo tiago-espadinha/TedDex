@@ -44,9 +44,12 @@ export function sortValue(m: DexRow, sort: SortKey): number | undefined {
   }
 }
 
-/** Search + category/generation/type filters + sort, in that order. Types match any of the chosen ones. Pure, so it's easy to test. */
-export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f: DexFilters): T[] {
-  let list = all;
+/**
+ * Search + category/generation/type filters + sort, in that order, over the species up to number `upTo` (the global
+ * game's generation; all when undefined). Types match any of the chosen ones. Pure, so it's easy to test.
+ */
+export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f: DexFilters, upTo?: number): T[] {
+  let list = upTo === undefined ? all : all.filter((m) => m.id <= upTo);
   const q = f.query.trim().toLowerCase();
   if (q) {
     const asNumber = q.replace(/^#/, '');
