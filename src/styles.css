@@ -275,7 +275,7 @@ a { color: inherit; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 /* Containers focused from script (route changes, opened sheets) get no ring: the next Tab lands inside. */
 main:focus, .sheet:focus { outline: none; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:is(.sr-only, .team-mon .league-facts dt) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- shell ---------- */
 .app { min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--nav-h) + var(--safe-bottom)); max-width: 720px; margin: 0 auto; }
@@ -300,6 +300,13 @@ main:focus, .sheet:focus { outline: none; }
 .topbar .grow { flex: 1; min-width: 0; }
 .topbar .head-title { flex: none; max-width: 45%; margin-right: 8px; }
 :is(.topbar .head-title h1, .topbar .team-name) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The team name is its rename button; on the 30 px line, its ::after stretches the tap area to 44 px (the span ellipsizes). */
+.topbar .team-name:has(button) { overflow: visible; }
+.topbar .team-name button { position: relative; display: block; max-width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.topbar .team-name button span { display: block; overflow: hidden; text-overflow: ellipsis; }
+.topbar .team-name button::after { content: ''; position: absolute; inset: -7px 0; }
+.topbar .team-name button:focus-visible { outline-offset: -2px; }
+.topbar .team-name button:active { opacity: 0.6; }
 
 /* ---------- chips ---------- */
 .type-chip { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.3px; color: var(--on-type); padding: 2px 9px; border-radius: 999px; text-transform: uppercase; }
@@ -765,8 +772,6 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-row { display: flex; align-items: center; gap: 12px; padding: 14px 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: var(--ink); }
 .team-row .name { font-size: 16px; font-weight: 800; }
 .team-row .meta { font-size: 13px; color: var(--muted); font-weight: 600; }
-.team-row .minis { display: flex; margin-left: auto; }
-.team-row .minis img { width: 36px; height: 36px; image-rendering: pixelated; margin-left: -8px; }
 .slot { display: flex; gap: 12px; align-items: center; padding: 10px 6px 10px 12px; border-radius: var(--radius-card); color: var(--on-tint); }
 .slot a { color: inherit; text-decoration: none; display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; }
 .slot img { width: 64px; height: 64px; image-rendering: pixelated; flex: none; }
@@ -781,8 +786,16 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-entry > a:focus-visible { outline-offset: -2px; }
 .team-entry .name { overflow-wrap: anywhere; }
 .team-entry > .icon-btn { position: absolute; top: 6px; right: 6px; }
-.team-entry .minis { gap: 2px; margin: 0 0 -6px -4px; }
-.team-entry .minis img { width: 48px; height: 48px; margin: 0; }
+/* Teams list: 100 px rows, the name over the tops of 80 px sprites that overlap when six don't fit side by side. */
+.team-list-row { position: relative; display: block; height: 100px; padding: 0; overflow: hidden; }
+.team-list-row:focus-visible { outline-offset: -2px; }
+.team-list-row .head { position: relative; z-index: 1; display: flex; align-items: baseline; gap: 8px; padding: 8px 14px 0; }
+.team-list-row .name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.team-list-row .minis { position: absolute; left: 6px; right: 6px; bottom: 0; display: flex; }
+.team-list-row .minis > span { flex: 0 1 80px; min-width: 0; }
+.team-list-row .minis > span:last-child { flex-shrink: 0; }
+.team-list-row .minis img { display: block; width: 80px; height: 80px; image-rendering: pixelated; }
+.list.with-fab { padding-bottom: 88px; }
 /* A member card is one link to the editor, on its first type's tint; the remove button sits over its top-right corner. */
 .team-members { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .team-mon { position: relative; padding-bottom: 10px; border-radius: var(--radius-card); color: var(--on-tint); }
@@ -800,8 +813,12 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-mon .evo-member img { background: transparent !important; }
 .team-mon > .icon-btn { position: absolute; z-index: 1; top: 6px; right: 4px; color: var(--on-tint-2); }
 .team-mon :is(.league-chip, .league-moves li > *) { background: var(--tint-glass); color: var(--on-tint); }
-.team-mon .league-facts dt { color: var(--on-tint-muted); }
 .team-mon .league-facts dd { color: var(--on-tint); }
+/* Ability left and held item right on one row (the item wraps under only when both are long); nature ends the types row.
+   The chips speak for themselves, so their labels are for screen readers only (with .sr-only). */
+.team-mon .league-facts .item { margin-left: auto; }
+.team-mon .evo-member .types { align-items: center; }
+.team-mon .nature { margin-left: auto; font-size: 13px; font-weight: 700; }
 .team-mon-hint { display: block; margin: -4px 12px 0 80px; font-size: 13px; font-weight: 600; color: var(--on-tint-muted); }
 .team-mon-flag { margin-bottom: 8px; font-weight: 800; color: var(--on-tint); }
 /* Moves, abilities and items not in the team's game: a dashed edge and a note under the name. */

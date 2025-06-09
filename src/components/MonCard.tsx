@@ -10,8 +10,20 @@ import { CategoryIcon, TypeChip } from './bits';
  * `MonHead` in an `.evo-member` row (a link to the species on league pages).
  */
 
-/** Sprite on its first type's tint, name and type chips, then `aside` (a level badge). */
-export function MonHead({ spriteId, name, types, aside }: { spriteId: number; name: string; types: TypeName[]; aside?: ReactNode }) {
+/** Sprite on its first type's tint, name and type chips (`note` at the end of their row), then `aside` (a level badge). */
+export function MonHead({
+  spriteId,
+  name,
+  types,
+  note,
+  aside,
+}: {
+  spriteId: number;
+  name: string;
+  types: TypeName[];
+  note?: ReactNode;
+  aside?: ReactNode;
+}) {
   return (
     <>
       <img
@@ -28,6 +40,7 @@ export function MonHead({ spriteId, name, types, aside }: { spriteId: number; na
           {types.map((t) => (
             <TypeChip key={t} type={t} />
           ))}
+          {note}
         </span>
       </span>
       {aside}
@@ -40,9 +53,9 @@ export function MonFacts({ children }: { children: ReactNode }) {
   return <dl className="league-facts">{children}</dl>;
 }
 
-export function Fact({ k, children }: { k: string; children: ReactNode }) {
+export function Fact({ k, className, children }: { k: string; className?: string; children: ReactNode }) {
   return (
-    <div>
+    <div className={className}>
       <dt>{k}</dt>
       <dd>{children}</dd>
     </div>
