@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { abilityInGame, formInGame, itemInGame, learnable, moveChoices, otherAbilities } from '../src/data/memberOptions';
+import { abilityIdByName, abilityInGame, formInGame, itemInGame, learnable, memberAbility, moveChoices, otherAbilities } from '../src/data/memberOptions';
 import type { AbilityTable, ItemReferenceTable, Learnsets, MoveTable, SpeciesDetail } from '../src/data/types';
 import { dataEntry, readData } from './data-files';
 
@@ -9,6 +9,7 @@ const abilities = readData<AbilityTable>('reference/abilities.json');
 const pikachu = dataEntry<SpeciesDetail>('species', 25);
 const charizard = dataEntry<SpeciesDetail>('species', 6);
 const raichu = dataEntry<SpeciesDetail>('species', 26);
+const calyrex = dataEntry<SpeciesDetail>('species', 898);
 const items = readData<ItemReferenceTable>('reference/items.json');
 const learnsets = dataEntry<Learnsets>('learnsets', 25);
 const SPORE = 147;
@@ -107,5 +108,44 @@ describe('availability in a game', () => {
     assert.ok(abilityInGame(undefined, 9, true));
     assert.ok(itemInGame(undefined, 9));
     assert.ok(formInGame(form(charizard, 'mega-x')));
+  });
+});
+
+describe('memberAbility', () => {
+  const hidden = pikachu.abilities.find((a) => a.hidden)!;
+
+  test("finds the form's own ability with its id and hidden flag", () => {
+    assert.deepEqual(memberAbility(pikachu.abilities, hidden.name, abilities), { id: hidden.id, hidden: true });
+    assert.deepEqual(memberAbility(pikachu.abilities, hidden.name), { id: hidden.id, hidden: true });
+  });
+
+  test('finds a god mode ability in the full table, not hidden; no id before the table loads', () => {
+    const hugePower = Number(Object.entries(abilities).find(([, a]) => a.name === 'Huge Power')![0]);
+    assert.deepEqual(memberAbility(pikachu.abilities, 'Huge Power', abilities), { id: hugePower, hidden: false });
+    assert.deepEqual(memberAbility(pikachu.abilities, 'Huge Power'), { id: undefined, hidden: false });
+  });
+
+  test("tells same-named abilities apart by the form's own: As One on each Calyrex rider", () => {
+    const own = (key: string) => calyrex.forms!.find((f) => f.key === key)!.abilities;
+    assert.equal(memberAbility(own('shadow'), 'As One', abilities)?.id, 267);
+    assert.equal(memberAbility(own('ice'), 'As One', abilities)?.id, 266);
+  });
+
+  test('no ability set', () => {
+    assert.equal(memberAbility(pikachu.abilities, undefined, abilities), undefined);
+  });
+});
+
+describe('abilityIdByName', () => {
+  const entry = (name: string) => ({ name, effect: '', details: '', gen: 3, species: [] });
+  const table: AbilityTable = { 9: entry('Static'), 266: entry('As One'), 267: entry('As One') };
+
+  test('finds the id, the first one when a name repeats', () => {
+    assert.equal(abilityIdByName(table, 'Static'), 9);
+    assert.equal(abilityIdByName(table, 'As One'), 266);
+  });
+
+  test('is undefined for an unknown name', () => {
+    assert.equal(abilityIdByName(table, 'Levitate'), undefined);
   });
 });

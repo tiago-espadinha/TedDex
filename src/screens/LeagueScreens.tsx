@@ -80,10 +80,7 @@ async function loadGame(kind: TrainerKind, id: string): Promise<[LeagueGame, Tab
   const teams = game.trainers.flatMap((t) => [...t.teams, ...(t.rematches ?? []).flatMap((r) => r.teams)]);
   const members = teams.flatMap((team) => team.members);
   // A few teams hold Berries with no battle effect, which only the full item table names.
-  let items = held;
-  if (members.some((m) => m.item !== undefined && !held[m.item])) {
-    items = Object.fromEntries(Object.entries(await loadItemReference()).map(([itemId, item]) => [itemId, item.name]));
-  }
+  const items: ItemTable = members.some((m) => m.item !== undefined && !held[m.item]) ? await loadItemReference() : held;
   const formed = [...new Set(members.filter((m) => m.form).map((m) => m.id))];
   const forms = new Map<string, FormVariant>();
   for (const s of await Promise.all(formed.map(loadSpecies))) {
@@ -256,7 +253,7 @@ function TeamStrip({ team, tables }: { team: LeagueTeam; tables: Tables }) {
 
 function MemberRow({ member: m, tables }: { member: LeagueMember; tables: Tables }) {
   const { spriteId, name, types } = monOf(m, tables);
-  const item = m.item !== undefined && tables.items[m.item] ? { id: m.item, name: tables.items[m.item] } : undefined;
+  const item = m.item !== undefined && tables.items[m.item] ? { id: m.item, name: tables.items[m.item].name } : undefined;
   const ability = m.ability !== undefined ? tables.abilities[m.ability]?.name : undefined;
   return (
     <li className="league-mon">

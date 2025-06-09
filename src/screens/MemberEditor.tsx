@@ -1,12 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { loadAbilities, loadItemReference, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVersions, spriteUrl, useLoad } from '../data/api';
+import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVersions, spriteUrl, useLoad } from '../data/api';
 import { MOVE_SLOTS, db, updateMember, type TeamMember } from '../data/db';
 import { detailPath } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { abilityIdByName } from '../data/peek';
-import { FIRST_GEN, abilityInGame, formInGame, itemInGame, learnable, moveChoices, otherAbilities } from '../data/memberOptions';
+import { FIRST_GEN, abilityInGame, formInGame, itemInGame, learnable, memberAbility, moveChoices, otherAbilities } from '../data/memberOptions';
 import { NATURES, natureLabel } from '../data/natures';
 import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
@@ -31,16 +30,12 @@ export function MemberEditor() {
   // Every ability is only needed in god mode and, for the generation each came in, with a team game.
   const needAbilities = godMode || game !== undefined;
   const { data: abilities, error: abilitiesError } = useLoad(() => (needAbilities ? loadAbilities() : Promise.resolve(undefined)), needAbilities);
-  // Item generations, only needed with a team game.
-  const { data: itemInfo } = useLoad(() => (game !== undefined ? loadItemReference() : Promise.resolve(undefined)), game !== undefined);
   const [picking, setPicking] = useState<Picking>();
   const peek = usePeek();
   const choices = useMemo(() => (data ? moveChoices(data[1], data[2], godMode, game) : []), [data, godMode, game]);
   // With a team game, chosen moves it can't learn there are kept and labelled.
   const legal = useMemo(() => (data && game !== undefined ? learnable(data[1], game) : undefined), [data, game]);
   const gen = game !== undefined ? data?.[4].find((v) => v.id === game)?.gen : undefined;
-  // With a team game, an item counts as in it once its generation is known.
-  const itemOk = (id: number) => itemInGame(gen, itemInfo?.[id]?.gen ?? 1);
   const formKey = member?.formKey ?? null;
   const abilityOptions = useMemo(
     () => (data && abilities ? otherAbilities(applyForm(data[0], formKey).view.abilities, abilities) : []),
@@ -60,13 +55,11 @@ export function MemberEditor() {
   // Learnsets stay species-level; name, types and abilities follow the member's form (set when it was added).
   const { view: mon, form, mediaId } = applyForm(species, member.formKey ?? null);
   const chosen = (member.moves ?? []).filter((id) => moves[id]);
-  // Its own abilities carry their id; one picked in god mode is found in the full list.
-  const abilityId = member.ability
-    ? (mon.abilities.find((a) => a.name === member.ability)?.id ?? (abilities && abilityIdByName(abilities, member.ability)))
-    : undefined;
+  const abilityId = memberAbility(mon.abilities, member.ability, abilities)?.id;
   // What the team's game lacks: offered only in god mode, flagged when already chosen.
   const hasAbilities = gen === undefined || gen >= FIRST_GEN.ability;
   const hasItems = gen === undefined || gen >= FIRST_GEN.item;
+  const itemOk = (id: number) => itemInGame(gen, items[id]?.gen ?? 1);
   // Until abilities.json loads only the hidden ability rule applies.
   const abilityOk = (id: number | undefined, hidden = false) =>
     abilityInGame(gen, (id !== undefined && abilities?.[id]?.gen) || 1, hidden);
@@ -76,7 +69,7 @@ export function MemberEditor() {
   const showAbility = godMode || !!member.ability || hasAbilities;
   const showItem = godMode || member.item !== undefined || hasItems;
   const itemOptions = Object.entries(items)
-    .map(([id, name]) => ({ id: Number(id), name }))
+    .map(([id, { name }]) => ({ id: Number(id), name }))
     .filter((o) => godMode || itemOk(o.id))
     .sort((a, b) => a.name.localeCompare(b.name));
   const formMissing = !notInGame && !formInGame(form, game);
@@ -176,11 +169,11 @@ export function MemberEditor() {
           <div className="pick-field">
             {/* A game without held items keeps the chosen one, with nothing to swap it for. */}
             <button className="game-select" disabled={!godMode && !hasItems} onClick={() => setPicking({ kind: 'item' })}>
-              <span className={member.item ? 'v' : 'v none'}>{member.item ? (items[member.item] ?? 'Unknown item') : 'None'}</span>
+              <span className={member.item ? 'v' : 'v none'}>{member.item ? (items[member.item]?.name ?? 'Unknown item') : 'None'}</span>
               <Icon name="next" size={18} />
             </button>
             {member.item !== undefined && items[member.item] && (
-              <InfoButton name={items[member.item]} onClick={() => peek({ kind: 'item', id: member.item! })} />
+              <InfoButton name={items[member.item].name} onClick={() => peek({ kind: 'item', id: member.item! })} />
             )}
             {member.item !== undefined && (
               <button className="icon-btn" aria-label="Remove held item" onClick={() => save({ item: undefined })}>
@@ -189,7 +182,7 @@ export function MemberEditor() {
             )}
           </div>
           {!hasItems && <p className="hint">{gameLabel} has no held items.</p>}
-          {hasItems && member.item !== undefined && items[member.item] && !itemOk(member.item) && <p className="hint">{items[member.item]} isn't in {gameLabel}.</p>}
+          {hasItems && member.item !== undefined && items[member.item] && !itemOk(member.item) && <p className="hint">{items[member.item].name} isn't in {gameLabel}.</p>}
         </Field>
       )}
 

@@ -174,7 +174,7 @@ describe('parseBackup', () => {
 describe('checkKnownIds', () => {
   const tackle = { name: 'Tackle', type: 'normal', category: 'physical', power: 40, accuracy: 100, pp: 35, priority: 0, gen: 1 } as const;
   const MOVES: MoveTable = { 33: tackle, 45: { ...tackle, name: 'Growl', category: 'status', power: null } };
-  const ITEMS = { 234: 'Leftovers' };
+  const ITEMS = { 234: { name: 'Leftovers', gen: 2 } };
   const check = (member: unknown) => () => checkKnownIds(parseBackup(oneMember(member)), MOVES, ITEMS);
   const throwsBackupError = (fn: () => void, message: RegExp) =>
     assert.throws(fn, (e: unknown) => e instanceof BackupError && message.test(e.message));

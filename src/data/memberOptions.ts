@@ -1,4 +1,4 @@
-import type { AbilityTable, FormVariant, Learnsets, MoveTable } from './types';
+import type { AbilityNameTable, FormVariant, Learnsets, MoveTable, SpeciesDetail } from './types';
 
 const byName = (moves: MoveTable) => (a: number, b: number) => moves[a].name.localeCompare(moves[b].name);
 
@@ -26,12 +26,28 @@ export function moveChoices(learnsets: Learnsets, moves: MoveTable, godMode = fa
 }
 
 /** Every ability not among `own` (by name), sorted by name: what god mode adds to the ability picker. */
-export function otherAbilities(own: { name: string }[], abilities: AbilityTable): { id: number; name: string }[] {
+export function otherAbilities(own: { name: string }[], abilities: AbilityNameTable): { id: number; name: string }[] {
   const owned = new Set(own.map((a) => a.name));
   return Object.entries(abilities)
     .map(([id, a]) => ({ id: Number(id), name: a.name }))
     .filter((a) => !owned.has(a.name))
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Team members store their ability by name; the first ability with that name (As One has two). */
+export function abilityIdByName(table: AbilityNameTable, name: string): number | undefined {
+  const hit = Object.entries(table).find(([, a]) => a.name === name);
+  return hit && Number(hit[0]);
+}
+
+/**
+ * A member's ability `name` (undefined when none is set): its form's `own` entry, or, for one picked in god mode, the
+ * first ability with that name in `table` (no id until `table` loads), never hidden.
+ */
+export function memberAbility(own: SpeciesDetail['abilities'], name: string | undefined, table?: AbilityNameTable) {
+  if (!name) return undefined;
+  const mine = own.find((a) => a.name === name);
+  return { id: mine?.id ?? (table && abilityIdByName(table, name)), hidden: mine?.hidden ?? false };
 }
 
 /** The first generation whose games have abilities, hidden abilities and held items. */

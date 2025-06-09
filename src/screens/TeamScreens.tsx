@@ -4,9 +4,8 @@ import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
 import {
   attackingTypes,
   itemSpriteUrl,
-  loadAbilities,
+  loadAbilityNames,
   loadIndex,
-  loadItemReference,
   loadItems,
   loadLearnsets,
   loadMoves,
@@ -21,11 +20,10 @@ import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, setGodMode, setT
 import { cap, formatMultiplier, formatNo } from '../data/format';
 import { applyForm, memberView, type MemberView } from '../data/forms';
 import { teamGame } from '../data/game';
-import { abilityInGame, formInGame, itemInGame, learnable } from '../data/memberOptions';
+import { abilityInGame, formInGame, itemInGame, learnable, memberAbility } from '../data/memberOptions';
 import { useGame } from '../data/settings';
 import { typeTint } from '../data/typeColors';
-import { abilityIdByName } from '../data/peek';
-import type { AbilityTable, ItemTable, MoveTable, TypeData } from '../data/types';
+import type { AbilityNameTable, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useModalSheet, useToast } from '../components/bits';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
@@ -52,17 +50,17 @@ function useMemberViews(members: TeamMember[] = []) {
  * can't learn there, and whether its ability and held item are missing there. Undefined for any game, and until the
  * data loads.
  */
-function useLegality(members: TeamMember[] = [], game?: number) {
+function useLegality(members: TeamMember[] = [], game?: number, items?: ItemTable) {
   const ids = game === undefined ? [] : [...new Set(members.map((m) => m.speciesId))].sort((a, b) => a - b);
   const { data } = useLoad(
     () =>
       ids.length
-        ? Promise.all([Promise.all(ids.map(loadLearnsets)), Promise.all(ids.map(loadSpecies)), loadAbilities(), loadItemReference(), loadVersions()])
+        ? Promise.all([Promise.all(ids.map(loadLearnsets)), Promise.all(ids.map(loadSpecies)), loadAbilityNames(), loadVersions()])
         : Promise.resolve(undefined),
     ids.join(),
   );
   if (game === undefined || !data) return undefined;
-  const [learnsets, details, abilities, itemInfo, versions] = data;
+  const [learnsets, details, abilities, versions] = data;
   const gen = versions.find((v) => v.id === game)?.gen;
   const index = new Map(ids.map((id, i) => [id, i]));
   return (m: TeamMember) => {
@@ -70,13 +68,13 @@ function useLegality(members: TeamMember[] = [], game?: number) {
     if (i === undefined) return undefined;
     const ok = learnable(learnsets[i], game);
     const { view, form } = applyForm(details[i], m.formKey ?? null);
-    const own = view.abilities.find((a) => a.name === m.ability);
-    const abilityId = own?.id ?? (m.ability ? abilityIdByName(abilities, m.ability) : undefined);
+    const ability = memberAbility(view.abilities, m.ability, abilities);
     return {
       inGame: !!learnsets[i][game] && formInGame(form, game),
       flagged: new Set((m.moves ?? []).filter((id) => !ok.has(id))),
-      abilityOff: abilityId !== undefined && !abilityInGame(gen, abilities[abilityId]?.gen ?? 1, own?.hidden),
-      itemOff: m.item !== undefined && !itemInGame(gen, itemInfo[m.item]?.gen ?? 1),
+      abilityOff: ability?.id !== undefined && !abilityInGame(gen, abilities[ability.id]?.gen ?? 1, ability.hidden),
+      // Unflagged only while items.json is missing, when the card shows no item chip.
+      itemOff: m.item !== undefined && !!items?.[m.item] && !itemInGame(gen, items[m.item].gen),
     };
   };
 }
@@ -95,23 +93,27 @@ function MemberDetails({
   items,
   moves,
   abilities,
+  own,
   flagged,
   abilityOff,
   itemOff,
 }: {
   member: TeamMember;
   name: string;
+  /** The form's own abilities, when known; a same-named one (As One) then opens the form's. */
+  own?: MemberView['abilities'];
   items?: ItemTable;
   moves?: MoveTable;
-  abilities?: AbilityTable;
+  abilities?: AbilityNameTable;
   flagged?: Set<number>;
   /** The ability or item isn't in the team's game. */
   abilityOff?: boolean;
   itemOff?: boolean;
 }) {
   const peek = usePeek();
-  const item = m.item !== undefined && items?.[m.item] ? { id: m.item, name: items[m.item] } : undefined;
-  const abilityId = m.ability && abilities ? abilityIdByName(abilities, m.ability) : undefined;
+  const item = m.item !== undefined && items?.[m.item] ? { id: m.item, name: items[m.item].name } : undefined;
+  // A form's own abilities come with its species file; until then a name lookup could pick another form's (As One).
+  const abilityId = m.formKey && !own ? undefined : memberAbility(own ?? [], m.ability, abilities)?.id;
   const chosen = moves && m.moves?.length ? m.moves : undefined;
   if (!m.ability && !m.nature && m.item === undefined && !m.moves?.length) return <span className="team-mon-hint">Tap to set ability, nature, item and moves</span>;
   return (
@@ -265,9 +267,9 @@ export function TeamEditor() {
   const { view } = useMemberViews(team?.members);
   const { data: items } = useLoad(loadItems, 'items');
   const { data: moves } = useLoad(loadMoves, 'moves');
-  const { data: abilities } = useLoad(loadAbilities, 'abilities');
+  const { data: abilities } = useLoad(loadAbilityNames, 'ability-names');
   const { data: versions } = useLoad(loadVersions, 'versions');
-  const legality = useLegality(team?.members, team?.game);
+  const legality = useLegality(team?.members, team?.game, items);
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -361,6 +363,7 @@ export function TeamEditor() {
                     items={items}
                     moves={moves}
                     abilities={abilities}
+                    own={mon?.abilities}
                     flagged={legal?.flagged}
                     abilityOff={legal?.abilityOff}
                     itemOff={legal?.itemOff}

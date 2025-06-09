@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 import { ITEM_CATEGORIES } from '../src/data/itemCategories';
-import type { ItemReferenceTable } from '../src/data/types';
+import type { ItemReferenceTable, ItemTable } from '../src/data/types';
 
 // The committed output of `npm run data`.
 describe('items reference data', () => {
@@ -51,5 +51,20 @@ describe('items reference data', () => {
   test('prices: 0 marks items that are not sold', () => {
     assert.equal(byName('Poké Ball')?.cost, 200);
     assert.equal(byName('Master Ball')?.cost, 0);
+  });
+});
+
+describe('held items data', () => {
+  const held = JSON.parse(readFileSync(new URL('../public/data/items.json', import.meta.url), 'utf8')) as ItemTable;
+  const reference = JSON.parse(
+    readFileSync(new URL('../public/data/reference/items.json', import.meta.url), 'utf8'),
+  ) as ItemReferenceTable;
+
+  test("every held item has its name and generation from the reference table", () => {
+    assert.ok(Object.keys(held).length > 300);
+    for (const [id, it] of Object.entries(held)) {
+      assert.equal(it.name, reference[Number(id)]?.name, `item ${id}`);
+      assert.equal(it.gen, reference[Number(id)].gen, it.name);
+    }
   });
 });

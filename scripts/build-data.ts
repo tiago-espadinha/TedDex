@@ -13,7 +13,8 @@
  *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP, priority, generation
  *   versions.json         main-series version groups that have learnsets, oldest first
  *   evolution/c<n>.json   evolution chain members with English condition text, loaded by the Evolution tab
- *   items.json            held items a team member can carry: item id -> English name
+ *   items.json            held items a team member can carry: item id -> English name, generation introduced
+ *   abilities.json        ability id -> English name, generation introduced (as in reference/abilities.json), for team screens
  *   reference/abilities.json  ability id -> name, short effect, full details, generation, species that have it (any form)
  *   reference/items.json      item id -> name, category, generation introduced, price (0 = not sold), short effect
  *                             (no "Held: " preamble), wild holders as [version group, species, rarity %]; every named item
@@ -820,15 +821,6 @@ async function main() {
   }
   await writeChunks('evolution', evolutionOut);
 
-  // --- held items ---
-  const heldCategories = new Set(itemCategories.filter((c) => HELD_ITEM_CATEGORIES.has(c.identifier)).map((c) => c.id));
-  const itemTable: Record<string, string> = {};
-  for (const it of items) {
-    const name = itemName.get(it.id);
-    if (!name || !heldCategories.has(it.category_id)) continue;
-    itemTable[it.id] = name;
-  }
-
   // --- reference: effect text, plus the species each move, ability and held item belongs to ---
   /** English short effect by id, else the newest English flavor text. */
   function effectText(prose: Row[], proseKey: string, flavorRows: Row[], flavorKey: string) {
@@ -874,6 +866,7 @@ async function main() {
   );
   const holdersByAbility = groupBy(pokemonAbilities, (r) => r.ability_id);
   const abilityTable: Record<string, unknown> = {};
+  const abilityGenTable: Record<string, { name: string; gen: number }> = {};
   for (const a of abilities) {
     const holders = speciesIds(holdersByAbility.get(a.id) ?? []);
     if (a.is_main_series !== '1' || !holders.length) continue;
@@ -884,6 +877,7 @@ async function main() {
       gen: Number(a.generation_id),
       species: holders,
     };
+    abilityGenTable[a.id] = { name: abilityName.get(a.id) ?? a.identifier, gen: Number(a.generation_id) };
   }
 
   const itemEffect = effectText(itemProse, 'item_id', itemFlavor, 'item_id');
@@ -906,6 +900,16 @@ async function main() {
   };
   const firstGen = new Map<string, number>();
   for (const g of itemGameIndices) firstGen.set(g.item_id, Math.min(Number(g.generation_id), firstGen.get(g.item_id) ?? Infinity));
+  const itemGen = (it: Row) => firstGen.get(it.id) ?? ITEM_GEN_FALLBACK[it.identifier] ?? NEWEST_GEN;
+
+  // --- held items ---
+  const heldCategories = new Set(itemCategories.filter((c) => HELD_ITEM_CATEGORIES.has(c.identifier)).map((c) => c.id));
+  const itemTable: Record<string, { name: string; gen: number }> = {};
+  for (const it of items) {
+    const name = itemName.get(it.id);
+    if (!name || !heldCategories.has(it.category_id)) continue;
+    itemTable[it.id] = { name, gen: itemGen(it) };
+  }
   const categoryIdentifier = new Map(itemCategories.map((c) => [c.id, c.identifier]));
   const itemReference: Record<string, unknown> = {};
   const itemById = new Map(items.map((it) => [it.id, it]));
@@ -918,7 +922,7 @@ async function main() {
     itemReference[it.id] = {
       name,
       category,
-      gen: firstGen.get(it.id) ?? ITEM_GEN_FALLBACK[it.identifier] ?? NEWEST_GEN,
+      gen: itemGen(it),
       cost: Number(it.cost) || 0,
       effect: (itemEffect.get(it.id) ?? '')
         .replace(/^Held:\s*/, '')
@@ -1050,6 +1054,7 @@ async function main() {
   await writeFile(join(OUT, 'moves.json'), JSON.stringify(moveTable));
   await writeFile(join(OUT, 'versions.json'), JSON.stringify(versionList));
   await writeFile(join(OUT, 'items.json'), JSON.stringify(itemTable));
+  await writeFile(join(OUT, 'abilities.json'), JSON.stringify(abilityGenTable));
   await writeFile(join(OUT, 'games.json'), JSON.stringify(gameList));
   await writeFile(join(OUT, 'reference', 'abilities.json'), JSON.stringify(abilityTable));
   await writeFile(join(OUT, 'reference', 'items.json'), JSON.stringify(itemReference));
