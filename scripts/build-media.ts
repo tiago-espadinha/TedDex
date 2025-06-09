@@ -4,14 +4,15 @@
  *
  *   npm run media             # download missing sources (cached in .cache/media/) and convert
  *   npm run media -- --fresh  # re-download and re-convert everything
+ *   npm run media -- --redo=artwork,cries  # re-convert those kinds from the cache (after changing their options)
  *
  * Reads the species list from public/data/index.json, their forms from the species/ chunks and the items from
  * reference/items.json (with their PokeAPI names from the CSV cache), so run `npm run data` first.
  *
  * Output (all under public/media/; forms use their Pokémon id, e.g. 10034 for Mega Charizard X):
  *   sprites/<id>.webp   96 px front sprite, lossless WebP (precached by the service worker); species and forms
- *   artwork/<id>.webp   475 px official artwork, WebP q80 (cached on first view); species and forms
- *   cries/<id>.m4a      latest cry, AAC 64 kbps mono (iOS Safari can't reliably play OGG); species only
+ *   artwork/<id>.webp   368 px official artwork (2× the 184 px hero), WebP q65 (cached on first view); species and forms
+ *   cries/<id>.m4a      latest cry, AAC 40 kbps mono (iOS Safari can't reliably play OGG); species only
  *   items/<id>.webp     item sprite, 48–64 px WebP (precached); every item in reference/items.json
  *   guide/<name>.webp   pixel-art sprites for the Guide menu rows, doubled, lossless (precached)
  */
@@ -32,6 +33,7 @@ const ROOT = new URL('..', import.meta.url).pathname;
 const CACHE = join(ROOT, '.cache', 'media');
 const OUT = join(ROOT, 'public', 'media');
 const FRESH = process.argv.includes('--fresh');
+const REDO = new Set(process.argv.find((a) => a.startsWith('--redo='))?.slice('--redo='.length).split(',') ?? []);
 const CONCURRENCY = 8;
 const TIMEOUT_MS = 30_000;
 
@@ -51,14 +53,14 @@ const KINDS: Kind[] = [
     dir: 'artwork',
     source: (id) => `${SPRITES}/other/official-artwork/${id}.png`,
     ext: 'webp',
-    ffmpeg: ['-c:v', 'libwebp', '-quality', '80'],
+    ffmpeg: ['-vf', 'scale=368:368:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '65', '-compression_level', '6'],
     ids: 'forms',
   },
   {
     dir: 'cries',
     source: (id) => `${CRIES}/${id}.ogg`,
     ext: 'm4a',
-    ffmpeg: ['-vn', '-c:a', 'aac', '-b:a', '64k', '-ac', '1', '-movflags', '+faststart'],
+    ffmpeg: ['-vn', '-c:a', 'aac', '-b:a', '40k', '-ac', '1', '-movflags', '+faststart'],
     ids: 'species',
   },
   // PokeAPI names item sprites by identifier; `itemIdentifiers` is filled from the CSV cache before the run.
@@ -77,7 +79,7 @@ async function itemSpriteOptions(src: string): Promise<string[]> {
   const width = (await readFile(src)).readUInt32BE(16); // PNG IHDR width
   return width <= 32
     ? PIXEL_OPTIONS
-    : ['-vf', 'scale=64:64:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '85'];
+    : ['-vf', 'scale=64:64:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '75'];
 }
 
 /** Downloads (or reuses) the source file; returns null when PokeAPI has no file for this id. */
@@ -92,7 +94,7 @@ async function fetchSource(url: string, file: string): Promise<string | null> {
 
 async function convert(kind: Kind, id: number): Promise<'done' | 'skipped' | 'missing'> {
   const out = join(OUT, kind.dir, `${id}.${kind.ext}`);
-  if (!FRESH && existsSync(out)) return 'skipped';
+  if (!FRESH && !REDO.has(kind.dir) && existsSync(out)) return 'skipped';
   const url = kind.source(id);
   const src = await fetchSource(url, join(CACHE, kind.dir, url.split('/').pop()!));
   if (!src) return 'missing';
@@ -152,6 +154,8 @@ async function main() {
   await run('ffmpeg', ['-version']).catch(() => {
     throw new Error('ffmpeg not found on PATH: install it to build media');
   });
+  const unknown = [...REDO].filter((dir) => !KINDS.some((kind) => kind.dir === dir));
+  if (unknown.length) throw new Error(`--redo: unknown kind ${unknown.join(', ')} (kinds: ${KINDS.map((k) => k.dir).join(', ')})`);
   const index = JSON.parse(await readFile(join(ROOT, 'public', 'data', 'index.json'), 'utf8')) as { id: number }[];
   const ids = index.map((s) => s.id);
   const formIds: number[] = [];
