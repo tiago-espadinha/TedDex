@@ -146,18 +146,16 @@ export function MoveHead({ level, trailing }: { level?: boolean; trailing?: bool
 }
 
 /**
- * A move as table cells: name (with any priority and `note`), type, category, power, accuracy, PP; shared with the Guide
+ * A move as table cells: name (with any priority), type, category, power, accuracy, PP; shared with the Guide
  * and the member editor.
  */
-export function MoveCells({ move: m, note }: { move: MoveInfo; note?: string }) {
+export function MoveCells({ move: m }: { move: MoveInfo }) {
   return (
     <>
       <span className="name">
         {m.name}
         {m.priority !== 0 && ' '}
         {m.priority !== 0 && <span className="prio">Priority {signed(m.priority)}</span>}
-        {note && ' '}
-        {note && <span className="prio move-note">{note}</span>}
       </span>
       <TypeChip type={m.type} />
       <CategoryIcon category={m.category} />

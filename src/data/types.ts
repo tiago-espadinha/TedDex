@@ -132,8 +132,11 @@ export interface EvolutionMember {
   conditions: string[];
 }
 
-/** items.json: held item id → English name. */
-export type ItemTable = Record<number, string>;
+/** items.json: held item id → English name and the generation that introduced it (as in reference/items.json). */
+export type ItemTable = Record<number, { name: string; gen: number }>;
+
+/** abilities.json: ability id → English name and the generation that introduced it (as in reference/abilities.json). */
+export type AbilityNameTable = Record<number, { name: string; gen: number }>;
 
 /** Learn methods, as in a learnset. */
 export type LearnMethod = keyof Learnset;

@@ -275,7 +275,7 @@ a { color: inherit; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 /* Containers focused from script (route changes, opened sheets) get no ring: the next Tab lands inside. */
 main:focus, .sheet:focus { outline: none; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:is(.sr-only, .team-mon .league-facts dt) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- shell ---------- */
 .app { min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--nav-h) + var(--safe-bottom)); max-width: 720px; margin: 0 auto; }
@@ -300,6 +300,13 @@ main:focus, .sheet:focus { outline: none; }
 .topbar .grow { flex: 1; min-width: 0; }
 .topbar .head-title { flex: none; max-width: 45%; margin-right: 8px; }
 :is(.topbar .head-title h1, .topbar .team-name) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The team name is its rename button; on the 30 px line, its ::after stretches the tap area to 44 px (the span ellipsizes). */
+.topbar .team-name:has(button) { overflow: visible; }
+.topbar .team-name button { position: relative; display: block; max-width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.topbar .team-name button span { display: block; overflow: hidden; text-overflow: ellipsis; }
+.topbar .team-name button::after { content: ''; position: absolute; inset: -7px 0; }
+.topbar .team-name button:focus-visible { outline-offset: -2px; }
+.topbar .team-name button:active { opacity: 0.6; }
 
 /* ---------- chips ---------- */
 .type-chip { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.3px; color: var(--on-type); padding: 2px 9px; border-radius: 999px; text-transform: uppercase; }
@@ -352,7 +359,7 @@ main:focus, .sheet:focus { outline: none; }
 /* Room under the last grid row so it can scroll clear of the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
 .dex-list { margin-bottom: 88px; }
 .fab { position: fixed; right: max(16px, calc((100vw - 720px) / 2 + 16px)); bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); z-index: 15; width: 56px; height: 56px; border-radius: 16px; border: 0; background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); }
-.fab .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+:is(.fab, .filter-btn) .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
 .pick-banner { position: sticky; top: 0; z-index: 10; margin: 0 16px 8px; padding: 10px 14px; border-radius: 14px; background: var(--primary-soft); color: var(--primary-soft-ink); font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
 .pick-banner button { border: 0; background: transparent; color: inherit; font-weight: 800; min-height: 32px; }
@@ -557,8 +564,6 @@ main:focus, .sheet:focus { outline: none; }
 .game-select select { appearance: none; flex: 1; min-width: 0; height: 46px; padding: 0 32px 0 10px; border: 0; background: transparent; font-size: 15px; font-weight: 800; text-overflow: ellipsis; }
 .game-select svg { position: absolute; right: 12px; transform: rotate(90deg); pointer-events: none; color: var(--muted); }
 .game-select:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
-.game-select:disabled { cursor: default; }
-.game-select:disabled svg { display: none; }
 .game-select select:focus-visible { outline: none; }
 .move-group { margin-top: 14px; }
 .move-group ul { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
@@ -728,9 +733,6 @@ a.move-row.tinted { color: var(--on-tint); }
 }
 .league-source a { color: var(--primary); }
 .empty a { display: inline-flex; align-items: center; min-height: 44px; color: var(--primary); font-weight: 700; }
-@media (max-width: 374px) {
-  .team-mon-hint { margin-left: 12px; }
-}
 .chip-wrap:has(.chip-link) { column-gap: 8px; row-gap: 0; }
 .topbar.tinted { color: var(--on-tint); margin-top: calc(-1 * var(--safe-top)); padding: calc(var(--safe-top) + 8px) 12px 16px 8px; border-radius: 0 0 32px 32px; }
 .topbar.tinted .icon-btn { color: var(--on-tint); }
@@ -765,8 +767,6 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-row { display: flex; align-items: center; gap: 12px; padding: 14px 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: var(--ink); }
 .team-row .name { font-size: 16px; font-weight: 800; }
 .team-row .meta { font-size: 13px; color: var(--muted); font-weight: 600; }
-.team-row .minis { display: flex; margin-left: auto; }
-.team-row .minis img { width: 36px; height: 36px; image-rendering: pixelated; margin-left: -8px; }
 .slot { display: flex; gap: 12px; align-items: center; padding: 10px 6px 10px 12px; border-radius: var(--radius-card); color: var(--on-tint); }
 .slot a { color: inherit; text-decoration: none; display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; }
 .slot img { width: 64px; height: 64px; image-rendering: pixelated; flex: none; }
@@ -781,8 +781,16 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-entry > a:focus-visible { outline-offset: -2px; }
 .team-entry .name { overflow-wrap: anywhere; }
 .team-entry > .icon-btn { position: absolute; top: 6px; right: 6px; }
-.team-entry .minis { gap: 2px; margin: 0 0 -6px -4px; }
-.team-entry .minis img { width: 48px; height: 48px; margin: 0; }
+/* Teams list: 100 px rows, the name over the tops of 80 px sprites that overlap when six don't fit side by side. */
+.team-list-row { position: relative; display: block; height: 100px; padding: 0; overflow: hidden; }
+.team-list-row:focus-visible { outline-offset: -2px; }
+.team-list-row .head { position: relative; z-index: 1; display: flex; align-items: baseline; gap: 8px; padding: 8px 14px 0; }
+.team-list-row .name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.team-list-row .minis { position: absolute; left: 6px; right: 6px; bottom: 0; display: flex; }
+.team-list-row .minis > span { flex: 0 1 80px; min-width: 0; }
+.team-list-row .minis > span:last-child { flex-shrink: 0; }
+.team-list-row .minis img { display: block; width: 80px; height: 80px; image-rendering: pixelated; }
+.list.with-fab { padding-bottom: 88px; }
 /* A member card is one link to the editor, on its first type's tint; the remove button sits over its top-right corner. */
 .team-members { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .team-mon { position: relative; padding-bottom: 10px; border-radius: var(--radius-card); color: var(--on-tint); }
@@ -800,17 +808,13 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-mon .evo-member img { background: transparent !important; }
 .team-mon > .icon-btn { position: absolute; z-index: 1; top: 6px; right: 4px; color: var(--on-tint-2); }
 .team-mon :is(.league-chip, .league-moves li > *) { background: var(--tint-glass); color: var(--on-tint); }
-.team-mon .league-facts dt { color: var(--on-tint-muted); }
 .team-mon .league-facts dd { color: var(--on-tint); }
-.team-mon-hint { display: block; margin: -4px 12px 0 80px; font-size: 13px; font-weight: 600; color: var(--on-tint-muted); }
-.team-mon-flag { margin-bottom: 8px; font-weight: 800; color: var(--on-tint); }
-/* Moves, abilities and items not in the team's game: a dashed edge and a note under the name. */
-.league-moves .not-in-game > *, .league-facts .league-chip.not-in-game { flex-wrap: wrap; align-content: center; padding-block: 4px; border-left-style: dashed; }
-.league-facts .league-chip.not-in-game { row-gap: 0; }
+/* Ability left and held item right on one row (the item wraps under only when both are long); nature ends the types row.
+   The chips speak for themselves, so their labels are for screen readers only (with .sr-only). */
+.team-mon .league-facts .item { margin-left: auto; }
+.team-mon .evo-member .types { align-items: center; }
+.team-mon .nature { margin-left: auto; font-size: 13px; font-weight: 700; }
 .team-mon .league-moves li > * { height: 100%; }
-.move-flag { flex-basis: 100%; font-size: 12px; font-weight: 600; color: var(--muted); }
-.team-mon .move-flag { color: var(--on-tint-muted); }
-.move-table .move-note { font-weight: 700; color: var(--ink-2); }
 .team-game { margin: 0 0 4px; }
 /* Teams | Pokédexes on the Team tab: links in the segmented look, 44 px tall. */
 .team-tabs { height: 44px; margin: 4px 16px 0; --seg-r: 22px; }
@@ -858,6 +862,11 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .ability-any:disabled { opacity: 0.6; }
 .move-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 4px 8px 12px; border: 0; background: transparent; text-align: left; border-radius: 16px; }
 .sheet .search { margin: 12px 0 10px; }
+/* The move picker's filter button sits beside its search. */
+.picker-search { display: flex; align-items: center; gap: 4px; margin: 12px 0 10px; }
+.picker-search .search { flex: 1; min-width: 0; margin: 0; }
+.filter-btn { position: relative; }
+.filter-btn .badge { top: 0; right: 0; }
 .picker-list { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
 .picker-list li + li { border-top: 1px solid var(--line); }
 .picker-list .move-row { width: 100%; border: 0; background: transparent; text-align: left; }

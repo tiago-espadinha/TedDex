@@ -17,16 +17,12 @@ export interface TeamMember {
   moves?: number[];
 }
 
-/**
- * `godMode` lets the member editor pick any move and any ability for every member, not only the species' own.
- * `game` is the version group (versions.json) whose learnsets the move picker offers; absent means any game.
- */
+/** `godMode` lets the member editor pick any move and any ability for every member, not only the species' own. */
 export interface Team {
   id: number;
   name: string;
   members: TeamMember[];
   godMode?: boolean;
-  game?: number;
   updatedAt: number;
 }
 
@@ -87,6 +83,15 @@ class DexDB extends Dexie {
     this.version(5).stores({ teams: '++id, updatedAt' });
     // v6: Pokédex trackers in their own table.
     this.version(6).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt' });
+    // v7: teams no longer have a game.
+    this.version(7)
+      .stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt' })
+      .upgrade((tx) =>
+        tx
+          .table('teams')
+          .toCollection()
+          .modify((team: Team) => delete (team as { game?: unknown }).game),
+      );
   }
 }
 
@@ -97,10 +102,9 @@ if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
   navigator.storage.persist().catch(() => {});
 }
 
-/** Creates a team for `game` (a version group; absent for any game). */
-export async function createTeam(name?: string, game?: number): Promise<number> {
+export async function createTeam(name?: string): Promise<number> {
   const count = await db.teams.count();
-  return db.teams.add({ name: name ?? `Team ${count + 1}`, members: [], ...(game !== undefined && { game }), updatedAt: Date.now() });
+  return db.teams.add({ name: name ?? `Team ${count + 1}`, members: [], updatedAt: Date.now() });
 }
 
 /** Renames a team; a blank name leaves it unchanged. */
@@ -141,11 +145,6 @@ export async function setGodMode(teamId: number, on: boolean) {
   await db.teams.update(teamId, { godMode: on || undefined, updatedAt: Date.now() });
 }
 
-/** Sets the team's game (a version group), or any game when `game` is undefined. Chosen moves are kept. */
-export async function setTeamGame(teamId: number, game?: number) {
-  await db.teams.update(teamId, { game, updatedAt: Date.now() });
-}
-
 /** Creates a Pokédex for `game` (a version group; absent for any game). */
 export async function createPokedex(game?: number): Promise<number> {
   const count = await db.pokedexes.count();
@@ -184,10 +183,10 @@ export function teamGodMode(team: { godMode?: unknown; members: unknown[] }): bo
   return team.godMode === true || team.members.some((m) => (m as { godMode?: unknown } | null)?.godMode === true);
 }
 
-/** The most recently edited team, created for `game` if none exists. */
-export async function currentTeamId(game?: number): Promise<number> {
+/** The most recently edited team, created if none exists. */
+export async function currentTeamId(): Promise<number> {
   const latest = await db.teams.orderBy('updatedAt').last();
-  return latest ? latest.id : createTeam(undefined, game);
+  return latest ? latest.id : createTeam();
 }
 
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
@@ -225,7 +224,8 @@ function memberProblem(m: unknown): string | null {
 
 /**
  * Validates an exported backup (version 1 to 6). Throws BackupError on the first problem, so a bad
- * file writes nothing. Teams without a name get "Team N" numbered after `existing`.
+ * file writes nothing. Teams without a name get "Team N" numbered after `existing`; the team game of
+ * versions 5 and 6 is dropped.
  */
 export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
   let parsed: unknown;
@@ -239,10 +239,9 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
 
   return teams.map((t: unknown, i) => {
     const label = `Team ${i + 1} in the file`;
-    const { name, members, godMode, game } = (t ?? {}) as Record<string, unknown>;
+    const { name, members, godMode } = (t ?? {}) as Record<string, unknown>;
     if (!Array.isArray(members)) throw new BackupError(`${label} has no members list`);
     if (godMode !== undefined && typeof godMode !== 'boolean') throw new BackupError(`${label} has an invalid god mode`);
-    if (game !== undefined && !(isInt(game) && game > 0)) throw new BackupError(`${label} has an invalid game`);
     if (members.length > TEAM_SIZE) throw new BackupError(`${label} has more than ${TEAM_SIZE} members`);
     members.forEach((m, j) => {
       const problem = memberProblem(m);
@@ -259,7 +258,6 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
         moves,
       })),
       ...(teamGodMode({ godMode, members }) && { godMode: true }),
-      ...(game !== undefined && { game: game as number }),
       updatedAt: Date.now(),
     };
   });
@@ -317,10 +315,10 @@ export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[
   });
 }
 
-/** Rejects games that aren't version groups in versions.json; `noun` names the entry ("Team", "Pokédex"). */
-export function checkKnownGames<T extends { game?: number }>(entries: T[], versions: VersionGroup[], noun = 'Team') {
-  entries.forEach((t, i) => {
-    if (t.game !== undefined && !versions.some((v) => v.id === t.game)) throw new BackupError(`${noun} ${i + 1} in the file has an unknown game`);
+/** Rejects Pokédex games that aren't version groups in versions.json. */
+export function checkKnownGames(dexes: Pick<Pokedex, 'game'>[], versions: VersionGroup[]) {
+  dexes.forEach((d, i) => {
+    if (d.game !== undefined && !versions.some((v) => v.id === d.game)) throw new BackupError(`Pokédex ${i + 1} in the file has an unknown game`);
   });
 }
 
@@ -330,8 +328,7 @@ export async function importBackup(json: string): Promise<{ teams: number; poked
   const pokedexes = parsePokedexes(json, await db.pokedexes.count());
   const formed = new Set(teams.flatMap((t) => t.members.filter((m) => m.formKey).map((m) => m.speciesId)));
   const [moves, items, versions, details] = await Promise.all([loadMoves(), loadItems(), loadVersions(), Promise.all([...formed].map(loadSpecies))]);
-  checkKnownGames(teams, versions);
-  checkKnownGames(pokedexes, versions, 'Pokédex');
+  checkKnownGames(pokedexes, versions);
   checkKnownIds(teams, moves, items);
   checkKnownForms(teams, new Map(details.map((d) => [d.id, d])));
   await db.transaction('rw', db.teams, db.pokedexes, async () => {

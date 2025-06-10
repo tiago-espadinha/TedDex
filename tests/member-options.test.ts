@@ -1,15 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { abilityInGame, formInGame, itemInGame, learnable, moveChoices, otherAbilities } from '../src/data/memberOptions';
-import type { AbilityTable, ItemReferenceTable, Learnsets, MoveTable, SpeciesDetail } from '../src/data/types';
+import { NO_MOVE_FILTERS, abilityIdByName, activeMoveChoiceFilters, learnable, memberAbility, moveChoices, otherAbilities, type MoveChoiceFilters } from '../src/data/memberOptions';
+import type { AbilityTable, Learnsets, MoveTable, SpeciesDetail } from '../src/data/types';
 import { dataEntry, readData } from './data-files';
 
 const moves = readData<MoveTable>('moves.json');
 const abilities = readData<AbilityTable>('reference/abilities.json');
 const pikachu = dataEntry<SpeciesDetail>('species', 25);
-const charizard = dataEntry<SpeciesDetail>('species', 6);
-const raichu = dataEntry<SpeciesDetail>('species', 26);
-const items = readData<ItemReferenceTable>('reference/items.json');
+const calyrex = dataEntry<SpeciesDetail>('species', 898);
 const learnsets = dataEntry<Learnsets>('learnsets', 25);
 const SPORE = 147;
 const THUNDERBOLT = 85;
@@ -33,23 +31,48 @@ describe('moveChoices', () => {
   });
 });
 
-describe('moveChoices in a game', () => {
-  test("offers exactly Pikachu's Red / Blue learnset", () => {
-    const rb = learnsets[RED_BLUE];
+describe('moveChoices with filters', () => {
+  const rb = learnsets[RED_BLUE];
+  const filters = (f: Partial<MoveChoiceFilters>): MoveChoiceFilters => ({ ...NO_MOVE_FILTERS, ...f });
+
+  test("Game = Red / Blue offers exactly Pikachu's Red / Blue learnset", () => {
     const expected = new Set([...rb.level.map(([m]) => m), ...rb.machine, ...rb.tutor, ...rb.egg]);
-    const offered = moveChoices(learnsets, moves, false, RED_BLUE);
+    const offered = moveChoices(learnsets, moves, false, filters({ game: RED_BLUE }));
     assert.deepEqual(new Set(offered), expected);
     assert.ok(offered.includes(THUNDERBOLT));
     assert.ok(!offered.includes(THUNDER_PUNCH));
     assert.ok(moveChoices(learnsets, moves).includes(THUNDER_PUNCH));
   });
 
-  test('offers nothing for a game the species is not in', () => {
-    assert.deepEqual(moveChoices({ [RED_BLUE]: learnsets[RED_BLUE] }, moves, false, SCARLET_VIOLET), []);
+  test('Type = Electric narrows the Red / Blue list to its Electric moves', () => {
+    const offered = moveChoices(learnsets, moves, false, filters({ game: RED_BLUE, types: ['electric'] }));
+    const expected = moveChoices(learnsets, moves, false, filters({ game: RED_BLUE })).filter((id) => moves[id].type === 'electric');
+    assert.deepEqual(offered, expected);
+    assert.ok(offered.includes(THUNDERBOLT));
+    assert.ok(offered.length > 1);
   });
 
-  test('still offers every move in god mode', () => {
-    assert.equal(moveChoices(learnsets, moves, true, RED_BLUE).length, Object.keys(moves).length);
+  test('learn method and category narrow too', () => {
+    const level = moveChoices(learnsets, moves, false, filters({ game: RED_BLUE, methods: ['level'] }));
+    assert.deepEqual(new Set(level), new Set(rb.level.map(([m]) => m)));
+    const status = moveChoices(learnsets, moves, false, filters({ categories: ['status'] }));
+    assert.ok(status.length > 0 && status.every((id) => moves[id].category === 'status'));
+  });
+
+  test('offers nothing for a game the species is not in', () => {
+    assert.deepEqual(moveChoices({ [RED_BLUE]: rb }, moves, false, filters({ game: SCARLET_VIOLET })), []);
+  });
+
+  test('god mode offers every move until a game or method is picked; types still apply', () => {
+    assert.equal(moveChoices(learnsets, moves, true, filters({ types: [] })).length, Object.keys(moves).length);
+    assert.deepEqual(moveChoices(learnsets, moves, true, filters({ game: RED_BLUE })), moveChoices(learnsets, moves, false, filters({ game: RED_BLUE })));
+    const grass = moveChoices(learnsets, moves, true, filters({ types: ['grass'] }));
+    assert.ok(grass.includes(SPORE) && grass.every((id) => moves[id].type === 'grass'));
+  });
+
+  test('counts the active filters', () => {
+    assert.equal(activeMoveChoiceFilters(NO_MOVE_FILTERS), 0);
+    assert.equal(activeMoveChoiceFilters(filters({ game: RED_BLUE, methods: ['egg'], types: ['fire', 'water'] })), 4);
   });
 });
 
@@ -70,42 +93,41 @@ describe('otherAbilities', () => {
   });
 });
 
-describe('availability in a game', () => {
-  const gen = (name: string, table: Record<number, { name: string; gen: number }>) => Object.values(table).find((e) => e.name === name)!.gen;
-  const form = (mon: SpeciesDetail, key: string) => mon.forms!.find((f) => f.key === key)!;
-  const [X_Y, SUN_MOON, SWORD_SHIELD] = [15, 17, 20];
+describe('memberAbility', () => {
+  const hidden = pikachu.abilities.find((a) => a.hidden)!;
 
-  test('Gen 1 and 2 games have no abilities; hidden ones start in Gen 5; each from its own generation', () => {
-    assert.ok(!abilityInGame(1, 1));
-    assert.ok(!abilityInGame(2, gen('Static', abilities)));
-    assert.ok(abilityInGame(3, gen('Static', abilities)));
-    assert.ok(!abilityInGame(4, gen('Lightning Rod', abilities), true));
-    assert.ok(abilityInGame(5, gen('Lightning Rod', abilities), true));
-    assert.ok(!abilityInGame(5, gen('Tough Claws', abilities)));
-    assert.ok(abilityInGame(6, gen('Tough Claws', abilities)));
+  test("finds the form's own ability with its id and hidden flag", () => {
+    assert.deepEqual(memberAbility(pikachu.abilities, hidden.name, abilities), { id: hidden.id, hidden: true });
+    assert.deepEqual(memberAbility(pikachu.abilities, hidden.name), { id: hidden.id, hidden: true });
   });
 
-  test('Gen 1 games have no held items; each item from its generation', () => {
-    assert.ok(!itemInGame(1, 1));
-    assert.ok(itemInGame(2, gen('Leftovers', items)));
-    assert.ok(!itemInGame(4, gen('Eviolite', items)));
-    assert.ok(itemInGame(5, gen('Eviolite', items)));
+  test('finds a god mode ability in the full table, not hidden; no id before the table loads', () => {
+    const hugePower = Number(Object.entries(abilities).find(([, a]) => a.name === 'Huge Power')![0]);
+    assert.deepEqual(memberAbility(pikachu.abilities, 'Huge Power', abilities), { id: hugePower, hidden: false });
+    assert.deepEqual(memberAbility(pikachu.abilities, 'Huge Power'), { id: undefined, hidden: false });
   });
 
-  test('Megas only in Gen 6 and 7 games, Gigantamax only in Sword / Shield, regional forms from their game', () => {
-    assert.ok(!formInGame(form(charizard, 'mega-x'), RED_BLUE));
-    assert.ok(formInGame(form(charizard, 'mega-x'), X_Y));
-    assert.ok(!formInGame(form(charizard, 'mega-x'), SWORD_SHIELD));
-    assert.ok(formInGame(form(charizard, 'gmax'), SWORD_SHIELD));
-    assert.ok(!formInGame(form(charizard, 'gmax'), SCARLET_VIOLET));
-    assert.ok(!formInGame(form(raichu, 'alola'), X_Y));
-    assert.ok(formInGame(form(raichu, 'alola'), SUN_MOON));
-    assert.ok(formInGame(form(charizard, ''), RED_BLUE));
+  test("tells same-named abilities apart by the form's own: As One on each Calyrex rider", () => {
+    const own = (key: string) => calyrex.forms!.find((f) => f.key === key)!.abilities;
+    assert.equal(memberAbility(own('shadow'), 'As One', abilities)?.id, 267);
+    assert.equal(memberAbility(own('ice'), 'As One', abilities)?.id, 266);
   });
 
-  test('any game has everything', () => {
-    assert.ok(abilityInGame(undefined, 9, true));
-    assert.ok(itemInGame(undefined, 9));
-    assert.ok(formInGame(form(charizard, 'mega-x')));
+  test('no ability set', () => {
+    assert.equal(memberAbility(pikachu.abilities, undefined, abilities), undefined);
+  });
+});
+
+describe('abilityIdByName', () => {
+  const entry = (name: string) => ({ name, effect: '', details: '', gen: 3, species: [] });
+  const table: AbilityTable = { 9: entry('Static'), 266: entry('As One'), 267: entry('As One') };
+
+  test('finds the id, the first one when a name repeats', () => {
+    assert.equal(abilityIdByName(table, 'Static'), 9);
+    assert.equal(abilityIdByName(table, 'As One'), 266);
+  });
+
+  test('is undefined for an unknown name', () => {
+    assert.equal(abilityIdByName(table, 'Levitate'), undefined);
   });
 });

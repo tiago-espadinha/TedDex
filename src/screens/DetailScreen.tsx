@@ -5,8 +5,6 @@ import { compareFrom } from '../data/compare';
 import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { teamGame } from '../data/game';
-import { useGame } from '../data/settings';
 import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText, statColor } from '../data/format';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
@@ -46,7 +44,6 @@ export function DetailScreen() {
   };
   const navigate = useNavigate();
   const toast = useToast();
-  const [game] = useGame();
   const { prev, next } = neighbours(id, params.get('form') ?? undefined);
   // A sideways swipe on the hero steps through the Dex rows; the panel below pages through the tabs.
   const touch = useRef<Point | null>(null);
@@ -78,9 +75,9 @@ export function DetailScreen() {
     document.getElementById(`tab-${TABS[t]}`)?.focus();
   }
 
-  /** Adds this species, in the form shown (`formKey`), to the most recently edited team (a new one starts on the chosen game). */
+  /** Adds this species, in the form shown (`formKey`), to the most recently edited team. */
   async function addToCurrentTeam(formKey?: string) {
-    const teamId = await currentTeamId(teamGame(game));
+    const teamId = await currentTeamId();
     const team = await db.teams.get(teamId);
     const ok = await addToTeam(teamId, id, formKey);
     toast(

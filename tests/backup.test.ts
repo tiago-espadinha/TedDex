@@ -104,20 +104,15 @@ describe('parseBackup', () => {
     rejects(oneMember({ speciesId: 25, godMode: 1 }), /invalid god mode/);
   });
 
-  test('round-trips the team game', () => {
-    const [team] = parseBackup(JSON.stringify({ app: 'material-dex', version: 5, teams: [{ name: 'A', members: [{ speciesId: 25, moves: [9] }], game: 1 }] }));
-    assert.equal(team.game, 1);
-    assert.deepEqual(team.members[0].moves, [9]);
-  });
-
-  test('imports a team from an older backup as any game', () => {
-    const [team] = parseBackup(oneMember({ speciesId: 25 }));
-    assert.equal(team.game, undefined);
-    assert.ok(!('game' in team));
-  });
-
-  test('rejects a game that is not a positive whole number', () => {
-    for (const game of [0, -1, 1.5, '1', null]) rejects(backup([{ name: 'A', members: [], game }]), /Team 1 in the file has an invalid game/);
+  test('drops the team game of a version 5 or 6 backup and keeps the members', () => {
+    const member = { speciesId: 25, formKey: 'cosplay', ability: 'Static', nature: 'Timid', item: 234, moves: [9, 85] };
+    for (const version of [5, 6]) {
+      for (const game of [1, 99, 'red-blue', null]) {
+        const [team] = parseBackup(JSON.stringify({ app: 'material-dex', version, teams: [{ name: 'A', members: [member], game }] }));
+        assert.ok(!('game' in team));
+        assert.deepEqual(team.members, [member]);
+      }
+    }
   });
 
   test('rejects files that are not backups', () => {
@@ -174,7 +169,7 @@ describe('parseBackup', () => {
 describe('checkKnownIds', () => {
   const tackle = { name: 'Tackle', type: 'normal', category: 'physical', power: 40, accuracy: 100, pp: 35, priority: 0, gen: 1 } as const;
   const MOVES: MoveTable = { 33: tackle, 45: { ...tackle, name: 'Growl', category: 'status', power: null } };
-  const ITEMS = { 234: 'Leftovers' };
+  const ITEMS = { 234: { name: 'Leftovers', gen: 2 } };
   const check = (member: unknown) => () => checkKnownIds(parseBackup(oneMember(member)), MOVES, ITEMS);
   const throwsBackupError = (fn: () => void, message: RegExp) =>
     assert.throws(fn, (e: unknown) => e instanceof BackupError && message.test(e.message));
@@ -214,21 +209,6 @@ describe('checkKnownForms', () => {
     for (const member of [{ speciesId: 38, formKey: 'galar' }, { speciesId: 6, formKey: 'mega-x' }]) {
       assert.throws(check(member), (e: unknown) => e instanceof BackupError && e.message === 'Team 1 in the file: member 1 has an unknown form');
     }
-  });
-});
-
-describe('checkKnownGames', () => {
-  const versions: VersionGroup[] = [{ id: 1, label: 'Red / Blue', gen: 1 }];
-
-  test('accepts a known game and teams without one', () => {
-    checkKnownGames([{ name: 'A', members: [], game: 1, updatedAt: 0 }, { name: 'B', members: [], updatedAt: 0 }], versions);
-  });
-
-  test('rejects an unknown game and names the team', () => {
-    assert.throws(
-      () => checkKnownGames([{ name: 'A', members: [], updatedAt: 0 }, { name: 'B', members: [], game: 99, updatedAt: 0 }], versions),
-      (e: unknown) => e instanceof BackupError && /Team 2 in the file has an unknown game/.test(e.message),
-    );
   });
 });
 
@@ -289,6 +269,6 @@ describe('parsePokedexes', () => {
 
   test('checkKnownGames names the Pokédex with an unknown game', () => {
     const versions = [{ id: 1, label: 'Red / Blue', gen: 1 }] as VersionGroup[];
-    assert.throws(() => checkKnownGames([{ game: 1 }, { game: 99 }], versions, 'Pokédex'), /Pokédex 2 in the file has an unknown game/);
+    assert.throws(() => checkKnownGames([{ game: 1 }, {}, { game: 99 }], versions), /Pokédex 3 in the file has an unknown game/);
   });
 });

@@ -87,11 +87,12 @@ describe('applyForm', () => {
 describe('memberView', () => {
   const grid: IndexEntry = { id: 6, name: 'Charizard', types: ['fire', 'flying'], gen: 1, total: 534, stats: stats(89), heightM: 1.7, weightKg: 90.5 };
 
-  test("uses the form's name, types and media id when the member has a form", () => {
+  test("uses the form's name, types, media id and abilities when the member has a form", () => {
     assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-x' }, grid, charizard), {
       name: 'Mega Charizard X',
       types: ['fire', 'dragon'],
       mediaId: 10034,
+      abilities: charizard.forms!.find((f) => f.key === 'mega-x')!.abilities,
     });
   });
 
@@ -99,7 +100,15 @@ describe('memberView', () => {
     const plain = { name: 'Charizard', types: ['fire', 'flying'], mediaId: 6 };
     assert.deepEqual(memberView({ speciesId: 6 }, grid, charizard), plain);
     assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-x' }, grid), plain);
-    assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-z' }, grid, charizard), plain);
+  });
+
+  test('shows an unknown form as the default form', () => {
+    assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-z' }, grid, charizard), {
+      name: 'Charizard',
+      types: ['fire', 'flying'],
+      mediaId: 6,
+      abilities: charizard.abilities,
+    });
   });
 
   test('is undefined for a species it knows nothing about', () => {

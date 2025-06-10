@@ -7,7 +7,7 @@ export function parseGamePref(value: string | null): GamePref {
   return value && Number.isInteger(n) && n > 0 ? n : 'latest';
 }
 
-/** The game a new team starts with: the chosen one, or any game (undefined) for 'latest'. */
+/** The game a new Pokédex starts with: the chosen one, or any game (undefined) for 'latest'. */
 export const teamGame = (pref: GamePref): number | undefined => (pref === 'latest' ? undefined : pref);
 
 /**
