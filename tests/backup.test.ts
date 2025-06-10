@@ -267,6 +267,27 @@ describe('parsePokedexes', () => {
     for (const game of [0, -1, 1.5, '1', null]) rejectsDex(v6([{ states: {}, game }]), /Pokédex 1 in the file has an invalid game/);
   });
 
+  const v7 = (pokedexes: unknown) => JSON.stringify({ app: 'material-dex', version: 7, teams: [], pokedexes });
+
+  test('round-trips a custom Pokédex in national order', () => {
+    const [dex] = parsePokedexes(v7([{ name: 'Faves', species: [143, 25, 133], states: { 25: 2 } }]));
+    assert.deepEqual(dex.species, [25, 133, 143]);
+    assert.deepEqual(dex.states, { 25: 2 });
+    assert.ok(!('game' in dex));
+  });
+
+  test('version 6 Pokédexes import without a list', () => {
+    const [dex] = parsePokedexes(v6([{ name: 'Kanto', game: 1, states: {} }]));
+    assert.ok(!('species' in dex));
+  });
+
+  test('rejects a bad custom Pokémon list', () => {
+    for (const species of [[], 'x', null, { 0: 25 }]) rejectsDex(v7([{ states: {}, species }]), /Pokédex 1 in the file has an empty or invalid Pokémon list/);
+    for (const id of [0, 1026, 2.5, '25', null]) rejectsDex(v7([{ states: {}, species: [25, id] }]), /lists an unknown Pokémon/);
+    rejectsDex(v7([{ states: {}, species: [25, 133, 25] }]), /lists a Pokémon twice/);
+    rejectsDex(v7([{ states: {}, game: 1, species: [25] }]), /both a game and a Pokémon list/);
+  });
+
   test('checkKnownGames names the Pokédex with an unknown game', () => {
     const versions = [{ id: 1, label: 'Red / Blue', gen: 1 }] as VersionGroup[];
     assert.throws(() => checkKnownGames([{ game: 1 }, {}, { game: 99 }], versions), /Pokédex 3 in the file has an unknown game/);

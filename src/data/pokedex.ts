@@ -65,6 +65,13 @@ export function dexViews(regional: RegionalDex[], last: number): DexView[] {
   ];
 }
 
+/** A custom Pokédex's one view: its species in national order, with their national numbers. */
+export const customView = (species: number[]): DexView => ({
+  key: 'custom',
+  label: 'Custom',
+  cells: [...species].sort((a, b) => a - b).map((id) => ({ id, no: id })),
+});
+
 /** State, type and search filters of the Pokédex page. Kept in the URL (`?q=&state=&type=`). */
 export interface DexFilters {
   query: string;

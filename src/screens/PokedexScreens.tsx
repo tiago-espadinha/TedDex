@@ -1,13 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { dexSpriteUrl, loadIndex, loadPokedexes, loadVersions, spriteUrl, useLoad } from '../data/api';
+import { dexSpriteUrl, loadIndex, loadPokedexes, loadVersions, shinySpriteUrl, spriteUrl, useLoad } from '../data/api';
 import { createPokedex, cycleDexState, db, renamePokedex, type Pokedex } from '../data/db';
 import { formatNo } from '../data/format';
 import {
   DEX_STATE_LABELS,
   activeDexFilters,
   caughtCount,
+  customView,
   dexCounts,
   dexFilterParams,
   dexViews,
@@ -29,9 +30,10 @@ import { RenameSheet, TeamTabs } from './TeamScreens';
 
 /**
  * The game's label and how many species the Pokédex lists; undefined until versions.json loads.
- * A game the data no longer has lists every species.
+ * A game the data no longer has lists every species; a custom Pokédex lists its own.
  */
 function dexScope(dex: Pokedex, versions?: VersionGroup[]) {
+  if (dex.species) return { label: 'Custom', last: lastSpecies(), known: false };
   if (dex.game === undefined) return { label: 'National', last: lastSpecies(), known: false };
   if (!versions) return undefined;
   const version = versions.find((v) => v.id === dex.game);
@@ -92,10 +94,11 @@ export function PokedexList() {
 }
 
 /**
- * What a list row counts: caught of the game's first regional dex, or of the national dex for any game (or a game
- * the data no longer has); undefined until the data loads.
+ * What a list row counts: caught of the game's first regional dex, of the national dex for any game (or a game
+ * the data no longer has), or of a custom Pokédex's species; undefined until the data loads.
  */
 function caughtCounter(dex: Pokedex, scope: ReturnType<typeof dexScope>, regional?: Pokedexes) {
+  if (dex.species) return { caught: caughtCount(dex.states, dex.species), total: dex.species.length };
   if (!scope) return undefined;
   const national = { caught: dexCounts(dex.states, scope.last).caught, total: scope.last };
   if (!scope.known) return national;
@@ -114,7 +117,10 @@ function DexArt({ game }: { game?: number }) {
 }
 
 // ---------------- new Pokédex ----------------
-/** The national dex, then every game with its regional dex sizes; a pick creates the Pokédex and opens it. */
+/**
+ * The national dex, custom, then every game with its regional dex sizes; a pick creates the Pokédex and opens it.
+ * Custom opens the species picker in this screen's place, so the new Pokédex replaces it in turn.
+ */
 export function NewPokedex() {
   const { data: versions } = useLoad(loadVersions, 'versions');
   const { data: regional } = useLoad(loadPokedexes, 'pokedexes');
@@ -149,6 +155,15 @@ export function NewPokedex() {
                 <span className="meta">{lastSpecies()} Pokémon, every game</span>
               </span>
             </button>
+          </li>
+          <li>
+            <Link className="team-row dex-row" to="/teams/pokedex/new/custom" replace>
+              <DexArt />
+              <span className="head">
+                <span className="name">Custom</span>
+                <span className="meta">Pick any Pokémon</span>
+              </span>
+            </Link>
           </li>
           {versions.map((v) => {
             const dexes = gameDexes(regional, v.id);
@@ -198,7 +213,7 @@ export function PokedexScreen() {
   if (dex === undefined) return <Loading />;
   if (!dex) return <p className="empty">This Pokédex no longer exists.</p>;
   const scope = dexScope(dex, versions);
-  const views = scope && regional ? dexViews(scope.known ? gameDexes(regional, dex.game!) : [], scope.last) : undefined;
+  const views = dex.species ? [customView(dex.species)] : scope && regional ? dexViews(scope.known ? gameDexes(regional, dex.game!) : [], scope.last) : undefined;
   const view = views?.find((v) => v.key === params.get('dex')) ?? views?.[0];
   const caught = view && caughtCount(dex.states, view.cells.map((c) => c.id));
   const setView = (key: string) => setParams({ ...(key !== views![0].key && { dex: key }), ...dexFilterParams(filters) }, { replace: true });
@@ -230,6 +245,11 @@ export function PokedexScreen() {
               {caught} of {view.cells.length} caught
             </span>
           </span>
+        )}
+        {dex.species && (
+          <Link to={`/teams/pokedex/${id}/edit`} className="icon-btn" aria-label="Edit Pokémon list">
+            <Icon name="pencil" />
+          </Link>
         )}
         <button
           className="icon-btn"
@@ -269,19 +289,17 @@ export function PokedexScreen() {
           placeholder="Name or number"
           value={filters.query}
           onChange={(query) => setFilters({ ...filters, query })}
-          trailing={
-            <button className="icon-btn sm filter-btn" aria-label={active ? `Filter, ${active} active` : 'Filter'} onClick={() => setSheetOpen(true)}>
-              <Icon name="filter" size={20} />
-              {active > 0 && (
-                <span className="badge" aria-hidden="true">
-                  {active}
-                </span>
-              )}
-            </button>
-          }
         />
       </div>
-      {!shown ? <Loading /> : <DexGrid dexId={id} states={dex.states} cells={shown} digits={view.key === 'national' ? 4 : 3} species={species} />}
+      {!shown ? <Loading /> : <DexGrid dexId={id} states={dex.states} cells={shown} digits={view.key === 'national' || view.key === 'custom' ? 4 : 3} species={species} />}
+      <button className="fab" aria-label={active ? `Filter, ${active} active` : 'Filter'} onClick={() => setSheetOpen(true)}>
+        <Icon name="filter" size={24} />
+        {active > 0 && (
+          <span className="badge" aria-hidden="true">
+            {active}
+          </span>
+        )}
+      </button>
       {sheetOpen && view && (
         <PokedexFilterSheet
           value={filters}
@@ -323,7 +341,7 @@ function DexGrid({
   );
 }
 
-/** Not-seen cells show the number in the view, the others the name. */
+/** Not-seen cells show the number in the view, the others the name; shiny cells show the shiny sprite. */
 const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }: { id: number; no: string; name: string; state: DexState; onTap: (id: number) => void }) {
   return (
     <li>
@@ -332,7 +350,7 @@ const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }
         aria-label={`${state ? `${no} ${name}` : no}, ${DEX_STATE_LABELS[state].toLowerCase()}. Tap for ${DEX_STATE_LABELS[nextState(state)].toLowerCase()}`}
         onClick={() => onTap(id)}
       >
-        <img src={spriteUrl(id)} alt="" loading="lazy" width={72} height={72} />
+        <img src={state === 3 ? shinySpriteUrl(id) : spriteUrl(id)} alt="" loading="lazy" width={72} height={72} />
         <span className="no">{state ? name : no}</span>
         {state >= 2 && (
           <span className="badge">

@@ -95,6 +95,7 @@ const paths = {
       <circle cx="12" cy="12" r="3" />
     </>
   ),
+  check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   star: <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />,
   height: (
     <g transform="rotate(-45 12 12)">

@@ -3,6 +3,7 @@ import { describe, test } from 'node:test';
 import {
   activeDexFilters,
   caughtCount,
+  customView,
   dexCounts,
   dexFilterParams,
   dexViews,
@@ -25,6 +26,20 @@ describe('lastSpecies', () => {
 
   test('any game lists every species', () => {
     assert.equal(lastSpecies(undefined), 1025);
+  });
+});
+
+describe('customView', () => {
+  test('lists only the picked species, in national order with national numbers', () => {
+    assert.deepEqual(customView([143, 25, 133]), {
+      key: 'custom',
+      label: 'Custom',
+      cells: [
+        { id: 25, no: 25 },
+        { id: 133, no: 133 },
+        { id: 143, no: 143 },
+      ],
+    });
   });
 });
 

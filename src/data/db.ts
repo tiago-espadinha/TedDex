@@ -28,12 +28,14 @@ export interface Team {
 
 /**
  * A Pokédex tracker. `game` is a version group (versions.json) whose generation sets how many species it lists;
- * absent means any game. `states` maps species ids to their state; species not in it are not seen.
+ * absent means any game. A custom Pokédex lists only `species` (in national order, never empty) and has no game.
+ * `states` maps species ids to their state; species not in it are not seen.
  */
 export interface Pokedex {
   id: number;
   name: string;
   game?: number;
+  species?: number[];
   states: Record<number, DexState>;
   updatedAt: number;
 }
@@ -92,6 +94,8 @@ class DexDB extends Dexie {
           .toCollection()
           .modify((team: Team) => delete (team as { game?: unknown }).game),
       );
+    // v8: Pokédexes may have a species list (custom). Every v7 Pokédex is a valid v8 one, so nothing to upgrade.
+    this.version(8).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt' });
   }
 }
 
@@ -151,6 +155,19 @@ export async function createPokedex(game?: number): Promise<number> {
   return db.pokedexes.add({ name: `Pokédex ${count + 1}`, ...(game !== undefined && { game }), states: {}, updatedAt: Date.now() });
 }
 
+/** Creates a custom Pokédex listing `species`, kept in national order. */
+export async function createCustomPokedex(species: number[]): Promise<number> {
+  const count = await db.pokedexes.count();
+  return db.pokedexes.add({ name: `Pokédex ${count + 1}`, species: speciesList(species), states: {}, updatedAt: Date.now() });
+}
+
+/** Replaces a custom Pokédex's list. States of species taken off are kept (not counted), so adding one back restores it. */
+export async function setPokedexSpecies(dexId: number, species: number[]) {
+  await db.pokedexes.update(dexId, { species: speciesList(species), updatedAt: Date.now() });
+}
+
+const speciesList = (species: number[]) => [...new Set(species)].sort((a, b) => a - b);
+
 /** Renames a Pokédex; a blank name leaves it unchanged. */
 export async function renamePokedex(dexId: number, name: string) {
   const trimmed = name.trim();
@@ -187,7 +204,7 @@ export async function currentTeamId(): Promise<number> {
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
 export async function exportBackup(): Promise<string> {
   const [teams, pokedexes] = await Promise.all([db.teams.toArray(), db.pokedexes.toArray()]);
-  return JSON.stringify({ app: 'material-dex', version: 6, teams, pokedexes }, null, 2);
+  return JSON.stringify({ app: 'material-dex', version: 7, teams, pokedexes }, null, 2);
 }
 
 /** Thrown by parseBackup; the message is shown to the user as is. */
@@ -218,7 +235,7 @@ function memberProblem(m: unknown): string | null {
 }
 
 /**
- * Validates an exported backup (version 1 to 6). Throws BackupError on the first problem, so a bad
+ * Validates an exported backup (version 1 to 7). Throws BackupError on the first problem, so a bad
  * file writes nothing. Teams without a name get "Team N" numbered after `existing`; the team game of
  * versions 5 and 6 is dropped.
  */
@@ -281,7 +298,8 @@ export function checkKnownForms(teams: Omit<Team, 'id'>[], species: Map<number, 
 }
 
 /**
- * Validates the Pokédexes of a backup (version 6; older backups have none). Throws BackupError on the first problem.
+ * Validates the Pokédexes of a backup (version 6 and 7; older backups have none; custom ones from 7). Throws
+ * BackupError on the first problem.
  * Pokédexes without a name get "Pokédex N" numbered after `existing`. Call after parseBackup, which checks the file.
  */
 export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[] {
@@ -291,8 +309,14 @@ export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[
 
   return dexes.map((d: unknown, i) => {
     const label = `Pokédex ${i + 1} in the file`;
-    const { name, game, states } = (d ?? {}) as Record<string, unknown>;
+    const { name, game, species, states } = (d ?? {}) as Record<string, unknown>;
     if (game !== undefined && !(isInt(game) && game > 0)) throw new BackupError(`${label} has an invalid game`);
+    if (species !== undefined) {
+      if (!Array.isArray(species) || !species.length) throw new BackupError(`${label} has an empty or invalid Pokémon list`);
+      if (game !== undefined) throw new BackupError(`${label} has both a game and a Pokémon list`);
+      if (!species.every(isSpecies)) throw new BackupError(`${label} lists an unknown Pokémon`);
+      if (new Set(species).size !== species.length) throw new BackupError(`${label} lists a Pokémon twice`);
+    }
     if (typeof states !== 'object' || states === null || Array.isArray(states)) throw new BackupError(`${label} has no states`);
     // Rebuilt with plain number keys, so a key like "025" can't hide from the grid.
     const clean: Record<number, DexState> = {};
@@ -304,6 +328,7 @@ export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[
     return {
       name: typeof name === 'string' && name.trim() ? name.trim() : `Pokédex ${existing + i + 1}`,
       ...(game !== undefined && { game: game as number }),
+      ...(species !== undefined && { species: speciesList(species as number[]) }),
       states: clean,
       updatedAt: Date.now(),
     };

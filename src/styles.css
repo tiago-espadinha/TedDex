@@ -298,6 +298,7 @@ main:focus, .sheet:focus { outline: none; }
 .topbar h1 { margin: 0; font-size: 22px; font-weight: 800; }
 .topbar .sub { font-size: 13px; font-weight: 600; color: var(--muted); }
 .topbar .grow { flex: 1; min-width: 0; }
+.topbar .text-btn { min-height: 44px; }
 .topbar .head-title { flex: none; max-width: 45%; margin-right: 8px; }
 :is(.topbar .head-title h1, .topbar .team-name) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* The team name is its rename button; on the 30 px line, its ::after stretches the tap area to 44 px (the span ellipsizes). */
@@ -835,7 +836,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .dex-switch .segmented button { padding: 0 14px; white-space: nowrap; }
 .dex-search { display: flex; padding: 10px 16px; }
 .dex-states .gen-btn { display: flex; align-items: center; justify-content: center; gap: 6px; }
-.dex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; margin: 0; padding: 0 16px 16px; list-style: none; }
+.dex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; margin: 0; padding: 0 16px 88px; list-style: none; }
 .dex-cell { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 108px; padding: 6px 4px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--muted); transition: transform 120ms; }
 .dex-cell:active { transform: scale(0.95); }
 .dex-cell img { width: 72px; height: 72px; image-rendering: pixelated; }

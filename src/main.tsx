@@ -13,6 +13,7 @@ import { ReferenceEntry, ReferenceList, ReferenceScreen } from './screens/Refere
 import { MemberEditor } from './screens/MemberEditor';
 import { NewPokedex, PokedexList, PokedexScreen } from './screens/PokedexScreens';
 import { QuickView } from './screens/QuickView';
+import { EditPokedexSpecies, NewCustomPokedex } from './screens/SpeciesPicker';
 import { CoverageScreen, TeamEditor, TeamsScreen } from './screens/TeamScreens';
 import './styles.css';
 
@@ -57,7 +58,9 @@ const router = createBrowserRouter([
       { path: '/teams', element: <TeamsScreen /> },
       { path: '/teams/pokedex', element: <PokedexList /> },
       { path: '/teams/pokedex/new', element: <NewPokedex /> },
+      { path: '/teams/pokedex/new/custom', element: <NewCustomPokedex /> },
       { path: '/teams/pokedex/:id', element: <PokedexScreen /> },
+      { path: '/teams/pokedex/:id/edit', element: <EditPokedexSpecies /> },
       { path: '/teams/:id', element: <TeamEditor /> },
       { path: '/teams/:id/member/:index', element: <MemberEditor /> },
       { path: '/teams/:id/coverage', element: <CoverageScreen /> },
