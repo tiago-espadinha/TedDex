@@ -7,21 +7,17 @@ import {
   loadAbilityNames,
   loadIndex,
   loadItems,
-  loadLearnsets,
   loadMoves,
   loadSpecies,
   loadTypes,
-  loadVersions,
   spriteUrl,
   useLoad,
 } from '../data/api';
 import { defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
-import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, setGodMode, setTeamGame, type TeamMember } from '../data/db';
+import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, setGodMode, type TeamMember } from '../data/db';
 import { cap, formatMultiplier, formatNo } from '../data/format';
-import { applyForm, memberView, type MemberView } from '../data/forms';
-import { teamGame } from '../data/game';
-import { abilityInGame, formInGame, itemInGame, learnable, memberAbility } from '../data/memberOptions';
-import { useGame } from '../data/settings';
+import { memberView, type MemberView } from '../data/forms';
+import { memberAbility } from '../data/memberOptions';
 import { teamMatches } from '../data/teamSearch';
 import { typeTint } from '../data/typeColors';
 import type { AbilityNameTable, ItemTable, MoveTable, TypeData } from '../data/types';
@@ -47,44 +43,6 @@ function useMemberViews(members: TeamMember[] = []) {
 }
 
 /**
- * What isn't legal in the team's `game`, per member: whether its species and form are in that game, which moves it
- * can't learn there, and whether its ability and held item are missing there. Undefined for any game, and until the
- * data loads.
- */
-function useLegality(members: TeamMember[] = [], game?: number, items?: ItemTable) {
-  const ids = game === undefined ? [] : [...new Set(members.map((m) => m.speciesId))].sort((a, b) => a - b);
-  const { data } = useLoad(
-    () =>
-      ids.length
-        ? Promise.all([Promise.all(ids.map(loadLearnsets)), Promise.all(ids.map(loadSpecies)), loadAbilityNames(), loadVersions()])
-        : Promise.resolve(undefined),
-    ids.join(),
-  );
-  if (game === undefined || !data) return undefined;
-  const [learnsets, details, abilities, versions] = data;
-  const gen = versions.find((v) => v.id === game)?.gen;
-  const index = new Map(ids.map((id, i) => [id, i]));
-  return (m: TeamMember) => {
-    const i = index.get(m.speciesId);
-    if (i === undefined) return undefined;
-    const ok = learnable(learnsets[i], game);
-    const { view, form } = applyForm(details[i], m.formKey ?? null);
-    const ability = memberAbility(view.abilities, m.ability, abilities);
-    return {
-      inGame: !!learnsets[i][game] && formInGame(form, game),
-      flagged: new Set((m.moves ?? []).filter((id) => !ok.has(id))),
-      abilityOff: ability?.id !== undefined && !abilityInGame(gen, abilities[ability.id]?.gen ?? 1, ability.hidden),
-      // Unflagged only while items.json is missing, when the card shows no item chip.
-      itemOff: m.item !== undefined && !!items?.[m.item] && !itemInGame(gen, items[m.item].gen),
-    };
-  };
-}
-
-/** Marks an ability or item chip that the team's game lacks: a dashed edge and a note, like moves. */
-const offClass = (off?: boolean) => (off ? 'league-chip not-in-game' : 'league-chip');
-const offNote = (off?: boolean) => off && <small className="move-flag">Not in game</small>;
-
-/**
  * What is set on a member under its head: ability on the left and held item on the right, then moves (the nature
  * sits on the types row). Ability, item and moves open the quick view; the rest of the card is the editor link under them.
  */
@@ -95,9 +53,6 @@ function MemberDetails({
   moves,
   abilities,
   own,
-  flagged,
-  abilityOff,
-  itemOff,
 }: {
   member: TeamMember;
   name: string;
@@ -106,10 +61,6 @@ function MemberDetails({
   items?: ItemTable;
   moves?: MoveTable;
   abilities?: AbilityNameTable;
-  flagged?: Set<number>;
-  /** The ability or item isn't in the team's game. */
-  abilityOff?: boolean;
-  itemOff?: boolean;
 }) {
   const peek = usePeek();
   const item = m.item !== undefined && items?.[m.item] ? { id: m.item, name: items[m.item].name } : undefined;
@@ -123,30 +74,25 @@ function MemberDetails({
           {m.ability && (
             <Fact k="Ability">
               {abilityId ? (
-                <button className={offClass(abilityOff)} onClick={() => peek({ kind: 'ability', id: abilityId })}>
+                <button className="league-chip" onClick={() => peek({ kind: 'ability', id: abilityId })}>
                   {m.ability}
-                  {offNote(abilityOff)}
                 </button>
               ) : (
-                <span className={offClass(abilityOff)}>
-                  {m.ability}
-                  {offNote(abilityOff)}
-                </span>
+                <span className="league-chip">{m.ability}</span>
               )}
             </Fact>
           )}
           {item && (
             <Fact k="Item" className="item">
-              <button className={offClass(itemOff)} onClick={() => peek({ kind: 'item', id: item.id })}>
+              <button className="league-chip" onClick={() => peek({ kind: 'item', id: item.id })}>
                 <img src={itemSpriteUrl(item.id)} alt="" width={24} height={24} loading="lazy" />
                 {item.name}
-                {offNote(itemOff)}
               </button>
             </Fact>
           )}
         </MonFacts>
       )}
-      {chosen && moves && <MonMoves name={name} moves={chosen} table={moves} flagged={flagged} onPeek={(id) => peek({ kind: 'move', id })} />}
+      {chosen && moves && <MonMoves name={name} moves={chosen} table={moves} onPeek={(id) => peek({ kind: 'move', id })} />}
     </>
   );
 }
@@ -158,7 +104,6 @@ export function TeamsScreen() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
-  const [game] = useGame();
   // Member names come with the index and form species files; a search waits for them rather than missing.
   const shown = query && !formsReady ? undefined : teams?.filter((t) => teamMatches(t.name, t.members.flatMap((m) => view?.(m)?.name ?? []), query));
 
@@ -196,7 +141,7 @@ export function TeamsScreen() {
           </Link>
         ))}
       </div>
-      <button className="fab" aria-label="New team" onClick={async () => navigate(`/teams/${await createTeam(undefined, teamGame(game))}`)}>
+      <button className="fab" aria-label="New team" onClick={async () => navigate(`/teams/${await createTeam()}`)}>
         <Icon name="plus" size={24} />
       </button>
     </>
@@ -272,8 +217,6 @@ export function TeamEditor() {
   const { data: items } = useLoad(loadItems, 'items');
   const { data: moves } = useLoad(loadMoves, 'moves');
   const { data: abilities } = useLoad(loadAbilityNames, 'ability-names');
-  const { data: versions } = useLoad(loadVersions, 'versions');
-  const legality = useLegality(team?.members, team?.game, items);
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -281,8 +224,6 @@ export function TeamEditor() {
 
   if (team === undefined) return <Loading />;
   if (!team) return <p className="empty">This team no longer exists.</p>;
-  // Undefined for any game, and until versions.json loads (the flags wait for it too).
-  const gameLabel = team.game !== undefined && versions ? (versions.find((v) => v.id === team.game)?.label ?? 'Unknown game') : undefined;
 
   return (
     <>
@@ -298,7 +239,6 @@ export function TeamEditor() {
           </h1>
           <div className="sub">
             {team.members.length} of {TEAM_SIZE}
-            {gameLabel && ` · ${gameLabel}`}
             {team.godMode && ' · God mode'}
           </div>
         </div>
@@ -336,26 +276,11 @@ export function TeamEditor() {
       </div>
 
       <div className="list">
-        {versions && (
-          <label className="game-select team-game">
-            <span className="k">Game</span>
-            <select value={team.game ?? ''} onChange={(e) => setTeamGame(id, e.target.value ? Number(e.target.value) : undefined)}>
-              <option value="">Any game</option>
-              {versions.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-            <Icon name="next" size={18} />
-          </label>
-        )}
         {team.members.length > 0 && (
           <ul className="team-members">
             {team.members.map((m, i) => {
               const mon = view?.(m);
               const name = mon?.name ?? formatNo(m.speciesId);
-              const legal = legality?.(m);
               return (
                 <li key={`${m.speciesId}-${i}`} className="team-mon" style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}>
                   <Link to={`/teams/${id}/member/${i}`} className="evo-member">
@@ -373,7 +298,6 @@ export function TeamEditor() {
                       }
                     />
                   </Link>
-                  {legal && !legal.inGame && gameLabel && <span className="team-mon-hint team-mon-flag">Not in {gameLabel}</span>}
                   <MemberDetails
                     member={m}
                     name={name}
@@ -381,9 +305,6 @@ export function TeamEditor() {
                     moves={moves}
                     abilities={abilities}
                     own={mon?.abilities}
-                    flagged={legal?.flagged}
-                    abilityOff={legal?.abilityOff}
-                    itemOff={legal?.itemOff}
                   />
                   <button className="icon-btn" aria-label={`Remove ${name}`} onClick={() => removeFromTeam(id, i)}>
                     <Icon name="close" size={20} />
