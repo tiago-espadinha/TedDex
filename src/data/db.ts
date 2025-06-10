@@ -157,11 +157,6 @@ export async function renamePokedex(dexId: number, name: string) {
   if (trimmed) await db.pokedexes.update(dexId, { name: trimmed, updatedAt: Date.now() });
 }
 
-/** Sets the Pokédex's game, or any game when `game` is undefined. States of species it no longer lists are kept. */
-export async function setPokedexGame(dexId: number, game?: number) {
-  await db.pokedexes.update(dexId, { game, updatedAt: Date.now() });
-}
-
 /** Moves a species to its next state, reading the stored states so quick taps don't overwrite each other. */
 export async function cycleDexState(dexId: number, speciesId: number) {
   return db.transaction('rw', db.pokedexes, async () => {

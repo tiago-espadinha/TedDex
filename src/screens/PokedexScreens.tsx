@@ -2,13 +2,29 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { dexSpriteUrl, loadIndex, loadPokedexes, loadVersions, spriteUrl, useLoad } from '../data/api';
-import { createPokedex, cycleDexState, db, renamePokedex, setPokedexGame, type Pokedex } from '../data/db';
+import { createPokedex, cycleDexState, db, renamePokedex, type Pokedex } from '../data/db';
 import { formatNo } from '../data/format';
-import { DEX_STATE_LABELS, caughtCount, dexCounts, gameDexes, lastSpecies, nextState, type DexState } from '../data/pokedex';
+import {
+  DEX_STATE_LABELS,
+  activeDexFilters,
+  caughtCount,
+  dexCounts,
+  dexFilterParams,
+  dexViews,
+  filterDexCells,
+  gameDexes,
+  lastSpecies,
+  nextState,
+  readDexFilters,
+  type DexCell,
+  type DexFilters,
+  type DexState,
+} from '../data/pokedex';
 import { teamMatches } from '../data/teamSearch';
-import type { Pokedexes, VersionGroup } from '../data/types';
+import type { IndexEntry, Pokedexes, VersionGroup } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField } from '../components/bits';
+import { PokedexFilterSheet } from './PokedexFilterSheet';
 import { RenameSheet, TeamTabs } from './TeamScreens';
 
 /**
@@ -164,31 +180,57 @@ export function PokedexScreen() {
   const id = Number(useParams().id);
   const dex = useLiveQuery(() => db.pokedexes.get(id).then((d) => d ?? null), [id]);
   const { data: versions } = useLoad(loadVersions, 'versions');
+  const { data: regional } = useLoad(loadPokedexes, 'pokedexes');
+  const { data: index } = useLoad(loadIndex, 'index');
+  const species = useMemo(() => new Map((index ?? []).map((m) => [m.id, m])), [index]);
+  const [params, setParams] = useSearchParams();
+  const filters = readDexFilters(params);
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  // The state filter reads the states as they were when the view or filters last changed, so a tapped cell stays
+  // put instead of leaving the grid under the finger.
+  const filterKey = params.toString();
+  const [snapshot, setSnapshot] = useState<{ key: string; states: Pokedex['states'] }>();
+  if (dex && snapshot?.key !== filterKey) setSnapshot({ key: filterKey, states: dex.states });
 
   if (dex === undefined) return <Loading />;
   if (!dex) return <p className="empty">This Pokédex no longer exists.</p>;
   const scope = dexScope(dex, versions);
+  const views = scope && regional ? dexViews(scope.known ? gameDexes(regional, dex.game!) : [], scope.last) : undefined;
+  const view = views?.find((v) => v.key === params.get('dex')) ?? views?.[0];
+  const caught = view && caughtCount(dex.states, view.cells.map((c) => c.id));
+  const setView = (key: string) => setParams({ ...(key !== views![0].key && { dex: key }), ...dexFilterParams(filters) }, { replace: true });
+  const setFilters = (f: DexFilters) => setParams({ ...(params.has('dex') && { dex: params.get('dex')! }), ...dexFilterParams(f) }, { replace: true });
+  const shown = view && index && filterDexCells(view.cells, snapshot?.states ?? dex.states, species, filters);
+  const active = activeDexFilters(filters);
 
   return (
     <>
-      <header className="topbar">
+      <header className="topbar dex-top">
         <Link to="/teams/pokedex" className="icon-btn" aria-label="Back to Pokédex">
           <Icon name="back" />
         </Link>
-        <div className="grow">
-          <h1 className="team-name">{dex.name}</h1>
-          {scope && (
-            <div className="sub">
-              {scope.label} · {scope.last} Pokémon
-            </div>
-          )}
+        <div className="grow dex-title">
+          <h1 className="team-name">
+            <button aria-label={`Rename Pokédex ${dex.name}`} onClick={() => setRenaming(true)}>
+              <span>{dex.name}</span>
+            </button>
+          </h1>
+          {scope && <div className="sub">{scope.label}</div>}
         </div>
-        <button className="icon-btn" aria-label="Rename Pokédex" onClick={() => setRenaming(true)}>
-          <Icon name="pencil" />
-        </button>
+        {view && caught !== undefined && (
+          <span className="caught" role="status">
+            <Icon name="ball" size={16} />
+            <span aria-hidden="true">
+              <b>{caught}</b>/{view.cells.length}
+            </span>
+            <span className="sr-only">
+              {caught} of {view.cells.length} caught
+            </span>
+          </span>
+        )}
         <button
           className="icon-btn"
           aria-label={confirmDelete ? 'Confirm delete Pokédex' : 'Delete Pokédex'}
@@ -210,71 +252,88 @@ export function PokedexScreen() {
         )}
       </div>
 
-      <div className="list">
-        {versions && (
-          <label className="game-select team-game">
-            <span className="k">Game</span>
-            <select value={dex.game ?? ''} onChange={(e) => setPokedexGame(id, e.target.value ? Number(e.target.value) : undefined)}>
-              <option value="">National</option>
-              {versions.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-            <Icon name="next" size={18} />
-          </label>
-        )}
-        {scope && <DexCounts states={dex.states} last={scope.last} />}
+      {views && views.length > 1 && (
+        <div className="dex-switch">
+          <div className="segmented" role="radiogroup" aria-label="Pokédex">
+            {views.map((v) => (
+              <button key={v.key} role="radio" aria-checked={v === view} onClick={() => setView(v.key)}>
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="dex-search">
+        <SearchField
+          label="Search Pokémon"
+          placeholder="Name or number"
+          value={filters.query}
+          onChange={(query) => setFilters({ ...filters, query })}
+          trailing={
+            <button className="icon-btn sm filter-btn" aria-label={active ? `Filter, ${active} active` : 'Filter'} onClick={() => setSheetOpen(true)}>
+              <Icon name="filter" size={20} />
+              {active > 0 && (
+                <span className="badge" aria-hidden="true">
+                  {active}
+                </span>
+              )}
+            </button>
+          }
+        />
       </div>
-      {scope ? <DexGrid dexId={id} states={dex.states} last={scope.last} /> : <Loading />}
+      {!shown ? <Loading /> : <DexGrid dexId={id} states={dex.states} cells={shown} digits={view.key === 'national' ? 4 : 3} species={species} />}
+      {sheetOpen && view && (
+        <PokedexFilterSheet
+          value={filters}
+          countFor={(f) => filterDexCells(view.cells, dex.states, species, f).length}
+          onApply={(f) => {
+            setFilters(f);
+            setSheetOpen(false);
+          }}
+          onClose={() => setSheetOpen(false)}
+        />
+      )}
       {renaming && <RenameSheet noun="Pokédex" name={dex.name} onSave={(name) => renamePokedex(id, name)} onClose={() => setRenaming(false)} />}
     </>
   );
 }
 
-function DexCounts({ states, last }: { states: Pokedex['states']; last: number }) {
-  const counts = dexCounts(states, last);
-  return (
-    <div className="dex-counts">
-      <div className="dex-count">
-        <b>{counts.seen}</b> <Icon name="eye" size={14} /> Seen
-      </div>
-      <div className="dex-count">
-        <b>{counts.caught}</b> <Icon name="ball" size={14} /> Caught
-      </div>
-      <div className="dex-count">
-        <b>{counts.shiny}</b> <Icon name="star" size={14} /> Shiny
-      </div>
-    </div>
-  );
-}
-
-/** Species 1 to `last`; a tap moves one to its next state. */
-function DexGrid({ dexId, states, last }: { dexId: number; states: Pokedex['states']; last: number }) {
-  const { data: index } = useLoad(loadIndex, 'index');
-  const names = useMemo(() => new Map((index ?? []).map((m) => [m.id, m.name])), [index]);
+/** The cells shown, numbered with `digits` digits (3 in a regional dex, as in the games); a tap moves one to its next state. */
+function DexGrid({
+  dexId,
+  states,
+  cells,
+  digits,
+  species,
+}: {
+  dexId: number;
+  states: Pokedex['states'];
+  cells: DexCell[];
+  digits: number;
+  species: Map<number, IndexEntry>;
+}) {
   const cycle = useCallback((speciesId: number) => cycleDexState(dexId, speciesId), [dexId]);
-  if (!index) return <Loading />;
+  if (!cells.length) return <p className="empty">No Pokémon match.</p>;
   return (
     <ul className="dex-grid" aria-label="Pokémon, tap to change state">
-      {Array.from({ length: last }, (_, i) => (
-        <DexCell key={i + 1} id={i + 1} name={names.get(i + 1) ?? formatNo(i + 1)} state={states[i + 1] ?? 0} onTap={cycle} />
+      {cells.map(({ id, no }) => (
+        <DexCellButton key={id} id={id} no={formatNo(no, digits)} name={species.get(id)?.name ?? formatNo(id)} state={states[id] ?? 0} onTap={cycle} />
       ))}
     </ul>
   );
 }
 
-const DexCell = memo(function DexCell({ id, name, state, onTap }: { id: number; name: string; state: DexState; onTap: (id: number) => void }) {
+/** Not-seen cells show the number in the view, the others the name. */
+const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }: { id: number; no: string; name: string; state: DexState; onTap: (id: number) => void }) {
   return (
     <li>
       <button
         className={`dex-cell s${state}`}
-        aria-label={`${name}, ${DEX_STATE_LABELS[state].toLowerCase()}. Tap for ${DEX_STATE_LABELS[nextState(state)].toLowerCase()}`}
+        aria-label={`${state ? `${no} ${name}` : no}, ${DEX_STATE_LABELS[state].toLowerCase()}. Tap for ${DEX_STATE_LABELS[nextState(state)].toLowerCase()}`}
         onClick={() => onTap(id)}
       >
-        <img src={spriteUrl(id)} alt="" loading="lazy" width={56} height={56} />
-        <span className="no">{formatNo(id)}</span>
+        <img src={spriteUrl(id)} alt="" loading="lazy" width={72} height={72} />
+        <span className="no">{state ? name : no}</span>
         {state >= 2 && (
           <span className="badge">
             <Icon name={state === 3 ? 'star' : 'ball'} size={16} />
