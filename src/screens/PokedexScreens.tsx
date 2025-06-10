@@ -1,15 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { memo, useCallback, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { loadIndex, loadVersions, spriteUrl, useLoad } from '../data/api';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { dexSpriteUrl, loadIndex, loadPokedexes, loadVersions, spriteUrl, useLoad } from '../data/api';
 import { createPokedex, cycleDexState, db, renamePokedex, setPokedexGame, type Pokedex } from '../data/db';
 import { formatNo } from '../data/format';
-import { teamGame } from '../data/game';
-import { DEX_STATE_LABELS, dexCounts, lastSpecies, nextState, type DexState } from '../data/pokedex';
-import { useGame } from '../data/settings';
-import type { VersionGroup } from '../data/types';
+import { DEX_STATE_LABELS, caughtCount, dexCounts, gameDexes, lastSpecies, nextState, type DexState } from '../data/pokedex';
+import { teamMatches } from '../data/teamSearch';
+import type { Pokedexes, VersionGroup } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading } from '../components/bits';
+import { Loading, SearchField } from '../components/bits';
 import { RenameSheet, TeamTabs } from './TeamScreens';
 
 /**
@@ -17,53 +16,144 @@ import { RenameSheet, TeamTabs } from './TeamScreens';
  * A game the data no longer has lists every species.
  */
 function dexScope(dex: Pokedex, versions?: VersionGroup[]) {
-  if (dex.game === undefined) return { label: 'Any game', last: lastSpecies() };
+  if (dex.game === undefined) return { label: 'National', last: lastSpecies(), known: false };
   if (!versions) return undefined;
   const version = versions.find((v) => v.id === dex.game);
-  return version ? { label: version.label, last: lastSpecies(version.gen) } : { label: 'Unknown game', last: lastSpecies() };
+  return version ? { label: version.label, last: lastSpecies(version.gen), known: true } : { label: 'Unknown game', last: lastSpecies(), known: false };
 }
 
 // ---------------- saved Pokédexes ----------------
 export function PokedexList() {
   const dexes = useLiveQuery(() => db.pokedexes.orderBy('updatedAt').reverse().toArray(), []);
   const { data: versions } = useLoad(loadVersions, 'versions');
-  const navigate = useNavigate();
-  const [renaming, setRenaming] = useState<Pokedex>();
-  const [game] = useGame();
+  const { data: regional } = useLoad(loadPokedexes, 'pokedexes');
+  const [params, setParams] = useSearchParams();
+  const query = params.get('q') ?? '';
+  // Game labels come with versions.json; a search waits for them rather than missing.
+  const shown = query && !versions ? undefined : dexes?.filter((d) => teamMatches(d.name, [dexScope(d, versions)?.label ?? ''], query));
 
   return (
     <>
       <header className="dex-head">
-        <h1>Pokédexes</h1>
+        <h1>Pokédex</h1>
+        <SearchField label="Search Pokédexes" placeholder="Name or game" value={query} onChange={(q) => setParams(q ? { q } : {}, { replace: true })} />
       </header>
       <TeamTabs />
-      <div className="list">
-        {!dexes && <Loading />}
-        {dexes?.length === 0 && <p className="empty">No Pokédexes yet. Create one to track what you've seen and caught.</p>}
-        {dexes?.map((d) => {
+      <div className="list with-fab">
+        {!shown && <Loading />}
+        {shown && dexes?.length === 0 && <p className="empty">No Pokédexes yet. Create one to track what you've seen and caught.</p>}
+        {dexes?.length !== 0 && shown?.length === 0 && <p className="empty">No Pokédexes match “{query}”.</p>}
+        {shown?.map((d) => {
           const scope = dexScope(d, versions);
-          const counts = scope && dexCounts(d.states, scope.last);
+          const counter = caughtCounter(d, scope, regional);
           return (
-            <div key={d.id} className="team-row team-entry">
-              <Link to={`/teams/pokedex/${d.id}`}>
+            <Link key={d.id} to={`/teams/pokedex/${d.id}`} className="team-row dex-row">
+              <DexArt game={scope?.known ? d.game : undefined} />
+              <span className="head">
                 <span className="name">{d.name}</span>
-                <span className="meta">
-                  {scope?.label}
-                  {counts && ` · ${counts.caught} of ${counts.total} caught`}
+                <span className="meta">{scope?.label}</span>
+              </span>
+              {counter && (
+                <span className="caught">
+                  <Icon name="ball" size={16} />
+                  <span aria-hidden="true">
+                    <b>{counter.caught}</b>/{counter.total}
+                  </span>
+                  <span className="sr-only">
+                    {counter.caught} of {counter.total} caught
+                  </span>
                 </span>
-              </Link>
-              <button className="icon-btn" aria-label={`Rename ${d.name}`} onClick={() => setRenaming(d)}>
-                <Icon name="pencil" size={20} />
-              </button>
-            </div>
+              )}
+            </Link>
           );
         })}
-        <button className="add-slot" onClick={async () => navigate(`/teams/pokedex/${await createPokedex(teamGame(game))}`)}>
-          <Icon name="plus" size={18} /> New Pokédex
-        </button>
       </div>
-      {renaming && (
-        <RenameSheet noun="Pokédex" name={renaming.name} onSave={(name) => renamePokedex(renaming.id, name)} onClose={() => setRenaming(undefined)} />
+      <Link className="fab" to="/teams/pokedex/new" aria-label="New Pokédex">
+        <Icon name="plus" size={24} />
+      </Link>
+    </>
+  );
+}
+
+/**
+ * What a list row counts: caught of the game's first regional dex, or of the national dex for any game (or a game
+ * the data no longer has); undefined until the data loads.
+ */
+function caughtCounter(dex: Pokedex, scope: ReturnType<typeof dexScope>, regional?: Pokedexes) {
+  if (!scope) return undefined;
+  const national = { caught: dexCounts(dex.states, scope.last).caught, total: scope.last };
+  if (!scope.known) return national;
+  if (!regional) return undefined;
+  const species = gameDexes(regional, dex.game!)[0]?.species;
+  return species ? { caught: caughtCount(dex.states, species), total: species.length } : national;
+}
+
+/** A game's Pokédex art; the national dex gets the Pokédex icon. */
+function DexArt({ game }: { game?: number }) {
+  return (
+    <span className="dex-art" aria-hidden="true">
+      {game !== undefined ? <img src={dexSpriteUrl(game)} alt="" width={80} height={80} /> : <Icon name="dex" size={40} />}
+    </span>
+  );
+}
+
+// ---------------- new Pokédex ----------------
+/** The national dex, then every game with its regional dex sizes; a pick creates the Pokédex and opens it. */
+export function NewPokedex() {
+  const { data: versions } = useLoad(loadVersions, 'versions');
+  const { data: regional } = useLoad(loadPokedexes, 'pokedexes');
+  const navigate = useNavigate();
+  // A second tap while the first Pokédex is being saved would create another.
+  const [busy, setBusy] = useState(false);
+  const create = async (game?: number) => {
+    setBusy(true);
+    navigate(`/teams/pokedex/${await createPokedex(game)}`, { replace: true });
+  };
+
+  return (
+    <>
+      <header className="topbar">
+        <Link to="/teams/pokedex" className="icon-btn" aria-label="Back to Pokédex">
+          <Icon name="back" />
+        </Link>
+        <div className="grow">
+          <h1>New Pokédex</h1>
+          <div className="sub">Pick a game</div>
+        </div>
+      </header>
+      {!versions || !regional ? (
+        <Loading />
+      ) : (
+        <ul className="list dex-games">
+          <li>
+            <button className="team-row dex-row" disabled={busy} onClick={() => create()}>
+              <DexArt />
+              <span className="head">
+                <span className="name">National</span>
+                <span className="meta">{lastSpecies()} Pokémon, every game</span>
+              </span>
+            </button>
+          </li>
+          {versions.map((v) => {
+            const dexes = gameDexes(regional, v.id);
+            return (
+              <li key={v.id}>
+                <button
+                  className="team-row dex-row"
+                  disabled={busy}
+                  aria-label={`${v.label}: ${dexes.map((d) => `${d.name} ${d.species.length}`).join(', ')}`}
+                  onClick={() => create(v.id)}
+                >
+                  <DexArt game={v.id} />
+                  <span className="head">
+                    <span className="name">{v.label}</span>
+                    <span className="meta">{dexes.map((d) => d.species.length).join(' · ')}</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </>
   );
@@ -85,7 +175,7 @@ export function PokedexScreen() {
   return (
     <>
       <header className="topbar">
-        <Link to="/teams/pokedex" className="icon-btn" aria-label="Back to Pokédexes">
+        <Link to="/teams/pokedex" className="icon-btn" aria-label="Back to Pokédex">
           <Icon name="back" />
         </Link>
         <div className="grow">
@@ -125,7 +215,7 @@ export function PokedexScreen() {
           <label className="game-select team-game">
             <span className="k">Game</span>
             <select value={dex.game ?? ''} onChange={(e) => setPokedexGame(id, e.target.value ? Number(e.target.value) : undefined)}>
-              <option value="">Any game</option>
+              <option value="">National</option>
               {versions.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.label}

@@ -774,13 +774,6 @@ a.move-row.tinted { color: var(--on-tint); }
 .slot .meta { font-size: 12px; font-weight: 600; color: var(--on-tint-2); margin-top: 2px; }
 .slot .chips { display: flex; gap: 4px; margin-top: 4px; }
 .slot .icon-btn { color: var(--on-tint-2); }
-/* The link covers the name and sprites; the rename button sits over its top-right corner. */
-.team-entry { position: relative; display: block; padding: 0; }
-.team-entry > a { display: flex; flex-direction: column; gap: 2px; padding: 14px; border-radius: inherit; color: inherit; text-decoration: none; }
-.team-entry :is(.name, .meta) { padding-right: 42px; }
-.team-entry > a:focus-visible { outline-offset: -2px; }
-.team-entry .name { overflow-wrap: anywhere; }
-.team-entry > .icon-btn { position: absolute; top: 6px; right: 6px; }
 /* Teams list: 100 px rows, the name over the tops of 80 px sprites that overlap when six don't fit side by side. */
 .team-list-row { position: relative; display: block; height: 100px; padding: 0; overflow: hidden; }
 .team-list-row:focus-visible { outline-offset: -2px; }
@@ -791,6 +784,17 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-list-row .minis > span:last-child { flex-shrink: 0; }
 .team-list-row .minis img { display: block; width: 80px; height: 80px; image-rendering: pixelated; }
 .list.with-fab { padding-bottom: 88px; }
+/* Pokédex list and new-Pokédex games: 100 px rows, the device art at 80 px, the name over the game, caught on the right. */
+.dex-row { height: 100px; padding: 0 16px 0 10px; width: 100%; font: inherit; text-align: left; cursor: pointer; }
+.dex-row:focus-visible { outline-offset: -2px; }
+.dex-row .head { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dex-row :is(.name, .meta) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dex-art { flex: none; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+.dex-art img { width: 80px; height: 80px; object-fit: contain; }
+.dex-art svg { width: 64px; height: 64px; padding: 12px; border-radius: 16px; background: var(--primary-soft); color: var(--primary-soft-ink); }
+.dex-row .caught { flex: none; display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dex-row .caught b { color: var(--ink); font-weight: 800; }
+.dex-games { margin: 0; list-style: none; }
 /* A member card is one link to the editor, on its first type's tint; the remove button sits over its top-right corner. */
 .team-members { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .team-mon { position: relative; padding-bottom: 10px; border-radius: var(--radius-card); color: var(--on-tint); }

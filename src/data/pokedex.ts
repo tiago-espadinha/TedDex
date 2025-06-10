@@ -1,3 +1,5 @@
+import type { Pokedexes, RegionalDex } from './types';
+
 /** A species' state in a Pokédex tracker; 0 (not seen) is never stored. */
 export type DexState = 0 | 1 | 2 | 3;
 
@@ -31,3 +33,11 @@ export function dexCounts(states: Record<number, DexState>, last: number) {
   }
   return counts;
 }
+
+/** A game's regional Pokédexes in the game's order; none for a game the data no longer has. */
+export function gameDexes(data: Pokedexes, group: number): RegionalDex[] {
+  return (data.groups[group] ?? []).flatMap((id) => data.dexes.find((d) => d.id === id) ?? []);
+}
+
+/** How many of `species` are caught (caught or shiny). */
+export const caughtCount = (states: Record<number, DexState>, species: number[]) => species.filter((id) => (states[id] ?? 0) >= 2).length;

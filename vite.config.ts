@@ -6,7 +6,7 @@ import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 /** Sprite folders under public/media/: kept offline by the app's warm-up (src/data/spriteCache.ts), not the precache. */
-const SPRITE_DIRS = ['sprites', 'items', 'guide', 'trainers'];
+const SPRITE_DIRS = ['sprites', 'items', 'guide', 'trainers', 'dexes'];
 const MEDIA = fileURLToPath(new URL('./public/media/', import.meta.url));
 const spriteFiles = Object.fromEntries(
   SPRITE_DIRS.map((dir) => [dir, readdirSync(`${MEDIA}${dir}`).filter((f) => f.endsWith('.webp')).map((f) => f.slice(0, -5)).sort()]),
@@ -62,7 +62,7 @@ export default defineConfig({
         runtimeCaching: [
           {
             // Same folders as SPRITE_DIRS, spelled out: Workbox copies this function into sw.js as source.
-            urlPattern: ({ url }) => /^\/media\/(sprites|items|guide|trainers)\//.test(url.pathname),
+            urlPattern: ({ url }) => /^\/media\/(sprites|items|guide|trainers|dexes)\//.test(url.pathname),
             handler: 'CacheFirst',
             options: { cacheName: `sprites-${spriteVersion}`, cacheableResponse: { statuses: [200] } },
           },

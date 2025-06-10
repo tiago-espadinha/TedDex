@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { parseGamePref, resolveGame, teamGame } from '../src/data/game';
+import { parseGamePref, resolveGame } from '../src/data/game';
 
 describe('parseGamePref', () => {
   test('reads a version group id', () => {
@@ -30,12 +30,5 @@ describe('resolveGame', () => {
 
   test('no games, nothing to show', () => {
     assert.equal(resolveGame([], 6), undefined);
-  });
-});
-
-describe('teamGame', () => {
-  test('a new team starts on the chosen game, or any game for Latest', () => {
-    assert.equal(teamGame(6), 6);
-    assert.equal(teamGame('latest'), undefined);
   });
 });
