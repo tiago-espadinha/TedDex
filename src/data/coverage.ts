@@ -1,5 +1,5 @@
 import { defensiveMultipliers, offensiveMultipliers } from './api';
-import type { TypeData, TypeName } from './types';
+import type { StatBlock, TypeData, TypeName } from './types';
 
 /** One row of a coverage table: a type, one multiplier per member (null = nothing to show) and a count. */
 export interface CoverageRow {
@@ -10,16 +10,19 @@ export interface CoverageRow {
 
 /**
  * Defensive coverage from each member's types. A row per attacking type counts the members weak to it
- * (`count`) and resisting it (`resist`). `stabHits` is how many defending types some member's own type hits 2×.
+ * (`count`) and resisting it (`resist`, immunities included); its `score` is +1 per resisting member and −1 per
+ * weak one, 4× and ¼× alike. `stabHits` is how many defending types some member's own type hits 2×.
  */
 export function defensiveCoverage(memberTypes: TypeName[][], data: TypeData) {
   const perMon = memberTypes.map((t) => defensiveMultipliers(t, data));
   const rows = data.types.map((atk) => {
     const mults = perMon.map((m) => m[atk]);
-    return { type: atk, mults, count: mults.filter((x) => x > 1).length, resist: mults.filter((x) => x < 1).length };
+    const count = mults.filter((x) => x > 1).length;
+    const resist = mults.filter((x) => x < 1).length;
+    return { type: atk, mults, count, resist, score: resist - count };
   });
-  // Most members weak to it; ties broken by fewer members resisting it.
-  const threat = rows.reduce((a, b) => (b.count > a.count || (b.count === a.count && b.resist < a.resist) ? b : a));
+  // Lowest score; ties broken by more members weak to it.
+  const threat = rows.reduce((a, b) => (b.score < a.score || (b.score === a.score && b.count > a.count) ? b : a));
   const stabHits = data.types.filter((def) =>
     memberTypes.some((types) => types.some((atk) => (data.matrix[atk]?.[def] ?? 1) > 1)),
   ).length;
@@ -38,4 +41,17 @@ export function offensiveCoverage(attacks: TypeName[][], data: TypeData) {
   });
   const best = (r: CoverageRow) => Math.max(...r.mults.map((x) => x ?? 0));
   return { rows, hits: rows.filter((r) => r.count > 0).length, walls: rows.filter((r) => best(r) < 1).map((r) => r.type) };
+}
+
+type BaseStats = { stats: StatBlock; total: number };
+
+/** The members' mean base stats and total, each rounded to a whole number (half up). */
+export function averageStats(members: BaseStats[]): BaseStats {
+  const mean = (f: (m: BaseStats) => number) =>
+    Math.round(members.reduce((sum, m) => sum + f(m), 0) / members.length);
+  const stat = (k: keyof StatBlock) => mean((m) => m.stats[k]);
+  return {
+    stats: { hp: stat('hp'), atk: stat('atk'), def: stat('def'), spa: stat('spa'), spd: stat('spd'), spe: stat('spe') },
+    total: mean((m) => m.total),
+  };
 }

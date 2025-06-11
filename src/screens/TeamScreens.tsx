@@ -13,9 +13,9 @@ import {
   spriteUrl,
   useLoad,
 } from '../data/api';
-import { defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
+import { averageStats, defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
 import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, setGodMode, type TeamMember } from '../data/db';
-import { cap, formatMultiplier, formatNo } from '../data/format';
+import { STAT_ROWS, cap, formatMultiplier, formatNo, formatScore, statColor } from '../data/format';
 import { memberView, type MemberView } from '../data/forms';
 import { memberAbility } from '../data/memberOptions';
 import { teamMatches } from '../data/teamSearch';
@@ -324,7 +324,7 @@ export function TeamEditor() {
       {team.members.length > 0 && (
         <div className="bottom-cta">
           <Link to={`/teams/${id}/coverage`} className="primary-btn">
-            <Icon name="shield" size={20} /> Analyse coverage
+            <Icon name="shield" size={20} /> Analyse team
           </Link>
         </div>
       )}
@@ -333,8 +333,8 @@ export function TeamEditor() {
   );
 }
 
-// ---------------- coverage ----------------
-type Mode = 'defensive' | 'offensive';
+// ---------------- analysis ----------------
+type Mode = 'defensive' | 'offensive' | 'stats';
 
 /** A member as coverage sees it: its form's name, types and sprite, and its chosen moves. */
 export interface CoverageMember {
@@ -345,7 +345,7 @@ export interface CoverageMember {
 export function CoverageScreen() {
   const id = Number(useParams().id);
   const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
-  // Coverage waits for the forms' types; slots elsewhere show the default form meanwhile.
+  // The analysis waits for the forms' types and stats; slots elsewhere show the default form meanwhile.
   const { view, formsReady } = useMemberViews(team?.members);
 
   const members = (team?.members ?? [])
@@ -361,18 +361,18 @@ export function CoverageScreen() {
           <Icon name="back" />
         </Link>
         <div className="grow">
-          <h1>Coverage</h1>
+          <h1>Analyse team</h1>
           <div className="sub">
             {team.name} · {members.length} member{members.length === 1 ? '' : 's'}
           </div>
         </div>
       </header>
-      {!members.length ? <p className="empty">Add Pokémon to this team to see its coverage.</p> : <CoverageBody members={members} />}
+      {!members.length ? <p className="empty">Add Pokémon to this team to analyse it.</p> : <CoverageBody members={members} />}
     </>
   );
 }
 
-/** The Defensive / Offensive switch and its view, for saved teams and trainer teams. */
+/** The Defensive / Offensive / Stats switch and its view, for saved teams and trainer teams. */
 export function CoverageBody({ members }: { members: CoverageMember[] }) {
   const { data: typeData } = useLoad(loadTypes, 'types');
   const { data: moves } = useLoad(loadMoves, 'moves');
@@ -380,8 +380,8 @@ export function CoverageBody({ members }: { members: CoverageMember[] }) {
   if (!typeData || !moves) return <Loading />;
   return (
     <>
-      <div className="segmented cov-mode" role="radiogroup" aria-label="Coverage">
-        {(['defensive', 'offensive'] as Mode[]).map((m) => (
+      <div className="segmented cov-mode" role="radiogroup" aria-label="Analysis">
+        {(['defensive', 'offensive', 'stats'] as Mode[]).map((m) => (
           <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}>
             {cap(m)}
           </button>
@@ -389,8 +389,10 @@ export function CoverageBody({ members }: { members: CoverageMember[] }) {
       </div>
       {mode === 'defensive' ? (
         <DefensiveView mons={members.map((x) => x.mon)} typeData={typeData} />
-      ) : (
+      ) : mode === 'offensive' ? (
         <OffensiveView members={members} typeData={typeData} moves={moves} />
+      ) : (
+        <StatsView mons={members.map((x) => x.mon)} />
       )}
     </>
   );
@@ -403,14 +405,15 @@ function DefensiveView({ mons, typeData }: { mons: MemberView[]; typeData: TypeD
     <>
       <div className="summary">
         <Tile label="BIGGEST THREAT" tone="weak">
-          {threat.count ? `${cap(threat.type)} · ${threat.count} of ${mons.length} weak` : 'No shared weakness'}
+          {threat.score < 0 ? `${cap(threat.type)} · score ${formatScore(threat.score)}` : 'No net weakness'}
         </Tile>
         <Tile label="STAB COVERAGE" tone="resist">
           {stabHits} of 18 types hit 2×
         </Tile>
       </div>
-      <CoverageTable mons={mons} rows={rows} lead="ATTACK" countLabel="WEAK" cell={defensiveCell} alarm={(n) => n >= 3}>
-        Based on each member's types. Switch to Offensive for coverage from chosen moves.
+      <CoverageTable mons={mons} rows={rows} lead="ATTACK" cell={defensiveCell} last={SCORE_COLUMN}>
+        Based on each member's types. Score: +1 per member that resists or is immune, −1 per member weak to it.
+        Switch to Offensive for coverage from chosen moves.
       </CoverageTable>
     </>
   );
@@ -441,11 +444,39 @@ function OffensiveView({
           {walls.length ? walls.map(cap).join(', ') : 'Nothing'}
         </Tile>
       </div>
-      <CoverageTable mons={members.map((x) => x.mon)} rows={rows} lead="DEFEND" countLabel="HIT 2×" cell={offensiveCell}>
+      <CoverageTable mons={members.map((x) => x.mon)} rows={rows} lead="DEFEND" cell={offensiveCell} last={HITS_COLUMN}>
         Each cell is the member's best damaging move against that type (type chart only; status moves don't
         count). – means no damaging moves.
       </CoverageTable>
     </>
+  );
+}
+
+/** The members' mean base stats as Stats-tab bars. */
+function StatsView({ mons }: { mons: MemberView[] }) {
+  const { stats, total } = averageStats(mons);
+  return (
+    <div className="section">
+      <h2>Average base stats</h2>
+      {STAT_ROWS.map(([k, label]) => (
+        <div className="stat-row" key={k}>
+          <span className="label">{label}</span>
+          <span className="val">{stats[k]}</span>
+          <span className="track">
+            <span className="fill" style={{ display: 'block', width: `${Math.min(100, (stats[k] / 180) * 100)}%`, background: statColor(stats[k]) }} />
+          </span>
+        </div>
+      ))}
+      <div className="stat-row total">
+        <span className="label">Total</span>
+        <span className="val">{total}</span>
+        <span />
+      </div>
+      <p className="hint">
+        Mean of each member's base stats, in its form, rounded to a whole number. Total is the mean of the members'
+        totals.
+      </p>
+    </div>
   );
 }
 
@@ -460,21 +491,19 @@ function Tile({ label, tone, children }: { label: string; tone: 'weak' | 'resist
   );
 }
 
-function CoverageTable({
+function CoverageTable<R extends CoverageRow>({
   mons,
   rows,
   lead,
-  countLabel,
   cell,
-  alarm,
+  last,
   children,
 }: {
   mons: MemberView[];
-  rows: CoverageRow[];
+  rows: R[];
   lead: string;
-  countLabel: string;
   cell: (m: number | null) => CSSProperties;
-  alarm?: (count: number) => boolean;
+  last: LastColumn<R>;
   children: ReactNode;
 }) {
   return (
@@ -489,32 +518,60 @@ function CoverageTable({
                 <span className="sr-only">{m.name}</span>
               </th>
             ))}
-            <th scope="col" style={{ textAlign: 'right' }}>
-              {countLabel}
+            <th scope="col" style={{ textAlign: last.align }}>
+              {last.label}
             </th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.type}>
-              <td className="lead">
-                <TypeChip type={r.type} />
-              </td>
-              {r.mults.map((m, i) => (
-                <td key={i} style={cell(m)}>
-                  {m === null ? '–' : formatMultiplier(m)}
+          {rows.map((r) => {
+            const [value, style] = last.cell(r);
+            return (
+              <tr key={r.type}>
+                <td className="lead">
+                  <TypeChip type={r.type} />
                 </td>
-              ))}
-              <td className="count" style={{ color: alarm?.(r.count) ? 'var(--weak-ink)' : r.count ? 'var(--ink)' : 'var(--muted)' }}>
-                {r.count || '–'}
-              </td>
-            </tr>
-          ))}
+                {r.mults.map((m, i) => (
+                  <td key={i} style={cell(m)}>
+                    {m === null ? '–' : formatMultiplier(m)}
+                  </td>
+                ))}
+                <td className="count" style={{ ...style, textAlign: last.align }}>
+                  {value}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       <p className="hint">{children}</p>
     </div>
   );
+}
+
+/** The table's last column: its header and each row's text and style. */
+interface LastColumn<R> {
+  label: string;
+  align: 'right' | 'center';
+  cell: (row: R) => [ReactNode, CSSProperties];
+}
+
+const SCORE_COLUMN: LastColumn<{ score: number }> = { label: 'SCORE', align: 'center', cell: scoreCell };
+const HITS_COLUMN: LastColumn<CoverageRow> = { label: 'HIT 2×', align: 'right', cell: hitsCell };
+
+/** A type's team score, green when the team holds it, warm when it doesn't. */
+function scoreCell({ score }: { score: number }): [ReactNode, CSSProperties] {
+  const style: CSSProperties =
+    score > 0
+      ? { background: 'var(--resist-bg)', color: 'var(--resist-ink)' }
+      : score < 0
+        ? { background: 'var(--weak-bg)', color: 'var(--weak-ink)' }
+        : { color: 'var(--muted)' };
+  return [formatScore(score), style];
+}
+
+function hitsCell({ count }: CoverageRow): [ReactNode, CSSProperties] {
+  return [count || '–', { color: count ? 'var(--ink)' : 'var(--muted)' }];
 }
 
 /** Defending: taking more damage is bad (warm), less is good (green). */

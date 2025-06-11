@@ -1,4 +1,4 @@
-import type { FormVariant, IndexEntry, SpeciesDetail, TypeName } from './types';
+import type { FormVariant, IndexEntry, SpeciesDetail, StatBlock, TypeName } from './types';
 
 /**
  * The species as seen in form `key`: its name, types, stats, abilities, size and EV yield replaced by the
@@ -12,12 +12,14 @@ export function applyForm(mon: SpeciesDetail, key: string | null): { view: Speci
 }
 
 /**
- * What a team slot shows for a member: its name, types and the id its sprite uses, and its form's abilities when
- * the species file is loaded (the grid row has none).
+ * What a team slot shows for a member: its name, types, base stats and the id its sprite uses, and its form's
+ * abilities when the species file is loaded (the grid row has none).
  */
 export interface MemberView {
   name: string;
   types: TypeName[];
+  stats: StatBlock;
+  total: number;
   mediaId: number;
   abilities?: SpeciesDetail['abilities'];
 }
@@ -29,7 +31,7 @@ export interface MemberView {
 export function memberView(member: { speciesId: number; formKey?: string }, row?: IndexEntry, detail?: SpeciesDetail): MemberView | undefined {
   if (member.formKey && detail) {
     const { view, mediaId } = applyForm(detail, member.formKey);
-    return { name: view.name, types: view.types, mediaId, abilities: view.abilities };
+    return { name: view.name, types: view.types, stats: view.stats, total: view.total, mediaId, abilities: view.abilities };
   }
-  return row && { name: row.name, types: row.types, mediaId: row.id };
+  return row && { name: row.name, types: row.types, stats: row.stats, total: row.total, mediaId: row.id };
 }

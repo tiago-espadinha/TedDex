@@ -68,11 +68,19 @@ interface Tables {
 
 const formKey = (id: number, form: string) => `${id}:${form}`;
 
-/** A member's sprite, name and types, from its form when it has one. */
+const NO_STATS = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+
+/** A member's sprite, name, types and base stats, from its form when it has one. */
 function monOf(m: LeagueMember, tables: Tables): MemberView {
   const species = tables.index.get(m.id);
   const form = m.form ? tables.forms.get(formKey(m.id, m.form)) : undefined;
-  return { mediaId: form?.pokemonId ?? m.id, name: form?.name ?? species?.name ?? `#${m.id}`, types: form?.types ?? species?.types ?? [] };
+  return {
+    mediaId: form?.pokemonId ?? m.id,
+    name: form?.name ?? species?.name ?? `#${m.id}`,
+    types: form?.types ?? species?.types ?? [],
+    stats: form?.stats ?? species?.stats ?? NO_STATS,
+    total: form?.total ?? species?.total ?? 0,
+  };
 }
 
 /** The game and the tables its pages need; null when the id is not a game in the data. */
