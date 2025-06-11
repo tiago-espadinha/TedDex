@@ -336,19 +336,22 @@ export function TeamEditor() {
 // ---------------- coverage ----------------
 type Mode = 'defensive' | 'offensive';
 
+/** A member as coverage sees it: its form's name, types and sprite, and its chosen moves. */
+export interface CoverageMember {
+  mon: MemberView;
+  moves: number[] | undefined;
+}
+
 export function CoverageScreen() {
   const id = Number(useParams().id);
   const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
   // Coverage waits for the forms' types; slots elsewhere show the default form meanwhile.
   const { view, formsReady } = useMemberViews(team?.members);
-  const { data: typeData } = useLoad(loadTypes, 'types');
-  const { data: moves } = useLoad(loadMoves, 'moves');
-  const [mode, setMode] = useState<Mode>('defensive');
 
   const members = (team?.members ?? [])
-    .map((m) => ({ member: m, mon: view?.(m) }))
-    .filter((x): x is { member: TeamMember; mon: MemberView } => !!x.mon);
-  if (team === undefined || !typeData || !moves || !view || !formsReady) return <Loading />;
+    .map((m) => ({ mon: view?.(m), moves: m.moves }))
+    .filter((x): x is CoverageMember => !!x.mon);
+  if (team === undefined || !view || !formsReady) return <Loading />;
   if (!team) return <p className="empty">This team no longer exists.</p>;
 
   return (
@@ -364,23 +367,30 @@ export function CoverageScreen() {
           </div>
         </div>
       </header>
-      {!members.length ? (
-        <p className="empty">Add Pokémon to this team to see its coverage.</p>
+      {!members.length ? <p className="empty">Add Pokémon to this team to see its coverage.</p> : <CoverageBody members={members} />}
+    </>
+  );
+}
+
+/** The Defensive / Offensive switch and its view, for saved teams and trainer teams. */
+export function CoverageBody({ members }: { members: CoverageMember[] }) {
+  const { data: typeData } = useLoad(loadTypes, 'types');
+  const { data: moves } = useLoad(loadMoves, 'moves');
+  const [mode, setMode] = useState<Mode>('defensive');
+  if (!typeData || !moves) return <Loading />;
+  return (
+    <>
+      <div className="segmented cov-mode" role="radiogroup" aria-label="Coverage">
+        {(['defensive', 'offensive'] as Mode[]).map((m) => (
+          <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}>
+            {cap(m)}
+          </button>
+        ))}
+      </div>
+      {mode === 'defensive' ? (
+        <DefensiveView mons={members.map((x) => x.mon)} typeData={typeData} />
       ) : (
-        <>
-          <div className="segmented cov-mode" role="radiogroup" aria-label="Coverage">
-            {(['defensive', 'offensive'] as Mode[]).map((m) => (
-              <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}>
-                {cap(m)}
-              </button>
-            ))}
-          </div>
-          {mode === 'defensive' ? (
-            <DefensiveView mons={members.map((x) => x.mon)} typeData={typeData} />
-          ) : (
-            <OffensiveView members={members} typeData={typeData} moves={moves} />
-          )}
-        </>
+        <OffensiveView members={members} typeData={typeData} moves={moves} />
       )}
     </>
   );
@@ -411,11 +421,11 @@ function OffensiveView({
   typeData,
   moves,
 }: {
-  members: { member: TeamMember; mon: MemberView }[];
+  members: CoverageMember[];
   typeData: TypeData;
   moves: MoveTable;
 }) {
-  const attacks = members.map(({ member }) => attackingTypes(member.moves, moves));
+  const attacks = members.map((x) => attackingTypes(x.moves, moves));
   if (attacks.every((a) => !a.length)) {
     return <p className="empty">No damaging moves yet. Give your team members moves to see what they hit.</p>;
   }

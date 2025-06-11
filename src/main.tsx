@@ -7,7 +7,7 @@ import { warmSprites } from './data/spriteCache';
 import { CompareScreen } from './screens/CompareScreen';
 import { DetailScreen } from './screens/DetailScreen';
 import { DexScreen } from './screens/DexScreen';
-import { LeagueGameScreen, LeagueList } from './screens/LeagueScreens';
+import { LeagueGameScreen, LeagueList, TrainerCoverageScreen, TrainerScreen } from './screens/LeagueScreens';
 import { MoreScreen } from './screens/OtherScreens';
 import { ReferenceEntry, ReferenceList, ReferenceScreen } from './screens/ReferenceScreens';
 import { MemberEditor } from './screens/MemberEditor';
@@ -69,6 +69,10 @@ const router = createBrowserRouter([
       { path: '/reference/league/:game', element: <LeagueGameScreen kind="league" /> },
       { path: '/reference/gyms', element: <LeagueList kind="gyms" /> },
       { path: '/reference/gyms/:game', element: <LeagueGameScreen kind="gyms" /> },
+      { path: '/reference/league/:game/:trainer', element: <TrainerScreen kind="league" /> },
+      { path: '/reference/gyms/:game/:trainer', element: <TrainerScreen kind="gyms" /> },
+      { path: '/reference/league/:game/:trainer/coverage', element: <TrainerCoverageScreen kind="league" /> },
+      { path: '/reference/gyms/:game/:trainer/coverage', element: <TrainerCoverageScreen kind="gyms" /> },
       { path: '/reference/:kind', element: <ReferenceList /> },
       { path: '/reference/:kind/:id', element: <ReferenceEntry /> },
       { path: '/more', element: <MoreScreen /> },

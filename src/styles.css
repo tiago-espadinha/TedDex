@@ -286,7 +286,7 @@ a { color: inherit; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 /* Containers focused from script (route changes, opened sheets) get no ring: the next Tab lands inside. */
 main:focus, .sheet:focus { outline: none; }
-:is(.sr-only, .team-mon .league-facts dt) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:is(.sr-only, .team-mon:not(.trainer-mon) .league-facts dt) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- shell ---------- */
 .app { min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--nav-h) + var(--safe-bottom)); max-width: 720px; margin: 0 auto; }
@@ -683,25 +683,24 @@ a.move-row.tinted { color: var(--on-tint); }
 .ref-list .move-row > svg { flex: none; color: var(--muted); }
 .league-note { margin: 4px 24px 0; font-size: 13px; line-height: 1.5; }
 /* Each trainer is a card on its team's main type tint (`teamType`), --surface without one. */
+.league-trainers { margin: 0; padding: 0; list-style: none; }
 .league-trainer { margin: 12px 16px 0; padding: 0; border-radius: var(--radius-card); background: var(--surface); color: var(--on-tint); }
-.league-trainer h2.league-head-wrap { margin: 0; font-size: inherit; }
-/* The trainer row is the accordion button: tap to show or hide the team. */
-.league-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 12px; width: 100%; min-height: 88px; padding: 8px 12px 8px 8px; border: 0; border-radius: var(--radius-card); background: none; font: inherit; font-weight: 400; color: var(--on-tint); text-align: left; }
+/* A row in the game's list links to the trainer's page; the page opens with the same card as its hero. */
+.league-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 12px; min-height: 88px; padding: 8px 12px 8px 8px; border-radius: var(--radius-card); color: var(--on-tint); text-decoration: none; }
 .league-head:active { background: var(--tint-press); }
 .league-head:focus-visible { outline-offset: -2px; }
-.league-head > svg { color: var(--on-tint-muted); transition: transform 0.16s; }
-.league-trainer :is(.league-pick-label, .hint) { color: var(--on-tint-muted); }
-.league-trainer .segmented { background: var(--tint-glass); }
-.league-head[aria-expanded='true'] > svg { transform: rotate(90deg); }
-.league-head .who { min-width: 0; display: flex; flex-direction: column; }
+.league-head > svg { color: var(--on-tint-muted); }
+.trainer-hero { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; }
+:is(.league-head, .trainer-hero) .who { min-width: 0; display: flex; flex-direction: column; }
 .league-head .trainer-name { font-size: 18px; font-weight: 800; }
-.league-head .tags { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.team-strip { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.team-strip img { flex: none; width: 40px; height: 40px; image-rendering: pixelated; }
-.league-body { padding: 4px 8px 8px; animation: league-open 0.16s ease-out; }
-@keyframes league-open { from { opacity: 0; transform: translateY(-6px); } }
+.league-head .trainer-name .badge-name { font-weight: 600; color: var(--on-tint-2); }
+.league-head .trainer-name .name { white-space: nowrap; }
+.league-head .tags { margin-top: 4px; }
+:is(.league-head, .trainer-hero) .tags { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.league-head .team-size { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--on-tint-2); }
 .trainer-sprite { flex: none; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px; background: var(--tint-glass); color: var(--on-tint-muted); object-fit: contain; }
-.league-no-rematch { margin: 0 0 10px; font-size: 13px; }
+.trainer-picks { margin: 12px 24px 0; }
+.trainer-picks .hint { margin: 0 0 10px; font-size: 13px; }
 .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: calc(100% - 48px); min-height: 44px; margin: 8px 24px 0; padding: 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 700; color: var(--ink); }
 .switch-row .track { position: relative; flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--muted); transition: background-color 0.15s; }
 .switch-row .track::after { content: ''; position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); transition: transform 0.15s; }
@@ -710,14 +709,14 @@ a.move-row.tinted { color: var(--on-tint); }
 .switch-row:focus-visible { outline-offset: 2px; }
 .switch-list { margin-top: 4px; }
 .switch-list .switch-row { width: 100%; margin: 0; }
-.league-head .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
-.league-head .badge-name { margin-top: 4px; font-size: 13px; color: var(--on-tint-2); }
+:is(.league-head, .trainer-hero) .role { font-size: 12px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
+.trainer-hero .badge-name { margin-top: 4px; font-size: 13px; color: var(--on-tint-2); }
 .league-pick-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
 .league-pick { height: 44px; margin-bottom: 10px; }
-.league-team { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
-.league-mon + .league-mon { border-top: 1px solid var(--line); }
-.league-mon { padding-bottom: 10px; }
-.league-mon .evo-member .lv { flex: none; padding: 6px 10px; border-radius: 12px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; font-weight: 800; white-space: nowrap; }
+/* Trainer team cards are saved-team cards (.team-mon) with a level badge in place of the remove button. */
+.trainer-mon .evo-member { padding-right: 12px; }
+.trainer-mon .evo-member .lv { flex: none; padding: 6px 10px; border-radius: 12px; background: var(--tint-glass); color: var(--on-tint); font-size: 13px; font-weight: 800; white-space: nowrap; }
+.trainer-mon .league-facts dt { color: var(--on-tint-muted); }
 .league-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 12px 8px; font-size: 13px; }
 .league-facts div { display: flex; gap: 6px; align-items: center; }
 .league-facts dt { color: var(--muted); font-weight: 600; }
@@ -734,8 +733,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .league-moves li > * { display: flex; }
 .league-facts .league-chip { display: inline-flex; gap: 6px; padding-right: 12px; color: var(--ink); }
 .league-chip img { flex: none; image-rendering: pixelated; }
-.league-moves :is(a, button):focus-visible, .league-mon .evo-member:focus-visible { outline-offset: -2px; }
-.league-mon .evo-member:active { background: var(--surface-2); }
+.league-moves :is(a, button):focus-visible { outline-offset: -2px; }
 @media (min-width: 600px) {
   .league-moves { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
@@ -986,8 +984,8 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .ref-table.natures .fact-chip { padding-inline: 6px; font-size: 13px; }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .league-team, .picker-list,
-  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
+[data-design='b'] :is(.search, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
+  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
 [data-design='b'] :is(.ref-list li, .move-group .move-row, .ref-species .evo-member) { border-top: 0; background: var(--surface); box-shadow: var(--shadow-card); }
