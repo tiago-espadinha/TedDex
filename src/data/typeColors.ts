@@ -1,4 +1,4 @@
-import type { TypeName } from './types';
+import type { StatBlock, TypeName } from './types';
 
 /** The 18 types in game order. */
 export const TYPE_NAMES: readonly TypeName[] = [
@@ -15,3 +15,6 @@ export const isTypeName = (s: string): s is TypeName => (TYPE_NAMES as readonly 
  */
 export const typeChip = (t: TypeName) => `var(--type-${t}-chip)`;
 export const typeTint = (t: TypeName) => `var(--type-${t}-tint)`;
+
+/** Each stat's colour, borrowed from a type chip: EV yield chips and the natures table. */
+export const STAT_COLOR: Record<keyof StatBlock, TypeName> = { hp: 'fighting', atk: 'fire', def: 'electric', spa: 'water', spd: 'grass', spe: 'fairy' };

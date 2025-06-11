@@ -6,7 +6,7 @@ import type { FormKind, IndexEntry } from './types';
 
 /**
  * A Dex row: a species, or one of its forms (`form`) with the form's types, stats and size. A form row keeps the
- * species' name, so it sorts by name right after it, and is told apart by `form.label`.
+ * species' name, so it sorts by name right after it, and shows `form.name` as its title.
  */
 export interface DexRow extends Omit<IndexEntry, 'forms'> {
   form?: { key: string; label: string; name: string; pokemonId: number };

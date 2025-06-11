@@ -1,12 +1,12 @@
 import Fuse from 'fuse.js';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { artworkUrl, loadIndex, loadVersions, spriteUrl, useLoad } from '../data/api';
-import { cap, formatNo, roman } from '../data/format';
+import { formatNo } from '../data/format';
 import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
-import { CATEGORY_LABELS, SORT_LABELS, detailPath, saveOrder, useDexFilters, type DexFilters, type SortKey } from '../data/dexState';
+import { SORT_LABELS, detailPath, saveOrder, useDexFilters, type DexFilters, type SortKey } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
 import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
@@ -33,7 +33,6 @@ export function DexScreen() {
   const { data: all, error } = useLoad(loadIndex, 'index');
   const [filters, setFilters] = useDexFilters();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const fab = useRef<HTMLButtonElement>(null);
   const [params] = useSearchParams();
   const pickTeam = params.get('pick') ? Number(params.get('pick')) : null;
   const compareSlot = SLOTS.find((s) => s === params.get('compare'));
@@ -46,7 +45,7 @@ export function DexScreen() {
   const [view, setView] = useDexView();
   const [formKinds] = useDexForms();
   const perRow = view === 'list' ? 1 : cols;
-  // A chosen game limits the list to the species up to its generation, until the chip lifts it (`liftedGame`).
+  // A chosen game limits the list to the species up to its generation, until the filter sheet's Game toggle lifts it (`liftedGame`).
   // Without the versions file the list shows unlimited rather than loading forever.
   const [game] = useGame();
   const { data: versions, error: versionsError } = useLoad(loadVersions, 'versions');
@@ -77,12 +76,6 @@ export function DexScreen() {
     if (ok && team) toast({ text: `Added to ${team.name}` });
   }
 
-  const chips = [
-    filters.gens.length > 0 && (filters.gens.length > 3 ? `${filters.gens.length} gens` : `Gen ${filters.gens.map(roman).join(', ')}`),
-    filters.types.length > 0 && (filters.types.length > 2 ? `${filters.types.length} types` : filters.types.map(cap).join(' or ')),
-    filters.sort !== 'number' && `Sort: ${SORT_LABELS[filters.sort]}`,
-  ].filter((c): c is string => !!c);
-
   return (
     <>
       <header className="dex-head">
@@ -104,43 +97,6 @@ export function DexScreen() {
           }
         />
       </header>
-
-      {(chips.length > 0 || filters.category || limitTo) && (
-        <div className="chip-row">
-          {limit && limitTo && (
-            <button
-              className="filter-chip on removable"
-              aria-label={`Show Pokémon from every game, not only up to ${limit.label}`}
-              onClick={() => {
-                setFilters({ ...filters, liftedGame: limit.id });
-                fab.current?.focus();
-              }}
-            >
-              Up to {limit.label}
-              <Icon name="close" size={16} />
-            </button>
-          )}
-          {filters.category && (
-            <button
-              className="filter-chip on removable"
-              aria-label={`Remove ${CATEGORY_LABELS[filters.category]} filter`}
-              onClick={() => {
-                setFilters({ ...filters, category: null });
-                // The chip (and maybe its row) unmounts: keep focus on the screen.
-                fab.current?.focus();
-              }}
-            >
-              {CATEGORY_LABELS[filters.category]}
-              <Icon name="close" size={16} />
-            </button>
-          )}
-          {chips.map((c) => (
-            <button key={c} className="filter-chip on" onClick={() => setSheetOpen(true)}>
-              {c}
-            </button>
-          ))}
-        </div>
-      )}
 
       {compareSlot && (
         <div className="pick-banner">
@@ -191,7 +147,6 @@ export function DexScreen() {
       </div>
 
       <button
-        ref={fab}
         className="fab"
         aria-label={activeCount ? `Filter and sort, ${activeCount} active` : 'Filter and sort'}
         onClick={() => setSheetOpen(true)}
@@ -221,26 +176,34 @@ export function DexScreen() {
   );
 }
 
-/** What the card shows for the current sort, e.g. "Attack 84" or "90.5 kg"; nothing for number and name. */
-function sortedBy(m: DexRow, sort: SortKey): string | undefined {
+/** Short labels for the stat sorts on a card; screen readers get the full name from `SORT_LABELS`. */
+const SORT_SHORT: Partial<Record<SortKey, string>> = { total: 'BST', hp: 'HP', atk: 'ATT', def: 'DEF', spa: 'S.ATT', spd: 'S.DEF', spe: 'SPD' };
+
+/** What the card shows for the current sort, e.g. "ATT 84", or the weight icon and "90.5 kg"; nothing for number and name. */
+function sortedBy(m: DexRow, sort: SortKey): ReactNode {
   const v = sortValue(m, sort);
   if (v === undefined) return undefined;
-  if (sort === 'height') return `${v} m`;
-  if (sort === 'weight') return `${v} kg`;
-  return `${SORT_LABELS[sort]} ${v}`;
+  const measure = sort === 'height' || sort === 'weight';
+  return (
+    <>
+      <span className="sr-only">{SORT_LABELS[sort]} </span>
+      {measure ? <Icon name={sort} size={14} /> : <span aria-hidden="true">{SORT_SHORT[sort]} </span>}
+      {v}
+      {sort === 'height' ? ' m' : sort === 'weight' ? ' kg' : ''}
+    </>
+  );
 }
 
 /** A species or form in the grid (card) or in list view (`row`: sprite on the left, number over name). */
-function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; row: boolean; value?: string; onPick?: () => void }) {
+function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; row: boolean; value?: ReactNode; onPick?: () => void }) {
   const mediaId = mon.form?.pokemonId ?? mon.id;
   const body = (
     <>
       <div className="no">
         {formatNo(mon.id)}
-        {mon.form && <span className="form-label"> · {mon.form.label}</span>}
         {value && <span className="sort-val"> · {value}</span>}
       </div>
-      <div className="name">{mon.name}</div>
+      <div className="name">{mon.form?.name ?? mon.name}</div>
       <div className="types">
         {mon.types.map((t) => (
           <TypeChip key={t} type={t} />
