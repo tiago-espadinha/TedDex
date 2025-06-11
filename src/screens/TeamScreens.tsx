@@ -156,7 +156,7 @@ export function TeamTabs() {
         Teams
       </NavLink>
       <NavLink to="/teams/pokedex" end>
-        Pokédexes
+        Pokédex
       </NavLink>
     </nav>
   );

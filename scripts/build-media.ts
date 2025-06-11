@@ -11,6 +11,7 @@
  *
  * Output (all under public/media/; forms use their Pokémon id, e.g. 10034 for Mega Charizard X):
  *   sprites/<id>.webp   96 px front sprite, lossless WebP (precached by the service worker); species and forms
+ *   sprites/shiny/<id>.webp  the same, shiny; species only
  *   artwork/<id>.webp   368 px official artwork (2× the 184 px hero), WebP q65 (cached on first view); species and forms
  *   cries/<id>.m4a      latest cry, AAC 40 kbps mono (iOS Safari can't reliably play OGG); species only
  *   items/<id>.webp     item sprite, 48–64 px WebP (precached); every item in reference/items.json
@@ -49,6 +50,8 @@ type Kind = {
 
 const KINDS: Kind[] = [
   { dir: 'sprites', source: (id) => `${SPRITES}/${id}.png`, ext: 'webp', ffmpeg: ['-c:v', 'libwebp', '-lossless', '1'], ids: 'forms' },
+  // Shiny sprites for the Pokédex tracker's shiny cells, which track species only.
+  { dir: 'sprites/shiny', source: (id) => `${SPRITES}/shiny/${id}.png`, ext: 'webp', ffmpeg: ['-c:v', 'libwebp', '-lossless', '1'], ids: 'species' },
   {
     dir: 'artwork',
     source: (id) => `${SPRITES}/other/official-artwork/${id}.png`,

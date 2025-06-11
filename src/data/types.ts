@@ -112,6 +112,20 @@ export interface VersionGroup {
   gen: number;
 }
 
+/** A regional Pokédex: its species in regional order, numbered from `first` (0 in Unova, which opens with Victini). */
+export interface RegionalDex {
+  id: number;
+  name: string;
+  first: number;
+  species: number[];
+}
+
+/** pokedexes.json: every regional Pokédex, and each version group's dex ids in the game's order. */
+export interface Pokedexes {
+  dexes: RegionalDex[];
+  groups: Record<number, number[]>;
+}
+
 /** One game's learnset. Level 0 means "learned on evolution". */
 export interface Learnset {
   level: [moveId: number, level: number][];

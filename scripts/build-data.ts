@@ -12,6 +12,8 @@
  *   learnsets/c<n>.json   moves per version group (level-up, TM, tutor, egg), each distinct list once per species, loaded by the Moves tab
  *   moves.json            every move a learnset references: name, type, category, power, accuracy, PP, priority, generation
  *   versions.json         main-series version groups that have learnsets, oldest first
+ *   pokedexes.json        regional Pokédexes (species in regional order, `first` = the first regional number) and
+ *                         each version group's dex ids in order (DLC dexes under their base game)
  *   evolution/c<n>.json   evolution chain members with English condition text, loaded by the Evolution tab
  *   items.json            held items a team member can carry: item id -> English name, generation introduced
  *   abilities.json        ability id -> English name, generation introduced (as in reference/abilities.json), for team screens
@@ -336,6 +338,9 @@ async function main() {
     growthRates,
     eggGroups,
     pokemonEggGroups,
+    pokedexProse,
+    pokedexVersionGroups,
+    dexNumbers,
   ] = await Promise.all(
       [
         'pokemon_species',
@@ -385,6 +390,9 @@ async function main() {
         'growth_rates',
         'egg_groups',
         'pokemon_egg_groups',
+        'pokedex_prose',
+        'pokedex_version_groups',
+        'pokemon_dex_numbers',
       ].map(load),
     );
 
@@ -706,6 +714,33 @@ async function main() {
         .join(' / '),
       gen: Number(g.generation_id),
     }));
+
+  // --- regional Pokédexes of each version group, each dex once (Kanto serves Red/Blue, Yellow and FireRed/LeafGreen) ---
+  const dexIdsByGroup = new Map<number, number[]>();
+  for (const r of pokedexVersionGroups) {
+    const group = Number(r.version_group_id);
+    // Only games in versions.json; PokeAPI also lists the Isle of Armor and Crown Tundra dexes under Sword/Shield.
+    if (versionList.some((v) => v.id === group)) dexIdsByGroup.set(group, [...(dexIdsByGroup.get(group) ?? []), Number(r.pokedex_id)]);
+  }
+  const missingDex = versionList.filter((v) => !dexIdsByGroup.has(v.id));
+  if (missingDex.length) throw new Error(`No regional Pokédex for ${missingDex.map((v) => v.label).join(', ')}`);
+  const dexName = new Map(pokedexProse.filter((r) => Number(r.local_language_id) === ENGLISH).map((r) => [Number(r.pokedex_id), r.name]));
+  const dexSpecies = groupBy(dexNumbers, (r) => Number(r.pokedex_id));
+  const usedDexIds = [...new Set([...dexIdsByGroup.values()].flat())].sort((a, b) => a - b);
+  const pokedexes = {
+    dexes: usedDexIds.map((id) => {
+      const entries = (dexSpecies.get(id) ?? []).map((r) => [Number(r.pokedex_number), Number(r.species_id)]).sort((a, b) => a[0] - b[0]);
+      if (!entries.length) throw new Error(`Pokédex ${id} has no species`);
+      return {
+        id,
+        // "Original Johto", "Updated Alola", "Let’s Go Kanto" → the region; "Central Kalos" stays.
+        name: (dexName.get(id) ?? String(id)).replace(/^(Original|Updated|Extended|New|Let’s Go) /, ''),
+        first: entries[0][0],
+        species: entries.map((e) => e[1]),
+      };
+    }),
+    groups: Object.fromEntries(versionList.map((v) => [v.id, dexIdsByGroup.get(v.id)!.sort((a, b) => a - b)])),
+  };
 
   // --- evolution chains ---
   const english = (rows: Row[], key: string) =>
@@ -1053,6 +1088,7 @@ async function main() {
   await writeFile(join(OUT, 'types.json'), JSON.stringify({ types: battleTypes.map((t) => t.identifier), matrix }));
   await writeFile(join(OUT, 'moves.json'), JSON.stringify(moveTable));
   await writeFile(join(OUT, 'versions.json'), JSON.stringify(versionList));
+  await writeFile(join(OUT, 'pokedexes.json'), JSON.stringify(pokedexes));
   await writeFile(join(OUT, 'items.json'), JSON.stringify(itemTable));
   await writeFile(join(OUT, 'abilities.json'), JSON.stringify(abilityGenTable));
   await writeFile(join(OUT, 'games.json'), JSON.stringify(gameList));

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
 import { missingSprites, spriteUrls, staleSpriteCaches } from '../src/data/spriteCache';
 
@@ -8,6 +9,13 @@ test('sprite list expands to media URLs per folder', () => {
     '/media/sprites/10034.webp',
     '/media/guide/tm.webp',
   ]);
+  assert.deepEqual(spriteUrls({ version: 'v1', files: { 'sprites/shiny': ['6'] } }), ['/media/sprites/shiny/6.webp']);
+});
+
+test('every species has a shiny sprite, and only species do', () => {
+  const index = JSON.parse(readFileSync('public/data/index.json', 'utf8')) as { id: number }[];
+  const shiny = readdirSync('public/media/sprites/shiny').filter((f) => f.endsWith('.webp')).map((f) => Number(f.slice(0, -5)));
+  assert.deepEqual(shiny.sort((a, b) => a - b), index.map((s) => s.id).sort((a, b) => a - b));
 });
 
 test('only sprites the cache lacks are fetched', () => {

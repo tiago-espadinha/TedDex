@@ -298,6 +298,7 @@ main:focus, .sheet:focus { outline: none; }
 .topbar h1 { margin: 0; font-size: 22px; font-weight: 800; }
 .topbar .sub { font-size: 13px; font-weight: 600; color: var(--muted); }
 .topbar .grow { flex: 1; min-width: 0; }
+.topbar .text-btn { min-height: 44px; }
 .topbar .head-title { flex: none; max-width: 45%; margin-right: 8px; }
 :is(.topbar .head-title h1, .topbar .team-name) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* The team name is its rename button; on the 30 px line, its ::after stretches the tap area to 44 px (the span ellipsizes). */
@@ -774,13 +775,6 @@ a.move-row.tinted { color: var(--on-tint); }
 .slot .meta { font-size: 12px; font-weight: 600; color: var(--on-tint-2); margin-top: 2px; }
 .slot .chips { display: flex; gap: 4px; margin-top: 4px; }
 .slot .icon-btn { color: var(--on-tint-2); }
-/* The link covers the name and sprites; the rename button sits over its top-right corner. */
-.team-entry { position: relative; display: block; padding: 0; }
-.team-entry > a { display: flex; flex-direction: column; gap: 2px; padding: 14px; border-radius: inherit; color: inherit; text-decoration: none; }
-.team-entry :is(.name, .meta) { padding-right: 42px; }
-.team-entry > a:focus-visible { outline-offset: -2px; }
-.team-entry .name { overflow-wrap: anywhere; }
-.team-entry > .icon-btn { position: absolute; top: 6px; right: 6px; }
 /* Teams list: 100 px rows, the name over the tops of 80 px sprites that overlap when six don't fit side by side. */
 .team-list-row { position: relative; display: block; height: 100px; padding: 0; overflow: hidden; }
 .team-list-row:focus-visible { outline-offset: -2px; }
@@ -791,6 +785,17 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-list-row .minis > span:last-child { flex-shrink: 0; }
 .team-list-row .minis img { display: block; width: 80px; height: 80px; image-rendering: pixelated; }
 .list.with-fab { padding-bottom: 88px; }
+/* Pokédex list and new-Pokédex games: 100 px rows, the device art at 80 px, the name over the game, caught on the right. */
+.dex-row { height: 100px; padding: 0 16px 0 10px; width: 100%; font: inherit; text-align: left; cursor: pointer; }
+.dex-row:focus-visible { outline-offset: -2px; }
+.dex-row .head { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dex-row :is(.name, .meta) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dex-art { flex: none; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+.dex-art img { width: 80px; height: 80px; object-fit: contain; }
+.dex-art svg { width: 64px; height: 64px; padding: 12px; border-radius: 16px; background: var(--primary-soft); color: var(--primary-soft-ink); }
+:is(.dex-row, .dex-top) .caught { flex: none; display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+:is(.dex-row, .dex-top) .caught b { color: var(--ink); font-weight: 800; }
+.dex-games { margin: 0; list-style: none; }
 /* A member card is one link to the editor, on its first type's tint; the remove button sits over its top-right corner. */
 .team-members { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .team-mon { position: relative; padding-bottom: 10px; border-radius: var(--radius-card); color: var(--on-tint); }
@@ -821,15 +826,21 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-tabs a { display: flex; align-items: center; justify-content: center; text-decoration: none; }
 
 /* Pokédex tracker: counts, then a grid of species cells that cycle not seen → seen → caught → shiny. */
-.dex-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.dex-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink-2); }
-.dex-count b { font-size: 20px; font-weight: 800; color: var(--ink); }
-.dex-count svg { align-self: center; }
-.dex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; margin: 0; padding: 0 16px 16px; list-style: none; }
-.dex-cell { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 84px; padding: 4px 2px 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--muted); transition: transform 120ms; }
+.dex-top { position: sticky; top: 0; z-index: 10; margin-top: calc(-1 * var(--safe-top)); padding-top: calc(var(--safe-top) + 8px); background: var(--bg); }
+.dex-top .caught { padding: 0 8px; }
+.dex-title { position: relative; }
+.dex-title .team-name button { position: static; }
+.dex-title .team-name button::after { inset: -4px 0; }
+.dex-switch { overflow-x: auto; scrollbar-width: none; padding: 4px 16px 0; }
+.dex-switch .segmented { height: 44px; --seg-r: 22px; min-width: 100%; width: max-content; grid-auto-columns: minmax(max-content, 1fr); }
+.dex-switch .segmented button { padding: 0 14px; white-space: nowrap; }
+.dex-search { display: flex; padding: 10px 16px; }
+.dex-states .gen-btn { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.dex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; margin: 0; padding: 0 16px 88px; list-style: none; }
+.dex-cell { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 108px; padding: 6px 4px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--muted); transition: transform 120ms; }
 .dex-cell:active { transform: scale(0.95); }
-.dex-cell img { width: 56px; height: 56px; image-rendering: pixelated; }
-.dex-cell .no { font-size: 12px; font-weight: 700; }
+.dex-cell img { width: 72px; height: 72px; image-rendering: pixelated; }
+.dex-cell .no { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; }
 .dex-cell .badge { position: absolute; top: 5px; right: 5px; display: flex; }
 .dex-cell.s0 img { filter: var(--silhouette); }
 .dex-cell.s1 { color: var(--ink-2); }
@@ -950,7 +961,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav { box-shadow: 0 -1px 0 var(--line); }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-count, .dex-cell, .evo-list, .learner-row img, .league-team, .picker-list,
+[data-design='b'] :is(.search, .filter-chip, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .league-team, .picker-list,
   .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .league-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }

@@ -12,7 +12,8 @@
     "data": "tsx scripts/build-data.ts",
     "media": "tsx scripts/build-media.ts",
     "league": "tsx scripts/build-league.ts",
-    "item-places": "tsx scripts/build-item-places.ts"
+    "item-places": "tsx scripts/build-item-places.ts",
+    "dex-sprites": "tsx scripts/build-dex-sprites.ts"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.14.19",

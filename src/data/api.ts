@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type {
   AbilityNameTable, AbilityTable, EvolutionMember, Game, IndexEntry, ItemPlaces, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary,
-  MoveReference, MoveTable, SpeciesDetail, TypeData, TypeName, VersionGroup,
+  MoveReference, MoveTable, Pokedexes, SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from './types';
 import { chunkPath, unpackLearnsets, unpackLocations, type ChunkKind, type PackedLearnsets, type PackedLocations } from './chunks';
 
@@ -40,6 +40,7 @@ export const loadSpecies = (id: number) => plainEntry<SpeciesDetail>('species', 
 export const loadLearnsets = (id: number) => getEntry('learnsets', id, (file: Record<number, PackedLearnsets>) => file[id] && unpackLearnsets(file[id]));
 export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
+export const loadPokedexes = () => getJson<Pokedexes>('/data/pokedexes.json');
 export const loadItems = () => getJson<ItemTable>('/data/items.json');
 export const loadEvolution = (chainId: number) => plainEntry<EvolutionMember[]>('evolution', chainId);
 export const loadLocations = (id: number) => getEntry('locations', id, (file: PackedLocations) => unpackLocations(file, id));
@@ -74,10 +75,12 @@ export function useLoad<T>(loader: () => Promise<T>, key: unknown): { data?: T; 
 // ---- media (mirrored into /media by `npm run media`) ----
 // Sprites (Pokémon and items) are precached; artwork and cries are cached the first time they are seen.
 export const spriteUrl = (id: number) => `/media/sprites/${id}.webp`;
+export const shinySpriteUrl = (id: number) => `/media/sprites/shiny/${id}.webp`;
 export const artworkUrl = (id: number) => `/media/artwork/${id}.webp`;
 export const cryUrl = (id: number) => `/media/cries/${id}.m4a`;
 export const itemSpriteUrl = (id: number | string) => `/media/items/${id}.webp`;
 export const trainerSpriteUrl = (key: string) => `/media/trainers/${key}.webp`;
+export const dexSpriteUrl = (versionGroup: number) => `/media/dexes/${versionGroup}.webp`;
 
 // ---- type maths ----
 export function defensiveMultipliers(defTypes: TypeName[], data: TypeData): Record<TypeName, number> {
