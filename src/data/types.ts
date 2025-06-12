@@ -157,6 +157,9 @@ export type ItemTable = Record<number, { name: string; gen: number }>;
 /** abilities.json: ability id → English name and the generation that introduced it (as in reference/abilities.json). */
 export type AbilityNameTable = Record<number, { name: string; gen: number }>;
 
+/** egg-groups.json: egg group slug (`eggGroupSlug`) -> in-game name and its species (default forms), in national order. */
+export type EggGroupTable = Record<string, { name: string; species: number[] }>;
+
 /** Learn methods, as in a learnset. */
 export type LearnMethod = keyof Learnset;
 

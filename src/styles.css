@@ -556,6 +556,11 @@ main:focus, .sheet:focus { outline: none; }
 /* Chips keep their size; their rows spread over the tile's height (tiles in a row match the tallest one). */
 .fact .v:has(> .fact-chips) { flex: 1; display: flex; }
 .fact-chip { padding: 3px 10px; border-radius: 12px; color: var(--on-type); font-size: 13px; font-weight: 700; }
+/* Egg group chips open their page: the hit area grows to 44 px tall without moving the chip; wrapped rows sit 20 px apart so areas don't overlap. */
+.fact-chips:has(> a.fact-chip) { row-gap: 20px; }
+a.fact-chip { position: relative; text-decoration: none; }
+a.fact-chip::after { content: ''; position: absolute; inset: -10px -3px; }
+a.fact-chip:active { filter: brightness(0.9); }
 /* Catch rate and gender ratio bars: decorative, the values are in the text. */
 .fact-bar { display: flex; gap: 2px; height: 8px; margin: 8px 0 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
 .fact-bar > span { height: 100%; }

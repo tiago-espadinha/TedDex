@@ -17,6 +17,7 @@
  *   evolution/c<n>.json   evolution chain members with English condition text, loaded by the Evolution tab
  *   items.json            held items a team member can carry: item id -> English name, generation introduced
  *   abilities.json        ability id -> English name, generation introduced (as in reference/abilities.json), for team screens
+ *   egg-groups.json       egg group slug -> in-game name and its species (default forms) in national order, for the egg group pages
  *   reference/abilities.json  ability id -> name, short effect, full details, generation, species that have it (any form)
  *   reference/items.json      item id -> name, category, generation introduced, price (0 = not sold), short effect
  *                             (no "Held: " preamble), wild holders as [version group, species, rarity %]; every named item
@@ -34,8 +35,9 @@ import { join } from 'node:path';
 import { summariseSlots, type ConditionValue } from './encounters';
 import { POKEAPI_ITEM_CATEGORIES } from '../src/data/itemCategories';
 import { packLearnsets, packLocations, toChunks } from '../src/data/chunks';
+import { eggGroupSlug } from '../src/data/eggGroups';
 import { formKind, hasOwnFormData, REGIONAL_FORM } from '../src/data/forms';
-import type { EvolutionMember, Locations } from '../src/data/types';
+import type { EggGroupTable, EvolutionMember, Locations } from '../src/data/types';
 
 const CSV_BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv';
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -476,6 +478,7 @@ async function main() {
     for (const [n, chunk] of toChunks(entries)) await writeFile(join(OUT, dir, `c${n}.json`), JSON.stringify(pack(chunk)));
   };
   const speciesOut = new Map<number, unknown>();
+  const eggGroupTable: EggGroupTable = {};
   const learnsetsOut = new Map<number, unknown>();
 
   /** What a Pokémon (default or form) brings to battle, plus its size. */
@@ -671,6 +674,7 @@ async function main() {
       ...(forms && { forms }),
     };
     speciesOut.set(id, detail);
+    for (const name of detail.eggGroups) (eggGroupTable[eggGroupSlug(name)] ??= { name, species: [] }).species.push(id);
 
     const learnset = learnsetOf(p.id, id);
     // Megas, Primals and Gigantamax learn as the species; other forms keep their own list when a game differs.
@@ -1123,6 +1127,7 @@ async function main() {
   await writeFile(join(OUT, 'pokedexes.json'), JSON.stringify(pokedexes));
   await writeFile(join(OUT, 'items.json'), JSON.stringify(itemTable));
   await writeFile(join(OUT, 'abilities.json'), JSON.stringify(abilityGenTable));
+  await writeFile(join(OUT, 'egg-groups.json'), JSON.stringify(eggGroupTable));
   await writeFile(join(OUT, 'games.json'), JSON.stringify(gameList));
   await writeFile(join(OUT, 'reference', 'abilities.json'), JSON.stringify(abilityTable));
   await writeFile(join(OUT, 'reference', 'items.json'), JSON.stringify(itemReference));

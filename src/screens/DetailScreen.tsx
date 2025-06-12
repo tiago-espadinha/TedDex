@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { compareFrom } from '../data/compare';
 import { toggleFavourite } from '../data/db';
+import { EGG_GROUP_COLOR, eggGroupSlug } from '../data/eggGroups';
 import { useIsFavourite } from '../data/favourites';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
@@ -283,20 +284,14 @@ function FactBar({ parts }: { parts: [width: number, className: string, color?: 
   );
 }
 
-/** Chip colours borrowed from the type chips (white text passes 4.5:1 on each). */
-const EGG_GROUP_COLOR: Record<string, TypeName> = {
-  Monster: 'fire', 'Water 1': 'water', 'Water 2': 'water', 'Water 3': 'water', Bug: 'bug', Flying: 'flying', Field: 'ground',
-  Fairy: 'fairy', Grass: 'grass', 'Human-Like': 'fighting', Mineral: 'rock', Amorphous: 'ghost', Dragon: 'dragon', Ditto: 'psychic',
-};
-
-function Chips({ items }: { items: [text: string, color: TypeName][] }) {
+/** Fact chips; one with a link (egg groups) opens that page. */
+function Chips({ items }: { items: [text: string, color: TypeName, to?: string][] }) {
   return (
     <span className="fact-chips">
-      {items.map(([t, c]) => (
-        <span key={t} className="fact-chip" style={{ backgroundColor: typeChip(c) }}>
-          {t}
-        </span>
-      ))}
+      {items.map(([t, c, to]) => {
+        const props = { className: 'fact-chip', style: { backgroundColor: typeChip(c) }, children: t };
+        return to ? <Link key={t} to={to} {...props} /> : <span key={t} {...props} />;
+      })}
     </span>
   );
 }
@@ -341,7 +336,7 @@ function About({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
         <h2>Breeding</h2>
         <div className="facts">
           <Fact k="Egg groups">
-            <Chips items={mon.eggGroups.map((g) => [g, EGG_GROUP_COLOR[g] ?? 'normal'])} />
+            <Chips items={mon.eggGroups.map((g) => [g, EGG_GROUP_COLOR[g], `/reference/egg-groups/${eggGroupSlug(g)}`])} />
           </Fact>
           <Fact k="Gender ratio">
             <GenderRatio rate={mon.genderRate} />
