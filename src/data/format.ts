@@ -1,3 +1,5 @@
+import type { StatBlock } from './types';
+
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
 export const roman = (n: number) => ROMAN[n] ?? String(n);
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -38,3 +40,16 @@ export const formatPrice = (cost: number) => (cost > 0 ? `₽${cost.toLocaleStri
 
 /** A base stat bar's colour: high from 90, mid from 60, else low. */
 export const statColor = (v: number) => (v >= 90 ? 'var(--stat-high)' : v >= 60 ? 'var(--stat-mid)' : 'var(--stat-low)');
+
+/** Base stat keys with their labels, in game order. */
+export const STAT_ROWS: [keyof StatBlock, string][] = [
+  ['hp', 'HP'],
+  ['atk', 'Attack'],
+  ['def', 'Defense'],
+  ['spa', 'Sp. Atk'],
+  ['spd', 'Sp. Def'],
+  ['spe', 'Speed'],
+];
+
+/** A score with its sign: 2 → "+2", −1 → "−1" (a minus sign), 0 → "0". */
+export const formatScore = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0');

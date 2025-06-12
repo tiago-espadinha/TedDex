@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { catchChance, evYieldParts, formatPrice, genderText } from '../src/data/format';
+import { catchChance, evYieldParts, formatPrice, formatScore, genderText } from '../src/data/format';
 
 test('EV yield lists the stats in stat order', () => {
   assert.deepEqual(evYieldParts({ spa: 1 }), [{ stat: 'spa', text: '1 Sp. Atk' }]);
@@ -29,4 +29,10 @@ test('prices in Pokédollars, a dash when not sold', () => {
   assert.equal(formatPrice(200), '₽200');
   assert.equal(formatPrice(4000), '₽4,000');
   assert.equal(formatPrice(0), '—');
+});
+
+test('a score carries its sign, with a minus sign for negatives', () => {
+  assert.equal(formatScore(2), '+2');
+  assert.equal(formatScore(-1), '\u22121');
+  assert.equal(formatScore(0), '0');
 });

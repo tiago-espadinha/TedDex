@@ -6,7 +6,7 @@ import { addToTeam, currentTeamId, db } from '../data/db';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText, statColor } from '../data/format';
-import { typeChip, typeTint } from '../data/typeColors';
+import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useToast } from '../components/bits';
@@ -285,7 +285,6 @@ function FactBar({ parts }: { parts: [width: number, className: string, color?: 
 }
 
 /** Chip colours borrowed from the type chips (white text passes 4.5:1 on each). */
-const EV_COLOR: Record<keyof SpeciesDetail['stats'], TypeName> = { hp: 'fighting', atk: 'fire', def: 'electric', spa: 'water', spd: 'grass', spe: 'fairy' };
 const EGG_GROUP_COLOR: Record<string, TypeName> = {
   Monster: 'fire', 'Water 1': 'water', 'Water 2': 'water', 'Water 3': 'water', Bug: 'bug', Flying: 'flying', Field: 'ground',
   Fairy: 'fairy', Grass: 'grass', 'Human-Like': 'fighting', Mineral: 'rock', Amorphous: 'ghost', Dragon: 'dragon', Ditto: 'psychic',
@@ -329,7 +328,7 @@ function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail })
         <h2>Training</h2>
         <div className="facts">
           <Fact k="Leveling rate">{mon.growthRate}</Fact>
-          <Fact k="EV yield">{ev.length ? <Chips items={ev.map((p) => [p.text, EV_COLOR[p.stat]])} /> : 'None'}</Fact>
+          <Fact k="EV yield">{ev.length ? <Chips items={ev.map((p) => [p.text, STAT_COLOR[p.stat]])} /> : 'None'}</Fact>
           <Fact k="Catch rate" wide>
             <span className="catch-line">
               {mon.catchRate}

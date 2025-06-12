@@ -38,12 +38,16 @@ export const NATURES: Nature[] = [
 ];
 
 /** Each stat's flavour: a nature likes the flavour of the stat it raises and dislikes that of the one it lowers. */
-const FLAVOR: Record<Stat, string> = { atk: 'Spicy', def: 'Sour', spa: 'Dry', spd: 'Bitter', spe: 'Sweet' };
+const FLAVOR: Record<Stat, Flavor> = { atk: 'Spicy', def: 'Sour', spa: 'Dry', spd: 'Bitter', spe: 'Sweet' };
+export const FLAVORS = ['Spicy', 'Dry', 'Sweet', 'Bitter', 'Sour'] as const;
+export type Flavor = (typeof FLAVORS)[number];
+/** Flavour chip colour (`--flavor-<name>` in `src/styles.css`, white text), the games' Pokéblock colours. */
+export const flavorChip = (f: Flavor) => `var(--flavor-${f.toLowerCase()})`;
 export const likedFlavor = (n: Nature) => (n.up && n.down ? FLAVOR[n.up] : undefined);
 export const dislikedFlavor = (n: Nature) => (n.up && n.down ? FLAVOR[n.down] : undefined);
 
-const SHORT: Record<Stat, string> = { atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe' };
+export const STAT_ABBR: Record<Stat, string> = { atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe' };
 
 /** "Adamant (+Atk −SpA)", or "Hardy (neutral)". */
 export const natureLabel = (n: Nature) =>
-  n.up && n.down ? `${n.name} (+${SHORT[n.up]} −${SHORT[n.down]})` : `${n.name} (neutral)`;
+  n.up && n.down ? `${n.name} (+${STAT_ABBR[n.up]} −${STAT_ABBR[n.down]})` : `${n.name} (neutral)`;

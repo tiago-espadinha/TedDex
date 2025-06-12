@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { FLAVORS } from '../src/data/natures';
 import { TYPE_NAMES } from '../src/data/typeColors';
 
 const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
@@ -90,4 +91,31 @@ test('Design A dark tints are darker than the light ones, the same in both dark 
     declarations(darkBlocks["data-theme='dark'"]),
     'both Design A dark blocks set the same tokens',
   );
+});
+
+const designB = blockAfter(":root[data-design='b'] {");
+
+test('every flavour has a chip token in :root and Design B, white text passes 4.5:1, Design A dark keeps the light ones', () => {
+  for (const [name, block] of Object.entries({ 'Design A': rootBlock, 'Design B': designB })) {
+    for (const f of FLAVORS) {
+      const hex = token(block, `--flavor-${f.toLowerCase()}`);
+      assert.ok(hex, `${name}: --flavor-${f.toLowerCase()}`);
+      const ratio = contrastOnWhite(hex);
+      assert.ok(ratio >= 4.5, `${name}: ${f} ${hex} is ${ratio.toFixed(2)}:1`);
+    }
+  }
+  for (const [name, block] of Object.entries(darkBlocks)) assert.doesNotMatch(block, /--flavor-/, name);
+});
+
+test('the natures headers (--resist-ink, --weak-ink) pass 4.5:1 on --surface in every design', () => {
+  for (const [name, block] of Object.entries({ light: rootBlock, ...darkBlocks, 'Design B': designB })) {
+    const surface = token(block, '--surface');
+    assert.ok(surface, `${name}: --surface`);
+    for (const ink of ['--resist-ink', '--weak-ink']) {
+      const hex = token(block, ink);
+      assert.ok(hex, `${name}: ${ink}`);
+      const ratio = contrast(hex, surface);
+      assert.ok(ratio >= 4.5, `${name}: ${ink} ${hex} on ${surface} is ${ratio.toFixed(2)}:1`);
+    }
+  }
 });

@@ -9,9 +9,9 @@ import { resolveGame } from '../data/game';
 import { useGame } from '../data/settings';
 import { cap, formatMultiplier, formatNo, formatPrice, roman, signed } from '../data/format';
 import { activeItemFilters, filterItems, itemFilterParams, readItemFilters } from '../data/itemFilter';
-import { NATURES, dislikedFlavor, likedFlavor } from '../data/natures';
+import { NATURES, STAT_ABBR, dislikedFlavor, flavorChip, likedFlavor, type Flavor } from '../data/natures';
 import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
-import { typeChip, typeTint } from '../data/typeColors';
+import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { CategoryIcon, Loading, SearchField, TypeChip } from '../components/bits';
@@ -241,7 +241,7 @@ function EntryBody({ entry: e }: { entry: Entry }) {
   if (e.item) {
     return (
       <>
-        <img className="item-sprite" src={itemSpriteUrl(e.id)} alt="" width={40} height={40} loading="lazy" />
+        <img className="item-sprite" src={itemSpriteUrl(e.id)} alt="" width={64} height={64} loading="lazy" />
         <span className="body">
           <span className="name">{e.name}</span>
           <span className="meta one-line">{e.item.effect || e.item.category}</span>
@@ -615,30 +615,53 @@ function TableHead({ title, sub }: { title: string; sub: string }) {
   );
 }
 
+/** A natures table cell: the stat or flavour as a coloured chip, or — for the neutral natures. */
+function NatureCell({ text, color }: { text?: ReactNode; color?: string }) {
+  return <td>{text ? <span className="fact-chip" style={{ backgroundColor: color }}>{text}</span> : '—'}</td>;
+}
+
+/** Stat names as a screen reader should say them. */
+const STAT_SPOKEN = { atk: 'Attack', def: 'Defense', spa: 'Special Attack', spd: 'Special Defense', spe: 'Speed' };
+
+/** A raised or lowered stat, short so the five columns fit a phone, with its full name for screen readers. */
+function NatureStat({ stat }: { stat?: keyof typeof STAT_NAMES }) {
+  const text = stat && (
+    <>
+      <span aria-hidden="true">{STAT_ABBR[stat]}</span>
+      <span className="sr-only">{STAT_SPOKEN[stat]}</span>
+    </>
+  );
+  return <NatureCell text={text} color={stat && typeChip(STAT_COLOR[stat])} />;
+}
+
+function NatureFlavor({ flavor }: { flavor?: Flavor }) {
+  return <NatureCell text={flavor} color={flavor && flavorChip(flavor)} />;
+}
+
 /** Every nature with the stat it raises and lowers and the flavours it likes and dislikes; neutral ones show —. */
 function NatureTable() {
   return (
     <>
       <TableHead title="Natures" sub={`${NATURES.length} natures · ±10% to one stat`} />
-      <div className="ref-table">
+      <div className="ref-table natures">
         <table>
           <thead>
             <tr>
               <th scope="col">Nature</th>
-              <th scope="col">Increased</th>
-              <th scope="col">Decreased</th>
-              <th scope="col">Likes</th>
-              <th scope="col">Dislikes</th>
+              <th scope="col" className="up">Increased</th>
+              <th scope="col" className="down">Decreased</th>
+              <th scope="col" className="up">Likes</th>
+              <th scope="col" className="down">Dislikes</th>
             </tr>
           </thead>
           <tbody>
             {NATURES.map((n) => (
               <tr key={n.name}>
                 <th scope="row">{n.name}</th>
-                <td className={n.up && 'up'}>{n.up ? STAT_NAMES[n.up] : '—'}</td>
-                <td className={n.down && 'down'}>{n.down ? STAT_NAMES[n.down] : '—'}</td>
-                <td>{likedFlavor(n) ?? '—'}</td>
-                <td>{dislikedFlavor(n) ?? '—'}</td>
+                <NatureStat stat={n.up} />
+                <NatureStat stat={n.down} />
+                <NatureFlavor flavor={likedFlavor(n)} />
+                <NatureFlavor flavor={dislikedFlavor(n)} />
               </tr>
             ))}
           </tbody>
