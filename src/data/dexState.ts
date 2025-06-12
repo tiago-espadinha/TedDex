@@ -19,8 +19,12 @@ export const SORT_LABELS: Record<SortKey, string> = {
   weight: 'Weight',
 };
 
+/** A Dex category: a data tag, or the user's favourites. */
+export type DexCategory = Category | 'favourite';
+
 /** Quick categories in the order the filter sheet shows them. */
-export const CATEGORY_LABELS: Record<Category, string> = {
+export const CATEGORY_LABELS: Record<DexCategory, string> = {
+  favourite: 'Favourites',
   starter: 'Starters',
   mega: 'Megas',
   fossil: 'Fossils',
@@ -53,7 +57,7 @@ export interface DexFilters {
   types: TypeName[];
   sort: SortKey;
   /** One quick category at a time, combined with the other filters. */
-  category: Category | null;
+  category: DexCategory | null;
   /** The global game whose limit (species up to its generation) was lifted; another game brings a limit back. */
   liftedGame: number | null;
 }

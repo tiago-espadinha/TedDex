@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { BackupError, checkKnownForms, checkKnownGames, checkKnownIds, parseBackup, parsePokedexes, teamGodMode } from '../src/data/db';
+import {
+  BackupError,
+  checkKnownFavouriteForms,
+  checkKnownForms,
+  checkKnownGames,
+  checkKnownIds,
+  parseBackup,
+  parseFavourites,
+  parsePokedexes,
+  teamGodMode,
+} from '../src/data/db';
 import type { MoveTable, SpeciesDetail, VersionGroup } from '../src/data/types';
 
 const backup = (teams: unknown) => JSON.stringify({ app: 'material-dex', version: 4, teams });
@@ -291,5 +301,48 @@ describe('parsePokedexes', () => {
   test('checkKnownGames names the Pokédex with an unknown game', () => {
     const versions = [{ id: 1, label: 'Red / Blue', gen: 1 }] as VersionGroup[];
     assert.throws(() => checkKnownGames([{ game: 1 }, {}, { game: 99 }], versions), /Pokédex 3 in the file has an unknown game/);
+  });
+});
+
+describe('parseFavourites', () => {
+  const v8 = (favourites: unknown) => JSON.stringify({ app: 'material-dex', version: 8, teams: [], pokedexes: [], favourites });
+  const rejectsFav = (json: string, message: RegExp) =>
+    assert.throws(
+      () => parseFavourites(json),
+      (e: unknown) => e instanceof BackupError && message.test(e.message),
+    );
+
+  test('round-trips species and forms, storing the default form as an empty key', () => {
+    assert.deepEqual(parseFavourites(v8([{ speciesId: 1 }, { speciesId: 6, formKey: 'mega-x' }])), [
+      { speciesId: 1, formKey: '' },
+      { speciesId: 6, formKey: 'mega-x' },
+    ]);
+  });
+
+  test('older backups have no favourites', () => {
+    for (const version of [1, 4, 6, 7]) {
+      assert.deepEqual(parseFavourites(JSON.stringify({ app: 'material-dex', version, teams: [], pokedexes: [] })), []);
+    }
+  });
+
+  test('rejects a list that is not a list', () => {
+    for (const favourites of [{}, 'x', null]) rejectsFav(v8(favourites), /favourites in the file are not a list/);
+  });
+
+  test('rejects unknown species, invalid forms and repeats', () => {
+    for (const speciesId of [0, 1026, 2.5, '25', null]) rejectsFav(v8([{ speciesId: 1 }, { speciesId }]), /Favourite 2 in the file is not a known Pokémon/);
+    rejectsFav(v8([null]), /Favourite 1 in the file is not a known Pokémon/);
+    for (const formKey of [3, null, 'x'.repeat(41)]) rejectsFav(v8([{ speciesId: 6, formKey }]), /Favourite 1 in the file has an invalid form/);
+    rejectsFav(v8([{ speciesId: 6, formKey: 'mega-x' }, { speciesId: 6, formKey: 'mega-x' }]), /Favourite 2 in the file is listed twice/);
+    rejectsFav(v8([{ speciesId: 25 }, { speciesId: 25, formKey: '' }]), /Favourite 2 in the file is listed twice/);
+  });
+
+  test('checkKnownFavouriteForms rejects a form the species does not have', () => {
+    const species = new Map([[38, { id: 38, forms: [{ key: '' }, { key: 'alola' }] } as SpeciesDetail]]);
+    assert.doesNotThrow(() => checkKnownFavouriteForms(parseFavourites(v8([{ speciesId: 38, formKey: 'alola' }, { speciesId: 6 }])), species));
+    assert.throws(
+      () => checkKnownFavouriteForms(parseFavourites(v8([{ speciesId: 38 }, { speciesId: 38, formKey: 'galar' }])), species),
+      (e: unknown) => e instanceof BackupError && e.message === 'Favourite 2 in the file has an unknown form',
+    );
   });
 });

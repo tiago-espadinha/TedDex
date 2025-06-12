@@ -450,6 +450,10 @@ main:focus, .sheet:focus { outline: none; }
 .detail-hero .bar { display: flex; justify-content: space-between; padding: 4px 8px; }
 .detail-hero .bar .icon-btn { color: var(--on-tint); }
 .detail-hero .bar .icon-btn:active { background: var(--tint-press); }
+/* The favourite heart fills instead of taking the pressed pill, which would sit badly on the type tint. */
+.detail-hero .bar .icon-btn.fav[aria-pressed='true'] { background: none; color: var(--on-tint); }
+.detail-hero .bar .icon-btn.fav[aria-pressed='true'] svg { fill: currentColor; }
+.detail-hero .bar .icon-btn.fav:active { background: var(--tint-press); }
 /* Number, name and types on the left; category level with the name, height and weight below it, on the right. */
 .detail-hero .title {
   display: grid; grid-template-columns: fit-content(65%) minmax(min-content, 1fr);

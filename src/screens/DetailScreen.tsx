@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, ty
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { compareFrom } from '../data/compare';
-import { addToTeam, currentTeamId, db } from '../data/db';
+import { toggleFavourite } from '../data/db';
+import { useIsFavourite } from '../data/favourites';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText, statColor } from '../data/format';
@@ -45,6 +46,10 @@ export function DetailScreen() {
   const navigate = useNavigate();
   const toast = useToast();
   const { prev, next } = neighbours(id, params.get('form') ?? undefined);
+  // The heart follows the form shown; an unknown ?form= shows the default form, so it hearts that.
+  const formParam = params.get('form');
+  const formKey = formParam && mon?.forms?.some((f) => f.key === formParam) ? formParam : '';
+  const favourite = useIsFavourite(id, formKey);
   // A sideways swipe on the hero steps through the Dex rows; the panel below pages through the tabs.
   const touch = useRef<Point | null>(null);
   const { ref: panelRef, target: selected, turn: showTab, handlers: swipe } = usePager<HTMLDivElement>(TABS.indexOf(tab), TABS.length, (i) => setTab(TABS[i]));
@@ -73,18 +78,6 @@ export function DetailScreen() {
     const t = (to + TABS.length) % TABS.length;
     showTab(t);
     document.getElementById(`tab-${TABS[t]}`)?.focus();
-  }
-
-  /** Adds this species, in the form shown (`formKey`), to the most recently edited team. */
-  async function addToCurrentTeam(formKey?: string) {
-    const teamId = await currentTeamId();
-    const team = await db.teams.get(teamId);
-    const ok = await addToTeam(teamId, id, formKey);
-    toast(
-      ok
-        ? { text: `Added to ${team?.name ?? 'team'}`, action: { label: 'View', href: `/teams/${teamId}` } }
-        : { text: `${team?.name ?? 'That team'} is full`, action: { label: 'Open', href: `/teams/${teamId}` } },
-    );
   }
 
   const [playing, setPlaying] = useState(false);
@@ -129,8 +122,14 @@ export function DetailScreen() {
             <Link className="icon-btn" aria-label="Compare" to={compareFrom({ id: mon.id, form: form?.key })}>
               <Icon name="compare" />
             </Link>
-            <button className="icon-btn" aria-label="Add to team" onClick={() => addToCurrentTeam(form?.key)}>
-              <Icon name="plus" />
+            <button
+              className="icon-btn fav"
+              aria-label="Favourite"
+              aria-pressed={!!favourite}
+              disabled={favourite === undefined}
+              onClick={() => toggleFavourite(id, formKey)}
+            >
+              <Icon name="heart" />
             </button>
           </div>
         </div>
