@@ -144,6 +144,11 @@ export interface EvolutionMember {
   from: number | null;
   /** English condition text, one entry per distinct method. Empty for the base. */
   conditions: string[];
+  /**
+   * Evolutions that need or give a form we ship: from the parent's form key into this species' form key ('' = default),
+   * e.g. Alolan Sandslash: { from: 'alola', into: 'alola', conditions: ['Use Ice Stone'] }.
+   */
+  steps?: { from: string; into: string; conditions: string[] }[];
 }
 
 /** items.json: held item id → English name and the generation that introduced it (as in reference/items.json). */
@@ -157,7 +162,7 @@ export type LearnMethod = keyof Learnset;
 
 /**
  * One move in reference/moves/c<n>.json: the in-game description, the full effect (paragraphs split by a blank line), and
- * who learns it: per method, [species id, bitmask of generations (bit n-1 = Gen n)], default forms, by species id.
+ * who learns it: per method, [species id, bitmask of generations (bit n-1 = Gen n)], a form's moves counting for its species, by species id.
  */
 export interface MoveReference {
   description: string;
@@ -218,8 +223,11 @@ export interface Game {
 /**
  * One area and method in one game. Text fields are indexes into `Locations.strings` (0 = none);
  * `rate` is the chance in percent under the best conditions (0 when unknown), and `upTo` is 1 when it depends on them.
+ * `form` names a form we don't ship ("Large Size"); `formKey`, present only on rows of a form we ship, is its `?form=` key.
  */
-export type EncounterRow = [area: number, method: number, min: number, max: number, rate: number, upTo: 0 | 1, note: number, form: number];
+export type EncounterRow = [
+  area: number, method: number, min: number, max: number, rate: number, upTo: 0 | 1, note: number, form: number, formKey?: number,
+];
 
 /** One species' encounters, unpacked from locations/c<n>.json by chunks.ts: wild encounters per game id (only games the species appears in). */
 export interface Locations {

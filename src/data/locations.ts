@@ -1,4 +1,5 @@
-import type { Game, Locations } from './types';
+import { hasOwnFormData, REGIONAL_FORM } from './forms';
+import type { EncounterRow, Game, Locations } from './types';
 
 export interface Encounter {
   area: string;
@@ -15,6 +16,22 @@ export interface Encounter {
 /** An encounter in a version group: `versions` names the games it is limited to, empty when it is in all of them. */
 export interface GroupEncounter extends Encounter {
   versions: string[];
+}
+
+/**
+ * Only the rows of form `formKey` ('' = the species), dropping games left empty. A regional form shows only its own
+ * rows (Alolan Golem has none); other forms without rows of their own (Megas, Zen Mode, Blade) are found as their species.
+ */
+export function locationsOfForm(data: Locations, formKey: string): Locations {
+  const keyOf = (row: EncounterRow) => (row[8] ? data.strings[row[8]] : '');
+  const hasRows = Object.values(data.games).some((rows) => rows.some((row) => keyOf(row) === formKey));
+  const key = hasOwnFormData(formKey) && (hasRows || REGIONAL_FORM.test(formKey)) ? formKey : '';
+  const games: Locations['games'] = {};
+  for (const [game, rows] of Object.entries(data.games)) {
+    const own = rows.filter((row) => keyOf(row) === key);
+    if (own.length) games[Number(game)] = own;
+  }
+  return { strings: data.strings, games };
 }
 
 /** A game's encounters with their strings looked up, in build order (by area, then method). */

@@ -27,13 +27,17 @@ export function toChunks<T>(entries: Iterable<[number, T]>): Map<number, Record<
 
 type LearnList = Learnset['level'] | number[];
 
-/** learnsets chunk entry: `lists` holds each distinct list; a game is [level, machine, tutor, egg] indexes into it. */
+/**
+ * learnsets chunk entry: `lists` holds each distinct list; a game is [level, machine, tutor, egg] indexes into it.
+ * `forms` holds the games of forms that learn other moves than the species (form key → games), into the same lists.
+ */
 export interface PackedLearnsets {
   lists: LearnList[];
   games: Record<number, [level: number, machine: number, tutor: number, egg: number]>;
+  forms?: Record<string, PackedLearnsets['games']>;
 }
 
-export function packLearnsets(learnsets: Learnsets): PackedLearnsets {
+export function packLearnsets(learnsets: Learnsets, forms: Record<string, Learnsets> = {}): PackedLearnsets {
   const lists: LearnList[] = [];
   const seen = new Map<string, number>();
   const ref = (list: LearnList) => {
@@ -42,15 +46,23 @@ export function packLearnsets(learnsets: Learnsets): PackedLearnsets {
     if (i === undefined) seen.set(key, (i = lists.push(list) - 1));
     return i;
   };
-  const games: PackedLearnsets['games'] = {};
-  for (const [game, l] of Object.entries(learnsets)) games[Number(game)] = [ref(l.level), ref(l.machine), ref(l.tutor), ref(l.egg)];
-  return { lists, games };
+  const pack = (sets: Learnsets) => {
+    const games: PackedLearnsets['games'] = {};
+    for (const [game, l] of Object.entries(sets)) games[Number(game)] = [ref(l.level), ref(l.machine), ref(l.tutor), ref(l.egg)];
+    return games;
+  };
+  const games = pack(learnsets);
+  const formGames = Object.entries(forms).map(([key, sets]) => [key, pack(sets)]);
+  return formGames.length ? { lists, games, forms: Object.fromEntries(formGames) } : { lists, games };
 }
 
-/** Inverse of packLearnsets. Games may share list arrays, so treat the result as read-only. */
-export function unpackLearnsets({ lists, games }: PackedLearnsets): Learnsets {
+/**
+ * Inverse of packLearnsets: the learnsets of form `formKey` when it learns its own moves, else the species'.
+ * Games may share list arrays, so treat the result as read-only.
+ */
+export function unpackLearnsets({ lists, games, forms }: PackedLearnsets, formKey?: string | null): Learnsets {
   const out: Learnsets = {};
-  for (const [game, [level, machine, tutor, egg]] of Object.entries(games)) {
+  for (const [game, [level, machine, tutor, egg]] of Object.entries((formKey && forms?.[formKey]) || games)) {
     out[Number(game)] = {
       level: lists[level] as Learnset['level'],
       machine: lists[machine] as number[],
@@ -69,8 +81,8 @@ export interface PackedLocations {
   species: Record<number, Locations['games']>;
 }
 
-/** The text columns of an EncounterRow: area, method, note, form. */
-const TEXT_COLUMNS = [0, 1, 6, 7] as const;
+/** The text columns of an EncounterRow: area, method, note, form, form key (only on some rows). */
+const TEXT_COLUMNS = [0, 1, 6, 7, 8] as const;
 
 export function packLocations(chunk: Record<number, Locations>): PackedLocations {
   const strings = [''];
@@ -86,7 +98,7 @@ export function packLocations(chunk: Record<number, Locations>): PackedLocations
     for (const [game, rows] of Object.entries(loc.games)) {
       games[Number(game)] = rows.map((row) => {
         const out = [...row] as EncounterRow;
-        for (const c of TEXT_COLUMNS) out[c] = ref(loc.strings[row[c]]);
+        for (const c of TEXT_COLUMNS) if (row[c] !== undefined) out[c] = ref(loc.strings[row[c]!]);
         return out;
       });
     }

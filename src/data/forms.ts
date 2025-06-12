@@ -1,4 +1,21 @@
-import type { FormVariant, IndexEntry, SpeciesDetail, StatBlock, TypeName } from './types';
+import type { FormKind, FormVariant, IndexEntry, SpeciesDetail, StatBlock, TypeName } from './types';
+
+/** Form keys of regional variants: "alola", "galar-zen", "paldea-aqua-breed"… */
+export const REGIONAL_FORM = /^(alola|galar|hisui|paldea)\b/;
+
+/** Which Dex switch shows a form as its own row: Gigantamax first ("amped-gmax"), then Megas and Primals ("curly-mega"). */
+export function formKind(key: string): FormKind {
+  if (/gmax$/.test(key)) return 'gmax';
+  if (/(^|-)mega($|-)/.test(key) || key === 'primal') return 'mega';
+  if (REGIONAL_FORM.test(key)) return 'regional';
+  return 'other';
+}
+
+/**
+ * Whether form `key` has moves and wild encounters of its own. Megas, Primals and Gigantamax change only in battle:
+ * they learn and are found as their species.
+ */
+export const hasOwnFormData = (key: string) => !!key && formKind(key) !== 'mega' && formKind(key) !== 'gmax';
 
 /**
  * The species as seen in form `key`: its name, types, stats, abilities, size and EV yield replaced by the

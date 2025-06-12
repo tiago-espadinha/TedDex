@@ -95,7 +95,7 @@ export function DetailScreen() {
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
   if (!mon) return <Loading minHeight="100dvh" />;
 
-  // Moves and Evolution stay species-level; the hero, About and Stats follow the chosen form.
+  // Every section follows the chosen form: Moves, Evolution and Locations use its own data when it has some.
   const { view, form, mediaId } = applyForm(mon, params.get('form'));
   const tint = typeTint(view.types[0]);
 
@@ -191,9 +191,9 @@ export function DetailScreen() {
 
       <div className="pager" {...swipe}>
         <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} ref={panelRef}>
-          {tab === 'About' && <About mon={view} species={mon} />}
+          {tab === 'About' && <About mon={view} formKey={formKey} />}
           {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
-          {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
+          {tab === 'Moves' && <MovesTab key={mon.id} mon={view} formKey={formKey} />}
         </div>
       </div>
       <div style={{ height: 24 }} />
@@ -310,8 +310,8 @@ function Fact({ k, wide, children }: { k: string; wide?: boolean; children: Reac
   );
 }
 
-/** Description, evolution and locations, then the Training and Breeding facts. Evolution and locations stay species-level. */
-function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail }) {
+/** Description, evolution and locations, then the Training and Breeding facts, all of `mon` in form `formKey`. */
+function About({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
   const ev = evYieldParts(mon.evYield);
   const female = (mon.genderRate / 8) * 100;
   return (
@@ -321,8 +321,8 @@ function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail })
           <p className="flavor">{mon.flavor}</p>
         </div>
       )}
-      <EvolutionTab mon={species} />
-      <LocationsTab key={species.id} mon={species} />
+      <EvolutionTab mon={mon} formKey={formKey} />
+      <LocationsTab key={mon.id} mon={mon} formKey={formKey} />
       <div className="section">
         <h2>Training</h2>
         <div className="facts">

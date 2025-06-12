@@ -37,7 +37,9 @@ const plainEntry = <T>(kind: ChunkKind, id: number) => getEntry(kind, id, (file:
 export const loadIndex = () => getJson<IndexEntry[]>('/data/index.json');
 export const loadTypes = () => getJson<TypeData>('/data/types.json');
 export const loadSpecies = (id: number) => plainEntry<SpeciesDetail>('species', id);
-export const loadLearnsets = (id: number) => getEntry('learnsets', id, (file: Record<number, PackedLearnsets>) => file[id] && unpackLearnsets(file[id]));
+/** A species' learnsets, or its form `formKey`'s when that form learns other moves. */
+export const loadLearnsets = (id: number, formKey?: string | null) =>
+  getEntry('learnsets', id, (file: Record<number, PackedLearnsets>) => file[id] && unpackLearnsets(file[id], formKey));
 export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
 export const loadPokedexes = () => getJson<Pokedexes>('/data/pokedexes.json');

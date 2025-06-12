@@ -1,6 +1,6 @@
 import { loadGames, loadLocations, loadVersions, useLoad } from '../data/api';
 import { resolveGame } from '../data/game';
-import { encountersInGroup } from '../data/locations';
+import { encountersInGroup, locationsOfForm } from '../data/locations';
 import { useGame } from '../data/settings';
 import type { SpeciesDetail } from '../data/types';
 import { Icon } from '../components/Icon';
@@ -10,7 +10,8 @@ const loadAll = (id: number) => Promise.all([loadLocations(id), loadGames(), loa
 
 const COVERAGE = 'Encounter data covers Red, Blue and Yellow to Sword and Shield. Brilliant Diamond, Shining Pearl, Legends: Arceus and Scarlet and Violet are not included.';
 
-export function LocationsTab({ mon }: { mon: SpeciesDetail }) {
+/** `mon` is the species as shown in form `formKey` (its name); the rows are that form's. */
+export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
   const { data, error } = useLoad(() => loadAll(mon.id), mon.id);
   const [chosen, setChosen] = useGame();
 
@@ -24,7 +25,8 @@ export function LocationsTab({ mon }: { mon: SpeciesDetail }) {
   }
   if (!data) return <Loading minHeight={160} />;
 
-  const [locations, allGames, versions] = data;
+  const [all, allGames, versions] = data;
+  const locations = locationsOfForm(all, formKey);
   const groups = versions.filter((vg) => allGames.some((g) => g.group === vg.id && locations.games[g.id]));
   const shown = resolveGame(
     groups.map((g) => g.id),
