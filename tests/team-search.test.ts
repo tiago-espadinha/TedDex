@@ -13,6 +13,11 @@ describe('teamMatches', () => {
     assert.ok(teamMatches('Sun', ['Alolan Raichu'], 'alolan'));
   });
 
+  test('matches a nickname', () => {
+    assert.ok(teamMatches('Rain', ['Pikachu', 'Sparky'], 'SPARK'));
+    assert.ok(!teamMatches('Rain', ['Pikachu', 'Sparky'], 'blaze'));
+  });
+
   test('matches part of the team name, ignoring accents and punctuation', () => {
     assert.ok(teamMatches('Trick Room', [], 'trick ro'));
     assert.ok(teamMatches('Poké Party', ['Eevee'], 'poke'));

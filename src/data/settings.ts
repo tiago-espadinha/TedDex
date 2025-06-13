@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
+import { GOD_MODE_KEY } from './db';
 import { parseFormKinds } from './dexState';
 import { parseGamePref, type GamePref } from './game';
 import type { FormKind } from './types';
@@ -52,6 +53,33 @@ function subscribeGame(listener: () => void) {
  * moves the others too.
  */
 export const useGame = () => [useSyncExternalStore(subscribeGame, () => game), setGame] as const;
+
+const godModeListeners = new Set<() => void>();
+function readGodMode() {
+  try {
+    return localStorage.getItem(GOD_MODE_KEY) === 'on';
+  } catch {
+    return false;
+  }
+}
+function setGodMode(on: boolean) {
+  try {
+    if (on) localStorage.setItem(GOD_MODE_KEY, 'on');
+    else localStorage.removeItem(GOD_MODE_KEY);
+  } catch {
+    /* ignore */
+  }
+  godModeListeners.forEach((l) => l());
+}
+function subscribeGodMode(listener: () => void) {
+  godModeListeners.add(listener);
+  return () => godModeListeners.delete(listener);
+}
+/**
+ * God mode: the member editor offers any move and any ability for every member. One device-wide choice, read on every
+ * render so the value Dexie's upgrade may write while the editor loads shows up.
+ */
+export const useGodMode = () => [useSyncExternalStore(subscribeGodMode, readGodMode), setGodMode] as const;
 
 export type SpriteStyle = 'sprite' | 'art';
 export const useSpriteStyle = () => usePref<SpriteStyle>('sprite-style', 'sprite');

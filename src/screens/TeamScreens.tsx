@@ -14,7 +14,7 @@ import {
   useLoad,
 } from '../data/api';
 import { averageStats, defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
-import { TEAM_SIZE, createTeam, db, removeFromTeam, renameTeam, setGodMode, type TeamMember } from '../data/db';
+import { NICKNAME_LENGTH, TEAM_SIZE, createTeam, db, memberTitle, removeFromTeam, renameTeam, type TeamMember } from '../data/db';
 import { STAT_ROWS, cap, formatMultiplier, formatNo, formatScore, statColor } from '../data/format';
 import { memberView, type MemberView } from '../data/forms';
 import { memberAbility } from '../data/memberOptions';
@@ -22,7 +22,7 @@ import { teamMatches } from '../data/teamSearch';
 import { typeTint } from '../data/typeColors';
 import type { AbilityNameTable, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField, TypeChip, useModalSheet, useToast } from '../components/bits';
+import { Loading, SearchField, TypeChip, useModalSheet } from '../components/bits';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 import { usePeek } from '../components/usePeek';
 
@@ -105,7 +105,7 @@ export function TeamsScreen() {
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
   // Member names come with the index and form species files; a search waits for them rather than missing.
-  const shown = query && !formsReady ? undefined : teams?.filter((t) => teamMatches(t.name, t.members.flatMap((m) => view?.(m)?.name ?? []), query));
+  const shown = query && !formsReady ? undefined : teams?.filter((t) => teamMatches(t.name, t.members.flatMap((m) => [view?.(m)?.name, m.nickname]).filter((n): n is string => !!n), query));
 
   return (
     <>
@@ -162,8 +162,23 @@ export function TeamTabs() {
   );
 }
 
-/** A sheet that renames a team or Pokédex; `onSave` runs only when the name changed. */
-export function RenameSheet({ noun, name: current, onSave, onClose }: { noun: string; name: string; onSave: (name: string) => void; onClose: () => void }) {
+/**
+ * A sheet that renames a team or Pokédex, or sets a member's nickname; `onSave` runs only when the name changed.
+ * `nickname` titles it "Nickname", takes up to NICKNAME_LENGTH characters (code points) and lets it be emptied to clear it.
+ */
+export function RenameSheet({
+  noun,
+  name: current,
+  nickname,
+  onSave,
+  onClose,
+}: {
+  noun: string;
+  name: string;
+  nickname?: boolean;
+  onSave: (name: string) => void;
+  onClose: () => void;
+}) {
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const [name, setName] = useState(current);
   const headingId = useId();
@@ -180,24 +195,27 @@ export function RenameSheet({ noun, name: current, onSave, onClose }: { noun: st
           }}
         >
           <div className="sheet-head">
-            <h2 id={headingId}>Rename {noun}</h2>
+            <h2 id={headingId}>{nickname ? 'Nickname' : `Rename ${noun}`}</h2>
             <button type="button" className="text-btn" onClick={() => close()}>
               Cancel
             </button>
           </div>
           <label className="search rename-field">
-            <span className="sr-only">{cap(noun)} name</span>
+            <span className="sr-only">{nickname ? `Nickname for ${noun}` : `${cap(noun)} name`}</span>
             <input
               data-autofocus
               value={name}
-              maxLength={40}
+              maxLength={nickname ? undefined : 40}
+              placeholder={nickname ? noun : undefined}
               autoComplete="off"
               enterKeyHint="done"
-              onChange={(e) => setName(e.target.value)}
+              // A longer nickname is refused rather than cut, so the caret, emoji and IME input stay whole.
+              onChange={(e) => (!nickname || [...e.target.value].length <= NICKNAME_LENGTH) && setName(e.target.value)}
               onFocus={(e) => e.target.select()}
             />
           </label>
-          <button className="primary-btn" disabled={!name.trim()}>
+          {nickname && <p className="hint">Up to {NICKNAME_LENGTH} characters. Leave it empty to clear it.</p>}
+          <button className="primary-btn" disabled={!nickname && !name.trim()}>
             Save
           </button>
         </form>
@@ -207,9 +225,6 @@ export function RenameSheet({ noun, name: current, onSave, onClose }: { noun: st
 }
 
 // ---------------- team editor ----------------
-const godModeText = (on: boolean) =>
-  on ? 'God mode on: any move, ability and item for every member' : 'God mode off: only legal moves, abilities and items';
-
 export function TeamEditor() {
   const id = Number(useParams().id);
   const team = useLiveQuery(() => db.teams.get(id).then((t) => t ?? null), [id]);
@@ -220,7 +235,6 @@ export function TeamEditor() {
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [renaming, setRenaming] = useState(false);
-  const toast = useToast();
 
   if (team === undefined) return <Loading />;
   if (!team) return <p className="empty">This team no longer exists.</p>;
@@ -239,21 +253,8 @@ export function TeamEditor() {
           </h1>
           <div className="sub">
             {team.members.length} of {TEAM_SIZE}
-            {team.godMode && ' · God mode'}
           </div>
         </div>
-        <button
-          className="icon-btn"
-          aria-label="God mode"
-          aria-pressed={team.godMode ?? false}
-          title={godModeText(team.godMode ?? false)}
-          onClick={async () => {
-            await setGodMode(id, !team.godMode);
-            toast({ text: godModeText(!team.godMode) });
-          }}
-        >
-          <Icon name="bolt" />
-        </button>
         <button
           className="icon-btn"
           aria-label={confirmDelete ? 'Confirm delete team' : 'Delete team'}
@@ -280,7 +281,7 @@ export function TeamEditor() {
           <ul className="team-members">
             {team.members.map((m, i) => {
               const mon = view?.(m);
-              const name = mon?.name ?? formatNo(m.speciesId);
+              const name = memberTitle(mon?.name ?? formatNo(m.speciesId), m.nickname);
               return (
                 <li key={`${m.speciesId}-${i}`} className="team-mon" style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}>
                   <Link to={`/teams/${id}/member/${i}`} className="evo-member">
