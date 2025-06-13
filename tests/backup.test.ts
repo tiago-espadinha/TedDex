@@ -6,10 +6,11 @@ import {
   checkKnownForms,
   checkKnownGames,
   checkKnownIds,
+  cleanNickname,
+  memberTitle,
   parseBackup,
   parseFavourites,
   parsePokedexes,
-  teamGodMode,
 } from '../src/data/db';
 import type { MoveTable, SpeciesDetail, VersionGroup } from '../src/data/types';
 
@@ -76,42 +77,27 @@ describe('parseBackup', () => {
     assert.deepEqual(parseBackup(oneMember({ speciesId: 1, moves: [1, 2, 3, 4] }))[0].members[0].moves, [1, 2, 3, 4]);
   });
 
-  test('round-trips team god mode, with an illegal move and ability', () => {
+  test('drops god mode from backups of every version, keeping illegal moves and abilities', () => {
     const member = { speciesId: 25, ability: 'Huge Power', moves: [147] };
-    const [team] = parseBackup(backup([{ name: 'A', members: [member], godMode: true }]));
-    assert.equal(team.godMode, true);
-    assert.deepEqual(team.members, [{ ...member, formKey: undefined, nature: undefined, item: undefined }]);
-    const again = parseBackup(backup([team]))[0];
-    assert.equal(again.godMode, true);
-    assert.deepEqual(again.members, team.members);
+    for (const version of [4, 5, 6, 9]) {
+      for (const godMode of [true, false, 'yes']) {
+        const [team] = parseBackup(JSON.stringify({ app: 'material-dex', version, teams: [{ name: 'A', members: [member], godMode }] }));
+        assert.equal('godMode' in team, false);
+        assert.deepEqual(team.members, [{ ...member, formKey: undefined, nature: undefined, item: undefined }]);
+      }
+    }
   });
 
-  test('stores god mode off as no god mode', () => {
-    assert.equal('godMode' in parseBackup(backup([{ name: 'A', members: [], godMode: false }]))[0], false);
-    assert.equal('godMode' in parseBackup(oneMember({ speciesId: 25 }))[0], false);
-    assert.equal('godMode' in parseBackup(oneMember({ speciesId: 25, godMode: false }))[0], false);
-  });
-
-  test('turns a team on when any member of an old backup had god mode, and drops the member flags', () => {
+  test('drops the per-member god mode of an old backup', () => {
     const old = JSON.stringify({
       app: 'material-dex',
       version: 3,
-      teams: [
-        { name: 'A', members: [{ speciesId: 1 }, { speciesId: 25, moves: [147], godMode: true }] },
-        { name: 'B', members: [{ speciesId: 4, godMode: false }] },
-      ],
+      teams: [{ name: 'A', members: [{ speciesId: 1 }, { speciesId: 25, moves: [147], godMode: true }, { speciesId: 4, godMode: 1 }] }],
     });
-    const [a, b] = parseBackup(old);
-    assert.equal(a.godMode, true);
-    assert.equal(a.members.some((m) => 'godMode' in m), false);
-    assert.equal('godMode' in b, false);
-    assert.equal(b.members.some((m) => 'godMode' in m), false);
-  });
-
-  test('rejects a god mode that is not true or false', () => {
-    rejects(backup([{ name: 'A', members: [], godMode: 'yes' }]), /^Team 1 in the file has an invalid god mode$/);
-    rejects(oneMember({ speciesId: 25, godMode: 'yes' }), /^Team 1 in the file: member 1 has an invalid god mode$/);
-    rejects(oneMember({ speciesId: 25, godMode: 1 }), /invalid god mode/);
+    const [team] = parseBackup(old);
+    assert.equal('godMode' in team, false);
+    assert.equal(team.members.length, 3);
+    assert.equal(team.members.some((m) => 'godMode' in m), false);
   });
 
   test('drops the team game of a version 5 or 6 backup and keeps the members', () => {
@@ -163,6 +149,32 @@ describe('parseBackup', () => {
     rejects(oneMember({ speciesId: 1, moves: [1, -2] }), /invalid moves/);
     rejects(oneMember({ speciesId: 1, moves: [1, 2, 3, 4, 5] }), /more than 4 moves/);
     rejects(oneMember({ speciesId: 1, moves: [1, 1] }), /repeated move/);
+  });
+
+  test('round-trips nicknames in a version 9 backup', () => {
+    const json = JSON.stringify({ app: 'material-dex', version: 9, teams: [{ name: 'A', members: [{ speciesId: 25, nickname: 'Sparky' }, { speciesId: 6, formKey: 'mega-x', nickname: '🔥 Blaze' }] }] });
+    const [team] = parseBackup(json);
+    assert.deepEqual(team.members.map((m) => m.nickname), ['Sparky', '🔥 Blaze']);
+    assert.deepEqual(parseBackup(backup([team]))[0].members, team.members);
+  });
+
+  test('imports members of version 1 to 8 backups without a nickname', () => {
+    for (let version = 1; version <= 8; version++) {
+      const [team] = parseBackup(JSON.stringify({ app: 'material-dex', version, teams: [{ name: 'A', members: [{ speciesId: 25 }] }] }));
+      assert.equal('nickname' in team.members[0], false);
+    }
+  });
+
+  test('trims nicknames and drops blank ones', () => {
+    assert.equal(parseBackup(oneMember({ speciesId: 25, nickname: '  Sparky ' }))[0].members[0].nickname, 'Sparky');
+    for (const nickname of ['', '   ']) assert.equal('nickname' in parseBackup(oneMember({ speciesId: 25, nickname }))[0].members[0], false);
+  });
+
+  test('rejects a nickname that is not a string or is over 12 characters', () => {
+    for (const nickname of [7, null, ['Sparky'], 'x'.repeat(13)]) rejects(oneMember({ speciesId: 25, nickname }), /^Team 1 in the file: member 1 has an invalid nickname$/);
+    // 12 code points, though 🐭 takes two UTF-16 units.
+    assert.equal(parseBackup(oneMember({ speciesId: 25, nickname: '⚡'.repeat(6) + '🐭'.repeat(6) }))[0].members[0].nickname?.length, 18);
+    assert.equal(parseBackup(oneMember({ speciesId: 25, nickname: ` ${'x'.repeat(12)} ` }))[0].members[0].nickname, 'x'.repeat(12));
   });
 
   test('names the team and member that failed', () => {
@@ -219,18 +231,6 @@ describe('checkKnownForms', () => {
     for (const member of [{ speciesId: 38, formKey: 'galar' }, { speciesId: 6, formKey: 'mega-x' }]) {
       assert.throws(check(member), (e: unknown) => e instanceof BackupError && e.message === 'Team 1 in the file: member 1 has an unknown form');
     }
-  });
-});
-
-describe('teamGodMode', () => {
-  test('reads the team flag', () => {
-    assert.equal(teamGodMode({ godMode: true, members: [] }), true);
-    assert.equal(teamGodMode({ members: [] }), false);
-  });
-
-  test('is on when any member has the old per-member flag', () => {
-    assert.equal(teamGodMode({ members: [{ speciesId: 1 }, { speciesId: 2, godMode: true }] }), true);
-    assert.equal(teamGodMode({ members: [{ speciesId: 1, godMode: false }] }), false);
   });
 });
 
@@ -344,5 +344,20 @@ describe('parseFavourites', () => {
       () => checkKnownFavouriteForms(parseFavourites(v8([{ speciesId: 38 }, { speciesId: 38, formKey: 'galar' }])), species),
       (e: unknown) => e instanceof BackupError && e.message === 'Favourite 2 in the file has an unknown form',
     );
+  });
+});
+
+describe('nicknames', () => {
+  test('cleanNickname trims, cuts to 12 characters and clears a blank one', () => {
+    assert.equal(cleanNickname('  Sparky  '), 'Sparky');
+    assert.equal(cleanNickname('Thunderbolt Mouse'), 'Thunderbolt');
+    assert.equal(cleanNickname('🐭'.repeat(13)), '🐭'.repeat(12));
+    assert.equal(cleanNickname('   '), undefined);
+  });
+
+  test('memberTitle puts the nickname after the species or form name', () => {
+    assert.equal(memberTitle('Pikachu', 'Sparky'), 'Pikachu · Sparky');
+    assert.equal(memberTitle('Mega Charizard X', 'Blaze'), 'Mega Charizard X · Blaze');
+    assert.equal(memberTitle('Pikachu'), 'Pikachu');
   });
 });

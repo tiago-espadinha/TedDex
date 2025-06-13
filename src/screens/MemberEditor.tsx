@@ -2,23 +2,28 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVersions, spriteUrl, useLoad } from '../data/api';
-import { MOVE_SLOTS, db, updateMember, type TeamMember } from '../data/db';
+import { MOVE_SLOTS, cleanNickname, db, memberTitle, updateMember, type TeamMember } from '../data/db';
 import { detailPath } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { NO_MOVE_FILTERS, activeMoveChoiceFilters, memberAbility, moveChoices, otherAbilities, type MoveChoiceFilters } from '../data/memberOptions';
 import { NATURES, natureLabel } from '../data/natures';
+import { useGodMode } from '../data/settings';
 import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip, useModalSheet } from '../components/bits';
+import { Loading, TypeChip, useModalSheet, useToast } from '../components/bits';
 import { usePeek } from '../components/usePeek';
 import { MoveChoiceFilterSheet } from './MoveChoiceFilterSheet';
 import { MoveCells, MoveHead } from './MovesTab';
+import { RenameSheet } from './TeamScreens';
 
 const loadAll = (id: number, formKey?: string) =>
   Promise.all([loadSpecies(id), loadLearnsets(id, formKey), loadMoves(), loadItems(), loadVersions()]);
 
-type Picking = { kind: 'item' } | { kind: 'ability' } | { kind: 'move' | 'move-filter'; slot: number };
+const godModeText = (on: boolean) =>
+  on ? 'God mode on: any move and ability for every member' : "God mode off: only each Pokémon's own moves and abilities";
+
+type Picking = { kind: 'nickname' } | { kind: 'item' } | { kind: 'ability' } | { kind: 'move' | 'move-filter'; slot: number };
 
 export function MemberEditor() {
   const params = useParams();
@@ -30,7 +35,8 @@ export function MemberEditor() {
     () => (member ? loadAll(member.speciesId, member.formKey) : Promise.resolve(undefined)),
     member && `${member.speciesId}|${member.formKey ?? ''}`,
   );
-  const godMode = team?.godMode ?? false;
+  const [godMode, setGodMode] = useGodMode();
+  const toast = useToast();
   // Every ability is only needed for god mode's picker.
   const { data: abilities, error: abilitiesError } = useLoad(() => (godMode ? loadAbilities() : Promise.resolve(undefined)), godMode);
   const [picking, setPicking] = useState<Picking>();
@@ -76,12 +82,28 @@ export function MemberEditor() {
           <Icon name="back" />
         </Link>
         <div className="grow">
-          <h1>{mon.name}</h1>
+          <h1 className="team-name">
+            <button aria-label={`Set nickname, ${memberTitle(mon.name, member.nickname)}`} onClick={() => setPicking({ kind: 'nickname' })}>
+              <span>{memberTitle(mon.name, member.nickname)}</span>
+            </button>
+          </h1>
           <div className="sub">
             {team.name}
             {godMode && ' · God mode'}
           </div>
         </div>
+        <button
+          className="icon-btn"
+          aria-label="God mode"
+          aria-pressed={godMode}
+          title={godModeText(godMode)}
+          onClick={() => {
+            setGodMode(!godMode);
+            toast({ text: godModeText(!godMode) });
+          }}
+        >
+          <Icon name="bolt" />
+        </button>
       </header>
 
       <div className="list">
@@ -173,6 +195,15 @@ export function MemberEditor() {
         {!choices.length && <p className="hint">No move data for {mon.name}.</p>}
       </Field>
 
+      {picking?.kind === 'nickname' && (
+        <RenameSheet
+          noun={mon.name}
+          name={member.nickname ?? ''}
+          nickname
+          onSave={(name) => save({ nickname: cleanNickname(name) })}
+          onClose={() => setPicking(undefined)}
+        />
+      )}
       {picking?.kind === 'item' && (
         <PickerSheet
           title="Held item"

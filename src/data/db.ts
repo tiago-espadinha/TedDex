@@ -6,23 +6,23 @@ import type { ItemTable, MoveTable, SpeciesDetail, VersionGroup } from './types'
 
 /**
  * A team slot. `formKey` is a key from the species' `forms` (absent for the default form), `nature`
- * a name from NATURES, `item` an items.json id, `moves` moves.json ids.
+ * a name from NATURES, `item` an items.json id, `moves` moves.json ids. `nickname` is trimmed, never blank,
+ * at most NICKNAME_LENGTH characters.
  */
 export interface TeamMember {
   speciesId: number;
   formKey?: string;
+  nickname?: string;
   ability?: string;
   nature?: string;
   item?: number;
   moves?: number[];
 }
 
-/** `godMode` lets the member editor pick any move and any ability for every member, not only the species' own. */
 export interface Team {
   id: number;
   name: string;
   members: TeamMember[];
-  godMode?: boolean;
   updatedAt: number;
 }
 
@@ -46,8 +46,19 @@ export interface Favourite {
   formKey: string;
 }
 
+/** localStorage key of the device's god mode ('on' or absent), read by useGodMode; v11 sets it for devices that had a team in god mode. */
+export const GOD_MODE_KEY = 'god-mode';
+
 export const TEAM_SIZE = 6;
 export const MOVE_SLOTS = 4;
+/** As in the games. Counted in code points, so most emoji count as one (flags and joined emoji as more). */
+export const NICKNAME_LENGTH = 12;
+
+/** A nickname as stored: trimmed, cut to NICKNAME_LENGTH characters, undefined when blank. */
+export const cleanNickname = (nickname: string) => [...nickname.trim()].slice(0, NICKNAME_LENGTH).join('').trim() || undefined;
+
+/** How a member is titled: "Pikachu · Sparky" with a nickname, else its species or form name. */
+export const memberTitle = (name: string, nickname?: string) => (nickname ? `${name} · ${nickname}` : name);
 
 class DexDB extends Dexie {
   teams!: EntityTable<Team, 'id'>;
@@ -76,15 +87,15 @@ class DexDB extends Dexie {
       );
     // v3: members may have a formKey. Every v2 member is a valid v3 member, so nothing to upgrade.
     this.version(3).stores({ teams: '++id, updatedAt' });
-    // v4: god mode moves from the member (an optional v3 field) to the team.
+    // v4: god mode moves from the member (an optional v3 field) to the team, on if any member was; v11 takes it on.
     this.version(4)
       .stores({ teams: '++id, updatedAt' })
       .upgrade((tx) =>
         tx
           .table('teams')
           .toCollection()
-          .modify((team: Team) => {
-            if (teamGodMode(team)) team.godMode = true;
+          .modify((team: Team & { godMode?: boolean }) => {
+            if (team.members.some((m) => (m as { godMode?: unknown }).godMode === true)) team.godMode = true;
             team.members.forEach((m) => delete (m as { godMode?: unknown }).godMode);
           }),
       );
@@ -105,6 +116,28 @@ class DexDB extends Dexie {
     this.version(8).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt' });
     // v9: favourites in their own table, one row per species and form.
     this.version(9).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' });
+    // v10: members may have a nickname. Every v9 member is a valid v10 member, so nothing to upgrade.
+    this.version(10).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' });
+    // v11: god mode is a device preference (GOD_MODE_KEY), no longer kept on the team; it starts on if any team had it.
+    this.version(11)
+      .stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' })
+      .upgrade(async (tx) => {
+        let anyOn = false;
+        await tx
+          .table('teams')
+          .toCollection()
+          .modify((team: Team & { godMode?: unknown }) => {
+            anyOn ||= team.godMode === true;
+            delete team.godMode;
+          });
+        if (anyOn) {
+          try {
+            localStorage.setItem(GOD_MODE_KEY, 'on');
+          } catch {
+            /* the preference just starts off */
+          }
+        }
+      });
   }
 }
 
@@ -151,11 +184,6 @@ export async function removeFromTeam(teamId: number, index: number) {
   if (!team) return;
   const members = team.members.filter((_, i) => i !== index);
   await db.teams.update(teamId, { members, updatedAt: Date.now() });
-}
-
-/** Turns god mode on or off for the whole team. */
-export async function setGodMode(teamId: number, on: boolean) {
-  await db.teams.update(teamId, { godMode: on || undefined, updatedAt: Date.now() });
 }
 
 /** Creates a Pokédex for `game` (a version group; absent for any game). */
@@ -205,19 +233,11 @@ export async function toggleFavourite(speciesId: number, formKey = '') {
   });
 }
 
-/**
- * Whether a team, stored or from a backup, is in god mode. Before v4 the flag was per member;
- * such a team is on if any member was.
- */
-export function teamGodMode(team: { godMode?: unknown; members: unknown[] }): boolean {
-  return team.godMode === true || team.members.some((m) => (m as { godMode?: unknown } | null)?.godMode === true);
-}
-
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
 export async function exportBackup(): Promise<string> {
   const [teams, pokedexes, favs] = await Promise.all([db.teams.toArray(), db.pokedexes.toArray(), db.favourites.toArray()]);
   const favourites = favs.map(({ speciesId, formKey }) => (formKey ? { speciesId, formKey } : { speciesId }));
-  return JSON.stringify({ app: 'material-dex', version: 8, teams, pokedexes, favourites }, null, 2);
+  return JSON.stringify({ app: 'material-dex', version: 9, teams, pokedexes, favourites }, null, 2);
 }
 
 /** Thrown by parseBackup; the message is shown to the user as is. */
@@ -227,15 +247,12 @@ const isInt = (v: unknown): v is number => Number.isInteger(v);
 const isSpecies = (v: unknown): v is number => isInt(v) && v >= 1 && v <= lastSpecies();
 const NATURE_NAMES = new Set(NATURES.map((n) => n.name));
 
-/**
- * What is wrong with a member, or null. Abilities and moves are checked for shape, not per species.
- * `godMode` is the per-member flag of backups before version 4.
- */
+/** What is wrong with a member, or null. Abilities and moves are checked for shape, not per species. */
 function memberProblem(m: unknown): string | null {
   if (typeof m !== 'object' || m === null) return 'is not a Pokémon';
-  const { speciesId, formKey, ability, nature, item, moves, godMode } = m as Record<string, unknown>;
+  const { speciesId, formKey, nickname, ability, nature, item, moves } = m as Record<string, unknown>;
   if (!isSpecies(speciesId)) return 'is not a known Pokémon';
-  if (godMode !== undefined && typeof godMode !== 'boolean') return 'has an invalid god mode';
+  if (nickname !== undefined && (typeof nickname !== 'string' || [...nickname.trim()].length > NICKNAME_LENGTH)) return 'has an invalid nickname';
   if (formKey !== undefined && (typeof formKey !== 'string' || formKey.length > 40)) return 'has an invalid form';
   if (ability !== undefined && (typeof ability !== 'string' || ability.length > 40)) return 'has an invalid ability';
   if (nature !== undefined && !NATURE_NAMES.has(nature as string)) return 'has an unknown nature';
@@ -248,9 +265,9 @@ function memberProblem(m: unknown): string | null {
 }
 
 /**
- * Validates an exported backup (version 1 to 8). Throws BackupError on the first problem, so a bad
+ * Validates an exported backup (version 1 to 9; nicknames from 9). Throws BackupError on the first problem, so a bad
  * file writes nothing. Teams without a name get "Team N" numbered after `existing`; the team game of
- * versions 5 and 6 is dropped.
+ * versions 5 and 6 and the god mode of versions 1 to 9 (per member before 4, then per team) are dropped. Nicknames are trimmed; a blank one is dropped.
  */
 export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
   let parsed: unknown;
@@ -264,9 +281,8 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
 
   return teams.map((t: unknown, i) => {
     const label = `Team ${i + 1} in the file`;
-    const { name, members, godMode } = (t ?? {}) as Record<string, unknown>;
+    const { name, members } = (t ?? {}) as Record<string, unknown>;
     if (!Array.isArray(members)) throw new BackupError(`${label} has no members list`);
-    if (godMode !== undefined && typeof godMode !== 'boolean') throw new BackupError(`${label} has an invalid god mode`);
     if (members.length > TEAM_SIZE) throw new BackupError(`${label} has more than ${TEAM_SIZE} members`);
     members.forEach((m, j) => {
       const problem = memberProblem(m);
@@ -274,15 +290,10 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
     });
     return {
       name: typeof name === 'string' && name.trim() ? name.trim() : `Team ${existing + i + 1}`,
-      members: (members as TeamMember[]).map(({ speciesId, formKey, ability, nature, item, moves }) => ({
-        speciesId,
-        formKey: formKey || undefined,
-        ability,
-        nature,
-        item,
-        moves,
-      })),
-      ...(teamGodMode({ godMode, members }) && { godMode: true }),
+      members: (members as TeamMember[]).map(({ speciesId, formKey, nickname, ability, nature, item, moves }) => {
+        const cleaned = nickname === undefined ? undefined : cleanNickname(nickname);
+        return { speciesId, formKey: formKey || undefined, ...(cleaned !== undefined && { nickname: cleaned }), ability, nature, item, moves };
+      }),
       updatedAt: Date.now(),
     };
   });
@@ -319,7 +330,7 @@ export function checkKnownFavouriteForms(favourites: Favourite[], species: Map<n
 }
 
 /**
- * Validates the favourites of a backup (version 8; older backups have none). Throws BackupError on the first
+ * Validates the favourites of a backup (version 8 and 9; older backups have none). Throws BackupError on the first
  * problem. Call after parseBackup, which checks the file.
  */
 export function parseFavourites(json: string): Favourite[] {
@@ -341,7 +352,7 @@ export function parseFavourites(json: string): Favourite[] {
 }
 
 /**
- * Validates the Pokédexes of a backup (version 6 to 8; older backups have none; custom ones from 7). Throws
+ * Validates the Pokédexes of a backup (version 6 to 9; older backups have none; custom ones from 7). Throws
  * BackupError on the first problem.
  * Pokédexes without a name get "Pokédex N" numbered after `existing`. Call after parseBackup, which checks the file.
  */
