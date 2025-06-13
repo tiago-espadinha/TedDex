@@ -18,10 +18,11 @@ const METHODS: { key: Method; title: string }[] = [
   { key: 'egg', title: 'Egg' },
 ];
 
-const loadAll = (id: number) => Promise.all([loadLearnsets(id), loadMoves(), loadVersions()]);
+const loadAll = (id: number, formKey: string) => Promise.all([loadLearnsets(id, formKey), loadMoves(), loadVersions()]);
 
-export function MovesTab({ mon }: { mon: SpeciesDetail }) {
-  const { data, error } = useLoad(() => loadAll(mon.id), mon.id);
+/** `mon` is the species as shown in form `formKey`; the moves are that form's when it learns its own. */
+export function MovesTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
+  const { data, error } = useLoad(() => loadAll(mon.id, formKey), `${mon.id}|${formKey}`);
   const [chosen, setChosen] = useGame();
   const [method, setMethod] = useState<Method>('level');
   const peek = usePeek();

@@ -15,7 +15,8 @@ import { usePeek } from '../components/usePeek';
 import { MoveChoiceFilterSheet } from './MoveChoiceFilterSheet';
 import { MoveCells, MoveHead } from './MovesTab';
 
-const loadAll = (id: number) => Promise.all([loadSpecies(id), loadLearnsets(id), loadMoves(), loadItems(), loadVersions()]);
+const loadAll = (id: number, formKey?: string) =>
+  Promise.all([loadSpecies(id), loadLearnsets(id, formKey), loadMoves(), loadItems(), loadVersions()]);
 
 type Picking = { kind: 'item' } | { kind: 'ability' } | { kind: 'move' | 'move-filter'; slot: number };
 
@@ -25,7 +26,10 @@ export function MemberEditor() {
   const index = Number(params.index);
   const team = useLiveQuery(() => db.teams.get(teamId).then((t) => t ?? null), [teamId]);
   const member = team?.members[index];
-  const { data, error } = useLoad(() => (member ? loadAll(member.speciesId) : Promise.resolve(undefined)), member?.speciesId);
+  const { data, error } = useLoad(
+    () => (member ? loadAll(member.speciesId, member.formKey) : Promise.resolve(undefined)),
+    member && `${member.speciesId}|${member.formKey ?? ''}`,
+  );
   const godMode = team?.godMode ?? false;
   // Every ability is only needed for god mode's picker.
   const { data: abilities, error: abilitiesError } = useLoad(() => (godMode ? loadAbilities() : Promise.resolve(undefined)), godMode);
@@ -47,7 +51,7 @@ export function MemberEditor() {
   if (!data) return <Loading />;
 
   const [species, learnsets, moves, items, versions] = data;
-  // Learnsets stay species-level; name, types and abilities follow the member's form (set when it was added).
+  // Name, types, abilities and moves follow the member's form (set when it was added); saved moves stay even when it can't learn them.
   const { view: mon, form, mediaId } = applyForm(species, member.formKey ?? null);
   const chosen = (member.moves ?? []).filter((id) => moves[id]);
   const abilityId = memberAbility(mon.abilities, member.ability, abilities)?.id;

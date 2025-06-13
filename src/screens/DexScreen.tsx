@@ -14,6 +14,7 @@ import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
 import { useDexForms, useDexView, useGame, useSpriteStyle } from '../data/settings';
 import { lastSpecies } from '../data/pokedex';
+import { useFavourites } from '../data/favourites';
 
 const ROW_H = 118; // card 108 + gap 10
 const LIST_ROW_H = 108; // row 100 + gap 8
@@ -32,6 +33,7 @@ function useColumns() {
 export function DexScreen() {
   const { data: all, error } = useLoad(loadIndex, 'index');
   const [filters, setFilters] = useDexFilters();
+  const favourites = useFavourites();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [params] = useSearchParams();
   const pickTeam = params.get('pick') ? Number(params.get('pick')) : null;
@@ -56,7 +58,7 @@ export function DexScreen() {
   const rows = useMemo(() => (all && !waiting ? dexRows(all, formKinds) : null), [all, waiting, formKinds]);
   const fuse = useMemo(() => (rows ? new Fuse(rows, FUSE_OPTIONS) : null), [rows]);
   const limitTo = upTo(filters);
-  const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters, limitTo) : []), [rows, fuse, filters, limitTo]);
+  const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters, limitTo, favourites) : []), [rows, fuse, filters, limitTo, favourites]);
   useEffect(() => saveOrder(list.map((m) => detailPath(m.id, m.form?.key))), [list]);
 
   const lines = Math.ceil(list.length / perRow);
@@ -114,7 +116,11 @@ export function DexScreen() {
 
       {error && <p className="empty">Couldn't load the dex data. {error.message}</p>}
       {!rows && !error && <Loading />}
-      {rows && list.length === 0 && <p className="empty">No Pokémon match these filters.</p>}
+      {rows && list.length === 0 && (
+        <p className="empty">
+          {filters.category === 'favourite' && !favourites?.size ? 'No favourites yet. Tap the heart on a Pokémon to add it.' : 'No Pokémon match these filters.'}
+        </p>
+      )}
 
       <div className="dex-list" style={{ height: virtual.getTotalSize(), position: 'relative' }}>
         {virtual.getVirtualItems().map((row) => {
@@ -163,7 +169,7 @@ export function DexScreen() {
         <FilterSheet
           value={filters}
           game={limit}
-          countFor={(f) => (rows ? applyFilters(rows, fuse, f, upTo(f)).length : 0)}
+          countFor={(f) => (rows ? applyFilters(rows, fuse, f, upTo(f), favourites).length : 0)}
           onApply={(f) => {
             setFilters(f);
             setSheetOpen(false);

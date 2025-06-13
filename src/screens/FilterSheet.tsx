@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
-import { CATEGORY_LABELS, DEFAULT_FILTERS, SORT_LABELS, type DexFilters, type SortKey } from '../data/dexState';
+import { CATEGORY_LABELS, DEFAULT_FILTERS, SORT_LABELS, type DexCategory, type DexFilters, type SortKey } from '../data/dexState';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
-import type { Category, TypeName, VersionGroup } from '../data/types';
+import type { TypeName, VersionGroup } from '../data/types';
 import { roman } from '../data/format';
 
 const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const SORTS = Object.entries(SORT_LABELS) as [SortKey, string][];
-const CATEGORIES = Object.entries(CATEGORY_LABELS) as [Category, string][];
+const CATEGORIES = Object.entries(CATEGORY_LABELS) as [DexCategory, string][];
 
 /** Adds `x` to the list, or takes it out if it is there. */
 const toggle = <T,>(list: T[], x: T) => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);

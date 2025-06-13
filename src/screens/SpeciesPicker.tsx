@@ -6,6 +6,7 @@ import { loadIndex, spriteUrl, useLoad } from '../data/api';
 import { createCustomPokedex, db, setPokedexSpecies } from '../data/db';
 import { DEFAULT_FILTERS, type DexFilters } from '../data/dexState';
 import { FUSE_OPTIONS, applyFilters, dexRows } from '../data/filter';
+import { useFavourites } from '../data/favourites';
 import { formatNo } from '../data/format';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField } from '../components/bits';
@@ -52,11 +53,12 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
   const rows = useMemo(() => (index ? dexRows(index, []) : undefined), [index]);
   const fuse = useMemo(() => (rows ? new Fuse(rows, FUSE_OPTIONS) : null), [rows]);
   const [filters, setFilters] = useState<DexFilters>(DEFAULT_FILTERS);
+  const favourites = useFavourites();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selected, setSelected] = useState(() => new Set(initial));
   // A second tap on Done while the first save runs would create another Pokédex.
   const [busy, setBusy] = useState(false);
-  const shown = useMemo(() => (rows ? applyFilters(rows, fuse, filters) : undefined), [rows, fuse, filters]);
+  const shown = useMemo(() => (rows ? applyFilters(rows, fuse, filters, undefined, favourites) : undefined), [rows, fuse, filters, favourites]);
   const active = filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
   const toggle = useCallback(
     (id: number) =>
@@ -123,7 +125,7 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
       {sheetOpen && rows && (
         <FilterSheet
           value={filters}
-          countFor={(f) => applyFilters(rows, fuse, f).length}
+          countFor={(f) => applyFilters(rows, fuse, f, undefined, favourites).length}
           onApply={(f) => {
             setFilters(f);
             setSheetOpen(false);

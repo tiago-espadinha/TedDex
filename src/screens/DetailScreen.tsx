@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, ty
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { compareFrom } from '../data/compare';
-import { addToTeam, currentTeamId, db } from '../data/db';
+import { toggleFavourite } from '../data/db';
+import { EGG_GROUP_COLOR, eggGroupSlug } from '../data/eggGroups';
+import { useIsFavourite } from '../data/favourites';
 import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText, statColor } from '../data/format';
@@ -45,6 +47,10 @@ export function DetailScreen() {
   const navigate = useNavigate();
   const toast = useToast();
   const { prev, next } = neighbours(id, params.get('form') ?? undefined);
+  // The heart follows the form shown; an unknown ?form= shows the default form, so it hearts that.
+  const formParam = params.get('form');
+  const formKey = formParam && mon?.forms?.some((f) => f.key === formParam) ? formParam : '';
+  const favourite = useIsFavourite(id, formKey);
   // A sideways swipe on the hero steps through the Dex rows; the panel below pages through the tabs.
   const touch = useRef<Point | null>(null);
   const { ref: panelRef, target: selected, turn: showTab, handlers: swipe } = usePager<HTMLDivElement>(TABS.indexOf(tab), TABS.length, (i) => setTab(TABS[i]));
@@ -75,18 +81,6 @@ export function DetailScreen() {
     document.getElementById(`tab-${TABS[t]}`)?.focus();
   }
 
-  /** Adds this species, in the form shown (`formKey`), to the most recently edited team. */
-  async function addToCurrentTeam(formKey?: string) {
-    const teamId = await currentTeamId();
-    const team = await db.teams.get(teamId);
-    const ok = await addToTeam(teamId, id, formKey);
-    toast(
-      ok
-        ? { text: `Added to ${team?.name ?? 'team'}`, action: { label: 'View', href: `/teams/${teamId}` } }
-        : { text: `${team?.name ?? 'That team'} is full`, action: { label: 'Open', href: `/teams/${teamId}` } },
-    );
-  }
-
   const [playing, setPlaying] = useState(false);
   function playCry() {
     const audio = new Audio(cryUrl(id));
@@ -102,7 +96,7 @@ export function DetailScreen() {
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
   if (!mon) return <Loading minHeight="100dvh" />;
 
-  // Moves and Evolution stay species-level; the hero, About and Stats follow the chosen form.
+  // Every section follows the chosen form: Moves, Evolution and Locations use its own data when it has some.
   const { view, form, mediaId } = applyForm(mon, params.get('form'));
   const tint = typeTint(view.types[0]);
 
@@ -129,8 +123,14 @@ export function DetailScreen() {
             <Link className="icon-btn" aria-label="Compare" to={compareFrom({ id: mon.id, form: form?.key })}>
               <Icon name="compare" />
             </Link>
-            <button className="icon-btn" aria-label="Add to team" onClick={() => addToCurrentTeam(form?.key)}>
-              <Icon name="plus" />
+            <button
+              className="icon-btn fav"
+              aria-label="Favourite"
+              aria-pressed={!!favourite}
+              disabled={favourite === undefined}
+              onClick={() => toggleFavourite(id, formKey)}
+            >
+              <Icon name="heart" />
             </button>
           </div>
         </div>
@@ -192,9 +192,9 @@ export function DetailScreen() {
 
       <div className="pager" {...swipe}>
         <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} ref={panelRef}>
-          {tab === 'About' && <About mon={view} species={mon} />}
+          {tab === 'About' && <About mon={view} formKey={formKey} />}
           {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
-          {tab === 'Moves' && <MovesTab key={mon.id} mon={mon} />}
+          {tab === 'Moves' && <MovesTab key={mon.id} mon={view} formKey={formKey} />}
         </div>
       </div>
       <div style={{ height: 24 }} />
@@ -284,20 +284,14 @@ function FactBar({ parts }: { parts: [width: number, className: string, color?: 
   );
 }
 
-/** Chip colours borrowed from the type chips (white text passes 4.5:1 on each). */
-const EGG_GROUP_COLOR: Record<string, TypeName> = {
-  Monster: 'fire', 'Water 1': 'water', 'Water 2': 'water', 'Water 3': 'water', Bug: 'bug', Flying: 'flying', Field: 'ground',
-  Fairy: 'fairy', Grass: 'grass', 'Human-Like': 'fighting', Mineral: 'rock', Amorphous: 'ghost', Dragon: 'dragon', Ditto: 'psychic',
-};
-
-function Chips({ items }: { items: [text: string, color: TypeName][] }) {
+/** Fact chips; one with a link (egg groups) opens that page. */
+function Chips({ items }: { items: [text: string, color: TypeName, to?: string][] }) {
   return (
     <span className="fact-chips">
-      {items.map(([t, c]) => (
-        <span key={t} className="fact-chip" style={{ backgroundColor: typeChip(c) }}>
-          {t}
-        </span>
-      ))}
+      {items.map(([t, c, to]) => {
+        const props = { className: 'fact-chip', style: { backgroundColor: typeChip(c) }, children: t };
+        return to ? <Link key={t} to={to} {...props} /> : <span key={t} {...props} />;
+      })}
     </span>
   );
 }
@@ -311,8 +305,8 @@ function Fact({ k, wide, children }: { k: string; wide?: boolean; children: Reac
   );
 }
 
-/** Description, evolution and locations, then the Training and Breeding facts. Evolution and locations stay species-level. */
-function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail }) {
+/** Description, evolution and locations, then the Training and Breeding facts, all of `mon` in form `formKey`. */
+function About({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
   const ev = evYieldParts(mon.evYield);
   const female = (mon.genderRate / 8) * 100;
   return (
@@ -322,8 +316,8 @@ function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail })
           <p className="flavor">{mon.flavor}</p>
         </div>
       )}
-      <EvolutionTab mon={species} />
-      <LocationsTab key={species.id} mon={species} />
+      <EvolutionTab mon={mon} formKey={formKey} />
+      <LocationsTab key={mon.id} mon={mon} formKey={formKey} />
       <div className="section">
         <h2>Training</h2>
         <div className="facts">
@@ -342,7 +336,7 @@ function About({ mon, species }: { mon: SpeciesDetail; species: SpeciesDetail })
         <h2>Breeding</h2>
         <div className="facts">
           <Fact k="Egg groups">
-            <Chips items={mon.eggGroups.map((g) => [g, EGG_GROUP_COLOR[g] ?? 'normal'])} />
+            <Chips items={mon.eggGroups.map((g) => [g, EGG_GROUP_COLOR[g], `/reference/egg-groups/${eggGroupSlug(g)}`])} />
           </Fact>
           <Fact k="Gender ratio">
             <GenderRatio rate={mon.genderRate} />

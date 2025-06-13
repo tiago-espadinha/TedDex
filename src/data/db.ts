@@ -1,4 +1,4 @@
-import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type EntityTable, type Table } from 'dexie';
 import { loadItems, loadMoves, loadSpecies, loadVersions } from './api';
 import { NATURES } from './natures';
 import { isDexState, lastSpecies, nextState, type DexState } from './pokedex';
@@ -40,12 +40,19 @@ export interface Pokedex {
   updatedAt: number;
 }
 
+/** A favourite Pokémon: a species in form `formKey` ('' for the default form, so it can be part of the key). */
+export interface Favourite {
+  speciesId: number;
+  formKey: string;
+}
+
 export const TEAM_SIZE = 6;
 export const MOVE_SLOTS = 4;
 
 class DexDB extends Dexie {
   teams!: EntityTable<Team, 'id'>;
   pokedexes!: EntityTable<Pokedex, 'id'>;
+  favourites!: Table<Favourite, [number, string]>;
   constructor() {
     super('material-dex');
     this.version(1).stores({ teams: '++id, updatedAt' });
@@ -96,6 +103,8 @@ class DexDB extends Dexie {
       );
     // v8: Pokédexes may have a species list (custom). Every v7 Pokédex is a valid v8 one, so nothing to upgrade.
     this.version(8).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt' });
+    // v9: favourites in their own table, one row per species and form.
+    this.version(9).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' });
   }
 }
 
@@ -187,6 +196,15 @@ export async function cycleDexState(dexId: number, speciesId: number) {
   });
 }
 
+/** Favourites or unfavourites a species in form `formKey` ('' or absent for the default). */
+export async function toggleFavourite(speciesId: number, formKey = '') {
+  return db.transaction('rw', db.favourites, async () => {
+    const key: [number, string] = [speciesId, formKey];
+    if (await db.favourites.get(key)) await db.favourites.delete(key);
+    else await db.favourites.add({ speciesId, formKey });
+  });
+}
+
 /**
  * Whether a team, stored or from a backup, is in god mode. Before v4 the flag was per member;
  * such a team is on if any member was.
@@ -195,16 +213,11 @@ export function teamGodMode(team: { godMode?: unknown; members: unknown[] }): bo
   return team.godMode === true || team.members.some((m) => (m as { godMode?: unknown } | null)?.godMode === true);
 }
 
-/** The most recently edited team, created if none exists. */
-export async function currentTeamId(): Promise<number> {
-  const latest = await db.teams.orderBy('updatedAt').last();
-  return latest ? latest.id : createTeam();
-}
-
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
 export async function exportBackup(): Promise<string> {
-  const [teams, pokedexes] = await Promise.all([db.teams.toArray(), db.pokedexes.toArray()]);
-  return JSON.stringify({ app: 'material-dex', version: 7, teams, pokedexes }, null, 2);
+  const [teams, pokedexes, favs] = await Promise.all([db.teams.toArray(), db.pokedexes.toArray(), db.favourites.toArray()]);
+  const favourites = favs.map(({ speciesId, formKey }) => (formKey ? { speciesId, formKey } : { speciesId }));
+  return JSON.stringify({ app: 'material-dex', version: 8, teams, pokedexes, favourites }, null, 2);
 }
 
 /** Thrown by parseBackup; the message is shown to the user as is. */
@@ -235,7 +248,7 @@ function memberProblem(m: unknown): string | null {
 }
 
 /**
- * Validates an exported backup (version 1 to 7). Throws BackupError on the first problem, so a bad
+ * Validates an exported backup (version 1 to 8). Throws BackupError on the first problem, so a bad
  * file writes nothing. Teams without a name get "Team N" numbered after `existing`; the team game of
  * versions 5 and 6 is dropped.
  */
@@ -286,19 +299,49 @@ export function checkKnownIds(teams: Omit<Team, 'id'>[], moves: MoveTable, items
   );
 }
 
+const hasForm = (species: Map<number, SpeciesDetail>, id: number, formKey?: string) =>
+  !formKey || !!species.get(id)?.forms?.some((f) => f.key === formKey);
+
 /** Rejects form keys the species doesn't have. `species` holds the species file of every member with a form. */
 export function checkKnownForms(teams: Omit<Team, 'id'>[], species: Map<number, SpeciesDetail>) {
   teams.forEach((t, i) =>
     t.members.forEach((m, j) => {
-      if (m.formKey && !species.get(m.speciesId)?.forms?.some((f) => f.key === m.formKey)) {
-        throw new BackupError(`Team ${i + 1} in the file: member ${j + 1} has an unknown form`);
-      }
+      if (!hasForm(species, m.speciesId, m.formKey)) throw new BackupError(`Team ${i + 1} in the file: member ${j + 1} has an unknown form`);
     }),
   );
 }
 
+/** Rejects favourite form keys the species doesn't have. `species` holds the species file of every favourite form. */
+export function checkKnownFavouriteForms(favourites: Favourite[], species: Map<number, SpeciesDetail>) {
+  favourites.forEach((f, i) => {
+    if (!hasForm(species, f.speciesId, f.formKey)) throw new BackupError(`Favourite ${i + 1} in the file has an unknown form`);
+  });
+}
+
 /**
- * Validates the Pokédexes of a backup (version 6 and 7; older backups have none; custom ones from 7). Throws
+ * Validates the favourites of a backup (version 8; older backups have none). Throws BackupError on the first
+ * problem. Call after parseBackup, which checks the file.
+ */
+export function parseFavourites(json: string): Favourite[] {
+  const favourites = (JSON.parse(json) as { favourites?: unknown }).favourites;
+  if (favourites === undefined) return [];
+  if (!Array.isArray(favourites)) throw new BackupError('The favourites in the file are not a list');
+  const seen = new Set<string>();
+  return favourites.map((f: unknown, i) => {
+    const label = `Favourite ${i + 1} in the file`;
+    const { speciesId, formKey } = (f ?? {}) as Record<string, unknown>;
+    if (!isSpecies(speciesId)) throw new BackupError(`${label} is not a known Pokémon`);
+    if (formKey !== undefined && (typeof formKey !== 'string' || formKey.length > 40)) throw new BackupError(`${label} has an invalid form`);
+    const fav = { speciesId, formKey: (formKey as string | undefined) ?? '' };
+    const key = `${speciesId}:${fav.formKey}`;
+    if (seen.has(key)) throw new BackupError(`${label} is listed twice`);
+    seen.add(key);
+    return fav;
+  });
+}
+
+/**
+ * Validates the Pokédexes of a backup (version 6 to 8; older backups have none; custom ones from 7). Throws
  * BackupError on the first problem.
  * Pokédexes without a name get "Pokédex N" numbered after `existing`. Call after parseBackup, which checks the file.
  */
@@ -342,18 +385,25 @@ export function checkKnownGames(dexes: Pick<Pokedex, 'game'>[], versions: Versio
   });
 }
 
-/** Imports a backup's teams and Pokédexes next to the existing ones; all or nothing. */
-export async function importBackup(json: string): Promise<{ teams: number; pokedexes: number }> {
+/** Imports a backup's teams and Pokédexes next to the existing ones, and adds its favourites to ours; all or nothing. */
+export async function importBackup(json: string): Promise<{ teams: number; pokedexes: number; favourites: number }> {
   const teams = parseBackup(json, await db.teams.count());
   const pokedexes = parsePokedexes(json, await db.pokedexes.count());
-  const formed = new Set(teams.flatMap((t) => t.members.filter((m) => m.formKey).map((m) => m.speciesId)));
+  const favourites = parseFavourites(json);
+  const formed = new Set([
+    ...teams.flatMap((t) => t.members.filter((m) => m.formKey).map((m) => m.speciesId)),
+    ...favourites.filter((f) => f.formKey).map((f) => f.speciesId),
+  ]);
   const [moves, items, versions, details] = await Promise.all([loadMoves(), loadItems(), loadVersions(), Promise.all([...formed].map(loadSpecies))]);
+  const species = new Map(details.map((d) => [d.id, d]));
   checkKnownGames(pokedexes, versions);
   checkKnownIds(teams, moves, items);
-  checkKnownForms(teams, new Map(details.map((d) => [d.id, d])));
-  await db.transaction('rw', db.teams, db.pokedexes, async () => {
+  checkKnownForms(teams, species);
+  checkKnownFavouriteForms(favourites, species);
+  await db.transaction('rw', db.teams, db.pokedexes, db.favourites, async () => {
     await db.teams.bulkAdd(teams);
     await db.pokedexes.bulkAdd(pokedexes);
+    await db.favourites.bulkPut(favourites);
   });
-  return { teams: teams.length, pokedexes: pokedexes.length };
+  return { teams: teams.length, pokedexes: pokedexes.length, favourites: favourites.length };
 }

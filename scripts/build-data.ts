@@ -17,6 +17,7 @@
  *   evolution/c<n>.json   evolution chain members with English condition text, loaded by the Evolution tab
  *   items.json            held items a team member can carry: item id -> English name, generation introduced
  *   abilities.json        ability id -> English name, generation introduced (as in reference/abilities.json), for team screens
+ *   egg-groups.json       egg group slug -> in-game name and its species (default forms) in national order, for the egg group pages
  *   reference/abilities.json  ability id -> name, short effect, full details, generation, species that have it (any form)
  *   reference/items.json      item id -> name, category, generation introduced, price (0 = not sold), short effect
  *                             (no "Held: " preamble), wild holders as [version group, species, rarity %]; every named item
@@ -34,7 +35,9 @@ import { join } from 'node:path';
 import { summariseSlots, type ConditionValue } from './encounters';
 import { POKEAPI_ITEM_CATEGORIES } from '../src/data/itemCategories';
 import { packLearnsets, packLocations, toChunks } from '../src/data/chunks';
-import type { Locations } from '../src/data/types';
+import { eggGroupSlug } from '../src/data/eggGroups';
+import { formKind, hasOwnFormData, REGIONAL_FORM } from '../src/data/forms';
+import type { EggGroupTable, EvolutionMember, Locations } from '../src/data/types';
 
 const CSV_BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv';
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -206,15 +209,6 @@ const EGG_GROUPS: Record<string, string> = {
   humanshape: 'Human-Like', water3: 'Water 3', mineral: 'Mineral', indeterminate: 'Amorphous', water2: 'Water 2',
   ditto: 'Ditto', dragon: 'Dragon', 'no-eggs': 'Undiscovered',
 };
-/** Form keys of regional variants: "alola", "galar-zen", "paldea-aqua-breed"… */
-const REGIONAL_FORM = /^(alola|galar|hisui|paldea)\b/;
-/** Which Dex switch shows a form as its own row: Gigantamax first ("amped-gmax"), then Megas and Primals ("curly-mega"). */
-function formKind(key: string): 'mega' | 'regional' | 'gmax' | 'other' {
-  if (/gmax$/.test(key)) return 'gmax';
-  if (/(^|-)mega($|-)/.test(key) || key === 'primal') return 'mega';
-  if (REGIONAL_FORM.test(key)) return 'regional';
-  return 'other';
-}
 const TIMES: Record<string, string> = { day: 'during the day', night: 'at night', dusk: 'at dusk', 'full-moon': 'under a full moon' };
 
 type Row = Record<string, string>;
@@ -449,15 +443,10 @@ async function main() {
     if (!prev || v > prev.v) flavorBySpecies.set(f.species_id, { v, text: clean(f.flavor_text) });
   }
 
-  // --- learnsets: default forms, main-series games, the four methods the Moves tab shows ---
+  // --- learnsets: default forms and forms with moves of their own, main-series games, the four methods the Moves tab shows ---
   const defaultPokemonIds = new Set([...defaultPokemon.values()].map((p) => p.id));
   const movesByPokemon = groupBy(
-    pokemonMoves.filter(
-      (r) =>
-        defaultPokemonIds.has(r.pokemon_id) &&
-        !SKIPPED_VERSION_GROUPS.has(r.version_group_id) &&
-        LEARN_METHODS[r.pokemon_move_method_id],
-    ),
+    pokemonMoves.filter((r) => !SKIPPED_VERSION_GROUPS.has(r.version_group_id) && LEARN_METHODS[r.pokemon_move_method_id]),
     (r) => r.pokemon_id,
   );
   const usedMoves = new Set<string>();
@@ -489,6 +478,7 @@ async function main() {
     for (const [n, chunk] of toChunks(entries)) await writeFile(join(OUT, dir, `c${n}.json`), JSON.stringify(pack(chunk)));
   };
   const speciesOut = new Map<number, unknown>();
+  const eggGroupTable: EggGroupTable = {};
   const learnsetsOut = new Map<number, unknown>();
 
   /** What a Pokémon (default or form) brings to battle, plus its size. */
@@ -592,7 +582,35 @@ async function main() {
     return tags;
   }
 
+  /**
+   * A Pokémon's moves per version group, noting each move and game as used and the species as a learner
+   * (a form's moves count for its species).
+   */
+  function learnsetOf(pokemonId: string, speciesId: number) {
+    const learnset: Record<string, Learnset> = {};
+    const rows = (movesByPokemon.get(pokemonId) ?? []).sort(
+      (a, b) => Number(a.level) - Number(b.level) || Number(a.order || 0) - Number(b.order || 0),
+    );
+    for (const r of rows) {
+      const set = (learnset[r.version_group_id] ??= { level: [], machine: [], tutor: [], egg: [] });
+      const method = LEARN_METHODS[r.pokemon_move_method_id];
+      const move = Number(r.move_id);
+      if (method === 'level') {
+        if (!set.level.some(([m, l]) => m === move && l === Number(r.level))) set.level.push([move, Number(r.level)]);
+      } else if (!set[method].includes(move)) set[method].push(move);
+      usedMoves.add(r.move_id);
+      const byMethod = learnersByMove.get(r.move_id) ?? {};
+      learnersByMove.set(r.move_id, byMethod);
+      const bySpecies = (byMethod[method] ??= new Map());
+      bySpecies.set(speciesId, (bySpecies.get(speciesId) ?? 0) | (1 << (genOfVersionGroup.get(r.version_group_id)! - 1)));
+      usedVersionGroups.add(r.version_group_id);
+    }
+    return learnset;
+  }
+
   const index = [];
+  /** Pokémon id → its `?form=` key, for the forms we ship (not the defaults). */
+  const formKeyOfPokemon = new Map<string, string>();
   let formCount = 0;
   const ordered = [...species].sort((a, b) => Number(a.id) - Number(b.id));
   for (const s of ordered) {
@@ -602,6 +620,7 @@ async function main() {
     const n = names.get(s.id);
     const id = Number(s.id);
     const forms = formsOf(s, p, n?.name ?? s.identifier);
+    for (const f of forms?.slice(1) ?? []) formKeyOfPokemon.set(String(f.pokemonId), f.key);
     formCount += forms ? forms.length - 1 : 0;
     const tags = tagsOf(s, forms);
 
@@ -655,26 +674,17 @@ async function main() {
       ...(forms && { forms }),
     };
     speciesOut.set(id, detail);
+    for (const name of detail.eggGroups) (eggGroupTable[eggGroupSlug(name)] ??= { name, species: [] }).species.push(id);
 
-    const learnset: Record<string, Learnset> = {};
-    const rows = (movesByPokemon.get(p.id) ?? []).sort(
-      (a, b) => Number(a.level) - Number(b.level) || Number(a.order || 0) - Number(b.order || 0),
-    );
-    for (const r of rows) {
-      const set = (learnset[r.version_group_id] ??= { level: [], machine: [], tutor: [], egg: [] });
-      const method = LEARN_METHODS[r.pokemon_move_method_id];
-      const move = Number(r.move_id);
-      if (method === 'level') {
-        if (!set.level.some(([m, l]) => m === move && l === Number(r.level))) set.level.push([move, Number(r.level)]);
-      } else if (!set[method].includes(move)) set[method].push(move);
-      usedMoves.add(r.move_id);
-      const byMethod = learnersByMove.get(r.move_id) ?? {};
-      learnersByMove.set(r.move_id, byMethod);
-      const bySpecies = (byMethod[method] ??= new Map());
-      bySpecies.set(id, (bySpecies.get(id) ?? 0) | (1 << (genOfVersionGroup.get(r.version_group_id)! - 1)));
-      usedVersionGroups.add(r.version_group_id);
+    const learnset = learnsetOf(p.id, id);
+    // Megas, Primals and Gigantamax learn as the species; other forms keep their own list when a game differs.
+    const formLearnsets: Record<string, Record<string, Learnset>> = {};
+    for (const f of forms?.slice(1) ?? []) {
+      if (!hasOwnFormData(f.key) || !movesByPokemon.has(String(f.pokemonId))) continue;
+      const own = learnsetOf(String(f.pokemonId), id);
+      if (Object.entries(own).some(([vg, set]) => JSON.stringify(set) !== JSON.stringify(learnset[vg]))) formLearnsets[f.key] = own;
     }
-    learnsetsOut.set(id, packLearnsets(learnset));
+    learnsetsOut.set(id, packLearnsets(learnset, formLearnsets));
   }
   await writeChunks('species', speciesOut);
   await writeChunks('learnsets', learnsetsOut);
@@ -836,6 +846,28 @@ async function main() {
     return [...new Set(texts)];
   }
 
+  /** The `?form=` key a pokemon_forms id stands for: '' for a default form, undefined for one we don't ship (Vivillon's patterns). */
+  function shippedFormKey(formId: string): string | undefined {
+    if (isDefaultForm(formId)) return '';
+    const f = formById.get(formId);
+    return f?.is_default === '1' ? formKeyOfPokemon.get(f.pokemon_id) : undefined;
+  }
+  /** Evolutions into or out of a form we ship, per [from form, into form] (Alolan Sandshrew → Alolan Sandslash). */
+  function formStepsFor(speciesId: string): NonNullable<EvolutionMember['steps']> {
+    const rows = (evoRows.get(speciesId) ?? [])
+      .filter((e) => !isDefaultForm(e.required_pokemon_form_id) || !isDefaultForm(e.evolved_pokemon_form_id))
+      .map((e) => ({ e, from: shippedFormKey(e.required_pokemon_form_id), into: shippedFormKey(e.evolved_pokemon_form_id) }))
+      .filter((r) => r.from !== undefined && r.into !== undefined);
+    return [...groupBy(rows, (r) => `${r.from}|${r.into}`).values()].map((list) => {
+      const current = list.filter((r) => r.e.is_default === '1');
+      return {
+        from: list[0].from!,
+        into: list[0].into!,
+        conditions: [...new Set((current.length ? current : list).map((r) => conditionText(r.e)))],
+      };
+    });
+  }
+
   await mkdir(join(OUT, 'evolution'), { recursive: true });
   const shipped = new Set(index.map((m) => String(m.id)));
   const evolutionOut = new Map<number, unknown>();
@@ -845,10 +877,11 @@ async function main() {
   );
   for (const [chainId, members] of chains) {
     const children = groupBy(members, (s) => s.evolves_from_species_id);
-    const out: { id: number; from: number | null; conditions: string[] }[] = [];
+    const out: EvolutionMember[] = [];
     const walk = (s: Row) => {
       const from = Number(s.evolves_from_species_id) || null;
-      out.push({ id: Number(s.id), from, conditions: from ? conditionsFor(s.id) : [] });
+      const steps = from ? formStepsFor(s.id) : [];
+      out.push({ id: Number(s.id), from, conditions: from ? conditionsFor(s.id) : [], ...(steps.length && { steps }) });
       for (const c of (children.get(s.id) ?? []).sort((a, b) => Number(a.id) - Number(b.id))) walk(c);
     };
     for (const root of members.filter((s) => !s.evolves_from_species_id)) walk(root);
@@ -1059,8 +1092,11 @@ async function main() {
       }));
       const s = summariseSlots(slots, conditionValues, seenInArea.get(`${versionId}|${areaId}|${methodId}`)!);
       const rate = gameVersions.get(versionId)!.version_group_id === LETS_GO ? 0 : s.rate;
+      // Rows of a form with its own data carry its key (the Locations tab shows them with that form); others keep the form's name.
+      const formKey = formKeyOfPokemon.get(pokemonId) ?? '';
       (byGame[versionId] ??= []).push([
-        ref(areaName(areaId)), ref(methodLabel(methodId)), s.min, s.max, rate, s.upTo ? 1 : 0, ref(s.note), ref(encounterForm(pokemonId)),
+        ref(areaName(areaId)), ref(methodLabel(methodId)), s.min, s.max, rate, s.upTo ? 1 : 0, ref(s.note),
+        ...(hasOwnFormData(formKey) ? [0, ref(formKey)] : [ref(encounterForm(pokemonId))]),
       ]);
       gamesWithEncounters.add(versionId);
     }
@@ -1091,6 +1127,7 @@ async function main() {
   await writeFile(join(OUT, 'pokedexes.json'), JSON.stringify(pokedexes));
   await writeFile(join(OUT, 'items.json'), JSON.stringify(itemTable));
   await writeFile(join(OUT, 'abilities.json'), JSON.stringify(abilityGenTable));
+  await writeFile(join(OUT, 'egg-groups.json'), JSON.stringify(eggGroupTable));
   await writeFile(join(OUT, 'games.json'), JSON.stringify(gameList));
   await writeFile(join(OUT, 'reference', 'abilities.json'), JSON.stringify(abilityTable));
   await writeFile(join(OUT, 'reference', 'items.json'), JSON.stringify(itemReference));

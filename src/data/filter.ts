@@ -2,7 +2,7 @@ import type Fuse from 'fuse.js';
 import type { IFuseOptions } from 'fuse.js';
 import type { DexFilters, SortKey } from './dexState';
 import { isTypeName } from './typeColors';
-import type { FormKind, IndexEntry } from './types';
+import type { Category, FormKind, IndexEntry } from './types';
 
 /**
  * A Dex row: a species, or one of its forms (`form`) with the form's types, stats and size. A form row keeps the
@@ -44,11 +44,15 @@ export function sortValue(m: DexRow, sort: SortKey): number | undefined {
   }
 }
 
+/** A favourite's key in the set `applyFilters` takes: the species id, then the form key for a form ("6:mega-x"). */
+export const favouriteKey = (speciesId: number, formKey?: string) => (formKey ? `${speciesId}:${formKey}` : String(speciesId));
+
 /**
  * Search + category/generation/type filters + sort, in that order, over the species up to number `upTo` (the global
- * game's generation; all when undefined). Types match any of the chosen ones. Pure, so it's easy to test.
+ * game's generation; all when undefined). Types match any of the chosen ones. The Favourites category keeps the rows
+ * whose species and form are in `favourites` (favouriteKey). Pure, so it's easy to test.
  */
-export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f: DexFilters, upTo?: number): T[] {
+export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f: DexFilters, upTo?: number, favourites?: ReadonlySet<string>): T[] {
   let list = upTo === undefined ? all : all.filter((m) => m.id <= upTo);
   const q = f.query.trim().toLowerCase();
   if (q) {
@@ -62,7 +66,8 @@ export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f
       list = list.filter((m) => hits.has(m));
     }
   }
-  if (f.category) list = list.filter((m) => m.tags?.includes(f.category!));
+  if (f.category === 'favourite') list = list.filter((m) => favourites?.has(favouriteKey(m.id, m.form?.key)));
+  else if (f.category) list = list.filter((m) => m.tags?.includes(f.category as Category));
   if (f.gens.length) list = list.filter((m) => f.gens.includes(m.gen));
   if (f.types.length) list = list.filter((m) => f.types.some((t) => m.types.includes(t)));
   if (f.sort === 'name') return [...list].sort((a, b) => a.name.localeCompare(b.name));

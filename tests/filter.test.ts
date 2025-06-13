@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import Fuse from 'fuse.js';
 import { DEFAULT_FILTERS, parseFormKinds, type DexFilters } from '../src/data/dexState';
-import { FUSE_OPTIONS, applyFilters, dexRows } from '../src/data/filter';
+import { FUSE_OPTIONS, applyFilters, dexRows, favouriteKey } from '../src/data/filter';
 import type { FormKind, IndexEntry, IndexForm } from '../src/data/types';
 
 /** A grid row with made-up stats and size; only the fields a test sorts by matter. */
@@ -87,6 +87,25 @@ describe('applyFilters', () => {
     assert.deepEqual(ids({ category: 'starter' }), [1, 255]);
     assert.deepEqual(ids({ category: 'starter', types: ['fire'] }), [255]);
     assert.deepEqual(ids({ category: 'baby' }), []);
+  });
+
+  test('Favourites keeps the rows whose species and form are favourites, and combines with the other filters', () => {
+    const megaX = { key: 'mega-x', label: 'Mega X', name: 'Mega Charizard X', kind: 'mega', pokemonId: 10034, types: ['fire', 'dragon'], stats: ALL[1].stats, total: 634, heightM: 1.7, weightKg: 110.5 } as IndexForm;
+    const rows = dexRows([ALL[0], { ...ALL[1], forms: [megaX] }, ...ALL.slice(2)], ['mega']);
+    const run = (favs: string[], f: Partial<DexFilters> = {}, upTo?: number) =>
+      applyFilters(rows, null, { ...DEFAULT_FILTERS, category: 'favourite', ...f }, upTo, new Set(favs)).map((m) => favouriteKey(m.id, m.form?.key));
+    const favs = [favouriteKey(1), favouriteKey(6, 'mega-x'), favouriteKey(255)];
+    assert.deepEqual(favs, ['1', '6:mega-x', '255']);
+    // The form is a favourite, not its species: only the form row shows.
+    assert.deepEqual(run(favs), ['1', '6:mega-x', '255']);
+    assert.deepEqual(run(favs, { types: ['fire'] }), ['6:mega-x', '255']);
+    assert.deepEqual(run(favs, { gens: [1] }), ['1', '6:mega-x']);
+    assert.deepEqual(run(favs, {}, 251), ['1', '6:mega-x']);
+    assert.deepEqual(run([]), []);
+    // Without the form's row (its Dex switch off), a favourite form shows nothing.
+    assert.deepEqual(applyFilters(ALL, null, { ...DEFAULT_FILTERS, category: 'favourite' }, undefined, new Set(favs)).map((m) => m.id), [1, 255]);
+    // Still loading: nothing matches yet.
+    assert.deepEqual(applyFilters(ALL, null, { ...DEFAULT_FILTERS, category: 'favourite' }).length, 0);
   });
 
   test('sort by name', () => {

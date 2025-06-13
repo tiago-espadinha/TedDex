@@ -116,7 +116,7 @@ export function TeamsScreen() {
       <TeamTabs />
       <div className="list with-fab">
         {!shown && <Loading />}
-        {teams?.length === 0 && <p className="empty">No teams yet. Create one, or tap + on any Pokémon.</p>}
+        {teams?.length === 0 && <p className="empty">No teams yet. Tap + to create one.</p>}
         {teams?.length !== 0 && shown?.length === 0 && <p className="empty">No teams match “{query}”.</p>}
         {shown?.map((t) => (
           <Link key={t.id} to={`/teams/${t.id}`} className="team-row team-list-row">

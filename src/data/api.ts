@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type {
-  AbilityNameTable, AbilityTable, EvolutionMember, Game, IndexEntry, ItemPlaces, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary,
+  AbilityNameTable, AbilityTable, EggGroupTable, EvolutionMember, Game, IndexEntry, ItemPlaces, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary,
   MoveReference, MoveTable, Pokedexes, SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from './types';
 import { chunkPath, unpackLearnsets, unpackLocations, type ChunkKind, type PackedLearnsets, type PackedLocations } from './chunks';
@@ -37,7 +37,9 @@ const plainEntry = <T>(kind: ChunkKind, id: number) => getEntry(kind, id, (file:
 export const loadIndex = () => getJson<IndexEntry[]>('/data/index.json');
 export const loadTypes = () => getJson<TypeData>('/data/types.json');
 export const loadSpecies = (id: number) => plainEntry<SpeciesDetail>('species', id);
-export const loadLearnsets = (id: number) => getEntry('learnsets', id, (file: Record<number, PackedLearnsets>) => file[id] && unpackLearnsets(file[id]));
+/** A species' learnsets, or its form `formKey`'s when that form learns other moves. */
+export const loadLearnsets = (id: number, formKey?: string | null) =>
+  getEntry('learnsets', id, (file: Record<number, PackedLearnsets>) => file[id] && unpackLearnsets(file[id], formKey));
 export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
 export const loadPokedexes = () => getJson<Pokedexes>('/data/pokedexes.json');
@@ -47,6 +49,7 @@ export const loadLocations = (id: number) => getEntry('locations', id, (file: Pa
 export const loadGames = () => getJson<Game[]>('/data/games.json');
 export const loadMoveReference = (id: number) => plainEntry<MoveReference>('reference/moves', id);
 export const loadAbilityNames = () => getJson<AbilityNameTable>('/data/abilities.json');
+export const loadEggGroups = () => getJson<EggGroupTable>('/data/egg-groups.json');
 export const loadAbilities = () => getJson<AbilityTable>('/data/reference/abilities.json');
 export const loadItemReference = () => getJson<ItemReferenceTable>('/data/reference/items.json');
 export const loadItemPlaces = (id: number) => plainEntry<ItemPlaces>('reference/places', id);

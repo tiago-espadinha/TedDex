@@ -40,9 +40,10 @@ export function MoreScreen() {
 
   async function doImport(file: File) {
     try {
-      const { teams, pokedexes } = await importBackup(await file.text());
+      const { teams, pokedexes, favourites } = await importBackup(await file.text());
       const plural = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`;
-      toast({ text: `Imported ${plural(teams, 'team')}${pokedexes ? ` and ${plural(pokedexes, 'Pokédex')}` : ''}` });
+      const parts = [plural(teams, 'team'), ...(pokedexes ? [plural(pokedexes, 'Pokédex')] : []), ...(favourites ? [plural(favourites, 'favourite')] : [])];
+      toast({ text: `Imported ${parts.slice(0, -1).join(', ')}${parts.length > 1 ? ' and ' : ''}${parts.at(-1)}` });
     } catch (err) {
       toast({ text: err instanceof BackupError ? err.message : "Couldn't import that file" });
     }
@@ -135,7 +136,7 @@ export function MoreScreen() {
 
         <h2 style={{ marginTop: 22 }}>Backup</h2>
         <p className="hint" style={{ marginBottom: 10 }}>
-          Teams and Pokédexes are stored only on this device. Export a backup, or move them to another device.
+          Teams, Pokédexes and favourites are stored only on this device. Export a backup, or move them to another device.
         </p>
         <div className="add-grid">
           <button className="add-slot" style={{ borderStyle: 'solid' }} onClick={doExport}>
