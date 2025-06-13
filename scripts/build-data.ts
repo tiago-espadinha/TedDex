@@ -33,6 +33,7 @@ import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { summariseSlots, type ConditionValue } from './encounters';
+import { MEGA_MOVES, megaStoneFor, PRIMAL_ORBS } from './megaStones';
 import { POKEAPI_ITEM_CATEGORIES } from '../src/data/itemCategories';
 import { packLearnsets, packLocations, toChunks } from '../src/data/chunks';
 import { eggGroupSlug } from '../src/data/eggGroups';
@@ -84,6 +85,11 @@ const FORM_LABELS: Record<string, string> = {
   hisui: 'Hisuian',
   paldea: 'Paldean',
   'white-striped': 'White-Striped',
+};
+/** Full names PokeAPI spells awkwardly, by Pokémon identifier; the form key stays, so saved teams keep working. */
+const FORM_NAMES: Record<string, string> = {
+  'darmanitan-galar-standard': 'Galarian Darmanitan',
+  'darmanitan-galar-zen': 'Galarian Zen Darmanitan',
 };
 /**
  * item_categories identifiers whose items are battle held items. The holdable flags in item_flag_map
@@ -513,7 +519,7 @@ async function main() {
   /** Form key (unique in its species), chip label and full name, e.g. "mega-x" / "Mega X" / "Mega Charizard X". */
   function formLabels(p: Row, s: Row, speciesName: string) {
     const f = defaultFormOf.get(p.id);
-    const fullName = (f && formName.get(f.id)?.pokemon_name) || '';
+    const fullName = FORM_NAMES[p.identifier] ?? ((f && formName.get(f.id)?.pokemon_name) || '');
     const key = p.identifier.replace(`${s.identifier}-`, '');
     const label =
       fullName.replace(speciesName, '').replace(/\s+/g, ' ').trim() ||
@@ -608,6 +614,35 @@ async function main() {
     return learnset;
   }
 
+  const english = (rows: Row[], key: string) =>
+    new Map(rows.filter((r) => Number(r.local_language_id) === ENGLISH).map((r) => [r[key], r.name]));
+  const itemName = english(itemNames, 'item_id');
+
+  // --- Mega and Primal triggers (Evolution section) ---
+  const megaStoneCategory = itemCategories.find((c) => c.identifier === 'mega-stones')?.id;
+  const megaStones = items
+    .filter((it) => it.category_id === megaStoneCategory && itemName.has(it.id))
+    .map((it) => ({ id: Number(it.id), name: itemName.get(it.id)! }));
+  const itemByName = new Map([...itemName].map(([id, name]) => [name, Number(id)]));
+  const moveByName = new Map(
+    moveNames.filter((n) => Number(n.local_language_id) === ENGLISH).map((n) => [n.name, Number(n.move_id)]),
+  );
+  const byName = (table: Map<string, number>, name: string) => {
+    const id = table.get(name);
+    if (id === undefined) throw new Error(`No item or move named ${name}`);
+    return id;
+  };
+  /** What a Mega or Primal form needs; undefined for other forms. */
+  function megaTrigger(speciesName: string, key: string) {
+    if (!key || formKind(key) !== 'mega') return undefined;
+    const move = MEGA_MOVES[speciesName];
+    if (move) return { kind: 'move' as const, id: byName(moveByName, move), name: move };
+    const orb = key === 'primal' ? PRIMAL_ORBS[speciesName] : undefined;
+    if (key === 'primal' && !orb) throw new Error(`PRIMAL_ORBS: no orb for ${speciesName}`);
+    const id = orb ? byName(itemByName, orb) : megaStoneFor(speciesName, key, megaStones);
+    return { kind: 'item' as const, id, name: itemName.get(String(id))! };
+  }
+
   const index = [];
   /** Pokémon id → its `?form=` key, for the forms we ship (not the defaults). */
   const formKeyOfPokemon = new Map<string, string>();
@@ -619,7 +654,10 @@ async function main() {
     const { types: t, stats, total, abilities, heightM, weightKg, evYield } = battleData(p);
     const n = names.get(s.id);
     const id = Number(s.id);
-    const forms = formsOf(s, p, n?.name ?? s.identifier);
+    const forms = formsOf(s, p, n?.name ?? s.identifier)?.map((f) => {
+      const trigger = megaTrigger(n?.name ?? s.identifier, f.key);
+      return trigger ? { ...f, trigger } : f;
+    });
     for (const f of forms?.slice(1) ?? []) formKeyOfPokemon.set(String(f.pokemonId), f.key);
     formCount += forms ? forms.length - 1 : 0;
     const tags = tagsOf(s, forms);
@@ -753,9 +791,6 @@ async function main() {
   };
 
   // --- evolution chains ---
-  const english = (rows: Row[], key: string) =>
-    new Map(rows.filter((r) => Number(r.local_language_id) === ENGLISH).map((r) => [r[key], r.name]));
-  const itemName = english(itemNames, 'item_id');
   const locationName = english(locationNames, 'location_id');
   const typeLabel = english(typeNames, 'type_id');
   const triggerName = english(triggerProse, 'evolution_trigger_id');

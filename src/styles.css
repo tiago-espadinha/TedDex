@@ -649,23 +649,50 @@ a.fact-chip:active { filter: brightness(0.9); }
 .held-chip { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px 0 4px; border-radius: 22px; background: var(--surface-2); color: var(--ink); font-size: 14px; font-weight: 700; text-decoration: none; }
 .held-chip:active { background: var(--line); }
 .held-chip .pct { font-weight: 600; color: var(--muted); }
-.evo-list, .evo-branch { margin: 0; padding: 0; list-style: none; }
+.evo-list { margin: 0; padding: 0; list-style: none; }
 .evo-list { border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
-/* Each stage sits on a guide line that starts under its parent's sprite. */
-.evo-branch { margin-left: 39px; border-left: 2px solid var(--line); }
-.evo-list li + li > .evo-member, .evo-branch > li > .evo-member { border-top: 1px solid var(--line); }
+.evo-list li + li > .evo-member { border-top: 1px solid var(--line); }
 .evo-member { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 8px 12px; color: var(--ink); text-decoration: none; }
 .evo-member:focus-visible { outline-offset: -2px; }
 a.evo-member:active { background: var(--surface-2); }
-.evo-member.current { background: var(--primary-soft); color: var(--primary-soft-ink); }
 .evo-member img { flex: none; width: 56px; height: 56px; border-radius: 14px; image-rendering: pixelated; }
 .evo-member .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.evo-member .cond { text-wrap: balance; font-size: 12px; font-weight: 700; color: var(--muted); }
-.evo-member.current .cond { color: inherit; }
 .evo-member .name { font-size: 15px; font-weight: 700; }
 .evo-member .no { font-size: 12px; font-weight: 700; color: var(--muted); }
-.evo-member.current .no { color: inherit; }
 .evo-member .types { display: flex; gap: 4px; }
+/* Evolution section (About): stages as sprite-over-name tiles, the method over each arrow. */
+.evo-card { margin: 0; padding: 12px 8px; list-style: none; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); }
+:is(.evo-card, .evo-line) + :is(.evo-card, .evo-line) { margin-top: 12px; }
+.evo-line h3 { margin: 0 2px 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.evo-row { display: grid; align-items: center; }
+.evo-row li { display: contents; }
+.evo-mon { display: flex; flex-direction: column; align-items: center; gap: 4px; justify-self: center; width: 100%; max-width: 160px; min-width: 0; min-height: 44px; padding: 6px 2px; border-radius: 16px; color: var(--ink); text-decoration: none; }
+a.evo-mon:active { background: var(--surface-2); }
+.evo-mon.current { background: var(--primary-soft); color: var(--primary-soft-ink); }
+.evo-mon img { width: 100%; max-width: 80px; height: auto; aspect-ratio: 1; image-rendering: pixelated; }
+/* Long names overflow both sides of a narrow tile instead of breaking mid-word; the arrows leave room beside them. */
+.evo-mon span { font-size: 14px; font-weight: 700; text-align: center; }
+.evo-step { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; padding-bottom: 22px; color: var(--muted); }
+.evo-step b { font-size: 12px; font-weight: 700; line-height: 1.25; text-align: center; text-wrap: balance; color: var(--ink-2); }
+.evo-step svg { width: 100%; max-width: 40px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.evo-step.down { justify-content: flex-end; min-height: 52px; padding: 4px 0 0; }
+.evo-step.down svg { width: 14px; height: 22px; }
+.evo-fan { display: flex; flex-direction: column; align-items: center; }
+.evo-fan > .evo-mon:first-child { width: 120px; }
+/* Several targets share a bracket under their stage, then a grid of columns. */
+.evo-targets { display: grid; width: 100%; margin: 6px 0 0; padding: 14px 0 0; list-style: none; column-gap: 4px; row-gap: 12px; position: relative; }
+.evo-targets::before { content: ''; position: absolute; top: 0; left: 7%; right: 7%; height: 14px; border: 2px solid var(--outline); border-bottom: 0; border-radius: 12px 12px 0 0; }
+.evo-targets.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.evo-targets.cols-2::before { left: 24%; right: 24%; }
+.evo-targets.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.evo-targets > li { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.evo-megas { padding: 4px 8px; }
+.evo-megas li { display: grid; grid-template-columns: minmax(0, 1fr) 132px minmax(0, 1fr); align-items: center; padding: 8px 0; }
+.evo-megas li + li { border-top: 1px solid var(--line); }
+.evo-step.mega { gap: 4px; }
+.evo-step.mega b { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.evo-step.mega b img { flex: none; image-rendering: pixelated; }
+.evo-step.mega svg { max-width: 96px; }
 /* ---------- reference ---------- */
 .ref-kind .name { font-size: 17px; }
 .ref-kind svg { flex: none; margin-left: auto; color: var(--muted); }
@@ -994,7 +1021,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
 [data-design='b'] :is(.search, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
-  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
+  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .evo-card, .evo-mon, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
 [data-design='b'] :is(.ref-list li, .move-group .move-row, .ref-species .evo-member) { border-top: 0; background: var(--surface); box-shadow: var(--shadow-card); }

@@ -26,6 +26,17 @@ describe('index.json forms', () => {
     assert.deepEqual(megaX && [megaX.kind, megaX.types, megaX.pokemonId], ['mega', ['fire', 'dragon'], 10034]);
   });
 
+  test("Galarian Darmanitan's forms read Galarian first and keep their saved keys", () => {
+    const names = (forms: { key: string; label: string; name: string }[]) =>
+      forms.filter((f) => f.key.startsWith('galar')).map((f) => [f.key, f.label, f.name]);
+    const expected = [
+      ['galar-standard', 'Galarian', 'Galarian Darmanitan'],
+      ['galar-zen', 'Galarian Zen', 'Galarian Zen Darmanitan'],
+    ];
+    assert.deepEqual(names(formsOf(555)), expected);
+    assert.deepEqual(names(species(555).forms!), expected);
+  });
+
   test('forms fall into the right switch', () => {
     const kind = (id: number, key: string) => formsOf(id).find((f) => f.key === key)?.kind;
     assert.equal(kind(383, 'primal'), 'mega');

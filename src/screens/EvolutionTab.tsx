@@ -1,89 +1,193 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { loadEvolution, loadIndex, spriteUrl, useLoad } from '../data/api';
-import { chainInForm, type ChainStage } from '../data/evolution';
-import { formatNo } from '../data/format';
-import { typeTint } from '../data/typeColors';
-import type { IndexEntry, SpeciesDetail } from '../data/types';
-import { Loading, TypeChip } from '../components/bits';
+import { itemSpriteUrl, loadEvolution, loadIndex, spriteUrl, useLoad } from '../data/api';
+import { branches, currentForm, evolutionLines, shortCondition, type ChainStage, type EvolutionLine } from '../data/evolution';
+import type { FormVariant, IndexEntry, SpeciesDetail } from '../data/types';
+import { Loading } from '../components/bits';
 
-const loadAll = (chainId: number) => Promise.all([loadEvolution(chainId), loadIndex()]);
+const loadAll = (chainId: number | null) => Promise.all([chainId ? loadEvolution(chainId) : Promise.resolve([]), loadIndex()]);
 
-/** `mon` is the species as shown in form `formKey`; a form with its own evolutions shows that line. */
+/** `mon` is the species as shown in form `formKey`: its own line, its regional lines, then its Megas and Primals. */
 export function EvolutionTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
   const chainId = mon.evolutionChainId;
-  const { data, error } = useLoad(() => (chainId ? loadAll(chainId) : Promise.resolve(undefined)), chainId);
+  const { data, error } = useLoad(() => loadAll(chainId), chainId);
+  const megas = mon.forms?.filter((f) => f.trigger) ?? [];
 
-  if (error) return <Note>Couldn't load the evolution chain. {error.message}</Note>;
-  if (chainId && !data) return <Loading minHeight={160} />;
-  const stages = data ? chainInForm(data[0], mon.id, formKey) : [];
-  if (!data || stages.length < 2) return <Note>{mon.name} does not evolve.</Note>;
-
-  const index = data[1];
+  if (error) return <Section title="Evolution"><p className="hint">Couldn't load the evolution chain. {error.message}</p></Section>;
+  if (!data) return <Loading minHeight={160} />;
+  const [chain, index] = data;
   const species = new Map(index.map((s) => [s.id, s]));
-  // Nested lists, so the branch structure is visible and exposed to screen readers.
-  const branch = (from: number | null): ReactNode[] =>
-    stages
-      .filter((m) => m.from === from)
-      .flatMap((m) => {
-        const s = species.get(m.id);
-        if (!s) return [];
-        const children = branch(m.id);
-        return [
-          <li key={m.id}>
-            <EvoMember member={m} species={s} current={m.id === mon.id} />
-            {children.length > 0 && <ul className="evo-branch">{children}</ul>}
-          </li>,
-        ];
-      });
+  const lines = evolutionLines(chain, mon.id, formKey);
+  const current = { id: mon.id, form: currentForm(lines, mon.id, formKey) };
+  const name = species.get(mon.id)?.name ?? mon.name;
 
   return (
-    <div className="section">
-      <h2>Evolution</h2>
-      <ul className="evo-list">{branch(null)}</ul>
-    </div>
+    <>
+      <Section title="Evolution">
+        {lines.length ? (
+          lines.map((line) => (
+            <Line key={line.key} line={line} species={species} current={current} label={regionLabel(line, species)} />
+          ))
+        ) : (
+          <p className="hint">{mon.name} does not evolve.</p>
+        )}
+      </Section>
+      {megas.length > 0 && (
+        <Section title={megas.every((f) => f.key === 'primal') ? 'Primal Reversion' : 'Mega Evolution'}>
+          <ul className="evo-card evo-megas">
+            {megas.map((f) => (
+              <MegaRow key={f.key} mon={mon} form={f} name={name} formKey={formKey} />
+            ))}
+          </ul>
+        </Section>
+      )}
+    </>
   );
 }
 
-function EvoMember({ member, species, current }: { member: ChainStage; species: IndexEntry; current: boolean }) {
-  const form = species.forms?.find((f) => f.key === member.form);
-  const shown = { id: form?.pokemonId ?? species.id, name: form?.name ?? species.name, types: form?.types ?? species.types };
+type Species = Map<number, IndexEntry>;
+type Current = { id: number; form: string };
+
+/** "Galarian form" over a regional line, from the form label of the species it is seen from. */
+function regionLabel(line: EvolutionLine, species: Species) {
+  const label = line.key && species.get(line.viewId)?.forms?.find((f) => f.key === line.key)?.label;
+  return label ? `${label} form` : undefined;
+}
+
+/** A line as one row with the method over each arrow, or, when it forks, as a fan of targets under each stage. */
+function Line({ line, species, current, label }: { line: EvolutionLine; species: Species; current: Current; label?: string }) {
+  const { stages } = line;
+  const mon = (s: ChainStage) => <Mon stage={s} species={species.get(s.id)} current={current} />;
+  const card = branches(stages) ? (
+    <div className="evo-card evo-fan">{fan(stages, stages[0], mon)}</div>
+  ) : (
+    <ol className="evo-card evo-row" style={{ gridTemplateColumns: `minmax(0, 1fr) repeat(${stages.length - 1}, fit-content(76px) minmax(0, 1fr))` }}>
+      {stages.map((s, i) => (
+        <li key={s.id}>
+          {i > 0 && <Step conditions={s.conditions} />}
+          {mon(s)}
+        </li>
+      ))}
+    </ol>
+  );
+  return label ? (
+    <section className="evo-line" aria-label={label}>
+      <h3>{label}</h3>
+      {card}
+    </section>
+  ) : (
+    card
+  );
+}
+
+/** `stage` and what it evolves into: one target goes straight below, several share a bracket and a grid. */
+function fan(stages: ChainStage[], stage: ChainStage, mon: (s: ChainStage) => ReactNode): ReactNode {
+  const next = stages.filter((s) => s.from === stage.id);
+  const target = (s: ChainStage) => (
+    <>
+      <Step conditions={s.conditions} down />
+      {fan(stages, s, mon)}
+    </>
+  );
+  return (
+    <>
+      {mon(stage)}
+      {next.length === 1 && target(next[0])}
+      {next.length > 1 && (
+        <ul className={`evo-targets cols-${next.length === 2 ? 2 : 3}`}>
+          {next.map((s) => (
+            <li key={s.id}>{target(s)}</li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
+function Step({ conditions, down = false }: { conditions: string[]; down?: boolean }) {
+  return (
+    <span className={down ? 'evo-step down' : 'evo-step'}>
+      {conditions.map((c) => (
+        <b key={c}>{shortCondition(c)}</b>
+      ))}
+      {down ? (
+        <svg viewBox="0 0 14 22" aria-hidden="true">
+          <path d="M7 2v18M2 15l5 5 5-5" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 40 14" aria-hidden="true">
+          <path d="M2 7h34M29 2l7 5-7 5" />
+        </svg>
+      )}
+    </span>
+  );
+}
+
+function Mon({ stage, species, current }: { stage: ChainStage; species?: IndexEntry; current: Current }) {
+  if (!species) return null;
+  const form = species.forms?.find((f) => f.key === stage.form);
+  const here = stage.id === current.id && stage.form === current.form;
+  return (
+    <MonTile
+      mediaId={form?.pokemonId ?? species.id}
+      name={form?.name ?? species.name}
+      to={form ? `/pokemon/${species.id}?form=${form.key}` : `/pokemon/${species.id}`}
+      current={here}
+    />
+  );
+}
+
+function MonTile({ mediaId, name, to, current }: { mediaId: number; name: string; to: string; current: boolean }) {
   const content = (
     <>
-      <img src={spriteUrl(shown.id)} alt="" width={56} height={56} style={{ backgroundColor: typeTint(shown.types[0]) }} />
-      <span className="body">
-        {member.conditions.map((c) => (
-          <span className="cond" key={c}>
-            {c}
-          </span>
-        ))}
-        <span className="name">
-          <span className="no">{formatNo(species.id)}</span> {shown.name}
-        </span>
-        <span className="types">
-          {shown.types.map((t) => (
-            <TypeChip key={t} type={t} />
-          ))}
-        </span>
-      </span>
+      <img src={spriteUrl(mediaId)} alt="" width={80} height={80} />
+      <span>{name}</span>
     </>
   );
   return current ? (
-    <div className="evo-member current" aria-current="page">
+    <div className="evo-mon current" aria-current="page">
       {content}
     </div>
   ) : (
-    <Link className="evo-member" to={form ? `/pokemon/${species.id}?form=${form.key}` : `/pokemon/${species.id}`}>
+    <Link className="evo-mon" to={to}>
       {content}
     </Link>
   );
 }
 
-function Note({ children }: { children: ReactNode }) {
+interface MegaRowProps {
+  mon: SpeciesDetail;
+  form: FormVariant;
+  /** The species' own name (`mon` may be shown as a Mega). */
+  name: string;
+  formKey: string;
+}
+
+/** The species ⇄ one Mega or Primal form, with the stone, orb or move it takes. */
+function MegaRow({ mon, form, name, formKey }: MegaRowProps) {
+  const trigger = form.trigger!;
+  return (
+    <li>
+      <MonTile mediaId={mon.id} name={name} to={`/pokemon/${mon.id}`} current={formKey === ''} />
+      <span className="evo-step mega">
+        <b>
+          {trigger.kind === 'item' && <img src={itemSpriteUrl(trigger.id)} alt="" width={24} height={24} loading="lazy" />}
+          {trigger.kind === 'item' ? 'Hold' : 'Know'} {trigger.name}
+        </b>
+        <svg viewBox="0 0 56 14" aria-hidden="true">
+          <path d="M4 7h48M45 2l7 5-7 5M11 2L4 7l7 5" />
+        </svg>
+      </span>
+      <MonTile mediaId={form.pokemonId} name={form.name} to={`/pokemon/${mon.id}?form=${form.key}`} current={formKey === form.key} />
+    </li>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="section">
-      <h2>Evolution</h2>
-      <p className="hint">{children}</p>
+      <h2>{title}</h2>
+      {children}
     </div>
   );
 }

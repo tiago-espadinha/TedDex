@@ -79,6 +79,8 @@ export type FormVariant = Pick<SpeciesDetail, 'name' | 'types' | 'stats' | 'tota
   label: string;
   /** Version groups it exists in, oldest first; absent on the default form (its learnsets tell). */
   games?: number[];
+  /** Megas and Primals: the held item (reference/items.json id) or, for Mega Rayquaza, the move that triggers it. */
+  trigger?: { kind: 'item' | 'move'; id: number; name: string };
 };
 
 export interface TypeData {
