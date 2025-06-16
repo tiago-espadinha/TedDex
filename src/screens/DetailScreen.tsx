@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { artworkUrl, cryUrl, defensiveMultipliers, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { artworkUrl, cryUrl, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
 import { compareFrom } from '../data/compare';
+import { matchupGroups } from '../data/coverage';
 import { toggleFavourite } from '../data/db';
 import { EGG_GROUP_COLOR, eggGroupSlug } from '../data/eggGroups';
 import { useIsFavourite } from '../data/favourites';
@@ -9,9 +10,9 @@ import { neighbours } from '../data/dexState';
 import { applyForm } from '../data/forms';
 import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText, statColor } from '../data/format';
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
-import type { FormVariant, SpeciesDetail, TypeData, TypeName } from '../data/types';
+import type { SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip, useToast } from '../components/bits';
+import { Loading, MonName, TypeChip, useToast } from '../components/bits';
 import { usePager } from '../components/usePager';
 import { usePeek } from '../components/usePeek';
 import { EvolutionTab } from './EvolutionTab';
@@ -33,7 +34,7 @@ const STAT_ROWS: [keyof SpeciesDetail['stats'], string][] = [
 
 export function DetailScreen() {
   const id = Number(useParams().id);
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const { data: mon, error } = useLoad(() => loadSpecies(id), id);
   const { data: typeData } = useLoad(loadTypes, 'types');
   const [tab, setTabState] = useState<Tab>(() => {
@@ -68,7 +69,6 @@ export function DetailScreen() {
   const [noArtworkFor, setNoArtworkFor] = useState<number>();
 
   const go = (target?: string) => target && navigate(target, { replace: true });
-  const pickForm = (key: string) => setParams(key ? { form: key } : {}, { replace: true });
 
   /** Arrow keys, Home and End move between tabs (ARIA tabs pattern, selection follows focus). */
   function onTabKey(e: KeyboardEvent) {
@@ -120,7 +120,7 @@ export function DetailScreen() {
             <button className={playing ? 'icon-btn playing' : 'icon-btn'} aria-label={playing ? 'Playing cry' : 'Play cry'} onClick={playCry}>
               <Icon name="sound" />
             </button>
-            <Link className="icon-btn" aria-label="Compare" to={compareFrom({ id: mon.id, form: form?.key })}>
+            <Link className="icon-btn" aria-label="Comparator" to={compareFrom({ id: mon.id, form: form?.key })}>
               <Icon name="compare" />
             </Link>
             <button
@@ -136,7 +136,9 @@ export function DetailScreen() {
         </div>
         <div className="title">
           <div className="no">{formatNo(mon.id)}</div>
-          <h1>{view.name}</h1>
+          <h1>
+            <MonName name={view.name} />
+          </h1>
           {view.genus && <p className="genus">{view.genus}</p>}
           <div className="types">
             {view.types.map((t) => (
@@ -160,7 +162,6 @@ export function DetailScreen() {
             </div>
           </dl>
         </div>
-        {mon.forms && <FormPicker forms={mon.forms} current={form?.key ?? ''} onPick={pickForm} />}
         <div className="art-row">
           <StepLink to={prev} label="Previous" icon="back" />
           {noArtworkFor === mediaId ? (
@@ -228,19 +229,6 @@ function StepLink({ to, label, icon }: { to?: string; label: string; icon: 'back
     <Link className="nav-round" to={to} replace aria-label={label}>
       <Icon name={icon} size={20} />
     </Link>
-  );
-}
-
-/** One toggle button per form; the default form has the empty key. */
-function FormPicker({ forms, current, onPick }: { forms: FormVariant[]; current: string; onPick: (key: string) => void }) {
-  return (
-    <div className="form-row" role="group" aria-label="Forms">
-      {forms.map((f) => (
-        <button key={f.key} type="button" className="form-btn" aria-pressed={f.key === current} onClick={() => onPick(f.key)}>
-          {f.label}
-        </button>
-      ))}
-    </div>
   );
 }
 
@@ -400,32 +388,22 @@ function Stats({ mon, typeData }: { mon: SpeciesDetail; typeData?: TypeData }) {
 }
 
 function Matchups({ types, data }: { types: TypeName[]; data: TypeData }) {
-  const mult = defensiveMultipliers(types, data);
-  const groups: { label: string; test: (m: number) => boolean }[] = [
-    { label: 'Weak to', test: (m) => m > 1 },
-    { label: 'Resists', test: (m) => m > 0 && m < 1 },
-    { label: 'Immune to', test: (m) => m === 0 },
-  ];
   return (
     <div className="section">
       <h2>Type matchups</h2>
-      {groups.map((g) => {
-        const hits = data.types.filter((t) => g.test(mult[t])).sort((a, b) => mult[b] - mult[a]);
-        if (!hits.length) return null;
-        return (
-          <div className="eff-group" key={g.label}>
-            <h3>{g.label}</h3>
-            <div className="chip-wrap">
-              {hits.map((t) => (
-                <span key={t} className="type-chip lg" style={{ backgroundColor: typeChip(t) }}>
-                  {t}
-                  {mult[t] !== 2 && mult[t] !== 0.5 && mult[t] !== 0 ? ` ${formatMultiplier(mult[t])}` : ''}
-                </span>
-              ))}
-            </div>
+      {matchupGroups(types, data).map((g) => (
+        <div className="eff-group" key={g.label}>
+          <h3>{g.label}</h3>
+          <div className="chip-wrap">
+            {g.hits.map(({ type: t, mult }) => (
+              <span key={t} className="type-chip lg" style={{ backgroundColor: typeChip(t) }}>
+                {t}
+                {mult !== 2 && mult !== 0.5 && mult !== 0 ? ` ${formatMultiplier(mult)}` : ''}
+              </span>
+            ))}
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }

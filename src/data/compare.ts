@@ -1,6 +1,3 @@
-import { defensiveMultipliers } from './api';
-import type { TypeData, TypeName } from './types';
-
 /** One side of the compare screen: a species and, when not the default, its form key. */
 export interface CompareSlot {
   id: number;
@@ -48,15 +45,6 @@ export const comparePickPath = (slot: SlotName, state: CompareState) => {
   const search = compareSearch(state);
   return `/?compare=${slot}${search ? `&${search}` : ''}`;
 };
-
-/**
- * How each attacking type does against the defender's types, strongest first (ties keep the attacker's order).
- * Plain type chart, like the detail page's matchups.
- */
-export function typeHits(attack: TypeName[], defend: TypeName[], data: TypeData): { type: TypeName; mult: number }[] {
-  const mult = defensiveMultipliers(defend, data);
-  return attack.map((type) => ({ type, mult: mult[type] })).sort((x, y) => y.mult - x.mult);
-}
 
 const LAST_KEY = 'compare-last';
 

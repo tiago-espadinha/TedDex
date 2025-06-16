@@ -11,7 +11,7 @@ import { DEFAULT_FILTERS, SORT_LABELS, detailPath, isPicking, saveOrder, useDexF
 import { typeTint } from '../data/typeColors';
 import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
+import { Loading, MonName, SearchField, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
 import { useDexForms, useDexView, useGame, useSpriteStyle } from '../data/settings';
 import { lastSpecies } from '../data/pokedex';
@@ -119,7 +119,7 @@ export function DexScreen() {
             <Icon name="back" />
           </button>
           <div className="grow">
-            <h1 className="team-name">{compareSlot ? 'Compare' : 'Add Pokémon'}</h1>
+            <h1 className="team-name">{compareSlot ? 'Comparator' : 'Add Pokémon'}</h1>
             <div className="sub">{compareSlot ? (compareSlot === 'a' ? 'First Pokémon' : 'Second Pokémon') : teamName}</div>
           </div>
         </header>
@@ -226,7 +226,9 @@ function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; 
         {formatNo(mon.id)}
         {value && <span className="sort-val"> · {value}</span>}
       </div>
-      <div className="name">{mon.form?.name ?? mon.name}</div>
+      <div className="name">
+        <MonName name={mon.form?.name ?? mon.name} />
+      </div>
       <div className="types">
         {mon.types.map((t) => (
           <TypeChip key={t} type={t} />

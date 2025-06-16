@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { itemSpriteUrl, loadEvolution, loadIndex, spriteUrl, useLoad } from '../data/api';
 import { branches, currentForm, evolutionLines, shortCondition, type ChainStage, type EvolutionLine } from '../data/evolution';
 import type { FormVariant, IndexEntry, SpeciesDetail } from '../data/types';
-import { Loading } from '../components/bits';
+import { Loading, MonName } from '../components/bits';
 
 const loadAll = (chainId: number | null) => Promise.all([chainId ? loadEvolution(chainId) : Promise.resolve([]), loadIndex()]);
 
@@ -141,7 +141,9 @@ function MonTile({ mediaId, name, to, current }: { mediaId: number; name: string
   const content = (
     <>
       <img src={spriteUrl(mediaId)} alt="" width={80} height={80} />
-      <span>{name}</span>
+      <span>
+        <MonName name={name} />
+      </span>
     </>
   );
   return current ? (

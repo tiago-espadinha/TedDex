@@ -24,7 +24,7 @@ import {
 import { teamMatches } from '../data/teamSearch';
 import type { IndexEntry, Pokedexes, VersionGroup } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField } from '../components/bits';
+import { Loading, MonName, SearchField } from '../components/bits';
 import { PokedexFilterSheet } from './PokedexFilterSheet';
 import { RenameSheet, TeamTabs } from './TeamScreens';
 
@@ -351,7 +351,7 @@ const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }
         onClick={() => onTap(id)}
       >
         <img src={state === 3 ? shinySpriteUrl(id) : spriteUrl(id)} alt="" loading="lazy" width={72} height={72} />
-        <span className="no">{state ? name : no}</span>
+        <span className="no">{state ? <MonName name={name} /> : no}</span>
         {state >= 2 && (
           <span className="badge">
             <Icon name={state === 3 ? 'star' : 'ball'} size={16} />
