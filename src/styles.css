@@ -291,6 +291,7 @@ main:focus, .sheet:focus { outline: none; }
 /* ---------- shell ---------- */
 .app { min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--nav-h) + var(--safe-bottom)); max-width: 720px; margin: 0 auto; }
 .app.no-nav { padding-bottom: var(--safe-bottom); }
+.no-nav .fab { bottom: calc(var(--safe-bottom) + 16px); }
 
 .bottom-nav {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
@@ -369,8 +370,6 @@ main:focus, .sheet:focus { outline: none; }
 .fab { position: fixed; right: max(16px, calc((100vw - 720px) / 2 + 16px)); bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); z-index: 15; width: 56px; height: 56px; border-radius: 16px; border: 0; background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); }
 :is(.fab, .filter-btn) .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
-.pick-banner { position: sticky; top: 0; z-index: 10; margin: 0 16px 8px; padding: 10px 14px; border-radius: 14px; background: var(--primary-soft); color: var(--primary-soft-ink); font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-.pick-banner button { border: 0; background: transparent; color: inherit; font-weight: 800; min-height: 32px; }
 
 /* ---------- sheet ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); animation: fade 160ms ease; }
@@ -401,7 +400,7 @@ main:focus, .sheet:focus { outline: none; }
 .hint { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
 
 /* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
-:is(.gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button) {
+:is(.gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn) {
   position: relative;
   &::after { content: ''; position: absolute; inset: min(0px, 50% - 22px); }
 }
@@ -1021,7 +1020,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
 [data-design='b'] :is(.search, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
-  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .evo-card, .evo-mon, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
+  .move-slots .move-row, .move-pick, .summary .tile, .coming, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .evo-card, .evo-mon, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
 [data-design='b'] :is(.ref-list li, .move-group .move-row, .ref-species .evo-member) { border-top: 0; background: var(--surface); box-shadow: var(--shadow-card); }

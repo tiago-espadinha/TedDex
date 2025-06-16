@@ -1,7 +1,8 @@
 import { StrictMode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation } from 'react-router-dom';
+import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation, type Location } from 'react-router-dom';
 import { BottomNav, ToastProvider } from './components/bits';
+import { isPicking } from './data/dexState';
 import { applyDesign, applyTheme, type Design, type Theme } from './data/settings';
 import { warmSprites } from './data/spriteCache';
 import { CompareScreen } from './screens/CompareScreen';
@@ -24,10 +25,18 @@ try {
   /* storage unavailable */
 }
 
+/** Dex pick mode (adding to a team, a Compare side), pushed over the screen that opened it. */
+const isPickMode = (loc: { pathname: string; search: string }) => loc.pathname === '/' && isPicking(new URLSearchParams(loc.search));
+
+/** Each pick starts at the top, like its empty search; other screens restore their scroll by path and search. */
+const scrollKey = (loc: Location) => (isPickMode(loc) ? loc.key : loc.pathname + loc.search);
+
 /** Screens pushed on top of a tab hide the bottom nav, like a native stack. */
 function Shell() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const pushed =
+    isPickMode(location) ||
     pathname.startsWith('/pokemon/') || pathname === '/compare' || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
   const main = useRef<HTMLElement>(null);
   // When navigation removes the focused control, start keyboard and screen reader users at the
@@ -43,7 +52,7 @@ function Shell() {
       </main>
       {!pushed && <BottomNav />}
       <QuickView />
-      <ScrollRestoration getKey={(loc) => loc.pathname + loc.search} />
+      <ScrollRestoration getKey={scrollKey} />
     </ToastProvider>
   );
 }

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
 import { GOD_MODE_KEY } from './db';
-import { parseFormKinds } from './dexState';
+import { DEFAULT_FORM_KINDS, parseFormKinds } from './dexState';
 import { parseGamePref, type GamePref } from './game';
 import type { FormKind } from './types';
 
@@ -88,9 +88,9 @@ export const useSpriteStyle = () => usePref<SpriteStyle>('sprite-style', 'sprite
 export type DexView = 'grid' | 'list';
 export const useDexView = () => usePref<DexView>('dex-view', 'grid');
 
-/** The form kinds the Dex shows as rows of their own; none by default. */
+/** The form kinds the Dex shows as rows of their own; all but Gigantamax until a choice is stored ('' when all are off). */
 export function useDexForms() {
-  const [raw, setRaw] = usePref<string>('dex-forms', '');
+  const [raw, setRaw] = usePref<string>('dex-forms', DEFAULT_FORM_KINDS.join(','));
   const kinds = useMemo(() => parseFormKinds(raw), [raw]);
   const set = useCallback((next: FormKind[]) => setRaw(next.join(',')), [setRaw]);
   return [kinds, set] as const;
