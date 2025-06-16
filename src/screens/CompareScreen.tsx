@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
-import { SLOTS, comparePickPath, compareSearch, parseCompare, rememberCompare, typeHits, type CompareState, type SlotName } from '../data/compare';
-import { detailPath } from '../data/dexState';
+import { SLOTS, comparePickPath, parseCompare, rememberCompare, type CompareState, type SlotName } from '../data/compare';
+import { matchupGroups, type MatchupGroup } from '../data/coverage';
 import { applyForm } from '../data/forms';
-import { formatNo, statColor } from '../data/format';
-import { typeTint } from '../data/typeColors';
+import { formatMultiplier, formatNo, statColor } from '../data/format';
+import { typeChip, typeTint } from '../data/typeColors';
 import type { SpeciesDetail, StatBlock, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip } from '../components/bits';
+import { Loading, MonName, TypeChip } from '../components/bits';
 
 const STAT_ROWS: [keyof StatBlock, string][] = [
   ['hp', 'HP'],
@@ -18,12 +18,6 @@ const STAT_ROWS: [keyof StatBlock, string][] = [
   ['spd', 'Sp. Def'],
   ['spe', 'Speed'],
 ];
-
-/** The words and pill tone (a matchup token) for a damage factor. */
-const hitLabel = (m: number) =>
-  m > 1 ? ['Super effective', 'weak'] : m === 1 ? ['Neutral', 'neutral'] : m > 0 ? ['Not very effective', 'resist'] : ['No effect', 'immune'];
-
-const multText = (m: number) => (m === 0.5 ? '½×' : m === 0.25 ? '¼×' : `${m}×`);
 
 interface SlotView {
   species?: SpeciesDetail;
@@ -40,7 +34,7 @@ function useSlot(slot: CompareState[SlotName]): SlotView {
 }
 
 export function CompareScreen() {
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const navigate = useNavigate();
   const state = parseCompare(params);
   const a = useSlot(state.a);
@@ -48,9 +42,6 @@ export function CompareScreen() {
   const { data: typeData } = useLoad(loadTypes, 'types');
   const search = params.toString();
   useEffect(() => rememberCompare(search), [search]);
-
-  const pickForm = (s: SlotName, id: number, form: string) =>
-    setParams(compareSearch({ ...state, [s]: { id, form: form || undefined } }), { replace: true });
 
   const sides = { a, b };
   const both = a.view && b.view ? { a: a.view, b: b.view } : null;
@@ -62,7 +53,7 @@ export function CompareScreen() {
           <Icon name="back" />
         </button>
         <div className="grow">
-          <h1>Compare</h1>
+          <h1>Comparator</h1>
         </div>
       </header>
 
@@ -77,19 +68,12 @@ export function CompareScreen() {
               </div>
             );
           return (
-            <SlotCard
-              key={s}
-              side={side}
-              label={s === 'a' ? 'first' : 'second'}
-              pick={comparePickPath(s, state)}
-              form={slot?.form ?? ''}
-              onForm={(f) => slot && pickForm(s, slot.id, f)}
-            />
+            <SlotCard key={s} side={side} label={s === 'a' ? 'first' : 'second'} pick={comparePickPath(s, state)} />
           );
         })}
       </div>
 
-      {!both && <p className="empty">Pick two Pokémon to compare their types, stats and size.</p>}
+      {!both && <p className="empty">Pick two Pokémon to compare their weaknesses, stats and size.</p>}
       {both && typeData && <Matchups a={both.a} b={both.b} data={typeData} />}
       {both && <StatsCompare a={both.a} b={both.b} />}
       <div style={{ height: 24 }} />
@@ -97,9 +81,8 @@ export function CompareScreen() {
   );
 }
 
-/** A picked Pokémon, or a button to pick one (also when the slot's Pokémon couldn't load). */
-function SlotCard(props: { side: SlotView; label: string; pick: string; form: string; onForm: (key: string) => void }) {
-  const { side, label, pick, form, onForm } = props;
+/** A picked Pokémon or an empty slot; either way a button that opens Dex pick mode to swap it. */
+function SlotCard({ side, label, pick }: { side: SlotView; label: string; pick: string }) {
   const { view: mon, species, mediaId } = side;
   const navigate = useNavigate();
   const change = () => navigate(pick, { replace: true });
@@ -112,61 +95,52 @@ function SlotCard(props: { side: SlotView; label: string; pick: string; form: st
       </button>
     );
   return (
-    <div className="cmp-slot" style={{ backgroundColor: typeTint(mon.types[0]) }}>
-      <button className="cmp-pick" onClick={change} aria-label={`Change ${mon.name}`}>
-        <img src={spriteUrl(mediaId)} alt="" width={96} height={96} />
-      </button>
-      <div className="no">{formatNo(species.id)}</div>
-      <Link className="name" to={detailPath(species.id, form || undefined)}>
-        {mon.name}
-      </Link>
-      <div className="types">
+    <button className="cmp-slot" style={{ backgroundColor: typeTint(mon.types[0]) }} onClick={change} aria-label={`Change ${mon.name}`}>
+      <img src={spriteUrl(mediaId)} alt="" width={96} height={96} />
+      <span className="no">{formatNo(species.id)}</span>
+      <span className="name">
+        <MonName name={mon.name} />
+      </span>
+      <span className="types">
         {mon.types.map((t) => (
           <TypeChip key={t} type={t} />
         ))}
-      </div>
-      {species.forms && (
-        <label className="cmp-form">
-          <span className="sr-only">{species.name} form</span>
-          <select value={form} onChange={(e) => onForm(e.target.value)}>
-            {species.forms.map((f) => (
-              <option key={f.key} value={f.key}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-          <Icon name="next" size={16} />
-        </label>
-      )}
-    </div>
+      </span>
+    </button>
   );
 }
 
-/** How each one's types hit the other, strongest first. */
+const GROUPS: MatchupGroup['label'][] = ['Weak to', 'Resists', 'Immune to'];
+
+/** Each one's weaknesses, resistances and immunities, a group per row with a column per side. */
 function Matchups({ a, b, data }: { a: SpeciesDetail; b: SpeciesDetail; data: TypeData }) {
+  const sides = [a, b].map((mon) => ({ name: mon.name, groups: matchupGroups(mon.types, data) }));
   return (
     <div className="section">
       <h2>Type matchups</h2>
-      {[
-        [a, b],
-        [b, a],
-      ].map(([atk, def], i) => (
-        <div className="eff-group" key={i}>
-          <h3>
-            {atk.name}'s types against {def.name}
-          </h3>
-          <ul className="cmp-hits">
-            {typeHits(atk.types, def.types, data).map(({ type, mult }) => {
-              const [label, tone] = hitLabel(mult);
+      {GROUPS.filter((label) => sides.some((s) => s.groups.some((g) => g.label === label))).map((label) => (
+        <div className="eff-group" key={label}>
+          <h3>{label}</h3>
+          <div className="cmp-sides">
+            {sides.map(({ name, groups }, i) => {
+              const hits = groups.find((g) => g.label === label)?.hits ?? [];
               return (
-                <li key={type}>
-                  <TypeChip type={type} />
-                  <span className={`cmp-mult ${tone}`}>{multText(mult)}</span>
-                  <span className="cmp-hit-label">{label}</span>
-                </li>
+                <div className="chip-wrap" key={i}>
+                  <span className="sr-only">{name}:</span>
+                  {hits.length ? (
+                    hits.map(({ type, mult }) => (
+                      <span key={type} className="type-chip lg" style={{ backgroundColor: typeChip(type) }}>
+                        {type}
+                        {mult !== 2 && mult !== 0.5 && mult !== 0 ? ` ${formatMultiplier(mult)}` : ''}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="cmp-none">None</span>
+                  )}
+                </div>
               );
             })}
-          </ul>
+          </div>
         </div>
       ))}
     </div>

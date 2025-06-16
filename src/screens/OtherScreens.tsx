@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { loadVersions, useLoad } from '../data/api';
 import { BackupError, exportBackup, importBackup } from '../data/db';
 import { parseGamePref } from '../data/game';
+import { bandStyle } from '../data/gameColors';
 import { FORM_KIND_LABELS } from '../data/dexState';
 import { applyDesign, applyTheme, useDesign, useDexForms, useGame, useSpriteStyle, useTheme, type Theme } from '../data/settings';
 import type { FormKind } from '../data/types';
@@ -117,7 +118,11 @@ export function MoreScreen() {
         <p id="game-hint" className="hint" style={{ marginBottom: 10 }}>
           Moves and Locations open on this game. Latest shows each Pokémon's newest game.
         </p>
-        <label className="game-select" hidden={!versions}>
+        <label
+          className={game === 'latest' ? 'game-select' : 'game-select game-band'}
+          style={game === 'latest' ? undefined : bandStyle(versions?.find((v) => v.id === game)?.label ?? '')}
+          hidden={!versions}
+        >
           <span className="sr-only">Game</span>
           <select
             value={game}

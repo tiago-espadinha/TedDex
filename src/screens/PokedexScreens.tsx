@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { dexSpriteUrl, loadIndex, loadPokedexes, loadVersions, shinySpriteUrl, spriteUrl, useLoad } from '../data/api';
 import { createPokedex, cycleDexState, db, renamePokedex, type Pokedex } from '../data/db';
 import { formatNo } from '../data/format';
+import { bandStyle } from '../data/gameColors';
 import {
   DEX_STATE_LABELS,
   activeDexFilters,
@@ -24,7 +25,7 @@ import {
 import { teamMatches } from '../data/teamSearch';
 import type { IndexEntry, Pokedexes, VersionGroup } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField } from '../components/bits';
+import { Loading, MonName, SearchField } from '../components/bits';
 import { PokedexFilterSheet } from './PokedexFilterSheet';
 import { RenameSheet, TeamTabs } from './TeamScreens';
 
@@ -170,7 +171,8 @@ export function NewPokedex() {
             return (
               <li key={v.id}>
                 <button
-                  className="team-row dex-row"
+                  className="team-row dex-row game-band"
+                  style={bandStyle(v.label)}
                   disabled={busy}
                   aria-label={`${v.label}: ${dexes.map((d) => `${d.name} ${d.species.length}`).join(', ')}`}
                   onClick={() => create(v.id)}
@@ -351,7 +353,7 @@ const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }
         onClick={() => onTap(id)}
       >
         <img src={state === 3 ? shinySpriteUrl(id) : spriteUrl(id)} alt="" loading="lazy" width={72} height={72} />
-        <span className="no">{state ? name : no}</span>
+        <span className="no">{state ? <MonName name={name} /> : no}</span>
         {state >= 2 && (
           <span className="badge">
             <Icon name={state === 3 ? 'star' : 'ball'} size={16} />

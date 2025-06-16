@@ -1,16 +1,17 @@
 import Fuse from 'fuse.js';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { artworkUrl, loadIndex, loadVersions, spriteUrl, useLoad } from '../data/api';
 import { formatNo } from '../data/format';
 import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
-import { SORT_LABELS, detailPath, saveOrder, useDexFilters, type DexFilters, type SortKey } from '../data/dexState';
+import { DEFAULT_FILTERS, SORT_LABELS, detailPath, isPicking, saveOrder, useDexFilters, type DexFilters, type SortKey } from '../data/dexState';
 import { typeTint } from '../data/typeColors';
 import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField, TypeChip, useToast } from '../components/bits';
+import { Loading, MonName, SearchField, TypeChip, useToast } from '../components/bits';
 import { FilterSheet } from './FilterSheet';
 import { useDexForms, useDexView, useGame, useSpriteStyle } from '../data/settings';
 import { lastSpecies } from '../data/pokedex';
@@ -32,15 +33,26 @@ function useColumns() {
 
 export function DexScreen() {
   const { data: all, error } = useLoad(loadIndex, 'index');
-  const [filters, setFilters] = useDexFilters();
   const favourites = useFavourites();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [params] = useSearchParams();
-  const pickTeam = params.get('pick') ? Number(params.get('pick')) : null;
+  const picking = isPicking(params);
+  const pickTeam = picking && params.get('pick') ? Number(params.get('pick')) : null;
   const compareSlot = SLOTS.find((s) => s === params.get('compare'));
+  // Pick mode is its own search: it starts empty each time and leaves the Dex tab's filters alone.
+  const dexFilters = useDexFilters();
+  const pickFilters = useState<DexFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = picking ? pickFilters : dexFilters;
+  const teamName = useLiveQuery(() => (pickTeam != null ? db.teams.get(pickTeam).then((t) => t?.name) : undefined), [pickTeam]);
   const navigate = useNavigate();
   const backToCompare = (slot?: SlotName, id?: number, form?: string) =>
     navigate(comparePath({ ...parseCompare(params), ...(slot && id ? { [slot]: { id, form } } : {}) }), { replace: true });
+  // Back goes to the screen that opened pick mode: Compare, which it replaced, or the team (afresh on a direct link).
+  const back = () => {
+    if (compareSlot) backToCompare();
+    else if ((window.history.state?.idx ?? 0) > 0) navigate(-1);
+    else navigate(`/teams/${pickTeam}`, { replace: true });
+  };
   const toast = useToast();
   const cols = useColumns();
   const [spriteStyle] = useSpriteStyle();
@@ -59,7 +71,9 @@ export function DexScreen() {
   const fuse = useMemo(() => (rows ? new Fuse(rows, FUSE_OPTIONS) : null), [rows]);
   const limitTo = upTo(filters);
   const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters, limitTo, favourites) : []), [rows, fuse, filters, limitTo, favourites]);
-  useEffect(() => saveOrder(list.map((m) => detailPath(m.id, m.form?.key))), [list]);
+  useEffect(() => {
+    if (!picking) saveOrder(list.map((m) => detailPath(m.id, m.form?.key)));
+  }, [list, picking]);
 
   const lines = Math.ceil(list.length / perRow);
   const rowHeight = view === 'list' ? LIST_ROW_H : ROW_H;
@@ -78,41 +92,44 @@ export function DexScreen() {
     if (ok && team) toast({ text: `Added to ${team.name}` });
   }
 
+  const search = (
+    <SearchField
+      label="Search Pokémon"
+      placeholder="Name, number, type"
+      value={filters.query}
+      onChange={(query) => setFilters({ ...filters, query })}
+      trailing={
+        <button
+          className="icon-btn sm"
+          aria-label="List view"
+          aria-pressed={view === 'list'}
+          onClick={() => setView(view === 'list' ? 'grid' : 'list')}
+        >
+          <Icon name={view === 'list' ? 'grid' : 'list'} size={20} />
+        </button>
+      }
+    />
+  );
+
   return (
     <>
-      <header className="dex-head">
-        <h1>Dex</h1>
-        <SearchField
-          label="Search Pokémon"
-          placeholder="Name, number, type"
-          value={filters.query}
-          onChange={(query) => setFilters({ ...filters, query })}
-          trailing={
-            <button
-              className="icon-btn sm"
-              aria-label="List view"
-              aria-pressed={view === 'list'}
-              onClick={() => setView(view === 'list' ? 'grid' : 'list')}
-            >
-              <Icon name={view === 'list' ? 'grid' : 'list'} size={20} />
-            </button>
-          }
-        />
-      </header>
-
-      {compareSlot && (
-        <div className="pick-banner">
-          Tap a Pokémon to compare
-          <button onClick={() => backToCompare()}>Cancel</button>
-        </div>
+      {picking ? (
+        <header className="topbar dex-top">
+          <button className="icon-btn" aria-label="Back" onClick={back}>
+            <Icon name="back" />
+          </button>
+          <div className="grow">
+            <h1 className="team-name">{compareSlot ? 'Comparator' : 'Add Pokémon'}</h1>
+            <div className="sub">{compareSlot ? (compareSlot === 'a' ? 'First Pokémon' : 'Second Pokémon') : teamName}</div>
+          </div>
+        </header>
+      ) : (
+        <header className="dex-head">
+          <h1>Dex</h1>
+          {search}
+        </header>
       )}
-
-      {pickTeam != null && (
-        <div className="pick-banner">
-          Tap a Pokémon to add it
-          <button onClick={() => navigate(`/teams/${pickTeam}`, { replace: true })}>Cancel</button>
-        </div>
-      )}
+      {picking && <div className="dex-search">{search}</div>}
 
       {error && <p className="empty">Couldn't load the dex data. {error.message}</p>}
       {!rows && !error && <Loading />}
@@ -209,7 +226,9 @@ function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; 
         {formatNo(mon.id)}
         {value && <span className="sort-val"> · {value}</span>}
       </div>
-      <div className="name">{mon.form?.name ?? mon.name}</div>
+      <div className="name">
+        <MonName name={mon.form?.name ?? mon.name} />
+      </div>
       <div className="types">
         {mon.types.map((t) => (
           <TypeChip key={t} type={t} />

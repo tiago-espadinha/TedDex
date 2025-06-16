@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CategoryIcon, useModalSheet } from '../components/bits';
 import { Icon } from '../components/Icon';
 import { cap } from '../data/format';
+import { bandStyle } from '../data/gameColors';
 import { NO_MOVE_FILTERS, type MoveChoiceFilters } from '../data/memberOptions';
 import { MOVE_CATEGORIES } from '../data/moveFilter';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
@@ -34,6 +35,7 @@ export function MoveChoiceFilterSheet({
   const [draft, setDraft] = useState(value);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
+  const chosenGame = games.find((g) => g.id === draft.game);
 
   return (
     <>
@@ -48,7 +50,7 @@ export function MoveChoiceFilterSheet({
         </div>
 
         <h3>Learnable in</h3>
-        <label className="game-select">
+        <label className={chosenGame ? 'game-select game-band' : 'game-select'} style={chosenGame && bandStyle(chosenGame.label)}>
           <span className="sr-only">Game</span>
           <select
             value={draft.game ?? ''}

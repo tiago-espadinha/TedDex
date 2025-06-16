@@ -1,33 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { comparePath, comparePickPath, compareSearch, parseCompare, typeHits } from '../src/data/compare';
-import type { TypeData } from '../src/data/types';
-import typesJson from '../public/data/types.json' with { type: 'json' };
-
-const CHART = typesJson as TypeData;
-
-describe('typeHits', () => {
-  test('Blastoise hits Charizard 2x, Charizard hits Blastoise ½x with Fire', () => {
-    assert.deepEqual(typeHits(['water'], ['fire', 'flying'], CHART), [{ type: 'water', mult: 2 }]);
-    assert.deepEqual(typeHits(['fire', 'flying'], ['water'], CHART), [
-      { type: 'flying', mult: 1 },
-      { type: 'fire', mult: 0.5 },
-    ]);
-  });
-
-  test('dual-type defender multiplies, immunity is 0', () => {
-    // Electric against Gyarados (Water/Flying) is 4x; against Garchomp (Dragon/Ground) it is 0.
-    assert.deepEqual(typeHits(['electric'], ['water', 'flying'], CHART), [{ type: 'electric', mult: 4 }]);
-    assert.deepEqual(typeHits(['electric'], ['dragon', 'ground'], CHART), [{ type: 'electric', mult: 0 }]);
-  });
-
-  test('ties keep the attacker order', () => {
-    assert.deepEqual(
-      typeHits(['grass', 'poison'], ['normal'], CHART).map((h) => h.type),
-      ['grass', 'poison'],
-    );
-  });
-});
+import { comparePath, comparePickPath, compareSearch, parseCompare } from '../src/data/compare';
 
 describe('compare URL', () => {
   test('round-trips both slots with forms', () => {

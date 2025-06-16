@@ -45,10 +45,20 @@ export const FORM_KIND_LABELS: Record<FormKind, string> = {
   other: 'Other battle forms',
 };
 
-/** The form kinds a stored "mega,gmax" list switches on; unknown words are ignored. */
+/** The form kinds shown before any choice is stored: all but Gigantamax. */
+export const DEFAULT_FORM_KINDS: FormKind[] = ['mega', 'regional', 'other'];
+
+/** The form kinds a stored "mega,gmax" list switches on (none for ''); unknown words are ignored; nothing stored gives the defaults. */
 export function parseFormKinds(raw: string | null): FormKind[] {
-  const words = raw?.split(',') ?? [];
+  if (raw == null) return DEFAULT_FORM_KINDS;
+  const words = raw.split(',');
   return (Object.keys(FORM_KIND_LABELS) as FormKind[]).filter((k) => words.includes(k));
+}
+
+/** Whether a Dex URL's search is pick mode: adding to a team (`pick=<team>`) or picking a Compare side (`compare=a|b`). */
+export function isPicking(params: URLSearchParams): boolean {
+  const team = params.get('pick');
+  return (team != null && /^\d+$/.test(team)) || params.get('compare') === 'a' || params.get('compare') === 'b';
 }
 
 export interface DexFilters {

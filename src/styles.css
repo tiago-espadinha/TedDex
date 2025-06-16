@@ -26,7 +26,6 @@
   --on-tint-muted: #5e5b66;
   --on-tint-soft: #4f5a4a;
   --tint-glass: rgba(255, 255, 255, 0.75);
-  --tint-selected-ink: #ffffff;
   --tint-press: rgba(255, 255, 255, 0.5);
   --stat-high: #3b7d2e;
   --stat-mid: #b88a0e;
@@ -83,6 +82,57 @@
   --shiny-ink: #5c4000;
   --silhouette: brightness(0) opacity(0.22);
   color-scheme: light;
+  /* Game colours (--game-<slug>, src/data/gameColors.ts): bands, and chips with white text. Design A dark keeps these. */
+  --game-red: #c62828;
+  --game-blue: #1f5fbf;
+  --game-green: #2e7d32;
+  --game-yellow: #8a6d00;
+  --game-gold: #8c6a12;
+  --game-silver: #5f6b78;
+  --game-crystal: #1f7a8c;
+  --game-ruby: #b0203c;
+  --game-sapphire: #1d4fa8;
+  --game-emerald: #1b7a4a;
+  --game-firered: #c2410c;
+  --game-leafgreen: #3d7a1f;
+  --game-diamond: #3f6fb5;
+  --game-pearl: #a8456e;
+  --game-platinum: #5c6370;
+  --game-heartgold: #946800;
+  --game-soulsilver: #66707a;
+  --game-black: #3a3a44;
+  --game-white: #6b6b73;
+  --game-black-2: #2f4050;
+  --game-white-2: #7a6560;
+  --game-x: #1f5fa8;
+  --game-y: #b0263a;
+  --game-omega-ruby: #a51d2d;
+  --game-alpha-sapphire: #1f4d9a;
+  --game-sun: #c05200;
+  --game-moon: #5b3fa0;
+  --game-ultra-sun: #b5480d;
+  --game-ultra-moon: #4b3a9a;
+  --game-lets-go-pikachu: #8a6f00;
+  --game-lets-go-eevee: #8a5a2b;
+  --game-sword: #1f6bb0;
+  --game-shield: #b02a4a;
+  --game-brilliant-diamond: #2f6fb8;
+  --game-shining-pearl: #b04a7a;
+  --game-legends-arceus: #4a6a5a;
+  --game-scarlet: #c0262d;
+  --game-violet: #6a3aa8;
+  --game-colosseum: #7a4a2a;
+  --game-xd-gale-of-darkness: #4a3a7a;
+  --game-battle-revolution: #3a5a8a;
+  --game-legends-z-a: #3a7a3a;
+  --game-champions: #8a5a00;
+  --game-pokemon-mystery-club: #7a3a6a;
+  --game-dream-radar: #2a6a7a;
+  --game-dream-world: #6a4a9a;
+  --game-my-pokemon-ranch: #5a7a2a;
+  --game-pokewalker: #a03a3a;
+  --game-other: #6b6b73;
+  --band-filter: none;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -121,7 +171,6 @@
     --on-tint-muted: #b5b1bf;
     --on-tint-soft: #c4c9bd;
     --tint-glass: rgba(0, 0, 0, 0.28);
-    --tint-selected-ink: #1f1d24;
     --tint-press: rgba(255, 255, 255, 0.12);
     --type-normal-tint: #343331;
     --type-fire-tint: #4d251a;
@@ -141,6 +190,7 @@
     --type-dark-tint: #2b2528;
     --type-steel-tint: #2e313c;
     --type-fairy-tint: #46263d;
+    --band-filter: brightness(1.5);
     color-scheme: dark;
   }
 }
@@ -179,7 +229,6 @@
   --on-tint-muted: #b5b1bf;
   --on-tint-soft: #c4c9bd;
   --tint-glass: rgba(0, 0, 0, 0.28);
-  --tint-selected-ink: #1f1d24;
   --tint-press: rgba(255, 255, 255, 0.12);
   --type-normal-tint: #343331;
   --type-fire-tint: #4d251a;
@@ -200,6 +249,7 @@
   --type-steel-tint: #2e313c;
   --type-fairy-tint: #46263d;
   color-scheme: dark;
+  --band-filter: brightness(1.5);
 }
 
 /* Design B — dark only, plum bar on near-black, muted type tones. Comes last so it wins over any theme. */
@@ -233,7 +283,6 @@
   --on-tint-muted: #b9b6c0;
   --on-tint-soft: #c9c4d6;
   --tint-glass: rgba(0, 0, 0, 0.28);
-  --tint-selected-ink: #1d1e22;
   --tint-press: rgba(255, 255, 255, 0.12);
   --shadow-fab: 0 3px 8px rgba(0, 0, 0, 0.5);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -275,6 +324,57 @@
   --shiny-ink: #ffdf80;
   --silhouette: brightness(0) invert(1) opacity(0.2);
   color-scheme: dark;
+  /* Game colours, muted like the type chips. */
+  --game-red: #b13333;
+  --game-blue: #2e61ae;
+  --game-green: #347337;
+  --game-yellow: #7f6810;
+  --game-gold: #826620;
+  --game-silver: #616b75;
+  --game-crystal: #2c7584;
+  --game-ruby: #9f2b42;
+  --game-sapphire: #2a5299;
+  --game-emerald: #24704a;
+  --game-firered: #ad461c;
+  --game-leafgreen: #3f7027;
+  --game-diamond: #4a70a8;
+  --game-pearl: #9e4e6f;
+  --game-platinum: #5e636e;
+  --game-heartgold: #876411;
+  --game-soulsilver: #687078;
+  --game-black: #3b3b43;
+  --game-white: #6c6c72;
+  --game-black-2: #32404d;
+  --game-white-2: #776662;
+  --game-x: #2c609a;
+  --game-y: #9f3141;
+  --game-omega-ruby: #942734;
+  --game-alpha-sapphire: #2a4f8d;
+  --game-sun: #ac5412;
+  --game-moon: #5e4795;
+  --game-ultra-sun: #a34b1c;
+  --game-ultra-moon: #4f428e;
+  --game-lets-go-pikachu: #7f6911;
+  --game-lets-go-eevee: #805a34;
+  --game-sword: #2e6ba2;
+  --game-shield: #a0354f;
+  --game-brilliant-diamond: #3c70aa;
+  --game-shining-pearl: #a6547a;
+  --game-legends-arceus: #4d675a;
+  --game-scarlet: #ac3136;
+  --game-violet: #6b459d;
+  --game-colosseum: #714b31;
+  --game-xd-gale-of-darkness: #4c3f73;
+  --game-battle-revolution: #415b81;
+  --game-legends-z-a: #3e713e;
+  --game-champions: #7e570f;
+  --game-pokemon-mystery-club: #754168;
+  --game-dream-radar: #346774;
+  --game-dream-world: #6b5191;
+  --game-my-pokemon-ranch: #597333;
+  --game-pokewalker: #924141;
+  --game-other: #6c6c72;
+  --band-filter: brightness(1.4);
 }
 
 * { box-sizing: border-box; }
@@ -291,6 +391,7 @@ main:focus, .sheet:focus { outline: none; }
 /* ---------- shell ---------- */
 .app { min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--nav-h) + var(--safe-bottom)); max-width: 720px; margin: 0 auto; }
 .app.no-nav { padding-bottom: var(--safe-bottom); }
+.no-nav .fab { bottom: calc(var(--safe-bottom) + 16px); }
 
 .bottom-nav {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
@@ -369,8 +470,6 @@ main:focus, .sheet:focus { outline: none; }
 .fab { position: fixed; right: max(16px, calc((100vw - 720px) / 2 + 16px)); bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); z-index: 15; width: 56px; height: 56px; border-radius: 16px; border: 0; background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); }
 :is(.fab, .filter-btn) .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--danger); color: var(--on-danger); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
-.pick-banner { position: sticky; top: 0; z-index: 10; margin: 0 16px 8px; padding: 10px 14px; border-radius: 14px; background: var(--primary-soft); color: var(--primary-soft-ink); font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-.pick-banner button { border: 0; background: transparent; color: inherit; font-weight: 800; min-height: 32px; }
 
 /* ---------- sheet ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); animation: fade 160ms ease; }
@@ -401,7 +500,7 @@ main:focus, .sheet:focus { outline: none; }
 .hint { font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
 
 /* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
-:is(.gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .pick-banner button) {
+:is(.gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn) {
   position: relative;
   &::after { content: ''; position: absolute; inset: min(0px, 50% - 22px); }
 }
@@ -454,16 +553,16 @@ main:focus, .sheet:focus { outline: none; }
 .detail-hero .bar .icon-btn.fav[aria-pressed='true'] { background: none; color: var(--on-tint); }
 .detail-hero .bar .icon-btn.fav[aria-pressed='true'] svg { fill: currentColor; }
 .detail-hero .bar .icon-btn.fav:active { background: var(--tint-press); }
-/* Number, name and types on the left; category level with the name, height and weight below it, on the right. */
+/* Number, name and types on the left; category centred on the name, height and weight below it, on the right. */
 .detail-hero .title {
   display: grid; grid-template-columns: fit-content(65%) minmax(min-content, 1fr);
   grid-template-areas: 'no .' 'name genus' 'types size'; column-gap: 16px; padding: 0 24px;
 }
 .detail-hero .title .no { grid-area: no; }
-.detail-hero .title h1 { grid-area: name; align-self: baseline; }
+.detail-hero .title h1 { grid-area: name; align-self: center; }
 .detail-hero .title .types { grid-area: types; align-self: start; }
 .detail-hero .genus {
-  grid-area: genus; align-self: baseline; margin: 0; text-align: right;
+  grid-area: genus; align-self: center; margin: 2px 0 8px; text-align: right; /* the h1's margins, so both centre alike */
   font-size: 15px; font-weight: 700; line-height: 1.25; color: var(--on-tint-2);
 }
 .detail-hero .size { grid-area: size; display: grid; justify-items: end; align-content: start; gap: 2px; margin: 0; }
@@ -477,10 +576,6 @@ main:focus, .sheet:focus { outline: none; }
 .detail-hero .art-row img { width: 184px; height: 184px; object-fit: contain; }
 .detail-hero .art-row img.sprite { image-rendering: pixelated; }
 .detail-hero .art-note { margin: -12px 0 0; padding-bottom: 16px; text-align: center; font-size: 12px; color: var(--on-tint-muted); }
-.form-row { display: flex; gap: 8px; padding: 12px 24px 0; overflow-x: auto; scrollbar-width: none; }
-.form-row::-webkit-scrollbar { display: none; }
-.form-btn { flex: none; min-height: 44px; padding: 0 16px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); font-size: 14px; font-weight: 700; white-space: nowrap; }
-.form-btn[aria-pressed='true'] { background: var(--on-tint); color: var(--tint-selected-ink); }
 .nav-round { width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .nav-round[aria-disabled='true'] { opacity: 0.35; pointer-events: none; }
 
@@ -507,28 +602,16 @@ main:focus, .sheet:focus { outline: none; }
 .chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
 /* ---------- compare ---------- */
 .cmp-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 4px 24px 8px; }
-.cmp-slot { min-width: 0; border-radius: var(--radius-card); padding: 8px 10px 12px; color: var(--on-tint); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; }
+.cmp-slot { min-width: 0; border: 0; border-radius: var(--radius-card); padding: 8px 10px 12px; color: var(--on-tint); font: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; transition: transform 120ms ease; }
+button.cmp-slot:active { transform: scale(0.97); }
+.cmp-slot img { display: block; width: 96px; height: 96px; image-rendering: pixelated; }
 .cmp-slot.empty-slot { min-height: 196px; justify-content: center; gap: 6px; border: 1.5px dashed var(--outline); background: transparent; color: var(--ink-2); font: inherit; font-size: 14px; font-weight: 700; }
-.cmp-pick { border: 0; background: transparent; padding: 0; border-radius: 16px; }
-.cmp-pick:active { background: var(--tint-press); }
-.cmp-pick img { display: block; width: 96px; height: 96px; image-rendering: pixelated; }
 .cmp-slot .no { font-size: 12px; font-weight: 700; color: var(--on-tint-muted); }
-.cmp-slot .name { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; font-size: 16px; line-height: 20px; font-weight: 800; color: inherit; text-wrap: balance; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.cmp-slot .name { max-width: 100%; font-size: 16px; line-height: 20px; font-weight: 800; text-wrap: balance; }
 .cmp-slot .types { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 2px; }
-.cmp-form { position: relative; width: 100%; margin-top: auto; padding-top: 8px; }
-.cmp-form select { appearance: none; width: 100%; min-height: 44px; padding: 0 32px 0 14px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); font: inherit; font-size: 14px; font-weight: 700; text-overflow: ellipsis; }
-.cmp-form select:active { background: var(--tint-press); }
-.cmp-form svg { position: absolute; right: 12px; bottom: 14px; transform: rotate(90deg); pointer-events: none; }
 .cmp-error { font-size: 13px; font-weight: 600; color: var(--muted); }
-.cmp-hits { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.cmp-hits li { display: grid; grid-template-columns: 84px 44px 1fr; align-items: center; gap: 8px; min-height: 28px; }
-.cmp-hits .type-chip { justify-self: start; }
-.cmp-mult { justify-self: start; min-width: 36px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 800; text-align: center; }
-.cmp-mult.weak { background: var(--weak-bg); color: var(--weak-ink); }
-.cmp-mult.resist { background: var(--resist-bg); color: var(--resist-ink); }
-.cmp-mult.immune { background: var(--immune-bg); color: var(--ink); }
-.cmp-mult.neutral { background: var(--neutral-cell); color: var(--ink); }
-.cmp-hit-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.cmp-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+.cmp-none { font-size: 13px; font-weight: 600; color: var(--muted); line-height: 24px; }
 .cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 28px; }
 .cmp-row.total { border-top: 1px solid var(--line); padding-top: 6px; margin-top: 4px; }
 .cmp-names { font-size: 12px; font-weight: 700; color: var(--muted); }
@@ -575,6 +658,12 @@ a.fact-chip:active { filter: brightness(0.9); }
 .gender { display: inline-flex; vertical-align: -4px; }
 .gender-male { color: var(--gender-male); }
 .gender-female { color: var(--gender-female); }
+/* Nidoran's ♂/♀ in a name: a drawn sign the size of a capital, sitting on the baseline. */
+.name-sign svg { width: 0.75em; height: 0.75em; margin-left: 0.05em; }
+.name-sign g { stroke-width: 3.25; }
+/* Each icon's ink ends at a different height in its box: the ♀ cross near the bottom, the ♂ ring above it. */
+.name-sign-female svg { vertical-align: -0.01em; }
+.name-sign-male svg { vertical-align: -0.075em; }
 .flavor { font-size: 15px; line-height: 1.55; color: var(--ink-2); margin: 0 0 14px; }
 .game-select { position: relative; display: flex; align-items: center; min-height: 48px; padding: 0 12px 0 14px; margin: 4px 0 6px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
 .game-select .k { font-size: 12px; font-weight: 600; color: var(--muted); }
@@ -582,6 +671,13 @@ a.fact-chip:active { filter: brightness(0.9); }
 .game-select svg { position: absolute; right: 12px; transform: rotate(90deg); pointer-events: none; color: var(--muted); }
 .game-select:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
 .game-select select:focus-visible { outline: none; }
+/* A game's colour (--band from bandStyle(): one colour, or a gradient through a group's games) as a bar on the left edge. */
+.game-band { position: relative; }
+.game-band::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 6px; background: var(--band); filter: var(--band-filter); pointer-events: none; }
+:is(.game-select, .ref-list .move-row, .dex-row).game-band { overflow: hidden; }
+.game-select.game-band { padding-left: 20px; }
+.ref-list .move-row.game-band { padding-left: 18px; }
+.dex-row.game-band { padding-left: 16px; }
 .move-group { margin-top: 14px; }
 .move-group ul { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; }
@@ -639,9 +735,12 @@ a.fact-chip:active { filter: brightness(0.9); }
 .league-moves li > * { gap: 6px; }
 .loc-row .note { font-size: 12px; line-height: 1.4; color: var(--ink-2); }
 /* Version label on a Locations row only some games of the group have. */
-.loc-row .ver { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 8px; background: var(--primary-soft); color: var(--primary-soft-ink); font-size: 11px; font-weight: 700; vertical-align: 1px; white-space: nowrap; }
+.loc-row .ver { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 8px; color: var(--on-type); font-size: 11px; font-weight: 700; vertical-align: 1px; white-space: nowrap; }
+.loc-row .ver + .ver { margin-left: 4px; }
 .game-fallback { margin: 0 2px 10px; }
 .place-game { margin-top: 16px; }
+.place-game.game-band { padding-left: 14px; }
+.place-game.game-band::before { border-radius: 3px; }
 .place-game h3 { margin: 0 2px 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
 .place-game .flavor { margin: 0 2px 6px; }
 .place-row .name { font-size: 14px; font-weight: 600; line-height: 1.4; }
@@ -1021,7 +1120,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
 [data-design='b'] :is(.search, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
-  .move-slots .move-row, .move-pick, .summary .tile, .coming, .pick-banner, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .evo-card, .evo-mon, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
+  .move-slots .move-row, .move-pick, .summary .tile, .coming, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .evo-card, .evo-mon, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }
 [data-design='b'] :is(.ref-list li, .move-group .move-row, .ref-species .evo-member) { border-top: 0; background: var(--surface); box-shadow: var(--shadow-card); }
@@ -1035,7 +1134,6 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .topbar:not(.tinted) > .icon-btn[aria-pressed='true'] { background: var(--primary); color: var(--primary-ink); }
 [data-design='b'] :is(.section h2, .league-head .trainer-name, .move-group h2, .eff-group h3, .place-game h3) { font-weight: 600; }
 [data-design='b'] .ref-list .name { font-weight: 500; }
-[data-design='b'] .form-btn { border-radius: 4px; font-weight: 500; }
 [data-design='b'] :is(.fab, .primary-btn) { border-radius: 4px; background: var(--bar); color: var(--ink); box-shadow: var(--shadow-fab); font-weight: 500; letter-spacing: 0.5px; }
 
 /* Phones: move and learner tables run edge to edge, keeping their rounded box. */

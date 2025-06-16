@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import Fuse from 'fuse.js';
-import { DEFAULT_FILTERS, parseFormKinds, type DexFilters } from '../src/data/dexState';
+import { DEFAULT_FILTERS, isPicking, parseFormKinds, type DexFilters } from '../src/data/dexState';
 import { FUSE_OPTIONS, applyFilters, dexRows, favouriteKey } from '../src/data/filter';
 import type { FormKind, IndexEntry, IndexForm } from '../src/data/types';
 
@@ -206,6 +206,21 @@ describe('parseFormKinds', () => {
   test('reads the stored list in Settings order and ignores unknown words', () => {
     assert.deepEqual(parseFormKinds('gmax,mega,shiny'), ['mega', 'gmax']);
     assert.deepEqual(parseFormKinds(''), []);
-    assert.deepEqual(parseFormKinds(null), []);
+  });
+  test('nothing stored switches on every kind but Gigantamax; a stored choice, all off included, is kept', () => {
+    assert.deepEqual(parseFormKinds(null), ['mega', 'regional', 'other']);
+    assert.deepEqual(parseFormKinds('gmax'), ['gmax']);
+  });
+});
+
+describe('isPicking', () => {
+  test('pick mode is a team id or a Compare side', () => {
+    const at = (search: string) => isPicking(new URLSearchParams(search));
+    assert.equal(at('pick=3'), true);
+    assert.equal(at('compare=b&a=6'), true);
+    assert.equal(at(''), false);
+    assert.equal(at('pick='), false);
+    assert.equal(at('pick=x'), false);
+    assert.equal(at('compare=c'), false);
   });
 });

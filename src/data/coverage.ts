@@ -55,3 +55,27 @@ export function averageStats(members: BaseStats[]): BaseStats {
     total: mean((m) => m.total),
   };
 }
+
+export interface MatchupGroup {
+  label: 'Weak to' | 'Resists' | 'Immune to';
+  hits: { type: TypeName; mult: number }[];
+}
+
+/**
+ * The attacking types a defender with `types` is weak to, resists and is immune to, strongest first within a group
+ * (ties in chart order); groups with no types are left out. Plain type chart, as on the detail page.
+ */
+export function matchupGroups(types: TypeName[], data: TypeData): MatchupGroup[] {
+  const mult = defensiveMultipliers(types, data);
+  const groups: [MatchupGroup['label'], (m: number) => boolean][] = [
+    ['Weak to', (m) => m > 1],
+    ['Resists', (m) => m > 0 && m < 1],
+    ['Immune to', (m) => m === 0],
+  ];
+  return groups
+    .map(([label, test]) => ({
+      label,
+      hits: data.types.filter((t) => test(mult[t])).map((type) => ({ type, mult: mult[type] })).sort((x, y) => y.mult - x.mult),
+    }))
+    .filter((g) => g.hits.length);
+}

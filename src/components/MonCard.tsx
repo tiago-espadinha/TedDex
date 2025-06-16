@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { spriteUrl } from '../data/api';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { MoveTable, TypeName } from '../data/types';
-import { CategoryIcon, TypeChip } from './bits';
+import { CategoryIcon, MonName, TypeChip } from './bits';
 
 /**
  * The parts of a Pokémon card in a team: league and Gym teams, and saved teams. The caller puts
@@ -35,7 +35,9 @@ export function MonHead({
         style={types[0] && { backgroundColor: typeTint(types[0]) }}
       />
       <span className="body">
-        <span className="name">{name}</span>
+        <span className="name">
+          <MonName name={name} />
+        </span>
         <span className="types">
           {types.map((t) => (
             <TypeChip key={t} type={t} />

@@ -7,6 +7,7 @@ import {
 import { EGG_GROUP_COLOR, EGG_GROUP_NOTE } from '../data/eggGroups';
 import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters } from '../data/abilityFilter';
 import { resolveGame } from '../data/game';
+import { bandStyle } from '../data/gameColors';
 import { useGame } from '../data/settings';
 import { cap, formatMultiplier, formatNo, formatPrice, roman, signed } from '../data/format';
 import { activeItemFilters, filterItems, itemFilterParams, readItemFilters } from '../data/itemFilter';
@@ -15,7 +16,7 @@ import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } fro
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { CategoryIcon, Loading, SearchField, TypeChip } from '../components/bits';
+import { CategoryIcon, Loading, MonName, SearchField, TypeChip } from '../components/bits';
 import { MoveCells, MoveHead } from './MovesTab';
 import { AbilityFilterSheet } from './AbilityFilterSheet';
 import { ItemFilterSheet } from './ItemFilterSheet';
@@ -76,7 +77,7 @@ const MENU: { to: string; title: string; blurb: string; sprite: string; tint: Ty
   ...KINDS.map((k) => ({ to: `/reference/${k.kind}`, title: k.title, blurb: k.blurb, ...MENU_LOOK[k.kind] })),
   { to: '/reference/league', title: 'Elite Four & Champion', blurb: "Every game's league teams and movesets", sprite: itemSpriteUrl(1), tint: 'dragon' },
   { to: '/reference/gyms', title: 'Gym Leaders', blurb: "Every game's Gym teams, badges and rematches", sprite: itemSpriteUrl(50), tint: 'rock' },
-  { to: '/compare', title: 'Compare', blurb: 'Two Pokémon side by side: types, stats and size', sprite: itemSpriteUrl(671), tint: 'electric' },
+  { to: '/compare', title: 'Comparator', blurb: 'Two Pokémon side by side: weaknesses, stats and size', sprite: itemSpriteUrl(671), tint: 'electric' },
 ];
 
 export function ReferenceScreen() {
@@ -577,7 +578,7 @@ function PlaceGame({ place, byId }: { place: ItemPlaceGame; byId: Map<number, In
     ...(place.repeat ?? []).map((text): [string, string] => ['Repeatable', text]),
   ];
   return (
-    <div className="move-group place-game">
+    <div className="move-group place-game game-band" style={bandStyle(place.game)}>
       <h3>{place.game}</h3>
       {place.note?.map((text, i) => (
         <p key={i} className="flavor">
@@ -851,7 +852,9 @@ function LearnerTable({ title, ids, index }: { title: string; ids: number[]; ind
             <Link className="learner-row" to={`/pokemon/${m.id}`}>
               <span className="no">{formatNo(m.id)}</span>
               <img src={spriteUrl(m.id)} alt="" width={40} height={40} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
-              <span className="name">{m.name}</span>
+              <span className="name">
+                <MonName name={m.name} />
+              </span>
               <span className="types">
                 {m.types.map((t) => (
                   <TypeChip key={t} type={t} />
@@ -883,7 +886,7 @@ function SpeciesList({ title, ids, index, none }: { title: string; ids: number[]
                 <img src={spriteUrl(m.id)} alt="" width={56} height={56} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
                 <span className="body">
                   <span className="name">
-                    <span className="no">{formatNo(m.id)}</span> {m.name}
+                    <span className="no">{formatNo(m.id)}</span> <MonName name={m.name} />
                   </span>
                   <span className="types">
                     {m.types.map((t) => (

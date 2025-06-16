@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { attackingTypes, defensiveMultipliers, offensiveMultipliers } from '../src/data/api';
+import { matchupGroups } from '../src/data/coverage';
 import type { MoveTable, TypeData } from '../src/data/types';
 import typesJson from '../public/data/types.json' with { type: 'json' };
 
@@ -74,5 +75,25 @@ describe('attackingTypes', () => {
   test('missing moves and unknown ids are ignored', () => {
     assert.deepEqual(attackingTypes(undefined, MOVES), []);
     assert.deepEqual(attackingTypes([999, 5], MOVES), ['water']);
+  });
+});
+
+describe('matchupGroups', () => {
+  const names = (types: Parameters<typeof matchupGroups>[0]) =>
+    matchupGroups(types, CHART).map((g) => [g.label, g.hits.map((h) => `${h.type} ${h.mult}`)]);
+
+  test('Charizard (Fire/Flying): Rock 4× first, Ground immunity', () => {
+    assert.deepEqual(names(['fire', 'flying']), [
+      ['Weak to', ['rock 4', 'water 2', 'electric 2']],
+      ['Resists', ['fighting 0.5', 'steel 0.5', 'fire 0.5', 'fairy 0.5', 'bug 0.25', 'grass 0.25']],
+      ['Immune to', ['ground 0']],
+    ]);
+  });
+
+  test('Blastoise (Water): weak to Grass and Electric, no immunity group', () => {
+    assert.deepEqual(names(['water']), [
+      ['Weak to', ['grass 2', 'electric 2']],
+      ['Resists', ['steel 0.5', 'fire 0.5', 'water 0.5', 'ice 0.5']],
+    ]);
   });
 });
