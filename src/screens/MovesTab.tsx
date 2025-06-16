@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { loadLearnsets, loadMoves, loadVersions, useLoad } from '../data/api';
+import { bandStyle } from '../data/gameColors';
 import { resolveGame } from '../data/game';
 import { useGame } from '../data/settings';
 import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types';
@@ -49,7 +50,7 @@ export function MovesTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string
 
   return (
     <div className="section">
-      <label className="game-select">
+      <label className="game-select game-band" style={bandStyle(label(vg))}>
         <span className="k">Game</span>
         <select value={vg} onChange={(e) => setChosen(Number(e.target.value))} aria-describedby={fallback ? 'moves-fallback' : undefined}>
           {games.map((g) => (

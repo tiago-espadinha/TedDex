@@ -1,5 +1,6 @@
 import { loadGames, loadLocations, loadVersions, useLoad } from '../data/api';
 import { resolveGame } from '../data/game';
+import { bandStyle, gameColors } from '../data/gameColors';
 import { encountersInGroup, locationsOfForm } from '../data/locations';
 import { useGame } from '../data/settings';
 import type { SpeciesDetail } from '../data/types';
@@ -50,7 +51,7 @@ export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
   return (
     <div className="section">
       <h2>Locations</h2>
-      <label className="game-select">
+      <label className="game-select game-band" style={bandStyle(label(shown.group))}>
         <span className="k">Game</span>
         <select
           value={shown.group}
@@ -81,12 +82,13 @@ export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
               <span className="body">
                 <span className="name">
                   {e.area}
-                  {e.versions.length > 0 && (
-                    <span className="ver">
-                      <span className="sr-only">, only in </span>
-                      {e.versions.join(', ')}
+                  {e.versions.length > 0 && <span className="sr-only">, only in </span>}
+                  {e.versions.map((v, j) => (
+                    <span key={v} className="ver" style={{ backgroundColor: gameColors(v)[0] }}>
+                      {j > 0 && <span className="sr-only">, </span>}
+                      {v}
                     </span>
-                  )}
+                  ))}
                 </span>
                 <span className="meta">
                   <span>{e.method}</span>

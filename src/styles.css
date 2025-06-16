@@ -82,6 +82,57 @@
   --shiny-ink: #5c4000;
   --silhouette: brightness(0) opacity(0.22);
   color-scheme: light;
+  /* Game colours (--game-<slug>, src/data/gameColors.ts): bands, and chips with white text. Design A dark keeps these. */
+  --game-red: #c62828;
+  --game-blue: #1f5fbf;
+  --game-green: #2e7d32;
+  --game-yellow: #8a6d00;
+  --game-gold: #8c6a12;
+  --game-silver: #5f6b78;
+  --game-crystal: #1f7a8c;
+  --game-ruby: #b0203c;
+  --game-sapphire: #1d4fa8;
+  --game-emerald: #1b7a4a;
+  --game-firered: #c2410c;
+  --game-leafgreen: #3d7a1f;
+  --game-diamond: #3f6fb5;
+  --game-pearl: #a8456e;
+  --game-platinum: #5c6370;
+  --game-heartgold: #946800;
+  --game-soulsilver: #66707a;
+  --game-black: #3a3a44;
+  --game-white: #6b6b73;
+  --game-black-2: #2f4050;
+  --game-white-2: #7a6560;
+  --game-x: #1f5fa8;
+  --game-y: #b0263a;
+  --game-omega-ruby: #a51d2d;
+  --game-alpha-sapphire: #1f4d9a;
+  --game-sun: #c05200;
+  --game-moon: #5b3fa0;
+  --game-ultra-sun: #b5480d;
+  --game-ultra-moon: #4b3a9a;
+  --game-lets-go-pikachu: #8a6f00;
+  --game-lets-go-eevee: #8a5a2b;
+  --game-sword: #1f6bb0;
+  --game-shield: #b02a4a;
+  --game-brilliant-diamond: #2f6fb8;
+  --game-shining-pearl: #b04a7a;
+  --game-legends-arceus: #4a6a5a;
+  --game-scarlet: #c0262d;
+  --game-violet: #6a3aa8;
+  --game-colosseum: #7a4a2a;
+  --game-xd-gale-of-darkness: #4a3a7a;
+  --game-battle-revolution: #3a5a8a;
+  --game-legends-z-a: #3a7a3a;
+  --game-champions: #8a5a00;
+  --game-pokemon-mystery-club: #7a3a6a;
+  --game-dream-radar: #2a6a7a;
+  --game-dream-world: #6a4a9a;
+  --game-my-pokemon-ranch: #5a7a2a;
+  --game-pokewalker: #a03a3a;
+  --game-other: #6b6b73;
+  --band-filter: none;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -139,6 +190,7 @@
     --type-dark-tint: #2b2528;
     --type-steel-tint: #2e313c;
     --type-fairy-tint: #46263d;
+    --band-filter: brightness(1.5);
     color-scheme: dark;
   }
 }
@@ -197,6 +249,7 @@
   --type-steel-tint: #2e313c;
   --type-fairy-tint: #46263d;
   color-scheme: dark;
+  --band-filter: brightness(1.5);
 }
 
 /* Design B — dark only, plum bar on near-black, muted type tones. Comes last so it wins over any theme. */
@@ -271,6 +324,57 @@
   --shiny-ink: #ffdf80;
   --silhouette: brightness(0) invert(1) opacity(0.2);
   color-scheme: dark;
+  /* Game colours, muted like the type chips. */
+  --game-red: #b13333;
+  --game-blue: #2e61ae;
+  --game-green: #347337;
+  --game-yellow: #7f6810;
+  --game-gold: #826620;
+  --game-silver: #616b75;
+  --game-crystal: #2c7584;
+  --game-ruby: #9f2b42;
+  --game-sapphire: #2a5299;
+  --game-emerald: #24704a;
+  --game-firered: #ad461c;
+  --game-leafgreen: #3f7027;
+  --game-diamond: #4a70a8;
+  --game-pearl: #9e4e6f;
+  --game-platinum: #5e636e;
+  --game-heartgold: #876411;
+  --game-soulsilver: #687078;
+  --game-black: #3b3b43;
+  --game-white: #6c6c72;
+  --game-black-2: #32404d;
+  --game-white-2: #776662;
+  --game-x: #2c609a;
+  --game-y: #9f3141;
+  --game-omega-ruby: #942734;
+  --game-alpha-sapphire: #2a4f8d;
+  --game-sun: #ac5412;
+  --game-moon: #5e4795;
+  --game-ultra-sun: #a34b1c;
+  --game-ultra-moon: #4f428e;
+  --game-lets-go-pikachu: #7f6911;
+  --game-lets-go-eevee: #805a34;
+  --game-sword: #2e6ba2;
+  --game-shield: #a0354f;
+  --game-brilliant-diamond: #3c70aa;
+  --game-shining-pearl: #a6547a;
+  --game-legends-arceus: #4d675a;
+  --game-scarlet: #ac3136;
+  --game-violet: #6b459d;
+  --game-colosseum: #714b31;
+  --game-xd-gale-of-darkness: #4c3f73;
+  --game-battle-revolution: #415b81;
+  --game-legends-z-a: #3e713e;
+  --game-champions: #7e570f;
+  --game-pokemon-mystery-club: #754168;
+  --game-dream-radar: #346774;
+  --game-dream-world: #6b5191;
+  --game-my-pokemon-ranch: #597333;
+  --game-pokewalker: #924141;
+  --game-other: #6c6c72;
+  --band-filter: brightness(1.4);
 }
 
 * { box-sizing: border-box; }
@@ -567,6 +671,13 @@ a.fact-chip:active { filter: brightness(0.9); }
 .game-select svg { position: absolute; right: 12px; transform: rotate(90deg); pointer-events: none; color: var(--muted); }
 .game-select:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
 .game-select select:focus-visible { outline: none; }
+/* A game's colour (--band from bandStyle(): one colour, or a gradient through a group's games) as a bar on the left edge. */
+.game-band { position: relative; }
+.game-band::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 6px; background: var(--band); filter: var(--band-filter); pointer-events: none; }
+:is(.game-select, .ref-list .move-row, .dex-row).game-band { overflow: hidden; }
+.game-select.game-band { padding-left: 20px; }
+.ref-list .move-row.game-band { padding-left: 18px; }
+.dex-row.game-band { padding-left: 16px; }
 .move-group { margin-top: 14px; }
 .move-group ul { margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; }
@@ -624,9 +735,12 @@ a.fact-chip:active { filter: brightness(0.9); }
 .league-moves li > * { gap: 6px; }
 .loc-row .note { font-size: 12px; line-height: 1.4; color: var(--ink-2); }
 /* Version label on a Locations row only some games of the group have. */
-.loc-row .ver { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 8px; background: var(--primary-soft); color: var(--primary-soft-ink); font-size: 11px; font-weight: 700; vertical-align: 1px; white-space: nowrap; }
+.loc-row .ver { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 8px; color: var(--on-type); font-size: 11px; font-weight: 700; vertical-align: 1px; white-space: nowrap; }
+.loc-row .ver + .ver { margin-left: 4px; }
 .game-fallback { margin: 0 2px 10px; }
 .place-game { margin-top: 16px; }
+.place-game.game-band { padding-left: 14px; }
+.place-game.game-band::before { border-radius: 3px; }
 .place-game h3 { margin: 0 2px 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
 .place-game .flavor { margin: 0 2px 6px; }
 .place-row .name { font-size: 14px; font-weight: 600; line-height: 1.4; }

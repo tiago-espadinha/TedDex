@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { dexSpriteUrl, loadIndex, loadPokedexes, loadVersions, shinySpriteUrl, spriteUrl, useLoad } from '../data/api';
 import { createPokedex, cycleDexState, db, renamePokedex, type Pokedex } from '../data/db';
 import { formatNo } from '../data/format';
+import { bandStyle } from '../data/gameColors';
 import {
   DEX_STATE_LABELS,
   activeDexFilters,
@@ -170,7 +171,8 @@ export function NewPokedex() {
             return (
               <li key={v.id}>
                 <button
-                  className="team-row dex-row"
+                  className="team-row dex-row game-band"
+                  style={bandStyle(v.label)}
                   disabled={busy}
                   aria-label={`${v.label}: ${dexes.map((d) => `${d.name} ${d.species.length}`).join(', ')}`}
                   onClick={() => create(v.id)}

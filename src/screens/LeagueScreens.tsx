@@ -5,6 +5,7 @@ import {
   trainerSpriteUrl, useLoad, type TrainerKind,
 } from '../data/api';
 import type { MemberView } from '../data/forms';
+import { bandStyle } from '../data/gameColors';
 import type { AbilityTable, FormVariant, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTrainer, MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip } from '../components/bits';
@@ -38,7 +39,7 @@ export function LeagueList({ kind }: { kind: TrainerKind }) {
         <ul className="ref-list">
           {data.map((g) => (
             <li key={g.id}>
-              <Link to={`/reference/${kind}/${g.id}`} className="move-row">
+              <Link to={`/reference/${kind}/${g.id}`} className="move-row game-band" style={bandStyle(g.label)}>
                 <span className="body">
                   <span className="name">{g.label}</span>
                   <span className="meta">

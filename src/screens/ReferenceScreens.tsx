@@ -7,6 +7,7 @@ import {
 import { EGG_GROUP_COLOR, EGG_GROUP_NOTE } from '../data/eggGroups';
 import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters } from '../data/abilityFilter';
 import { resolveGame } from '../data/game';
+import { bandStyle } from '../data/gameColors';
 import { useGame } from '../data/settings';
 import { cap, formatMultiplier, formatNo, formatPrice, roman, signed } from '../data/format';
 import { activeItemFilters, filterItems, itemFilterParams, readItemFilters } from '../data/itemFilter';
@@ -577,7 +578,7 @@ function PlaceGame({ place, byId }: { place: ItemPlaceGame; byId: Map<number, In
     ...(place.repeat ?? []).map((text): [string, string] => ['Repeatable', text]),
   ];
   return (
-    <div className="move-group place-game">
+    <div className="move-group place-game game-band" style={bandStyle(place.game)}>
       <h3>{place.game}</h3>
       {place.note?.map((text, i) => (
         <p key={i} className="flavor">
