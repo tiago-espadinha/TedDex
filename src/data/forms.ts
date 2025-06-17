@@ -38,6 +38,8 @@ export interface MemberView {
   stats: StatBlock;
   total: number;
   mediaId: number;
+  /** Its species, whose sprite stands in for a form without one. */
+  speciesId: number;
   abilities?: SpeciesDetail['abilities'];
 }
 
@@ -48,7 +50,7 @@ export interface MemberView {
 export function memberView(member: { speciesId: number; formKey?: string }, row?: IndexEntry, detail?: SpeciesDetail): MemberView | undefined {
   if (member.formKey && detail) {
     const { view, mediaId } = applyForm(detail, member.formKey);
-    return { name: view.name, types: view.types, stats: view.stats, total: view.total, mediaId, abilities: view.abilities };
+    return { name: view.name, types: view.types, stats: view.stats, total: view.total, mediaId, speciesId: member.speciesId, abilities: view.abilities };
   }
-  return row && { name: row.name, types: row.types, stats: row.stats, total: row.total, mediaId: row.id };
+  return row && { name: row.name, types: row.types, stats: row.stats, total: row.total, mediaId: row.id, speciesId: row.id };
 }

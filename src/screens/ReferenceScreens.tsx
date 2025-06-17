@@ -1,9 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import {
-  defensiveMultipliers, itemSpriteUrl, loadAbilities, loadEggGroups, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes, loadVersions,
-  offensiveMultipliers, spriteUrl, useLoad,
-} from '../data/api';
+import { defensiveMultipliers, itemSpriteUrl, loadAbilities, loadEggGroups, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes, loadVersions, offensiveMultipliers, useLoad } from '../data/api';
 import { EGG_GROUP_COLOR, EGG_GROUP_NOTE } from '../data/eggGroups';
 import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters } from '../data/abilityFilter';
 import { resolveGame } from '../data/game';
@@ -17,6 +14,7 @@ import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
 import { CategoryIcon, Loading, MonName, SearchField, TypeChip } from '../components/bits';
+import { MonImg } from '../components/MonImg';
 import { MoveCells, MoveHead } from './MovesTab';
 import { AbilityFilterSheet } from './AbilityFilterSheet';
 import { ItemFilterSheet } from './ItemFilterSheet';
@@ -599,7 +597,7 @@ function PlaceGame({ place, byId }: { place: ItemPlaceGame; byId: Map<number, In
                     return (
                       m && (
                         <Link key={id} className="held-chip" to={`/pokemon/${id}`}>
-                          <img src={spriteUrl(id)} alt="" width={32} height={32} loading="lazy" />
+                          <MonImg id={id} alt="" width={32} height={32} loading="lazy" />
                           {m.name} <span className="pct">{rarity}%</span>
                         </Link>
                       )
@@ -851,7 +849,7 @@ function LearnerTable({ title, ids, index }: { title: string; ids: number[]; ind
           <li key={m.id}>
             <Link className="learner-row" to={`/pokemon/${m.id}`}>
               <span className="no">{formatNo(m.id)}</span>
-              <img src={spriteUrl(m.id)} alt="" width={40} height={40} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
+              <MonImg id={m.id} alt="" width={40} height={40} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
               <span className="name">
                 <MonName name={m.name} />
               </span>
@@ -883,7 +881,7 @@ function SpeciesList({ title, ids, index, none }: { title: string; ids: number[]
           {mons.map((m) => (
             <li key={m.id}>
               <Link className="evo-member" to={`/pokemon/${m.id}`}>
-                <img src={spriteUrl(m.id)} alt="" width={56} height={56} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
+                <MonImg id={m.id} alt="" width={56} height={56} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
                 <span className="body">
                   <span className="name">
                     <span className="no">{formatNo(m.id)}</span> <MonName name={m.name} />

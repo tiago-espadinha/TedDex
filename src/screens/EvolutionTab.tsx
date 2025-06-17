@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { itemSpriteUrl, loadEvolution, loadIndex, spriteUrl, useLoad } from '../data/api';
+import { itemSpriteUrl, loadEvolution, loadIndex, useLoad } from '../data/api';
 import { branches, currentForm, evolutionLines, shortCondition, type ChainStage, type EvolutionLine } from '../data/evolution';
 import type { FormVariant, IndexEntry, SpeciesDetail } from '../data/types';
 import { Loading, MonName } from '../components/bits';
+import { MonImg } from '../components/MonImg';
 
 const loadAll = (chainId: number | null) => Promise.all([chainId ? loadEvolution(chainId) : Promise.resolve([]), loadIndex()]);
 
@@ -130,6 +131,7 @@ function Mon({ stage, species, current }: { stage: ChainStage; species?: IndexEn
   return (
     <MonTile
       mediaId={form?.pokemonId ?? species.id}
+      speciesId={species.id}
       name={form?.name ?? species.name}
       to={form ? `/pokemon/${species.id}?form=${form.key}` : `/pokemon/${species.id}`}
       current={here}
@@ -137,10 +139,10 @@ function Mon({ stage, species, current }: { stage: ChainStage; species?: IndexEn
   );
 }
 
-function MonTile({ mediaId, name, to, current }: { mediaId: number; name: string; to: string; current: boolean }) {
+function MonTile({ mediaId, speciesId, name, to, current }: { mediaId: number; speciesId: number; name: string; to: string; current: boolean }) {
   const content = (
     <>
-      <img src={spriteUrl(mediaId)} alt="" width={80} height={80} />
+      <MonImg id={mediaId} speciesId={speciesId} alt="" width={80} height={80} />
       <span>
         <MonName name={name} />
       </span>
@@ -170,7 +172,7 @@ function MegaRow({ mon, form, name, formKey }: MegaRowProps) {
   const trigger = form.trigger!;
   return (
     <li>
-      <MonTile mediaId={mon.id} name={name} to={`/pokemon/${mon.id}`} current={formKey === ''} />
+      <MonTile mediaId={mon.id} speciesId={mon.id} name={name} to={`/pokemon/${mon.id}`} current={formKey === ''} />
       <span className="evo-step mega">
         <b>
           {trigger.kind === 'item' && <img src={itemSpriteUrl(trigger.id)} alt="" width={24} height={24} loading="lazy" />}
@@ -180,7 +182,7 @@ function MegaRow({ mon, form, name, formKey }: MegaRowProps) {
           <path d="M4 7h48M45 2l7 5-7 5M11 2L4 7l7 5" />
         </svg>
       </span>
-      <MonTile mediaId={form.pokemonId} name={form.name} to={`/pokemon/${mon.id}?form=${form.key}`} current={formKey === form.key} />
+      <MonTile mediaId={form.pokemonId} speciesId={mon.id} name={form.name} to={`/pokemon/${mon.id}?form=${form.key}`} current={formKey === form.key} />
     </li>
   );
 }

@@ -460,7 +460,6 @@ main:focus, .sheet:focus { outline: none; }
 .mon-card .types { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 6px; }
 .mon-card .type-chip { line-height: 14px; }
 .mon-card img { position: absolute; z-index: 0; right: 2px; bottom: 0; width: 80px; height: 80px; image-rendering: pixelated; }
-.mon-card.sprite-art img { image-rendering: auto; }
 /* List view: sprite on the left, number over name, type chips stacked on the right. */
 .mon-card.row { height: 100px; display: grid; grid-template-columns: 80px minmax(0, 1fr) auto; grid-template-rows: 1fr 1fr; column-gap: 12px; row-gap: 2px; padding: 8px 14px 8px 8px; border-radius: 16px; }
 /* Sprite files are 96 px with transparent edges: draw them at full size and let the edges overlap the padding. */
@@ -471,7 +470,18 @@ main:focus, .sheet:focus { outline: none; }
 .mon-card.row .name { grid-area: 2 / 2; align-self: start; margin: 0; font-size: 16px; }
 .mon-card.row .types { grid-area: 1 / 3 / 3 / 4; align-self: center; align-items: stretch; margin: 0; text-align: center; }
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
-.loading { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+.loading { display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+/* A whole-screen load (Loading straight in <main>) fills what the header leaves above the nav, so the ball sits in the middle. */
+.app:has(> .loading) { display: flex; flex-direction: column; }
+.app > .loading { flex: 1; }
+.app > .loading ~ .dex-list { margin-bottom: 0; } /* still empty: no room to keep above the filter button */
+/* Before React mounts (index.html): the whole screen, under the safe area. */
+.loading.boot { box-sizing: border-box; min-height: 100dvh; padding: var(--safe-top) 24px var(--safe-bottom); }
+.spinner { display: block; animation: spin 0.9s linear infinite; }
+.spinner .ball-top { fill: var(--primary); }
+.spinner .ball-bottom { fill: var(--surface); }
+.spinner .ball-line { fill: none; stroke: var(--ink); stroke-width: 3; }
+.spinner .ball-button { fill: var(--surface); }
 
 /* Room under the last grid row so it can scroll clear of the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
 .dex-list { margin-bottom: 88px; }
@@ -519,6 +529,7 @@ main:focus, .sheet:focus { outline: none; }
 @keyframes fade-out { to { opacity: 0; } }
 @keyframes grow { from { transform: scaleX(0); } }
 @keyframes pulse { to { opacity: 0.25; } }
+@keyframes spin { to { transform: rotate(1turn); } }
 /* Closing a sheet: it sinks and the scrim fades (SHEET_CLOSE_MS in bits.tsx). */
 .sheet.closing { animation: sink 180ms ease-in forwards; }
 .scrim:has(+ .sheet.closing) { animation: fade-out 180ms ease-in forwards; }
@@ -550,6 +561,7 @@ main:focus, .sheet:focus { outline: none; }
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .icon-btn.playing svg path + path { animation: none !important; }
+  .spinner { animation: none !important; }
 }
 
 /* ---------- detail ---------- */
@@ -582,7 +594,6 @@ main:focus, .sheet:focus { outline: none; }
 .detail-hero .types { display: flex; gap: 6px; }
 .detail-hero .art-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 20px; }
 .detail-hero .art-row img { width: 184px; height: 184px; object-fit: contain; }
-.detail-hero .art-row img.sprite { image-rendering: pixelated; }
 .detail-hero .art-note { margin: -12px 0 0; padding-bottom: 16px; text-align: center; font-size: 12px; color: var(--on-tint-muted); }
 .nav-round { width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--tint-glass); color: var(--on-tint); display: flex; align-items: center; justify-content: center; text-decoration: none; }
 .nav-round[aria-disabled='true'] { opacity: 0.35; pointer-events: none; }

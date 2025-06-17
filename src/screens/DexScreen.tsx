@@ -3,7 +3,7 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { artworkUrl, loadIndex, loadVersions, spriteUrl, useLoad } from '../data/api';
+import { loadIndex, loadVersions, useLoad } from '../data/api';
 import { formatNo } from '../data/format';
 import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
@@ -12,6 +12,7 @@ import { typeTint } from '../data/typeColors';
 import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
 import { Loading, MonName, SearchField, TypeChip, useToast } from '../components/bits';
+import { MonImg } from '../components/MonImg';
 import { FilterSheet } from './FilterSheet';
 import { useDexForms, useDexView, useGame, useSpriteStyle } from '../data/settings';
 import { lastSpecies } from '../data/pokedex';
@@ -234,15 +235,9 @@ function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; 
           <TypeChip key={t} type={t} />
         ))}
       </div>
-      <img
-        src={art ? artworkUrl(mediaId) : spriteUrl(mediaId)}
-        onError={(e) => {
-          // Artwork that was never viewed isn't cached offline: show the precached sprite instead, and the
-          // species' sprite for a form without one (Mega Zygarde).
-          const next = [spriteUrl(mediaId), spriteUrl(mon.id)];
-          const at = next.findIndex((url) => e.currentTarget.src.endsWith(url));
-          if (at < next.length - 1 && next[at + 1] !== next[at]) e.currentTarget.src = next[at + 1];
-        }}
+      <MonImg
+        id={mediaId}
+        speciesId={mon.id}
         alt=""
         loading="lazy"
         decoding="async"

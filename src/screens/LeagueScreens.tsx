@@ -77,6 +77,7 @@ function monOf(m: LeagueMember, tables: Tables): MemberView {
   const form = m.form ? tables.forms.get(formKey(m.id, m.form)) : undefined;
   return {
     mediaId: form?.pokemonId ?? m.id,
+    speciesId: m.id,
     name: form?.name ?? species?.name ?? `#${m.id}`,
     types: form?.types ?? species?.types ?? [],
     stats: form?.stats ?? species?.stats ?? NO_STATS,
@@ -382,7 +383,7 @@ function TrainerMon({ member: m, tables }: { member: LeagueMember; tables: Table
   return (
     <li className="team-mon trainer-mon" style={{ backgroundColor: types[0] ? typeTint(types[0]) : 'var(--surface)' }}>
       <Link className="evo-member" to={`/pokemon/${m.id}${m.form ? `?form=${m.form}` : ''}`}>
-        <MonHead spriteId={mediaId} name={name} types={types} aside={<span className="lv">Lv {m.level}</span>} />
+        <MonHead spriteId={mediaId} speciesId={m.id} name={name} types={types} aside={<span className="lv">Lv {m.level}</span>} />
       </Link>
       {(ability || item || m.tera || m.battleForm) && (
         <MonFacts>

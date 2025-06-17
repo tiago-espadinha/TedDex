@@ -82,7 +82,29 @@ function subscribeGodMode(listener: () => void) {
 export const useGodMode = () => [useSyncExternalStore(subscribeGodMode, readGodMode), setGodMode] as const;
 
 export type SpriteStyle = 'sprite' | 'art';
-export const useSpriteStyle = () => usePref<SpriteStyle>('sprite-style', 'sprite');
+const spriteStyleListeners = new Set<() => void>();
+let spriteStyle: SpriteStyle = (() => {
+  try {
+    return localStorage.getItem('sprite-style') === 'art' ? 'art' : 'sprite';
+  } catch {
+    return 'sprite';
+  }
+})();
+function setSpriteStyle(value: SpriteStyle) {
+  spriteStyle = value;
+  try {
+    localStorage.setItem('sprite-style', value);
+  } catch {
+    /* ignore */
+  }
+  spriteStyleListeners.forEach((l) => l());
+}
+function subscribeSpriteStyle(listener: () => void) {
+  spriteStyleListeners.add(listener);
+  return () => spriteStyleListeners.delete(listener);
+}
+/** Sprites or artwork for every Pokémon image, read once and shared live by every image on screen. */
+export const useSpriteStyle = () => [useSyncExternalStore(subscribeSpriteStyle, () => spriteStyle), setSpriteStyle] as const;
 
 /** The Dex as a grid of cards or a dense list of rows. */
 export type DexView = 'grid' | 'list';

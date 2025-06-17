@@ -1,18 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import {
-  attackingTypes,
-  itemSpriteUrl,
-  loadAbilityNames,
-  loadIndex,
-  loadItems,
-  loadMoves,
-  loadSpecies,
-  loadTypes,
-  spriteUrl,
-  useLoad,
-} from '../data/api';
+import { attackingTypes, itemSpriteUrl, loadAbilityNames, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, useLoad } from '../data/api';
 import { averageStats, defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
 import { NICKNAME_LENGTH, TEAM_SIZE, createTeam, db, memberTitle, removeFromTeam, renameTeam, type TeamMember } from '../data/db';
 import { STAT_ROWS, cap, formatMultiplier, formatNo, formatScore, statColor } from '../data/format';
@@ -23,6 +12,7 @@ import { typeTint } from '../data/typeColors';
 import type { AbilityNameTable, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip, useModalSheet } from '../components/bits';
+import { MonImg } from '../components/MonImg';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 import { usePeek } from '../components/usePeek';
 
@@ -132,7 +122,7 @@ export function TeamsScreen() {
                   const mon = view?.(m);
                   return (
                     <span key={i}>
-                      <img src={spriteUrl(mon?.mediaId ?? m.speciesId)} alt="" title={mon?.name} width={80} height={80} />
+                      <MonImg id={mon?.mediaId ?? m.speciesId} speciesId={m.speciesId} alt="" title={mon?.name} width={80} height={80} />
                     </span>
                   );
                 })}
@@ -287,6 +277,7 @@ export function TeamEditor() {
                   <Link to={`/teams/${id}/member/${i}`} className="evo-member">
                     <MonHead
                       spriteId={mon?.mediaId ?? m.speciesId}
+                      speciesId={m.speciesId}
                       name={name}
                       types={mon?.types ?? []}
                       note={
@@ -515,7 +506,7 @@ function CoverageTable<R extends CoverageRow>({
             <th scope="col">{lead}</th>
             {mons.map((m, i) => (
               <th scope="col" key={i}>
-                <img src={spriteUrl(m.mediaId)} alt="" />
+                <MonImg id={m.mediaId} speciesId={m.speciesId} alt="" />
                 <span className="sr-only">{m.name}</span>
               </th>
             ))}

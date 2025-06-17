@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { loadSpecies, loadTypes, useLoad } from '../data/api';
 import { SLOTS, comparePickPath, parseCompare, rememberCompare, type CompareState, type SlotName } from '../data/compare';
 import { matchupGroups, type MatchupGroup } from '../data/coverage';
 import { applyForm } from '../data/forms';
@@ -9,6 +9,7 @@ import { typeChip, typeTint } from '../data/typeColors';
 import type { SpeciesDetail, StatBlock, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, MonName, TypeChip } from '../components/bits';
+import { MonImg } from '../components/MonImg';
 
 const STAT_ROWS: [keyof StatBlock, string][] = [
   ['hp', 'HP'],
@@ -96,7 +97,7 @@ function SlotCard({ side, label, pick }: { side: SlotView; label: string; pick: 
     );
   return (
     <button className="cmp-slot" style={{ backgroundColor: typeTint(mon.types[0]) }} onClick={change} aria-label={`Change ${mon.name}`}>
-      <img src={spriteUrl(mediaId)} alt="" width={96} height={96} />
+      <MonImg id={mediaId} speciesId={species.id} alt="" width={96} height={96} />
       <span className="no">{formatNo(species.id)}</span>
       <span className="name">
         <MonName name={mon.name} />
