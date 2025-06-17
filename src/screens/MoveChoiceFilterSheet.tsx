@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { CategoryIcon, useModalSheet } from '../components/bits';
+import { useLiveDraft } from '../components/useLiveDraft';
 import { Icon } from '../components/Icon';
 import { cap } from '../data/format';
 import { bandStyle } from '../data/gameColors';
@@ -23,16 +23,17 @@ export function MoveChoiceFilterSheet({
   value,
   games,
   countFor,
-  onApply,
+  onChange,
   onClose,
 }: {
   value: MoveChoiceFilters;
   games: VersionGroup[];
   countFor: (f: MoveChoiceFilters) => number;
-  onApply: (f: MoveChoiceFilters) => void;
+  /** Called on every change: the sheet applies its filters live. */
+  onChange: (f: MoveChoiceFilters) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useLiveDraft(value, onChange);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
   const chosenGame = games.find((g) => g.id === draft.game);
@@ -44,7 +45,7 @@ export function MoveChoiceFilterSheet({
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="move-choice-filter-title">Filter moves</h2>
-          <button className="text-btn" onClick={() => setDraft(NO_MOVE_FILTERS)}>
+          <button className="text-btn" onClick={() => setDraft(() => NO_MOVE_FILTERS)}>
             Reset
           </button>
         </div>
@@ -121,10 +122,11 @@ export function MoveChoiceFilterSheet({
           })}
         </div>
 
-        <div style={{ height: 24 }} />
-        <button className="primary-btn" onClick={() => close(() => onApply(draft))} disabled={count === 0}>
-          {count === 0 ? 'No moves' : `Show ${count} move${count === 1 ? '' : 's'}`}
-        </button>
+        <div className="sheet-foot">
+          <button className="primary-btn" onClick={() => close()}>
+            {count === 0 ? 'No moves' : `Show ${count} move${count === 1 ? '' : 's'}`}
+          </button>
+        </div>
       </section>
     </>
   );

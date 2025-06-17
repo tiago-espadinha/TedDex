@@ -127,10 +127,7 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
         <FilterSheet
           value={filters}
           countFor={(f) => applyFilters(rows, fuse, f, undefined, favourites).length}
-          onApply={(f) => {
-            setFilters(f);
-            setSheetOpen(false);
-          }}
+          onChange={setFilters}
           onClose={() => setSheetOpen(false)}
         />
       )}

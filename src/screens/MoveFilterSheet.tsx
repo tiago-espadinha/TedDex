@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { CategoryIcon, useModalSheet } from '../components/bits';
+import { useLiveDraft } from '../components/useLiveDraft';
 import { cap, roman } from '../data/format';
 import { MOVE_CATEGORIES, MOVE_SORTS, type MoveFilters, type MoveSort } from '../data/moveFilter';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
@@ -13,15 +13,16 @@ const toggle = <T,>(list: T[], x: T) => (list.includes(x) ? list.filter((y) => y
 export function MoveFilterSheet({
   value,
   countFor,
-  onApply,
+  onChange,
   onClose,
 }: {
   value: MoveFilters;
   countFor: (f: MoveFilters) => number;
-  onApply: (f: MoveFilters) => void;
+  /** Called on every change: the sheet applies its filters live. */
+  onChange: (f: MoveFilters) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useLiveDraft(value, onChange);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
 
@@ -106,10 +107,11 @@ export function MoveFilterSheet({
           ))}
         </div>
 
-        <div style={{ height: 24 }} />
-        <button className="primary-btn" onClick={() => close(() => onApply(draft))} disabled={count === 0}>
-          {count === 0 ? 'No moves' : `Show ${count} move${count === 1 ? '' : 's'}`}
-        </button>
+        <div className="sheet-foot">
+          <button className="primary-btn" onClick={() => close()}>
+            {count === 0 ? 'No moves' : `Show ${count} move${count === 1 ? '' : 's'}`}
+          </button>
+        </div>
       </section>
     </>
   );

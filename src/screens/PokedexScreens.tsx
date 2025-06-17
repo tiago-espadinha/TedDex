@@ -307,10 +307,7 @@ export function PokedexScreen() {
         <PokedexFilterSheet
           value={filters}
           countFor={(f) => filterDexCells(view.cells, dex.states, species, f).length}
-          onApply={(f) => {
-            setFilters(f);
-            setSheetOpen(false);
-          }}
+          onChange={setFilters}
           onClose={() => setSheetOpen(false)}
         />
       )}

@@ -245,10 +245,7 @@ export function MemberEditor() {
           value={moveFilters}
           games={speciesGames}
           countFor={(f) => moveOptions(f).length}
-          onApply={(f) => {
-            setMoveFilters(f);
-            setPicking({ kind: 'move', slot: picking.slot });
-          }}
+          onChange={setMoveFilters}
           onClose={() => setPicking({ kind: 'move', slot: picking.slot })}
         />
       )}

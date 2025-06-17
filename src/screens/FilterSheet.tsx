@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
+import { useLiveDraft } from '../components/useLiveDraft';
 import { CATEGORY_LABELS, DEFAULT_FILTERS, SORT_LABELS, type DexCategory, type DexFilters, type SortKey } from '../data/dexState';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
 import type { TypeName, VersionGroup } from '../data/types';
@@ -16,17 +16,18 @@ export function FilterSheet({
   value,
   game,
   countFor,
-  onApply,
+  onChange,
   onClose,
 }: {
   value: DexFilters;
   /** The game chosen in Settings, when one is: the sheet offers its limit. */
   game?: VersionGroup;
   countFor: (f: DexFilters) => number;
-  onApply: (f: DexFilters) => void;
+  /** Called on every change: the sheet applies its filters live. */
+  onChange: (f: DexFilters) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useLiveDraft(value, onChange);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
 
@@ -124,10 +125,11 @@ export function FilterSheet({
           ))}
         </div>
 
-        <div style={{ height: 24 }} />
-        <button className="primary-btn" onClick={() => close(() => onApply(draft))} disabled={count === 0}>
-          {count === 0 ? 'No results' : `Show ${count} result${count === 1 ? '' : 's'}`}
-        </button>
+        <div className="sheet-foot">
+          <button className="primary-btn" onClick={() => close()}>
+            {count === 0 ? 'No results' : `Show ${count} result${count === 1 ? '' : 's'}`}
+          </button>
+        </div>
       </section>
     </>
   );

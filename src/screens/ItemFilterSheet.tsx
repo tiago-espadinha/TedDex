@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
+import { useLiveDraft } from '../components/useLiveDraft';
 import { roman } from '../data/format';
 import { ITEM_CATEGORIES } from '../data/itemCategories';
 import type { ItemFilters } from '../data/itemFilter';
@@ -12,15 +12,16 @@ const toggle = <T,>(list: T[], x: T) => (list.includes(x) ? list.filter((y) => y
 export function ItemFilterSheet({
   value,
   countFor,
-  onApply,
+  onChange,
   onClose,
 }: {
   value: ItemFilters;
   countFor: (f: ItemFilters) => number;
-  onApply: (f: ItemFilters) => void;
+  /** Called on every change: the sheet applies its filters live. */
+  onChange: (f: ItemFilters) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useLiveDraft(value, onChange);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
 
@@ -78,10 +79,11 @@ export function ItemFilterSheet({
           ))}
         </div>
 
-        <div style={{ height: 24 }} />
-        <button className="primary-btn" onClick={() => close(() => onApply(draft))} disabled={count === 0}>
-          {count === 0 ? 'No items' : `Show ${count} item${count === 1 ? '' : 's'}`}
-        </button>
+        <div className="sheet-foot">
+          <button className="primary-btn" onClick={() => close()}>
+            {count === 0 ? 'No items' : `Show ${count} item${count === 1 ? '' : 's'}`}
+          </button>
+        </div>
       </section>
     </>
   );

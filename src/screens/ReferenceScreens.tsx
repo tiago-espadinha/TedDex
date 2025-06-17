@@ -151,7 +151,6 @@ function SearchList() {
         : 0;
   const applyFilters = (next: Record<string, string>) => {
     setParams(next, { replace: true });
-    setSheetOpen(false);
     window.scrollTo({ top: 0 });
   };
 
@@ -206,7 +205,7 @@ function SearchList() {
             <MoveFilterSheet
               value={moveFilters}
               countFor={(f) => filterMoves(moves, f).length}
-              onApply={(f) => applyFilters(moveFilterParams(f))}
+              onChange={(f) => applyFilters(moveFilterParams(f))}
               onClose={() => setSheetOpen(false)}
             />
           )}
@@ -214,7 +213,7 @@ function SearchList() {
             <ItemFilterSheet
               value={itemFilters}
               countFor={(f) => filterItems(items, f).length}
-              onApply={(f) => applyFilters(itemFilterParams(f))}
+              onChange={(f) => applyFilters(itemFilterParams(f))}
               onClose={() => setSheetOpen(false)}
             />
           )}
@@ -223,7 +222,7 @@ function SearchList() {
               value={abilityFilters}
               gens={abilityGens}
               countFor={(f) => filterAbilities(data ?? [], f).length}
-              onApply={(f) => applyFilters(abilityFilterParams(f))}
+              onChange={(f) => applyFilters(abilityFilterParams(f))}
               onClose={() => setSheetOpen(false)}
             />
           )}

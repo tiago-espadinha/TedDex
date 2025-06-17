@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
+import { useLiveDraft } from '../components/useLiveDraft';
 import type { AbilityFilters } from '../data/abilityFilter';
 import { roman } from '../data/format';
 import { ToggleAllHeading } from './FilterSheet';
@@ -11,16 +11,17 @@ export function AbilityFilterSheet({
   value,
   gens,
   countFor,
-  onApply,
+  onChange,
   onClose,
 }: {
   value: AbilityFilters;
   gens: number[];
   countFor: (f: AbilityFilters) => number;
-  onApply: (f: AbilityFilters) => void;
+  /** Called on every change: the sheet applies its filters live. */
+  onChange: (f: AbilityFilters) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useLiveDraft(value, onChange);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
 
@@ -54,10 +55,11 @@ export function AbilityFilterSheet({
           ))}
         </div>
 
-        <div style={{ height: 24 }} />
-        <button className="primary-btn" onClick={() => close(() => onApply(draft))} disabled={count === 0}>
-          {count === 0 ? 'No abilities' : `Show ${count} abilit${count === 1 ? 'y' : 'ies'}`}
-        </button>
+        <div className="sheet-foot">
+          <button className="primary-btn" onClick={() => close()}>
+            {count === 0 ? 'No abilities' : `Show ${count} abilit${count === 1 ? 'y' : 'ies'}`}
+          </button>
+        </div>
       </section>
     </>
   );

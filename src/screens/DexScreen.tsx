@@ -188,9 +188,8 @@ export function DexScreen() {
           value={filters}
           game={limit}
           countFor={(f) => (rows ? applyFilters(rows, fuse, f, upTo(f), favourites).length : 0)}
-          onApply={(f) => {
+          onChange={(f) => {
             setFilters(f);
-            setSheetOpen(false);
             window.scrollTo({ top: 0 });
           }}
           onClose={() => setSheetOpen(false)}
