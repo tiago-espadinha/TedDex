@@ -1,7 +1,7 @@
 import Fuse from 'fuse.js';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { loadIndex, loadVersions, useLoad } from '../data/api';
 import { formatNo } from '../data/format';
@@ -245,7 +245,8 @@ function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; 
       />
     </>
   );
-  const style = { backgroundColor: typeTint(mon.types[0]) };
+  const tint = typeTint(mon.types[0]);
+  const style = { backgroundColor: tint, '--card-tint': tint } as CSSProperties;
   const cls = ['mon-card', row && 'row', art && 'sprite-art'].filter(Boolean).join(' ');
   if (onPick)
     return (

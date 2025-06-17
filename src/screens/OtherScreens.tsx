@@ -164,7 +164,7 @@ export function MoreScreen() {
         />
 
         <h2 style={{ marginTop: 22 }}>About</h2>
-        <p className="hint" style={{ fontSize: 13, lineHeight: 1.5 }}>
+        <p className="hint" style={{ fontSize: 'var(--fs-sm)', lineHeight: 1.5 }}>
           TedDex is an unofficial, non-commercial fan project. Pokémon names, images and sounds are © Nintendo, Game Freak and
           The Pokémon Company. Data from PokeAPI; Elite Four, Champion and Gym Leader teams and where to find items from Bulbapedia (CC BY-NC-SA); trainer sprites and Pokédex art from Bulbagarden Archives.
           {dataVersion && (

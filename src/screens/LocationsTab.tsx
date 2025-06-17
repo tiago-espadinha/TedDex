@@ -72,7 +72,7 @@ export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
         </p>
       )}
 
-      <div className="move-group">
+      <div className="move-group loc-group">
         <ul>
           {encountersInGroup(
             locations,
