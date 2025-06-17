@@ -433,7 +433,15 @@ main:focus, .sheet:focus { outline: none; }
 .search:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
 .search input::-webkit-search-cancel-button { display: none; }
 /* In a header row, next to the title: fills the rest of the row; buttons inside sit at the right edge. */
-.search.in-head { flex: 1; min-width: 0; margin: 0; height: 44px; padding: 0 4px 0 14px; gap: 8px; }
+/* The slot keeps the field's height in the header while the field is pinned. */
+.search-slot { flex: 1; min-width: 0; height: 44px; }
+.search.in-head { margin: 0; height: 44px; padding: 0 4px 0 14px; gap: 8px; }
+/* Scrolled away, the field pins at the top (JS sets `top`: the safe area or a sticky bar's bottom) a size smaller. */
+.search.in-head.pinned { position: fixed; z-index: 14; left: max(16px, calc((100vw - 720px) / 2 + 16px)); right: max(16px, calc((100vw - 720px) / 2 + 16px)); height: 40px; box-shadow: var(--shadow-fab); animation: fade 140ms ease; }
+/* Back to top: centred over the filter button's column, above it, whether or not the screen has one. */
+.to-top { position: fixed; z-index: 15; right: calc(max(16px, calc((100vw - 720px) / 2 + 16px)) + 6px); bottom: calc(var(--nav-h) + var(--safe-bottom) + 84px); width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--surface); color: var(--ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); cursor: pointer; animation: fade 160ms ease; }
+.to-top:active { background: var(--surface-2); }
+.no-nav .to-top { bottom: calc(var(--safe-bottom) + 84px); }
 .icon-btn.sm { width: 36px; height: 36px; }
 .icon-btn[aria-pressed='true'] { background: var(--primary-soft); color: var(--primary-soft-ink); }
 
@@ -1119,7 +1127,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .ref-table.natures .fact-chip { padding-inline: 6px; font-size: 13px; }
 [data-design='b'] .bottom-nav .pill { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
+[data-design='b'] :is(.search, .to-top, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
   .move-slots .move-row, .move-pick, .summary .tile, .coming, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .evo-card, .evo-mon, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }

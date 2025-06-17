@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { cap } from '../data/format';
 import { typeChip } from '../data/typeColors';
@@ -67,8 +67,47 @@ export function BottomNav() {
 
 // ---------- search ----------
 /**
+ * Pins the search once its slot scrolls under the top of the screen (or under a sticky `.dex-top`
+ * bar), and shows the back-to-top arrow after a screen's height. The field itself turns fixed, so
+ * focus and typing carry over, and the slot keeps its height, so nothing below moves. One per page: each
+ * adds its own arrow.
+ */
+function usePinnedSearch() {
+  const slot = useRef<HTMLDivElement>(null);
+  const [pinTop, setPinTop] = useState<number>();
+  const [toTop, setToTop] = useState(false);
+  // Before paint, so a list restored mid-scroll never shows the field unpinned for a frame.
+  useLayoutEffect(() => {
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const el = slot.current;
+      if (!el) return;
+      const bar = document.querySelector('.dex-top');
+      // The app's top padding is the safe area.
+      const top = (bar ? bar.getBoundingClientRect().bottom : parseFloat(getComputedStyle(el.closest('.app')!).paddingTop)) + 6;
+      setPinTop(el.getBoundingClientRect().top < top ? top : undefined);
+      setToTop(scrollY > innerHeight);
+    };
+    const schedule = () => {
+      frame ||= requestAnimationFrame(measure);
+    };
+    measure();
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      removeEventListener('scroll', schedule);
+      removeEventListener('resize', schedule);
+    };
+  }, []);
+  return { slot, pinTop, toTop };
+}
+
+/**
  * Search field that sits in a screen's header row, next to its title. `trailing` goes inside the
- * field on the right (after the clear button), like the Dex grid/list toggle.
+ * field on the right (after the clear button), like the Dex grid/list toggle. Scrolled away, it
+ * pins at the top in a compact form, and a back-to-top arrow appears above the filter button.
  */
 export function SearchField({
   label,
@@ -83,25 +122,41 @@ export function SearchField({
   placeholder: string;
   trailing?: ReactNode;
 }) {
+  const { slot, pinTop, toTop } = usePinnedSearch();
   return (
-    <label className="search in-head">
-      <Icon name="search" size={20} />
-      <span className="sr-only">{label}</span>
-      <input
-        type="search"
-        inputMode="search"
-        autoComplete="off"
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-      {value && (
-        <button className="icon-btn sm" aria-label="Clear search" onClick={() => onChange('')}>
-          <Icon name="close" size={18} />
+    <div className="search-slot" ref={slot}>
+      <label className={`search in-head${pinTop == null ? '' : ' pinned'}`} style={{ top: pinTop }}>
+        <Icon name="search" size={20} />
+        <span className="sr-only">{label}</span>
+        <input
+          type="search"
+          inputMode="search"
+          autoComplete="off"
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {value && (
+          <button className="icon-btn sm" aria-label="Clear search" onClick={() => onChange('')}>
+            <Icon name="close" size={18} />
+          </button>
+        )}
+        {trailing}
+      </label>
+      {toTop && (
+        <button
+          className="to-top"
+          aria-label="Back to top"
+          onClick={() => {
+            const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            scrollTo({ top: 0, behavior: instant ? 'instant' : 'smooth' });
+            document.querySelector<HTMLElement>('main')?.focus({ preventScroll: true });
+          }}
+        >
+          <Icon name="up" size={22} />
         </button>
       )}
-      {trailing}
-    </label>
+    </div>
   );
 }
 
