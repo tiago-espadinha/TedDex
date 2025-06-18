@@ -57,6 +57,11 @@ export const NICKNAME_LENGTH = 12;
 /** A nickname as stored: trimmed, cut to NICKNAME_LENGTH characters, undefined when blank. */
 export const cleanNickname = (nickname: string) => [...nickname.trim()].slice(0, NICKNAME_LENGTH).join('').trim() || undefined;
 
+export const NAME_LENGTH = 20;
+
+/** A team or Pokédex name as stored: trimmed and cut to NAME_LENGTH characters (code points); '' when blank. */
+export const cleanName = (name: string) => [...name.trim()].slice(0, NAME_LENGTH).join('').trim();
+
 /** How a member is titled: "Pikachu · Sparky" with a nickname, else its species or form name. */
 export const memberTitle = (name: string, nickname?: string) => (nickname ? `${name} · ${nickname}` : name);
 
@@ -138,6 +143,19 @@ class DexDB extends Dexie {
           }
         }
       });
+    // v12: team and Pokédex names are at most NAME_LENGTH characters; longer ones are cut.
+    this.version(12)
+      .stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' })
+      .upgrade(async (tx) => {
+        for (const table of ['teams', 'pokedexes']) {
+          await tx
+            .table(table)
+            .toCollection()
+            .modify((row: { name: unknown }) => {
+              if (typeof row.name === 'string') row.name = cleanName(row.name) || row.name;
+            });
+        }
+      });
   }
 }
 
@@ -150,13 +168,13 @@ if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
 
 export async function createTeam(name?: string): Promise<number> {
   const count = await db.teams.count();
-  return db.teams.add({ name: name ?? `Team ${count + 1}`, members: [], updatedAt: Date.now() });
+  return db.teams.add({ name: (name && cleanName(name)) || `Team ${count + 1}`, members: [], updatedAt: Date.now() });
 }
 
 /** Renames a team; a blank name leaves it unchanged. */
 export async function renameTeam(teamId: number, name: string) {
-  const trimmed = name.trim();
-  if (trimmed) await db.teams.update(teamId, { name: trimmed, updatedAt: Date.now() });
+  const cleaned = cleanName(name);
+  if (cleaned) await db.teams.update(teamId, { name: cleaned, updatedAt: Date.now() });
 }
 
 /** Adds a species, in form `formKey` ('' or absent for the default), to a team. Returns false when the team is full. */
@@ -207,8 +225,8 @@ const speciesList = (species: number[]) => [...new Set(species)].sort((a, b) => 
 
 /** Renames a Pokédex; a blank name leaves it unchanged. */
 export async function renamePokedex(dexId: number, name: string) {
-  const trimmed = name.trim();
-  if (trimmed) await db.pokedexes.update(dexId, { name: trimmed, updatedAt: Date.now() });
+  const cleaned = cleanName(name);
+  if (cleaned) await db.pokedexes.update(dexId, { name: cleaned, updatedAt: Date.now() });
 }
 
 /** Moves a species to its next state, reading the stored states so quick taps don't overwrite each other. */
@@ -266,7 +284,7 @@ function memberProblem(m: unknown): string | null {
 
 /**
  * Validates an exported backup (version 1 to 9; nicknames from 9). Throws BackupError on the first problem, so a bad
- * file writes nothing. Teams without a name get "Team N" numbered after `existing`; the team game of
+ * file writes nothing. Names are cut to NAME_LENGTH; teams without a name get "Team N" numbered after `existing`; the team game of
  * versions 5 and 6 and the god mode of versions 1 to 9 (per member before 4, then per team) are dropped. Nicknames are trimmed; a blank one is dropped.
  */
 export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
@@ -289,7 +307,7 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
       if (problem) throw new BackupError(`${label}: member ${j + 1} ${problem}`);
     });
     return {
-      name: typeof name === 'string' && name.trim() ? name.trim() : `Team ${existing + i + 1}`,
+      name: (typeof name === 'string' && cleanName(name)) || `Team ${existing + i + 1}`,
       members: (members as TeamMember[]).map(({ speciesId, formKey, nickname, ability, nature, item, moves }) => {
         const cleaned = nickname === undefined ? undefined : cleanNickname(nickname);
         return { speciesId, formKey: formKey || undefined, ...(cleaned !== undefined && { nickname: cleaned }), ability, nature, item, moves };
@@ -354,7 +372,7 @@ export function parseFavourites(json: string): Favourite[] {
 /**
  * Validates the Pokédexes of a backup (version 6 to 9; older backups have none; custom ones from 7). Throws
  * BackupError on the first problem.
- * Pokédexes without a name get "Pokédex N" numbered after `existing`. Call after parseBackup, which checks the file.
+ * Names are cut to NAME_LENGTH; Pokédexes without a name get "Pokédex N" numbered after `existing`. Call after parseBackup, which checks the file.
  */
 export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[] {
   const dexes = (JSON.parse(json) as { pokedexes?: unknown }).pokedexes;
@@ -380,7 +398,7 @@ export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[
       clean[Number(id)] = state;
     }
     return {
-      name: typeof name === 'string' && name.trim() ? name.trim() : `Pokédex ${existing + i + 1}`,
+      name: (typeof name === 'string' && cleanName(name)) || `Pokédex ${existing + i + 1}`,
       ...(game !== undefined && { game: game as number }),
       ...(species !== undefined && { species: speciesList(species as number[]) }),
       states: clean,

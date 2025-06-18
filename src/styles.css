@@ -1066,6 +1066,11 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .picker-list .move-row:focus-visible { outline-offset: -2px; }
 .rename-field { margin: 14px 0 16px; }
 .primary-btn:disabled { opacity: 0.45; }
+.confirm-title { overflow-wrap: anywhere; }
+.confirm-text { margin: 10px 2px 0; font-size: var(--fs-md); color: var(--muted); }
+.confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+.confirm-actions .primary-btn.cancel { background: var(--surface-2); color: var(--ink); }
+.confirm-actions .primary-btn.danger { background: var(--danger); color: var(--on-danger); }
 .bottom-cta { padding: 16px; }
 .team-cta { padding-top: 4px; }
 
