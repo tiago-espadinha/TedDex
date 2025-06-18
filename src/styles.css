@@ -445,7 +445,12 @@ main:focus, .sheet:focus { outline: none; }
 .search-slot { flex: 1; min-width: 0; height: 44px; }
 .search.in-head { margin: 0; height: 44px; padding: 0 4px 0 14px; gap: 8px; }
 /* Scrolled away, the field pins at the top (JS sets `top`: the safe area or a sticky bar's bottom) a size smaller. */
-.search.in-head.pinned { position: fixed; z-index: 14; left: max(16px, calc((100vw - 720px) / 2 + 16px)); right: max(16px, calc((100vw - 720px) / 2 + 16px)); height: 40px; box-shadow: var(--shadow-fab); animation: fade 140ms ease; }
+.search.in-head.pinned { position: fixed; z-index: 14; left: max(16px, calc((100vw - 720px) / 2 + 16px)); right: max(16px, calc((100vw - 720px) / 2 + 16px)); height: 40px; }
+/* Behind the pinned field: a bar on the page background across the content column, from the top of the screen
+   (under a sticky .dex-top) to 8 px below the field, with the tinted header's bottom corners; it fades with the morph. */
+.search-bar { position: fixed; z-index: 9; top: 0; left: max(0px, calc((100vw - 720px) / 2)); right: max(0px, calc((100vw - 720px) / 2)); height: calc(var(--pin-top) + 48px); background: var(--bg); border-radius: 0 0 32px 32px; opacity: 0; visibility: hidden; transition: opacity 200ms ease, visibility 0s 200ms; }
+.search-bar.on { opacity: 1; visibility: visible; transition: opacity 200ms ease; }
+.search-bar:not(.on) { pointer-events: none; }
 /* Back to top: centred over the filter button's column, above it, whether or not the screen has one. */
 .to-top { position: fixed; z-index: 15; right: calc(max(16px, calc((100vw - 720px) / 2 + 16px)) + 6px); bottom: calc(var(--nav-h) + var(--safe-bottom) + 84px); width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--surface); color: var(--ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); cursor: pointer; animation: fade 160ms ease; }
 .to-top:active { background: var(--surface-2); }
@@ -1137,6 +1142,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] .dex-head h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
 [data-design='b'] :is(.topbar h1, .sheet-head h2, .peek-head h2, .placeholder h1) { font-weight: 600; }
 [data-design='b'] .search:not(.sheet .search, .in-head) { margin: 8px 6px 0; }
+[data-design='b'] .search-bar { border-radius: 0 0 4px 4px; }
 [data-design='b'] .grid-row { gap: 6px; padding: 0 6px; }
 [data-design='b'] .list-row { padding: 0 6px; }
 [data-design='b'] .mon-card.row { background-image: linear-gradient(90deg, transparent 20%, var(--surface) 70%); }
