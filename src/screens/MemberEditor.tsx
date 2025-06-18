@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVersions, spriteUrl, useLoad } from '../data/api';
+import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVersions, useLoad } from '../data/api';
 import { MOVE_SLOTS, cleanNickname, db, memberTitle, updateMember, type TeamMember } from '../data/db';
 import { detailPath } from '../data/dexState';
 import { applyForm } from '../data/forms';
@@ -12,6 +12,7 @@ import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, TypeChip, useModalSheet, useToast } from '../components/bits';
+import { MonImg } from '../components/MonImg';
 import { usePeek } from '../components/usePeek';
 import { MoveChoiceFilterSheet } from './MoveChoiceFilterSheet';
 import { MoveCells, MoveHead } from './MovesTab';
@@ -21,7 +22,7 @@ const loadAll = (id: number, formKey?: string) =>
   Promise.all([loadSpecies(id), loadLearnsets(id, formKey), loadMoves(), loadItems(), loadVersions()]);
 
 const godModeText = (on: boolean) =>
-  on ? 'God mode on: any move and ability for every member' : "God mode off: only each Pokémon's own moves and abilities";
+  on ? 'God mode on: any move and ability enabled' : "God mode off: only legal moves and abilities";
 
 type Picking = { kind: 'nickname' } | { kind: 'item' } | { kind: 'ability' } | { kind: 'move' | 'move-filter'; slot: number };
 
@@ -108,7 +109,7 @@ export function MemberEditor() {
 
       <div className="list">
         <Link to={detailPath(mon.id, form?.key)} className="slot member-hero" style={{ backgroundColor: typeTint(mon.types[0]) }}>
-          <img src={spriteUrl(mediaId)} alt="" width={64} height={64} />
+          <MonImg id={mediaId} speciesId={member.speciesId} alt="" width={64} height={64} />
           <div style={{ minWidth: 0 }}>
             <div className="chips">{mon.types.map((t) => <TypeChip key={t} type={t} />)}</div>
             <div className="meta">View in Dex</div>
@@ -244,10 +245,7 @@ export function MemberEditor() {
           value={moveFilters}
           games={speciesGames}
           countFor={(f) => moveOptions(f).length}
-          onApply={(f) => {
-            setMoveFilters(f);
-            setPicking({ kind: 'move', slot: picking.slot });
-          }}
+          onChange={setMoveFilters}
           onClose={() => setPicking({ kind: 'move', slot: picking.slot })}
         />
       )}

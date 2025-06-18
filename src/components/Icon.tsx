@@ -2,6 +2,7 @@
 const paths = {
   back: <path d="M15 5l-7 7 7 7" />,
   next: <path d="M9 5l7 7-7 7" />,
+  up: <path d="M12 19V5M5 12l7-7 7 7" />,
   search: (
     <>
       <circle cx="11" cy="11" r="7" />

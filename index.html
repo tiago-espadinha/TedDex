@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script>
+      // The stored theme and design before the first paint, so the boot spinner sits on the right background
+      // (main.tsx applies them again through settings.ts).
+      try {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+        if (localStorage.getItem('design') === 'b') document.documentElement.setAttribute('data-design', 'b');
+      } catch (e) {}
+    </script>
     <meta name="theme-color" content="#F6F5F2" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#141317" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -13,11 +22,25 @@
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- Not render-blocking: on a slow network the page paints in the fallback font and swaps when the fonts arrive. -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" /></noscript>
     <title>TedDex</title>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Shown until React mounts (it replaces the root's children); same markup as Spinner in src/components/bits.tsx. -->
+    <div id="root">
+      <div class="loading boot" role="status">
+        <svg class="spinner" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+          <circle class="ball-bottom" cx="24" cy="24" r="21" />
+          <path class="ball-top" d="M3 24a21 21 0 0 1 42 0z" />
+          <path class="ball-line" d="M3 24h42" />
+          <circle class="ball-line" cx="24" cy="24" r="21" />
+          <circle class="ball-line ball-button" cx="24" cy="24" r="6" />
+        </svg>
+        <span class="sr-only">Loading…</span>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

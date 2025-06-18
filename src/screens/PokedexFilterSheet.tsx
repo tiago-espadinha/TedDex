@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
+import { useLiveDraft } from '../components/useLiveDraft';
 import { Icon, type IconName } from '../components/Icon';
 import { DEX_STATE_LABELS, type DexFilters, type DexState } from '../data/pokedex';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
@@ -13,15 +13,16 @@ const toggle = <T,>(list: T[], x: T) => (list.includes(x) ? list.filter((y) => y
 export function PokedexFilterSheet({
   value,
   countFor,
-  onApply,
+  onChange,
   onClose,
 }: {
   value: DexFilters;
   countFor: (f: DexFilters) => number;
-  onApply: (f: DexFilters) => void;
+  /** Called on every change: the sheet applies its filters live. */
+  onChange: (f: DexFilters) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useLiveDraft(value, onChange);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
 
@@ -79,10 +80,11 @@ export function PokedexFilterSheet({
           })}
         </div>
 
-        <div style={{ height: 24 }} />
-        <button className="primary-btn" onClick={() => close(() => onApply(draft))} disabled={count === 0}>
-          {count === 0 ? 'No Pokémon' : `Show ${count} Pokémon`}
-        </button>
+        <div className="sheet-foot">
+          <button className="primary-btn" onClick={() => close()}>
+            {count === 0 ? 'No Pokémon' : `Show ${count} Pokémon`}
+          </button>
+        </div>
       </section>
     </>
   );

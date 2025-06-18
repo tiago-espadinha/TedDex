@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { spriteUrl } from '../data/api';
+import { MonImg } from './MonImg';
 import { typeChip, typeTint } from '../data/typeColors';
 import type { MoveTable, TypeName } from '../data/types';
 import { CategoryIcon, MonName, TypeChip } from './bits';
@@ -13,12 +13,14 @@ import { CategoryIcon, MonName, TypeChip } from './bits';
 /** Sprite on its first type's tint, name and type chips (`note` at the end of their row), then `aside` (a level badge). */
 export function MonHead({
   spriteId,
+  speciesId,
   name,
   types,
   note,
   aside,
 }: {
   spriteId: number;
+  speciesId: number;
   name: string;
   types: TypeName[];
   note?: ReactNode;
@@ -26,8 +28,9 @@ export function MonHead({
 }) {
   return (
     <>
-      <img
-        src={spriteUrl(spriteId)}
+      <MonImg
+        id={spriteId}
+        speciesId={speciesId}
         alt=""
         width={56}
         height={56}

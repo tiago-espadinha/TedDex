@@ -94,12 +94,13 @@ describe('memberView', () => {
       stats: stats(105),
       total: 634,
       mediaId: 10034,
+      speciesId: 6,
       abilities: charizard.forms!.find((f) => f.key === 'mega-x')!.abilities,
     });
   });
 
   test('uses the grid row for the default form, or while the species file is not loaded', () => {
-    const plain = { name: 'Charizard', types: ['fire', 'flying'], stats: stats(89), total: 534, mediaId: 6 };
+    const plain = { name: 'Charizard', types: ['fire', 'flying'], stats: stats(89), total: 534, mediaId: 6, speciesId: 6 };
     assert.deepEqual(memberView({ speciesId: 6 }, grid, charizard), plain);
     assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-x' }, grid), plain);
   });
@@ -111,6 +112,7 @@ describe('memberView', () => {
       stats: charizard.stats,
       total: charizard.total,
       mediaId: 6,
+      speciesId: 6,
       abilities: charizard.abilities,
     });
   });

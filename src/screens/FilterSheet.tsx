@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useModalSheet } from '../components/bits';
+import { useLiveDraft } from '../components/useLiveDraft';
 import { CATEGORY_LABELS, DEFAULT_FILTERS, SORT_LABELS, type DexCategory, type DexFilters, type SortKey } from '../data/dexState';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
 import type { TypeName, VersionGroup } from '../data/types';
@@ -16,17 +16,18 @@ export function FilterSheet({
   value,
   game,
   countFor,
-  onApply,
+  onChange,
   onClose,
 }: {
   value: DexFilters;
   /** The game chosen in Settings, when one is: the sheet offers its limit. */
   game?: VersionGroup;
   countFor: (f: DexFilters) => number;
-  onApply: (f: DexFilters) => void;
+  /** Called on every change: the sheet applies its filters live. */
+  onChange: (f: DexFilters) => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useLiveDraft(value, onChange);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
 
@@ -54,7 +55,6 @@ export function FilterSheet({
                 Up to {game.label}
               </button>
             </div>
-            <p className="hint">Pokémon up to Gen {roman(game.gen)}, from the game chosen in Settings.</p>
           </>
         )}
 
@@ -98,7 +98,6 @@ export function FilterSheet({
             );
           })}
         </div>
-        <p className="hint">Shows Pokémon with any of the chosen types.</p>
 
         <h3 id="filter-category">Category</h3>
         <div className="cat-grid" role="group" aria-labelledby="filter-category">
@@ -113,7 +112,6 @@ export function FilterSheet({
             </button>
           ))}
         </div>
-        <p className="hint">One at a time; tap it again to clear.</p>
 
         <h3>Sort by</h3>
         <div className="sort-grid" role="radiogroup" aria-label="Sort by">
@@ -124,10 +122,11 @@ export function FilterSheet({
           ))}
         </div>
 
-        <div style={{ height: 24 }} />
-        <button className="primary-btn" onClick={() => close(() => onApply(draft))} disabled={count === 0}>
-          {count === 0 ? 'No results' : `Show ${count} result${count === 1 ? '' : 's'}`}
-        </button>
+        <div className="sheet-foot">
+          <button className="primary-btn" onClick={() => close()}>
+            {count === 0 ? 'No results' : `Show ${count} result${count === 1 ? '' : 's'}`}
+          </button>
+        </div>
       </section>
     </>
   );

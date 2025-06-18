@@ -77,6 +77,7 @@ function monOf(m: LeagueMember, tables: Tables): MemberView {
   const form = m.form ? tables.forms.get(formKey(m.id, m.form)) : undefined;
   return {
     mediaId: form?.pokemonId ?? m.id,
+    speciesId: m.id,
     name: form?.name ?? species?.name ?? `#${m.id}`,
     types: form?.types ?? species?.types ?? [],
     stats: form?.stats ?? species?.stats ?? NO_STATS,
@@ -155,7 +156,6 @@ export function LeagueGameScreen({ kind }: { kind: TrainerKind }) {
               <TrainerRow key={`${t.name}-${i}`} to={`/reference/${kind}/${game.id}/${trainerSlug(t.name)}`} trainer={t} tables={tables} />
             ))}
           </ul>
-          <Sources trainers={game.trainers} />
         </>
       )}
     </>
@@ -191,8 +191,8 @@ function TrainerRow({ to, trainer: t, tables }: { to: string; trainer: LeagueTra
         <TrainerSprite sprite={t.sprite} />
         <span className="who">
           <span className="trainer-name">
-            {t.badge && <span className="badge-name">{t.badge} · </span>}
             <span className="name">{t.name}</span>
+            {t.badge && <span className="badge-name"> · {t.badge}</span>}
           </span>
           <span className="tags">
             <span className="role">{t.role}</span>
@@ -302,7 +302,6 @@ export function TrainerScreen({ kind }: { kind: TrainerKind }) {
               <Icon name="shield" size={20} /> Analyse coverage
             </Link>
           </div>
-          <Sources trainers={[t]} />
         </>
       )}
     </>
@@ -382,7 +381,7 @@ function TrainerMon({ member: m, tables }: { member: LeagueMember; tables: Table
   return (
     <li className="team-mon trainer-mon" style={{ backgroundColor: types[0] ? typeTint(types[0]) : 'var(--surface)' }}>
       <Link className="evo-member" to={`/pokemon/${m.id}${m.form ? `?form=${m.form}` : ''}`}>
-        <MonHead spriteId={mediaId} name={name} types={types} aside={<span className="lv">Lv {m.level}</span>} />
+        <MonHead spriteId={mediaId} speciesId={m.id} name={name} types={types} aside={<span className="lv">Lv {m.level}</span>} />
       </Link>
       {(ability || item || m.tera || m.battleForm) && (
         <MonFacts>
@@ -414,24 +413,3 @@ function TrainerMon({ member: m, tables }: { member: LeagueMember; tables: Table
   );
 }
 
-function Sources({ trainers }: { trainers: LeagueTrainer[] }) {
-  const pages = [...new Map(trainers.map((t) => [t.source, t.name]))];
-  return (
-    <section className="section">
-      <h2>Source</h2>
-      <p className="hint league-source">
-        Teams from Bulbapedia (CC BY-NC-SA 2.5), trainer sprites from Bulbagarden Archives:{' '}
-        {pages.map(([url, name], i) => (
-          <span key={url}>
-            {i > 0 && ', '}
-            <a href={url} target="_blank" rel="noreferrer">
-              {name}
-              <span className="sr-only"> (opens in a new tab)</span>
-            </a>
-          </span>
-        ))}
-        .
-      </p>
-    </section>
-  );
-}

@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { dexSpriteUrl, loadIndex, loadPokedexes, loadVersions, shinySpriteUrl, spriteUrl, useLoad } from '../data/api';
+import { dexSpriteUrl, loadIndex, loadPokedexes, loadVersions, useLoad } from '../data/api';
 import { createPokedex, cycleDexState, db, renamePokedex, type Pokedex } from '../data/db';
 import { formatNo } from '../data/format';
 import { bandStyle } from '../data/gameColors';
@@ -26,6 +26,7 @@ import { teamMatches } from '../data/teamSearch';
 import type { IndexEntry, Pokedexes, VersionGroup } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, MonName, SearchField } from '../components/bits';
+import { MonImg } from '../components/MonImg';
 import { PokedexFilterSheet } from './PokedexFilterSheet';
 import { RenameSheet, TeamTabs } from './TeamScreens';
 
@@ -306,10 +307,7 @@ export function PokedexScreen() {
         <PokedexFilterSheet
           value={filters}
           countFor={(f) => filterDexCells(view.cells, dex.states, species, f).length}
-          onApply={(f) => {
-            setFilters(f);
-            setSheetOpen(false);
-          }}
+          onChange={setFilters}
           onClose={() => setSheetOpen(false)}
         />
       )}
@@ -352,7 +350,7 @@ const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }
         aria-label={`${state ? `${no} ${name}` : no}, ${DEX_STATE_LABELS[state].toLowerCase()}. Tap for ${DEX_STATE_LABELS[nextState(state)].toLowerCase()}`}
         onClick={() => onTap(id)}
       >
-        <img src={state === 3 ? shinySpriteUrl(id) : spriteUrl(id)} alt="" loading="lazy" width={72} height={72} />
+        <MonImg id={id} shiny={state === 3} alt="" loading="lazy" width={72} height={72} />
         <span className="no">{state ? <MonName name={name} /> : no}</span>
         {state >= 2 && (
           <span className="badge">

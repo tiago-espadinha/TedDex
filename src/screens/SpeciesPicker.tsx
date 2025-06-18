@@ -2,7 +2,7 @@ import Fuse from 'fuse.js';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { loadIndex, spriteUrl, useLoad } from '../data/api';
+import { loadIndex, useLoad } from '../data/api';
 import { createCustomPokedex, db, setPokedexSpecies } from '../data/db';
 import { DEFAULT_FILTERS, type DexFilters } from '../data/dexState';
 import { FUSE_OPTIONS, applyFilters, dexRows } from '../data/filter';
@@ -10,6 +10,7 @@ import { useFavourites } from '../data/favourites';
 import { formatNo } from '../data/format';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField } from '../components/bits';
+import { MonImg } from '../components/MonImg';
 import { FilterSheet } from './FilterSheet';
 
 /** Picks the species of a new custom Pokédex; Done creates it and opens it in the picker's place. */
@@ -126,10 +127,7 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
         <FilterSheet
           value={filters}
           countFor={(f) => applyFilters(rows, fuse, f, undefined, favourites).length}
-          onApply={(f) => {
-            setFilters(f);
-            setSheetOpen(false);
-          }}
+          onChange={setFilters}
           onClose={() => setSheetOpen(false)}
         />
       )}
@@ -142,7 +140,7 @@ const PickCell = memo(function PickCell({ id, name, on, onTap }: { id: number; n
   return (
     <li>
       <button className={`dex-cell ${on ? 's2' : 's1'}`} aria-pressed={on} aria-label={`${formatNo(id)} ${name}`} onClick={() => onTap(id)}>
-        <img src={spriteUrl(id)} alt="" loading="lazy" width={72} height={72} />
+        <MonImg id={id} alt="" loading="lazy" width={72} height={72} />
         <span className="no">{name}</span>
         {on && (
           <span className="badge">

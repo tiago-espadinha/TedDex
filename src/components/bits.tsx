@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { cap } from '../data/format';
 import { typeChip } from '../data/typeColors';
@@ -66,9 +66,90 @@ export function BottomNav() {
 }
 
 // ---------- search ----------
+/** Length of the field's morph between its header slot and the pinned bar; matches `.search-bar`'s fade in styles.css. */
+const PIN_MORPH_MS = 200;
+
+/**
+ * Pins the search once its slot scrolls under the top of the screen (or under a sticky `.dex-top`
+ * bar), and shows the back-to-top arrow after a screen's height. The field itself turns fixed, so
+ * focus and typing carry over, and the slot keeps its height, so nothing below moves. The switch is a
+ * FLIP of the field between the slot and the bar, both ways (none under reduced motion). One per page:
+ * each adds its own arrow.
+ */
+function usePinnedSearch() {
+  const slot = useRef<HTMLDivElement>(null);
+  const field = useRef<HTMLLabelElement>(null);
+  const [pinTop, setPinTop] = useState<number>();
+  const [toTop, setToTop] = useState(false);
+  // Where the field was drawn before a pin or unpin, for the morph; unset on the first measure.
+  const from = useRef<{ rect: DOMRect; radius: string }>(undefined);
+  const morph = useRef<Animation>(undefined);
+  // Before paint, so a list restored mid-scroll never shows the field unpinned for a frame.
+  useLayoutEffect(() => {
+    let frame = 0;
+    // Unset until the first measure, which never morphs.
+    let pinned: boolean | undefined;
+    const measure = () => {
+      frame = 0;
+      const el = slot.current;
+      if (!el) return;
+      const bar = document.querySelector('.dex-top');
+      // The app's top padding is the safe area.
+      const top = (bar ? bar.getBoundingClientRect().bottom : parseFloat(getComputedStyle(el.closest('.app')!).paddingTop)) + 6;
+      const pin = el.getBoundingClientRect().top < top;
+      if (pinned !== undefined && pin !== pinned && field.current) {
+        const rect = field.current.getBoundingClientRect();
+        // A jump (a list restoring its scroll) pins straight away rather than flying in from off screen.
+        if (rect.bottom > 0) from.current = { rect, radius: getComputedStyle(field.current).borderRadius };
+      }
+      pinned = pin;
+      setPinTop(pin ? top : undefined);
+      setToTop(scrollY > innerHeight);
+    };
+    const schedule = () => {
+      frame ||= requestAnimationFrame(measure);
+    };
+    measure();
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      removeEventListener('scroll', schedule);
+      removeEventListener('resize', schedule);
+    };
+  }, []);
+
+  const pinned = pinTop != null;
+  useLayoutEffect(() => {
+    const start = from.current;
+    const el = field.current;
+    from.current = undefined;
+    if (!start || !el) return;
+    morph.current?.cancel();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const end = el.getBoundingClientRect();
+    // Width and height animate too, so the text is never squashed by a scale.
+    morph.current = el.animate(
+      [
+        {
+          transform: `translate(${start.rect.left - end.left}px, ${start.rect.top - end.top}px)`,
+          width: `${start.rect.width}px`,
+          height: `${start.rect.height}px`,
+          borderRadius: start.radius,
+        },
+        { transform: 'none', width: `${end.width}px`, height: `${end.height}px`, borderRadius: getComputedStyle(el).borderRadius },
+      ],
+      { duration: PIN_MORPH_MS, easing: 'cubic-bezier(0.2, 0, 0, 1)' },
+    );
+  }, [pinned]);
+
+  return { slot, field, pinTop, toTop };
+}
+
 /**
  * Search field that sits in a screen's header row, next to its title. `trailing` goes inside the
- * field on the right (after the clear button), like the Dex grid/list toggle.
+ * field on the right (after the clear button), like the Dex grid/list toggle. Scrolled away, it
+ * pins at the top in a compact form, and a back-to-top arrow appears above the filter button.
  */
 export function SearchField({
   label,
@@ -83,37 +164,62 @@ export function SearchField({
   placeholder: string;
   trailing?: ReactNode;
 }) {
+  const { slot, field, pinTop, toTop } = usePinnedSearch();
+  // The bar stays mounted at its last height, so it can fade out under the field on unpin.
+  const [barTop, setBarTop] = useState(0);
+  if (pinTop != null && pinTop !== barTop) setBarTop(pinTop);
   return (
-    <label className="search in-head">
-      <Icon name="search" size={20} />
-      <span className="sr-only">{label}</span>
-      <input
-        type="search"
-        inputMode="search"
-        autoComplete="off"
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-      {value && (
-        <button className="icon-btn sm" aria-label="Clear search" onClick={() => onChange('')}>
-          <Icon name="close" size={18} />
+    <div className="search-slot" ref={slot}>
+      <div className={`search-bar${pinTop == null ? '' : ' on'}`} style={{ '--pin-top': `${barTop}px` } as CSSProperties} aria-hidden="true" />
+      <label ref={field} className={`search in-head${pinTop == null ? '' : ' pinned'}`} style={{ top: pinTop }}>
+        <Icon name="search" size={20} />
+        <span className="sr-only">{label}</span>
+        <input
+          type="search"
+          inputMode="search"
+          autoComplete="off"
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {value && (
+          <button className="icon-btn sm" aria-label="Clear search" onClick={() => onChange('')}>
+            <Icon name="close" size={18} />
+          </button>
+        )}
+        {trailing}
+      </label>
+      {toTop && (
+        <button
+          className="to-top"
+          aria-label="Back to top"
+          onClick={() => {
+            const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            scrollTo({ top: 0, behavior: instant ? 'instant' : 'smooth' });
+            document.querySelector<HTMLElement>('main')?.focus({ preventScroll: true });
+          }}
+        >
+          <Icon name="up" size={22} />
         </button>
       )}
-      {trailing}
-    </label>
+    </div>
   );
 }
 
 // ---------- modal sheet ----------
 /** Length of the `.sheet.closing` animation in styles.css. */
 const SHEET_CLOSE_MS = 180;
+/** How far a sheet must be dragged down to close. */
+const DRAG_CLOSE_PX = 100;
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Modal behaviour for a bottom sheet: Escape closes, the page behind doesn't scroll,
  * focus moves in (to a `data-autofocus` field, else the sheet), Tab stays inside, and
  * focus goes back to the opener on close (or to <main> if the opener is gone).
+ * On touch, a downward drag while the sheet is scrolled to its top moves the sheet
+ * with the finger and closes it past `DRAG_CLOSE_PX`, else springs back; under reduced motion
+ * the sheet stays put and only the release counts.
  * Returns the sheet's ref and `close(then?)`, which plays the closing animation and then
  * calls `then` (default: `onClose`). Only the first call counts: a tap on the scrim while the
  * sheet sinks must not close it twice (the quick view would step back twice).
@@ -156,7 +262,9 @@ export function useModalSheet<T extends HTMLElement>(onClose: () => void) {
     };
     window.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
+    const stopDrag = sheet && dragToClose(sheet, () => close());
     return () => {
+      stopDrag?.();
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
       (opener?.isConnected ? opener : document.querySelector('main'))?.focus();
@@ -166,8 +274,77 @@ export function useModalSheet<T extends HTMLElement>(onClose: () => void) {
   return [ref, close] as const;
 }
 
+/** Follows a downward touch drag on `sheet` and calls `close` past `DRAG_CLOSE_PX`; returns the cleanup. */
+function dragToClose(sheet: HTMLElement, close: () => void) {
+  const scrim = sheet.previousElementSibling as HTMLElement; // every sheet follows its .scrim
+  let startX = 0;
+  let startY: number | null = null;
+  let dy = 0;
+  let follow = true;
+  let dragging = false;
+  const scrolled = (from: EventTarget | null) => {
+    for (let el = from as HTMLElement | null; el && sheet.contains(el); el = el.parentElement) {
+      if (el.scrollTop > 0) return true;
+    }
+    return false;
+  };
+  const place = (y: number, animate: boolean) => {
+    sheet.style.transition = scrim.style.transition = animate ? 'transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 200ms' : 'none';
+    sheet.style.transform = y ? `translateY(${y}px)` : '';
+    scrim.style.opacity = y ? String(Math.max(0, 1 - y / sheet.offsetHeight)) : '';
+  };
+  const onStart = (e: TouchEvent) => {
+    if (dragging) return; // a second finger mid-drag
+    startX = e.touches[0].clientX;
+    startY = e.touches.length === 1 && !scrolled(e.target) ? e.touches[0].clientY : null;
+    dy = 0;
+    follow = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  };
+  const onMove = (e: TouchEvent) => {
+    if (startY === null) return;
+    const d = e.touches[0].clientY - startY;
+    if (!dragging) {
+      if (Math.abs(d) < 6) return;
+      if (d < Math.abs(e.touches[0].clientX - startX)) return void (startY = null); // up or sideways: not a close
+      dragging = true;
+    }
+    e.preventDefault();
+    dy = Math.max(0, d);
+    if (follow) place(dy, false);
+  };
+  const onEnd = () => {
+    if (dragging && dy >= DRAG_CLOSE_PX) close();
+    else if (dragging && follow) place(0, true);
+    startY = null;
+    dragging = false;
+  };
+  sheet.addEventListener('touchstart', onStart, { passive: true });
+  sheet.addEventListener('touchmove', onMove, { passive: false });
+  sheet.addEventListener('touchend', onEnd);
+  sheet.addEventListener('touchcancel', onEnd);
+  return () => {
+    sheet.removeEventListener('touchstart', onStart);
+    sheet.removeEventListener('touchmove', onMove);
+    sheet.removeEventListener('touchend', onEnd);
+    sheet.removeEventListener('touchcancel', onEnd);
+  };
+}
+
 // ---------- loading ----------
-/** Screen reader status straight away; the visible text only if loading takes a moment. */
+/** A spinning Poké Ball in the theme's colours; still under reduced motion. index.html repeats the markup for the boot screen. */
+export function Spinner() {
+  return (
+    <svg className="spinner" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+      <circle className="ball-bottom" cx="24" cy="24" r="21" />
+      <path className="ball-top" d="M3 24a21 21 0 0 1 42 0z" />
+      <path className="ball-line" d="M3 24h42" />
+      <circle className="ball-line" cx="24" cy="24" r="21" />
+      <circle className="ball-line ball-button" cx="24" cy="24" r="6" />
+    </svg>
+  );
+}
+
+/** Screen reader status straight away; the spinner only if loading takes a moment. */
 export function Loading({ minHeight }: { minHeight?: CSSProperties['minHeight'] }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -176,7 +353,8 @@ export function Loading({ minHeight }: { minHeight?: CSSProperties['minHeight'] 
   }, []);
   return (
     <div className="loading" role="status" style={{ minHeight }}>
-      <span className={visible ? undefined : 'sr-only'}>Loading…</span>
+      {visible && <Spinner />}
+      <span className="sr-only">Loading…</span>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { artworkUrl, cryUrl, loadSpecies, loadTypes, spriteUrl, useLoad } from '../data/api';
+import { cryUrl, loadSpecies, loadTypes, useLoad } from '../data/api';
 import { compareFrom } from '../data/compare';
 import { matchupGroups } from '../data/coverage';
 import { toggleFavourite } from '../data/db';
@@ -15,6 +15,7 @@ import { Icon } from '../components/Icon';
 import { Loading, MonName, TypeChip, useToast } from '../components/bits';
 import { usePager } from '../components/usePager';
 import { usePeek } from '../components/usePeek';
+import { MonImg } from '../components/MonImg';
 import { EvolutionTab } from './EvolutionTab';
 import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
@@ -94,7 +95,7 @@ export function DetailScreen() {
   }
 
   if (error) return <p className="empty">Couldn't load this Pokémon. {error.message}</p>;
-  if (!mon) return <Loading minHeight="100dvh" />;
+  if (!mon) return <Loading />;
 
   // Every section follows the chosen form: Moves, Evolution and Locations use its own data when it has some.
   const { view, form, mediaId } = applyForm(mon, params.get('form'));
@@ -164,11 +165,7 @@ export function DetailScreen() {
         </div>
         <div className="art-row">
           <StepLink to={prev} label="Previous" icon="back" />
-          {noArtworkFor === mediaId ? (
-            <img className="sprite" src={spriteUrl(mediaId)} alt={view.name} width={184} height={184} />
-          ) : (
-            <img src={artworkUrl(mediaId)} onError={() => setNoArtworkFor(mediaId)} alt={view.name} width={184} height={184} />
-          )}
+          <MonImg id={mediaId} speciesId={mon.id} onArtworkFail={() => setNoArtworkFor(mediaId)} alt={view.name} width={184} height={184} />
           <StepLink to={next} label="Next" icon="next" />
         </div>
         {noArtworkFor === mediaId && <p className="art-note">Artwork isn't saved offline yet</p>}
