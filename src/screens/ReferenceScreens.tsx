@@ -550,21 +550,6 @@ function WhereToFind({ places, index }: { places: ItemPlaces; index: IndexEntry[
       {places.games.map((g, i) => (
         <PlaceGame key={i} place={g} byId={byId} />
       ))}
-      {places.games.length > 0 && (
-        <p className="hint league-source">
-          {places.games.some((g) => g.held) && 'Wild held items from PokeAPI. '}
-          {places.source && (
-            <>
-              From{' '}
-              <a href={places.source} target="_blank" rel="noreferrer">
-                Bulbapedia
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>{' '}
-              (CC BY-NC-SA 2.5).
-            </>
-          )}
-        </p>
-      )}
     </section>
   );
 }

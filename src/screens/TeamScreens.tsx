@@ -8,7 +8,8 @@ import { STAT_ROWS, cap, formatMultiplier, formatNo, formatScore, statColor } fr
 import { memberView, type MemberView } from '../data/forms';
 import { memberAbility } from '../data/memberOptions';
 import { teamMatches } from '../data/teamSearch';
-import { typeTint } from '../data/typeColors';
+import { NATURES } from '../data/natures';
+import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { AbilityNameTable, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, SearchField, TypeChip, useModalSheet } from '../components/bits';
@@ -33,8 +34,8 @@ function useMemberViews(members: TeamMember[] = []) {
 }
 
 /**
- * What is set on a member under its head: ability on the left and held item on the right, then moves (the nature
- * sits on the types row). Ability, item and moves open the quick view; the rest of the card is the editor link under them.
+ * What is set on a member under its head: ability in the left column and held item in the right (each column keeps
+ * its place when the other is unset), then moves (the nature sits on the types row as a chip). Ability, item and moves open the quick view; the rest of the card is the editor link under them.
  */
 function MemberDetails({
   member: m,
@@ -87,6 +88,17 @@ function MemberDetails({
   );
 }
 
+/** The nature on the types row, coloured like the stat it raises (as in the natures table); neutral ones are glass. */
+function NatureChip({ name }: { name: string }) {
+  const up = NATURES.find((n) => n.name === name)?.up;
+  return (
+    <span className="nature fact-chip" style={up && { backgroundColor: typeChip(STAT_COLOR[up]) }}>
+      <span className="sr-only">Nature: </span>
+      {name}
+    </span>
+  );
+}
+
 // ---------------- saved teams ----------------
 export function TeamsScreen() {
   const teams = useLiveQuery(() => db.teams.orderBy('updatedAt').reverse().toArray(), []);
@@ -111,10 +123,8 @@ export function TeamsScreen() {
         {shown?.map((t) => (
           <Link key={t.id} to={`/teams/${t.id}`} className="team-row team-list-row">
             <span className="head">
+              <Icon name="ball" size={16} />
               <span className="name">{t.name}</span>
-              <span className="meta">
-                {t.members.length} of {TEAM_SIZE}
-              </span>
             </span>
             {t.members.length > 0 && (
               <span className="minis" aria-hidden="true">
@@ -280,14 +290,7 @@ export function TeamEditor() {
                       speciesId={m.speciesId}
                       name={name}
                       types={mon?.types ?? []}
-                      note={
-                        m.nature && (
-                          <span className="nature">
-                            <span className="sr-only">Nature: </span>
-                            {m.nature}
-                          </span>
-                        )
-                      }
+                      note={m.nature && <NatureChip name={m.nature} />}
                     />
                   </Link>
                   <MemberDetails
@@ -314,7 +317,7 @@ export function TeamEditor() {
       </div>
 
       {team.members.length > 0 && (
-        <div className="bottom-cta">
+        <div className="bottom-cta team-cta">
           <Link to={`/teams/${id}/coverage`} className="primary-btn">
             <Icon name="shield" size={20} /> Analyse team
           </Link>
@@ -403,10 +406,7 @@ function DefensiveView({ mons, typeData }: { mons: MemberView[]; typeData: TypeD
           {stabHits} of 18 types hit 2×
         </Tile>
       </div>
-      <CoverageTable mons={mons} rows={rows} lead="ATTACK" cell={defensiveCell} last={SCORE_COLUMN}>
-        Based on each member's types. Score: +1 per member that resists or is immune, −1 per member weak to it.
-        Switch to Offensive for coverage from chosen moves.
-      </CoverageTable>
+      <CoverageTable mons={mons} rows={rows} lead="ATTACK" cell={defensiveCell} last={SCORE_COLUMN} />
     </>
   );
 }
@@ -436,10 +436,7 @@ function OffensiveView({
           {walls.length ? walls.map(cap).join(', ') : 'Nothing'}
         </Tile>
       </div>
-      <CoverageTable mons={members.map((x) => x.mon)} rows={rows} lead="DEFEND" cell={offensiveCell} last={HITS_COLUMN}>
-        Each cell is the member's best damaging move against that type (type chart only; status moves don't
-        count). – means no damaging moves.
-      </CoverageTable>
+      <CoverageTable mons={members.map((x) => x.mon)} rows={rows} lead="DEFEND" cell={offensiveCell} last={HITS_COLUMN} />
     </>
   );
 }
@@ -464,10 +461,6 @@ function StatsView({ mons }: { mons: MemberView[] }) {
         <span className="val">{total}</span>
         <span />
       </div>
-      <p className="hint">
-        Mean of each member's base stats, in its form, rounded to a whole number. Total is the mean of the members'
-        totals.
-      </p>
     </div>
   );
 }
@@ -489,14 +482,12 @@ function CoverageTable<R extends CoverageRow>({
   lead,
   cell,
   last,
-  children,
 }: {
   mons: MemberView[];
   rows: R[];
   lead: string;
   cell: (m: number | null) => CSSProperties;
   last: LastColumn<R>;
-  children: ReactNode;
 }) {
   return (
     <div className="cov">
@@ -536,7 +527,6 @@ function CoverageTable<R extends CoverageRow>({
           })}
         </tbody>
       </table>
-      <p className="hint">{children}</p>
     </div>
   );
 }

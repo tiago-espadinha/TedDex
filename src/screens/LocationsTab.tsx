@@ -9,8 +9,6 @@ import { Loading } from '../components/bits';
 
 const loadAll = (id: number) => Promise.all([loadLocations(id), loadGames(), loadVersions()]);
 
-const COVERAGE = 'Encounter data covers Red, Blue and Yellow to Sword and Shield. Brilliant Diamond, Shining Pearl, Legends: Arceus and Scarlet and Violet are not included.';
-
 /** `mon` is the species as shown in form `formKey` (its name); the rows are that form's. */
 export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
   const { data, error } = useLoad(() => loadAll(mon.id), mon.id);
@@ -37,7 +35,7 @@ export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
     return (
       <div className="section">
         <h2>Locations</h2>
-        <p className="hint">{mon.name} has no wild encounters, gifts or in-game trades on record. {COVERAGE}</p>
+        <p className="hint">{mon.name} has no wild encounters, gifts or in-game trades on record.</p>
       </div>
     );
   }
@@ -101,7 +99,6 @@ export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
           ))}
         </ul>
       </div>
-      <p className="hint">{COVERAGE}</p>
     </div>
   );
 }

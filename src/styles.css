@@ -394,7 +394,7 @@ a { color: inherit; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 /* Containers focused from script (route changes, opened sheets) get no ring: the next Tab lands inside. */
 main:focus, .sheet:focus { outline: none; }
-:is(.sr-only, .team-mon:not(.trainer-mon) .league-facts dt) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- shell ---------- */
 .app { min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--nav-h) + var(--safe-bottom)); max-width: 720px; margin: 0 auto; }
@@ -882,8 +882,8 @@ a.move-row.tinted { color: var(--on-tint); }
 /* Trainer team cards are saved-team cards (.team-mon) with a level badge in place of the remove button. */
 .trainer-mon .evo-member { padding-right: 12px; }
 .trainer-mon .evo-member .lv { flex: none; padding: 6px 10px; border-radius: 12px; background: var(--tint-glass); color: var(--on-tint); font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
-.trainer-mon .league-facts dt { color: var(--on-tint-muted); }
-.league-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 12px 8px; font-size: var(--fs-sm); }
+.team-mon .league-facts dt { color: var(--on-tint-muted); }
+.league-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0 12px 12px; font-size: var(--fs-sm); }
 .league-facts div { display: flex; gap: 6px; align-items: center; }
 .league-facts dt { color: var(--muted); font-weight: 600; }
 .league-facts dd { margin: 0; font-weight: 700; color: var(--ink-2); }
@@ -950,8 +950,9 @@ a.move-row.tinted { color: var(--on-tint); }
 /* Teams list: 100 px rows, the name over the tops of 80 px sprites that overlap when six don't fit side by side. */
 .team-list-row { position: relative; display: block; height: 100px; padding: 0; overflow: hidden; }
 .team-list-row:focus-visible { outline-offset: -2px; }
-.team-list-row .head { position: relative; z-index: 1; display: flex; align-items: baseline; gap: 8px; padding: 8px 14px 0; }
-.team-list-row .name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.team-list-row .head { position: relative; z-index: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 8px 14px 0; }
+.team-list-row .head svg { flex: none; color: var(--muted); }
+.team-list-row .name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .team-list-row .minis { position: absolute; left: 6px; right: 6px; bottom: 0; display: flex; }
 .team-list-row .minis > span { flex: 0 1 80px; min-width: 0; }
 .team-list-row .minis > span:last-child { flex-shrink: 0; }
@@ -980,17 +981,20 @@ a.move-row.tinted { color: var(--on-tint); }
 .team-mon :is(button.league-chip, .league-moves button) { position: relative; z-index: 1; border-top: 0; border-right: 0; border-bottom: 0; text-align: left; }
 .team-mon .league-moves button { width: 100%; }
 .team-mon :is(button.league-chip, .league-moves button):active { background: var(--tint-press); }
-.team-mon .evo-member { padding-right: 52px; color: inherit; }
+.team-mon .evo-member { color: inherit; }
+/* Saved-team heads end before the remove ✕ (44 px at 4 px from the edge), so the nature chip never sits under it. */
+.team-mon:not(.trainer-mon) .evo-member { padding-right: 52px; }
 /* The card already carries the tint, so the sprite drops the tile MonHead paints inline. */
 .team-mon .evo-member img { background: transparent !important; }
 .team-mon > .icon-btn { position: absolute; z-index: 1; top: 6px; right: 4px; color: var(--on-tint-2); }
-.team-mon :is(.league-chip, .league-moves li > *) { background: var(--tint-glass); color: var(--on-tint); }
-.team-mon .league-facts dd { color: var(--on-tint); }
-/* Ability left and held item right on one row (the item wraps under only when both are long); nature ends the types row.
-   The chips speak for themselves, so their labels are for screen readers only (with .sr-only). */
-.team-mon .league-facts .item { margin-left: auto; }
+.team-mon :is(.league-chip, .league-moves li > *) { background: var(--tint-glass); color: var(--on-tint); width: 100%; }
+.team-mon .league-facts dd { color: var(--on-tint); width: 100%; }
+dd .league-chip { justify-content: center; }
+/* Ability in the left column and held item in the right, so an item without an ability keeps its side; the nature chip ends the types row. */
+.team-mon .league-facts .item { grid-column: 2; }
 .team-mon .evo-member .types { align-items: center; }
-.team-mon .nature { margin-left: auto; font-size: var(--fs-sm); font-weight: 700; }
+.team-mon .nature { margin-left: auto; }
+.team-mon .nature:not([style]) { background: var(--tint-glass); color: var(--on-tint); }
 .team-mon .league-moves li > * { height: 100%; }
 .team-game { margin: 0 0 4px; }
 /* Teams | Pokédexes on the Team tab: links in the segmented look, 44 px tall. */
@@ -1058,6 +1062,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .rename-field { margin: 14px 0 16px; }
 .primary-btn:disabled { opacity: 0.45; }
 .bottom-cta { padding: 16px; }
+.team-cta { padding-top: 4px; }
 
 /* ---------- coverage ---------- */
 .cov-mode { margin: 8px 16px 0; }
@@ -1065,7 +1070,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .summary .tile { padding: 10px 12px; border-radius: 16px; }
 .summary .tile .k { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.4px; }
 .summary .tile .v { font-size: var(--fs-body); font-weight: 800; margin-top: 2px; color: var(--ink); }
-.cov { padding: 10px 16px 24px; overflow-x: auto; }
+.cov { padding: 10px 10px 24px; overflow-x: auto; }
 .cov table { width: 100%; border-collapse: separate; border-spacing: 2px; }
 .cov th { font-size: var(--fs-xs); font-weight: 700; color: var(--ink-2); text-align: center; padding-bottom: 4px; }
 .cov th:first-child { text-align: left; color: var(--muted); }

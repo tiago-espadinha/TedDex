@@ -156,7 +156,6 @@ export function LeagueGameScreen({ kind }: { kind: TrainerKind }) {
               <TrainerRow key={`${t.name}-${i}`} to={`/reference/${kind}/${game.id}/${trainerSlug(t.name)}`} trainer={t} tables={tables} />
             ))}
           </ul>
-          <Sources trainers={game.trainers} />
         </>
       )}
     </>
@@ -192,8 +191,8 @@ function TrainerRow({ to, trainer: t, tables }: { to: string; trainer: LeagueTra
         <TrainerSprite sprite={t.sprite} />
         <span className="who">
           <span className="trainer-name">
-            {t.badge && <span className="badge-name">{t.badge} · </span>}
             <span className="name">{t.name}</span>
+            {t.badge && <span className="badge-name"> · {t.badge}</span>}
           </span>
           <span className="tags">
             <span className="role">{t.role}</span>
@@ -303,7 +302,6 @@ export function TrainerScreen({ kind }: { kind: TrainerKind }) {
               <Icon name="shield" size={20} /> Analyse coverage
             </Link>
           </div>
-          <Sources trainers={[t]} />
         </>
       )}
     </>
@@ -415,24 +413,3 @@ function TrainerMon({ member: m, tables }: { member: LeagueMember; tables: Table
   );
 }
 
-function Sources({ trainers }: { trainers: LeagueTrainer[] }) {
-  const pages = [...new Map(trainers.map((t) => [t.source, t.name]))];
-  return (
-    <section className="section">
-      <h2>Source</h2>
-      <p className="hint league-source">
-        Teams from Bulbapedia (CC BY-NC-SA 2.5), trainer sprites from Bulbagarden Archives:{' '}
-        {pages.map(([url, name], i) => (
-          <span key={url}>
-            {i > 0 && ', '}
-            <a href={url} target="_blank" rel="noreferrer">
-              {name}
-              <span className="sr-only"> (opens in a new tab)</span>
-            </a>
-          </span>
-        ))}
-        .
-      </p>
-    </section>
-  );
-}

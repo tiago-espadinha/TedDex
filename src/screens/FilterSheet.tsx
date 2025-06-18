@@ -55,7 +55,6 @@ export function FilterSheet({
                 Up to {game.label}
               </button>
             </div>
-            <p className="hint">Pokémon up to Gen {roman(game.gen)}, from the game chosen in Settings.</p>
           </>
         )}
 
@@ -99,7 +98,6 @@ export function FilterSheet({
             );
           })}
         </div>
-        <p className="hint">Shows Pokémon with any of the chosen types.</p>
 
         <h3 id="filter-category">Category</h3>
         <div className="cat-grid" role="group" aria-labelledby="filter-category">
@@ -114,7 +112,6 @@ export function FilterSheet({
             </button>
           ))}
         </div>
-        <p className="hint">One at a time; tap it again to clear.</p>
 
         <h3>Sort by</h3>
         <div className="sort-grid" role="radiogroup" aria-label="Sort by">

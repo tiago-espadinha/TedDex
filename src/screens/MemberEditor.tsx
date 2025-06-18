@@ -22,7 +22,7 @@ const loadAll = (id: number, formKey?: string) =>
   Promise.all([loadSpecies(id), loadLearnsets(id, formKey), loadMoves(), loadItems(), loadVersions()]);
 
 const godModeText = (on: boolean) =>
-  on ? 'God mode on: any move and ability for every member' : "God mode off: only each Pokémon's own moves and abilities";
+  on ? 'God mode on: any move and ability enabled' : "God mode off: only legal moves and abilities";
 
 type Picking = { kind: 'nickname' } | { kind: 'item' } | { kind: 'ability' } | { kind: 'move' | 'move-filter'; slot: number };
 
