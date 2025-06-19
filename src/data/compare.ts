@@ -37,7 +37,7 @@ export function compareSearch(state: CompareState): string {
 /** The compare screen for `state`. */
 export const comparePath = (state: CompareState) => {
   const search = compareSearch(state);
-  return search ? `/compare?${search}` : '/compare';
+  return search ? `/reference/compare?${search}` : '/reference/compare';
 };
 
 /** The Dex in pick mode for `slot`, carrying the current state so the pick can return to it. */

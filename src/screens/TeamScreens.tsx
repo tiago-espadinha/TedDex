@@ -3,7 +3,7 @@ import { useId, useMemo, useState, type CSSProperties, type ReactNode } from 're
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { attackingTypes, itemSpriteUrl, loadAbilityNames, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, useLoad } from '../data/api';
 import { averageStats, defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
-import { NICKNAME_LENGTH, TEAM_SIZE, createTeam, db, memberTitle, removeFromTeam, renameTeam, type TeamMember } from '../data/db';
+import { NAME_LENGTH, NICKNAME_LENGTH, TEAM_SIZE, createTeam, db, memberTitle, removeFromTeam, renameTeam, type TeamMember } from '../data/db';
 import { STAT_ROWS, cap, formatMultiplier, formatNo, formatScore, statColor } from '../data/format';
 import { memberView, type MemberView } from '../data/forms';
 import { memberAbility } from '../data/memberOptions';
@@ -163,8 +163,9 @@ export function TeamTabs() {
 }
 
 /**
- * A sheet that renames a team or Pokédex, or sets a member's nickname; `onSave` runs only when the name changed.
- * `nickname` titles it "Nickname", takes up to NICKNAME_LENGTH characters (code points) and lets it be emptied to clear it.
+ * A sheet that renames a team or Pokédex (up to NAME_LENGTH characters, counted as code points), or sets a member's
+ * nickname; `onSave` runs only when the name changed. `nickname` titles it "Nickname", takes up to NICKNAME_LENGTH
+ * characters and lets it be emptied to clear it.
  */
 export function RenameSheet({
   noun,
@@ -182,6 +183,7 @@ export function RenameSheet({
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const [name, setName] = useState(current);
   const headingId = useId();
+  const limit = nickname ? NICKNAME_LENGTH : NAME_LENGTH;
   return (
     <>
       <div className="scrim" onClick={() => close()} />
@@ -205,20 +207,52 @@ export function RenameSheet({
             <input
               data-autofocus
               value={name}
-              maxLength={nickname ? undefined : 40}
               placeholder={nickname ? noun : undefined}
               autoComplete="off"
               enterKeyHint="done"
-              // A longer nickname is refused rather than cut, so the caret, emoji and IME input stay whole.
-              onChange={(e) => (!nickname || [...e.target.value].length <= NICKNAME_LENGTH) && setName(e.target.value)}
+              // A longer name is refused rather than cut, so the caret, emoji and IME input stay whole.
+              onChange={(e) => [...e.target.value].length <= limit && setName(e.target.value)}
               onFocus={(e) => e.target.select()}
             />
           </label>
-          {nickname && <p className="hint">Up to {NICKNAME_LENGTH} characters. Leave it empty to clear it.</p>}
+          <p className="hint">
+            Up to {limit} characters.{nickname && ' Leave it empty to clear it.'}
+          </p>
           <button className="primary-btn" disabled={!nickname && !name.trim()}>
             Save
           </button>
         </form>
+      </section>
+    </>
+  );
+}
+
+/** Asks before deleting `name`; `lost` says what goes with it. Cancel takes focus, so Enter alone can't delete. */
+export function DeleteSheet({ name, lost, onDelete, onClose }: { name: string; lost: string; onDelete: () => void; onClose: () => void }) {
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
+  const headingId = useId();
+  const textId = useId();
+  return (
+    <>
+      <div className="scrim" onClick={() => close()} />
+      <section ref={sheet} tabIndex={-1} className="sheet" role="alertdialog" aria-modal="true" aria-labelledby={headingId} aria-describedby={textId}>
+        <div className="handle" />
+        <div className="sheet-head">
+          <h2 id={headingId} className="confirm-title">
+            Delete {name}?
+          </h2>
+        </div>
+        <p id={textId} className="confirm-text">
+          {lost} This can't be undone.
+        </p>
+        <div className="confirm-actions">
+          <button className="primary-btn cancel" data-autofocus onClick={() => close()}>
+            Cancel
+          </button>
+          <button className="primary-btn danger" onClick={() => close(onDelete)}>
+            Delete
+          </button>
+        </div>
       </section>
     </>
   );
@@ -233,7 +267,7 @@ export function TeamEditor() {
   const { data: moves } = useLoad(loadMoves, 'moves');
   const { data: abilities } = useLoad(loadAbilityNames, 'ability-names');
   const navigate = useNavigate();
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [renaming, setRenaming] = useState(false);
 
   if (team === undefined) return <Loading />;
@@ -255,26 +289,10 @@ export function TeamEditor() {
             {team.members.length} of {TEAM_SIZE}
           </div>
         </div>
-        <button
-          className="icon-btn"
-          aria-label={confirmDelete ? 'Confirm delete team' : 'Delete team'}
-          style={confirmDelete ? { color: 'var(--danger)' } : undefined}
-          onClick={async () => {
-            if (!confirmDelete) return setConfirmDelete(true);
-            await db.teams.delete(id);
-            navigate('/teams', { replace: true });
-          }}
-        >
+        <button className="icon-btn" aria-label="Delete team" aria-haspopup="dialog" onClick={() => setDeleting(true)}>
           <Icon name="trash" />
         </button>
       </header>
-      <div role="status">
-        {confirmDelete && (
-          <p className="hint" style={{ padding: '0 20px' }}>
-            Tap the bin again to delete this team.
-          </p>
-        )}
-      </div>
 
       <div className="list">
         {team.members.length > 0 && (
@@ -324,6 +342,14 @@ export function TeamEditor() {
         </div>
       )}
       {renaming && <RenameSheet noun="team" name={team.name} onSave={(name) => renameTeam(id, name)} onClose={() => setRenaming(false)} />}
+      {deleting && (
+        <DeleteSheet
+          name={team.name}
+          lost={team.members.length ? `Its ${team.members.length} Pokémon and their moves, items and nicknames go with it.` : 'It has no Pokémon yet.'}
+          onDelete={() => db.teams.delete(id).then(() => navigate('/teams', { replace: true }), () => setDeleting(false))}
+          onClose={() => setDeleting(false)}
+        />
+      )}
     </>
   );
 }

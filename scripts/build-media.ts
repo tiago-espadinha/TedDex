@@ -110,7 +110,7 @@ async function convert(kind: Kind, id: number): Promise<'done' | 'skipped' | 'mi
 }
 
 /**
- * Guide menu sprites: the Fighting TM, the Speed (Timid) Mint, and the Rusted Sword over the Rusted Shield in one
+ * Guide menu sprites: the Psychic TM, the Speed (Timid) Mint, and the Rusted Sword over the Rusted Shield in one
  * 64 px image. The rusted sprites are already doubled pixel art: each is cropped to its art and placed at even
  * offsets so the pair fills the box without breaking the pixel grid.
  */
@@ -126,7 +126,7 @@ async function buildGuideSprites() {
     run('ffmpeg', ['-loglevel', 'error', '-y', ...inputs.flatMap((i) => ['-i', i]), ...options, join(dir, `${name}.webp`)]);
 
   await mkdir(join(CACHE, 'guide'), { recursive: true });
-  await ffmpeg([await fetchItem(`${ITEM_SPRITES}/tm-fighting.png`, 'tm-fighting.png')], PIXEL_OPTIONS, 'tm');
+  await ffmpeg([await fetchItem(`${ITEM_SPRITES}/tm-psychic.png`, 'tm-psychic.png')], PIXEL_OPTIONS, 'tm');
   await ffmpeg([await fetchItem(`${POKESPRITE_ITEMS}/mint/speed.png`, 'mint-speed.png')], PIXEL_OPTIONS, 'mint');
   const sword = await fetchItem(`${ITEM_SPRITES}/rusted-sword.png`, 'rusted-sword.png');
   const shield = await fetchItem(`${ITEM_SPRITES}/rusted-shield.png`, 'rusted-shield.png');

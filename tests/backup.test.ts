@@ -6,6 +6,7 @@ import {
   checkKnownForms,
   checkKnownGames,
   checkKnownIds,
+  cleanName,
   cleanNickname,
   memberTitle,
   parseBackup,
@@ -151,6 +152,12 @@ describe('parseBackup', () => {
     rejects(oneMember({ speciesId: 1, moves: [1, 1] }), /repeated move/);
   });
 
+  test('cuts team names over 20 characters to 20', () => {
+    const teams = parseBackup(backup([{ name: 'x'.repeat(21), members: [] }, { name: ` ${'🐭'.repeat(21)} `, members: [] }, { name: 'Rain dance and Swift Swim', members: [] }]));
+    // 20 code points, though 🐭 takes two UTF-16 units.
+    assert.deepEqual(teams.map((t) => t.name), ['x'.repeat(20), '🐭'.repeat(20), 'Rain dance and Swift']);
+  });
+
   test('round-trips nicknames in a version 9 backup', () => {
     const json = JSON.stringify({ app: 'material-dex', version: 9, teams: [{ name: 'A', members: [{ speciesId: 25, nickname: 'Sparky' }, { speciesId: 6, formKey: 'mega-x', nickname: '🔥 Blaze' }] }] });
     const [team] = parseBackup(json);
@@ -249,6 +256,11 @@ describe('parsePokedexes', () => {
     assert.deepEqual(dex.states, { 1: 1, 25: 2, 151: 3 });
     assert.equal('id' in dex, false);
     assert.ok(dex.updatedAt > 1);
+  });
+
+  test('cuts Pokédex names over 20 characters to 20', () => {
+    const dexes = parsePokedexes(v6([{ name: 'Kanto living dex with shinies', states: {} }, { name: '⭐'.repeat(25), states: {} }]));
+    assert.deepEqual(dexes.map((d) => d.name), ['Kanto living dex wit', '⭐'.repeat(20)]);
   });
 
   test('older backups have no Pokédexes', () => {
@@ -359,5 +371,15 @@ describe('nicknames', () => {
     assert.equal(memberTitle('Pikachu', 'Sparky'), 'Pikachu · Sparky');
     assert.equal(memberTitle('Mega Charizard X', 'Blaze'), 'Mega Charizard X · Blaze');
     assert.equal(memberTitle('Pikachu'), 'Pikachu');
+  });
+});
+
+describe('cleanName', () => {
+  test('trims, cuts to 20 code points and leaves no trailing space', () => {
+    assert.equal(cleanName('  Rain  '), 'Rain');
+    assert.equal(cleanName('x'.repeat(20)), 'x'.repeat(20));
+    assert.equal(cleanName('🐭'.repeat(21)), '🐭'.repeat(20));
+    assert.equal(cleanName('Nineteen characters and more'), 'Nineteen characters');
+    assert.equal(cleanName('   '), '');
   });
 });

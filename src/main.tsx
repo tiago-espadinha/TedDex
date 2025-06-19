@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation, type Location } from 'react-router-dom';
-import { BottomNav, ToastProvider } from './components/bits';
+import { BottomNav, ToastProvider, useKeyboardInset } from './components/bits';
 import { isPicking } from './data/dexState';
 import { applyDesign, applyTheme, type Design, type Theme } from './data/settings';
 import { warmSprites } from './data/spriteCache';
@@ -37,8 +37,9 @@ function Shell() {
   const { pathname } = location;
   const pushed =
     isPickMode(location) ||
-    pathname.startsWith('/pokemon/') || pathname === '/compare' || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
+    pathname.startsWith('/pokemon/') || pathname === '/reference/compare' || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
   const main = useRef<HTMLElement>(null);
+  useKeyboardInset();
   // When navigation removes the focused control, start keyboard and screen reader users at the
   // top of the new screen. Controls that survive (prev/next on detail) keep focus.
   useEffect(() => {
@@ -63,7 +64,6 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <DexScreen /> },
       { path: '/pokemon/:id', element: <DetailScreen /> },
-      { path: '/compare', element: <CompareScreen /> },
       { path: '/teams', element: <TeamsScreen /> },
       { path: '/teams/pokedex', element: <PokedexList /> },
       { path: '/teams/pokedex/new', element: <NewPokedex /> },
@@ -74,6 +74,7 @@ const router = createBrowserRouter([
       { path: '/teams/:id/member/:index', element: <MemberEditor /> },
       { path: '/teams/:id/coverage', element: <CoverageScreen /> },
       { path: '/reference', element: <ReferenceScreen /> },
+      { path: '/reference/compare', element: <CompareScreen /> },
       { path: '/reference/league', element: <LeagueList kind="league" /> },
       { path: '/reference/league/:game', element: <LeagueGameScreen kind="league" /> },
       { path: '/reference/gyms', element: <LeagueList kind="gyms" /> },

@@ -406,6 +406,8 @@ main:focus, .sheet:focus { outline: none; }
   height: calc(var(--nav-h) + var(--safe-bottom)); padding: 8px 8px var(--safe-bottom);
   background: var(--nav); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+/* Typing on a touch screen, the keyboard takes the nav's place; its space stays, so nothing moves. */
+@media (pointer: coarse) { .app:has(input:focus) ~ .bottom-nav { display: none; } }
 .bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--ink-2); font-size: var(--fs-xs); font-weight: 600; }
 .bottom-nav .pill { width: 64px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
 .bottom-nav a.active { color: var(--ink); font-weight: 800; }
@@ -448,7 +450,7 @@ main:focus, .sheet:focus { outline: none; }
 .search.in-head.pinned { position: fixed; z-index: 14; left: max(16px, calc((100vw - 720px) / 2 + 16px)); right: max(16px, calc((100vw - 720px) / 2 + 16px)); height: 40px; }
 /* Behind the pinned field: a bar on the page background across the content column, from the top of the screen
    (under a sticky .dex-top) to 8 px below the field, with the tinted header's bottom corners; it fades with the morph. */
-.search-bar { position: fixed; z-index: 9; top: 0; left: max(0px, calc((100vw - 720px) / 2)); right: max(0px, calc((100vw - 720px) / 2)); height: calc(var(--pin-top) + 48px); background: var(--bg); border-radius: 0 0 32px 32px; opacity: 0; visibility: hidden; transition: opacity 200ms ease, visibility 0s 200ms; }
+.search-bar { position: fixed; z-index: 9; top: var(--vv-top, 0px); left: max(0px, calc((100vw - 720px) / 2)); right: max(0px, calc((100vw - 720px) / 2)); height: calc(var(--pin-top) + 48px); background: var(--bg); border-radius: 0 0 32px 32px; opacity: 0; visibility: hidden; transition: opacity 200ms ease, visibility 0s 200ms; }
 .search-bar.on { opacity: 1; visibility: visible; transition: opacity 200ms ease; }
 .search-bar:not(.on) { pointer-events: none; }
 /* Back to top: centred over the filter button's column, above it, whether or not the screen has one. */
@@ -506,7 +508,7 @@ main:focus, .sheet:focus { outline: none; }
 
 /* ---------- sheet ---------- */
 .scrim { position: fixed; inset: 0; z-index: 40; background: var(--scrim); animation: fade 160ms ease; }
-.sheet { position: fixed; overscroll-behavior-y: contain; left: 0; right: 0; bottom: 0; z-index: 41; max-width: 720px; margin: 0 auto; max-height: 88dvh; overflow-y: auto; background: var(--sheet); border-radius: 28px 28px 0 0; padding: 10px 20px calc(20px + var(--safe-bottom)); animation: rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.sheet { position: fixed; overscroll-behavior-y: contain; left: 0; right: 0; bottom: var(--kb-inset, 0px); z-index: 41; max-width: 720px; margin: 0 auto; max-height: calc(88dvh - var(--kb-inset, 0px) - var(--vv-top, 0px)); overflow-y: auto; background: var(--sheet); border-radius: 28px 28px 0 0; padding: 10px 20px calc(20px + var(--safe-bottom)); animation: rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 /* A filter sheet's button stays at its bottom edge while the choices scroll under it. */
 .sheet-foot { position: sticky; bottom: calc(-20px - var(--safe-bottom)); margin: 24px -20px calc(-20px - var(--safe-bottom)); padding: 12px 20px calc(20px + var(--safe-bottom)); background: var(--sheet); }
 .sheet .handle { width: 36px; height: 4px; border-radius: 2px; background: var(--outline); margin: 0 auto 14px; }
@@ -532,7 +534,7 @@ main:focus, .sheet:focus { outline: none; }
 .segmented :is(button[aria-checked='true'], a[aria-current='page']) { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 800; }
 .segmented button:disabled { opacity: 0.45; cursor: default; }
 .primary-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--primary); color: var(--primary-ink); font-size: var(--fs-lg); font-weight: 800; text-decoration: none; }
-.hint { font-size: var(--fs-xs); color: var(--muted); margin: 6px 2px 0; }
+.hint { font-size: var(--fs-xs); color: var(--muted); margin: 6px 2px; }
 
 /* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
 :is(.gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn) {
@@ -872,14 +874,23 @@ a.move-row.tinted { color: var(--on-tint); }
 .trainer-sprite { flex: none; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px; background: var(--tint-glass); color: var(--on-tint-muted); object-fit: contain; }
 .trainer-picks { margin: 12px 24px 0; }
 .trainer-picks .hint { margin: 0 0 10px; font-size: var(--fs-sm); }
-.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: calc(100% - 48px); min-height: 44px; margin: 8px 24px 0; padding: 0; border: 0; background: none; font: inherit; font-size: var(--fs-body); font-weight: 700; color: var(--ink); }
-.switch-row .track { position: relative; flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--muted); transition: background-color 0.15s; }
-.switch-row .track::after { content: ''; position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); transition: transform 0.15s; }
-.switch-row[aria-checked='true'] .track { background: var(--primary); }
-.switch-row[aria-checked='true'] .track::after { transform: translateX(20px); background: var(--primary-ink); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: calc(100% - 48px); min-height: 44px; margin: 8px 24px 0; padding: 0; border: 0; background: none; font: inherit; font-size: var(--fs-body); font-weight: 700; color: var(--ink); text-align: left; }
+.switch-row .seg { --seg-r: 18px; flex: none; display: grid; grid-template-columns: 1fr 1fr; width: 176px; height: 36px; border: 1px solid var(--outline); border-radius: var(--seg-r); font-size: var(--fs-sm); font-weight: 600; color: var(--ink-2); }
+.switch-row .seg span { display: grid; place-items: center; transition: background-color 0.15s, color 0.15s; }
+.switch-row .seg span:first-child { border-radius: calc(var(--seg-r) - 1px) 0 0 calc(var(--seg-r) - 1px); border-right: 1px solid var(--outline); }
+.switch-row .seg span:last-child { border-radius: 0 calc(var(--seg-r) - 1px) calc(var(--seg-r) - 1px) 0; }
+/* The primary ring carries the state at 3:1: the soft fill alone is too close to the page. */
+.switch-row[aria-checked='false'] .seg span:first-child, .switch-row[aria-checked='true'] .seg span:last-child { background: var(--primary-soft); box-shadow: inset 0 0 0 2px var(--primary); color: var(--primary-soft-ink); font-weight: 800; }
 .switch-row:focus-visible { outline-offset: 2px; }
-.switch-list { margin-top: 4px; }
-.switch-list .switch-row { width: 100%; margin: 0; }
+.form-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+@media (min-width: 600px) { .form-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.form-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 108px; padding: 10px 6px; border: 1.5px solid var(--outline); border-radius: var(--radius-card); background: var(--surface); color: var(--ink); font: inherit; font-size: var(--fs-sm); font-weight: 700; text-align: center; transition: transform 120ms, background-color 0.15s, border-color 0.15s; }
+.form-tile:active { transform: scale(0.97); }
+.form-tile img { width: 64px; height: 64px; filter: grayscale(1) opacity(0.65); transition: filter 0.15s; }
+.form-tile .tick { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 22px; height: 22px; border: 1.5px solid var(--muted); border-radius: 50%; }
+.form-tile[aria-checked='true'] { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-soft-ink); }
+.form-tile[aria-checked='true'] img { filter: none; }
+.form-tile[aria-checked='true'] .tick { border-color: var(--primary); background: var(--primary); color: var(--primary-ink); }
 :is(.league-head, .trainer-hero) .role { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
 .trainer-hero .badge-name { margin-top: 4px; font-size: var(--fs-sm); color: var(--on-tint-2); }
 .league-pick-label { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); margin-bottom: 6px; }
@@ -1066,6 +1077,11 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 .picker-list .move-row:focus-visible { outline-offset: -2px; }
 .rename-field { margin: 14px 0 16px; }
 .primary-btn:disabled { opacity: 0.45; }
+.confirm-title { overflow-wrap: anywhere; }
+.confirm-text { margin: 10px 2px 0; font-size: var(--fs-md); color: var(--muted); }
+.confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+.confirm-actions .primary-btn.cancel { background: var(--surface-2); color: var(--ink); }
+.confirm-actions .primary-btn.danger { background: var(--danger); color: var(--on-danger); }
 .bottom-cta { padding: 16px; }
 .team-cta { padding-top: 4px; }
 
@@ -1153,7 +1169,8 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
 [data-design='b'] :is(.mon-card .name, .slot .name, .team-mon .name, .team-row .name) { font-weight: 500; }
 [data-design='b'] :is(.detail-hero, .topbar.tinted) { border-radius: 0; }
 [data-design='b'] .detail-hero h1 { font-weight: 600; letter-spacing: 0; }
-[data-design='b'] .segmented { --seg-r: 4px; }
+[data-design='b'] :is(.segmented, .switch-row .seg) { --seg-r: 4px; }
+[data-design='b'] :is(.switch-row, .form-tile) { font-weight: 500; }
 [data-design='b'] :is(.tabs button, .tab-ink) { border-radius: 4px; }
 [data-design='b'] .tabs button[aria-selected='true'] { color: var(--ink); }
 [data-design='b'] .tab-ink { background: var(--bar); }

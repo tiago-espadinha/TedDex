@@ -28,7 +28,7 @@ import { Icon } from '../components/Icon';
 import { Loading, MonName, SearchField } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { PokedexFilterSheet } from './PokedexFilterSheet';
-import { RenameSheet, TeamTabs } from './TeamScreens';
+import { DeleteSheet, RenameSheet, TeamTabs } from './TeamScreens';
 
 /**
  * The game's label and how many species the Pokédex lists; undefined until versions.json loads.
@@ -204,7 +204,7 @@ export function PokedexScreen() {
   const [params, setParams] = useSearchParams();
   const filters = readDexFilters(params);
   const navigate = useNavigate();
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   // The state filter reads the states as they were when the view or filters last changed, so a tapped cell stays
@@ -254,26 +254,10 @@ export function PokedexScreen() {
             <Icon name="pencil" />
           </Link>
         )}
-        <button
-          className="icon-btn"
-          aria-label={confirmDelete ? 'Confirm delete Pokédex' : 'Delete Pokédex'}
-          style={confirmDelete ? { color: 'var(--danger)' } : undefined}
-          onClick={async () => {
-            if (!confirmDelete) return setConfirmDelete(true);
-            await db.pokedexes.delete(id);
-            navigate('/teams/pokedex', { replace: true });
-          }}
-        >
+        <button className="icon-btn" aria-label="Delete Pokédex" aria-haspopup="dialog" onClick={() => setDeleting(true)}>
           <Icon name="trash" />
         </button>
       </header>
-      <div role="status">
-        {confirmDelete && (
-          <p className="hint" style={{ padding: '0 20px' }}>
-            Tap the bin again to delete this Pokédex.
-          </p>
-        )}
-      </div>
 
       {views && views.length > 1 && (
         <div className="dex-switch">
@@ -312,6 +296,14 @@ export function PokedexScreen() {
         />
       )}
       {renaming && <RenameSheet noun="Pokédex" name={dex.name} onSave={(name) => renamePokedex(id, name)} onClose={() => setRenaming(false)} />}
+      {deleting && (
+        <DeleteSheet
+          name={dex.name}
+          lost={`Its seen and caught records${dex.species ? ' and its Pokémon list' : ''} go with it.`}
+          onDelete={() => db.pokedexes.delete(id).then(() => navigate('/teams/pokedex', { replace: true }), () => setDeleting(false))}
+          onClose={() => setDeleting(false)}
+        />
+      )}
     </>
   );
 }
