@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { cap } from '../data/format';
 import { typeChip } from '../data/typeColors';
@@ -65,9 +65,65 @@ export function BottomNav() {
   );
 }
 
+// ---------- on-screen keyboard ----------
+/**
+ * While an input has focus, keeps `--kb-inset` (how much of the layout viewport's bottom the
+ * on-screen keyboard covers) and `--vv-top` (how far iOS has panned the visible area down) on the
+ * root, so sheets sit above the keyboard and the pinned search stays in view. Both are 0 otherwise,
+ * and stay 0 where the keyboard shrinks the layout viewport itself (desktop, Firefox on Android). Once, in the shell.
+ */
+export function useKeyboardInset() {
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement.style;
+    const update = () => {
+      const typing = document.activeElement instanceof HTMLInputElement;
+      root.setProperty('--kb-inset', `${typing ? Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)) : 0}px`);
+      root.setProperty('--vv-top', `${typing ? Math.round(vv.offsetTop) : 0}px`);
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    addEventListener('focusin', update);
+    addEventListener('focusout', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+      removeEventListener('focusin', update);
+      removeEventListener('focusout', update);
+    };
+  }, []);
+}
+
 // ---------- search ----------
 /** Length of the field's morph between its header slot and the pinned bar; matches `.search-bar`'s fade in styles.css. */
 const PIN_MORPH_MS = 200;
+/** How far a touch must move on the page before it closes the keyboard. */
+const DRAG_BLUR_PX = 10;
+
+/**
+ * Like an iOS list, a drag anywhere but on the field closes the keyboard (blurs the field), so
+ * scrolling shows the list and the pinned bar rather than panning under the keyboard.
+ */
+function useBlurOnDrag(field: RefObject<HTMLLabelElement | null>) {
+  useEffect(() => {
+    let startY: number | null = null;
+    const onStart = (e: TouchEvent) => {
+      startY = field.current?.contains(e.target as Node) ? null : e.touches[0].clientY;
+    };
+    const onMove = (e: TouchEvent) => {
+      const at = document.activeElement as HTMLElement | null;
+      if (startY === null || !at || !field.current?.contains(at)) return;
+      if (Math.abs(e.touches[0].clientY - startY) >= DRAG_BLUR_PX) at.blur();
+    };
+    addEventListener('touchstart', onStart, { passive: true });
+    addEventListener('touchmove', onMove, { passive: true });
+    return () => {
+      removeEventListener('touchstart', onStart);
+      removeEventListener('touchmove', onMove);
+    };
+  }, [field]);
+}
 
 /**
  * Pins the search once its slot scrolls under the top of the screen (or under a sticky `.dex-top`
@@ -165,13 +221,14 @@ export function SearchField({
   trailing?: ReactNode;
 }) {
   const { slot, field, pinTop, toTop } = usePinnedSearch();
+  useBlurOnDrag(field);
   // The bar stays mounted at its last height, so it can fade out under the field on unpin.
   const [barTop, setBarTop] = useState(0);
   if (pinTop != null && pinTop !== barTop) setBarTop(pinTop);
   return (
     <div className="search-slot" ref={slot}>
       <div className={`search-bar${pinTop == null ? '' : ' on'}`} style={{ '--pin-top': `${barTop}px` } as CSSProperties} aria-hidden="true" />
-      <label ref={field} className={`search in-head${pinTop == null ? '' : ' pinned'}`} style={{ top: pinTop }}>
+      <label ref={field} className={`search in-head${pinTop == null ? '' : ' pinned'}`} style={{ top: pinTop == null ? undefined : `calc(${pinTop}px + var(--vv-top, 0px))` }}>
         <Icon name="search" size={20} />
         <span className="sr-only">{label}</span>
         <input
