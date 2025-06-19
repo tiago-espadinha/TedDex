@@ -37,7 +37,7 @@ function Shell() {
   const { pathname } = location;
   const pushed =
     isPickMode(location) ||
-    pathname.startsWith('/pokemon/') || pathname === '/compare' || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
+    pathname.startsWith('/pokemon/') || pathname === '/reference/compare' || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
   const main = useRef<HTMLElement>(null);
   useKeyboardInset();
   // When navigation removes the focused control, start keyboard and screen reader users at the
@@ -64,7 +64,6 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <DexScreen /> },
       { path: '/pokemon/:id', element: <DetailScreen /> },
-      { path: '/compare', element: <CompareScreen /> },
       { path: '/teams', element: <TeamsScreen /> },
       { path: '/teams/pokedex', element: <PokedexList /> },
       { path: '/teams/pokedex/new', element: <NewPokedex /> },
@@ -75,6 +74,7 @@ const router = createBrowserRouter([
       { path: '/teams/:id/member/:index', element: <MemberEditor /> },
       { path: '/teams/:id/coverage', element: <CoverageScreen /> },
       { path: '/reference', element: <ReferenceScreen /> },
+      { path: '/reference/compare', element: <CompareScreen /> },
       { path: '/reference/league', element: <LeagueList kind="league" /> },
       { path: '/reference/league/:game', element: <LeagueGameScreen kind="league" /> },
       { path: '/reference/gyms', element: <LeagueList kind="gyms" /> },

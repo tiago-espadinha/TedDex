@@ -534,7 +534,7 @@ main:focus, .sheet:focus { outline: none; }
 .segmented :is(button[aria-checked='true'], a[aria-current='page']) { background: var(--primary-soft); color: var(--primary-soft-ink); font-weight: 800; }
 .segmented button:disabled { opacity: 0.45; cursor: default; }
 .primary-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border: 0; border-radius: 26px; background: var(--primary); color: var(--primary-ink); font-size: var(--fs-lg); font-weight: 800; text-decoration: none; }
-.hint { font-size: var(--fs-xs); color: var(--muted); margin: 6px 2px 0; }
+.hint { font-size: var(--fs-xs); color: var(--muted); margin: 6px 2px; }
 
 /* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
 :is(.gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn) {

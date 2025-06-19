@@ -20,23 +20,29 @@ import { AbilityFilterSheet } from './AbilityFilterSheet';
 import { ItemFilterSheet } from './ItemFilterSheet';
 import { MoveFilterSheet } from './MoveFilterSheet';
 
-type Kind = 'moves' | 'abilities' | 'items' | 'natures' | 'types';
+type Kind = 'moves' | 'abilities' | 'items' | 'natures' | 'types' | 'gyms' | 'league' | 'compare';
 
 const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'moves', title: 'Moves', one: 'Move', blurb: 'Power, accuracy, effect and who learns them' },
   { kind: 'abilities', title: 'Abilities', one: 'Ability', blurb: 'What each ability does and who has it' },
   { kind: 'items', title: 'Items', one: 'Item', blurb: 'Every item: what it does, its price and where to find it' },
   { kind: 'natures', title: 'Natures', one: 'Nature', blurb: 'Stats each nature raises and lowers, and flavours' },
+  { kind: 'gyms', title: 'Gym Leaders', one: 'Gym Leader', blurb: "Every game's Gym teams, badges and rematches" },
+  { kind: 'league', title: 'Elite Four & Champion', one: 'Elite Four', blurb: "Every game's league teams and movesets" },
+  { kind: 'compare', title: 'Comparator', one: 'Comparator', blurb: 'Two Pokémon side by side: weaknesses, stats and size' },
   { kind: 'types', title: 'Types', one: 'Type', blurb: 'The full type chart' },
 ];
 
-/** Menu look per kind: pixel-art sprites (a TM, Ability Capsule, Potion, a Mint, Rusted Sword over Shield). */
+/** Menu look per kind: pixel-art sprites (a TM, Ability Capsule, Pomeg Berry, a Mint, Ultra Ball, Master Ball, Dowsing Machine, Rusted Sword over Shield). */
 const MENU_LOOK: Record<Kind, { sprite: string; tint: TypeName }> = {
-  moves: { sprite: '/media/guide/tm.webp', tint: 'fighting' },
-  abilities: { sprite: itemSpriteUrl(685), tint: 'psychic' },
-  items: { sprite: itemSpriteUrl(17), tint: 'water' },
+  moves: { sprite: '/media/guide/tm.webp', tint: 'psychic' },
+  abilities: { sprite: itemSpriteUrl(685), tint: 'water' },
+  items: { sprite: itemSpriteUrl(146), tint: 'fire' },
   natures: { sprite: '/media/guide/mint.webp', tint: 'grass' },
-  types: { sprite: '/media/guide/types.webp', tint: 'steel' },
+  gyms: { sprite: itemSpriteUrl(2), tint: 'electric' },
+  league: { sprite: itemSpriteUrl(1), tint: 'poison' },
+  compare: { sprite: itemSpriteUrl(465), tint: 'ice' },
+  types: { sprite: '/media/guide/types.webp', tint: 'fighting' },
 };
 
 const STAT_NAMES = { atk: 'Attack', def: 'Defense', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' };
@@ -53,8 +59,8 @@ interface Entry {
   gen?: number;
 }
 
-/** Kinds shown as a searchable list; natures and types are tables instead. */
-type ListKind = Exclude<Kind, 'natures' | 'types'>;
+/** Kinds shown as a searchable list; natures and types are tables, the others have their own routes. */
+type ListKind = Exclude<Kind, 'natures' | 'types' | 'gyms' | 'league' | 'compare'>;
 
 async function loadEntries(kind: ListKind): Promise<Entry[]> {
   switch (kind) {
@@ -71,12 +77,7 @@ const kindOf = (param?: string) => KINDS.find((k) => k.kind === param);
 
 // ---------------- landing ----------------
 /** Landing rows: each section's sprite (`public/media/items/` or `guide/`) on a type tint. */
-const MENU: { to: string; title: string; blurb: string; sprite: string; tint: TypeName }[] = [
-  ...KINDS.map((k) => ({ to: `/reference/${k.kind}`, title: k.title, blurb: k.blurb, ...MENU_LOOK[k.kind] })),
-  { to: '/reference/league', title: 'Elite Four & Champion', blurb: "Every game's league teams and movesets", sprite: itemSpriteUrl(1), tint: 'dragon' },
-  { to: '/reference/gyms', title: 'Gym Leaders', blurb: "Every game's Gym teams, badges and rematches", sprite: itemSpriteUrl(50), tint: 'rock' },
-  { to: '/compare', title: 'Comparator', blurb: 'Two Pokémon side by side: weaknesses, stats and size', sprite: itemSpriteUrl(671), tint: 'electric' },
-];
+const MENU = KINDS.map((k) => ({ to: `/reference/${k.kind}`, title: k.title, blurb: k.blurb, ...MENU_LOOK[k.kind] }));
 
 export function ReferenceScreen() {
   return (
@@ -280,7 +281,9 @@ export function ReferenceEntry() {
   const { kind, id = '' } = useParams();
   const k = kindOf(kind);
   if (!k) return <p className="empty">Page not found.</p>;
-  if (k.kind === 'natures') return <p className="empty">Page not found.</p>;
+  if (k.kind === 'natures' || k.kind === 'gyms' || k.kind === 'league' || k.kind === 'compare') {
+    return <p className="empty">Page not found.</p>;
+  }
   const Page = { moves: MoveEntry, abilities: AbilityEntry, items: ItemEntry, types: TypeEntry }[k.kind];
   return <Page id={id} one={k.one} />;
 }

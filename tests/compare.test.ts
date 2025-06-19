@@ -16,8 +16,8 @@ describe('compare URL', () => {
   });
 
   test('paths', () => {
-    assert.equal(comparePath({}), '/compare');
-    assert.equal(comparePath({ b: { id: 9 } }), '/compare?b=9');
+    assert.equal(comparePath({}), '/reference/compare');
+    assert.equal(comparePath({ b: { id: 9 } }), '/reference/compare?b=9');
     assert.equal(comparePickPath('b', { a: { id: 6 } }), '/?compare=b&a=6');
     assert.equal(comparePickPath('a', {}), '/?compare=a');
   });
