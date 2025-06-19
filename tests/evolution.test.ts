@@ -1,53 +1,134 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { branches, currentForm, evolutionLines, shortCondition } from '../src/data/evolution';
-import type { EvolutionMember, SpeciesDetail } from '../src/data/types';
-import { dataEntry } from './data-files';
+import { branches, currentForm, evolutionLine, megaForms, megaSpecies, shortCondition, targetsOf } from '../src/data/evolution';
+import type { EvolutionMember, IndexEntry, SpeciesDetail } from '../src/data/types';
+import { dataEntry, readData } from './data-files';
 
-const linesOf = (id: number, formKey = '') => {
+const lineOf = (id: number, formKey = '') => {
   const chain = dataEntry<EvolutionMember[]>('evolution', dataEntry<SpeciesDetail>('species', id).evolutionChainId!);
-  return evolutionLines(chain, id, formKey);
+  return evolutionLine(chain, id, formKey);
 };
-/** Each line as "id:form" stages, for compact comparisons. */
-const shape = (id: number, formKey = '') => linesOf(id, formKey).map((l) => l.stages.map((s) => `${s.id}:${s.form}`));
+/** The line as "id:form" stages, for compact comparisons. */
+const shape = (id: number, formKey = '') => lineOf(id, formKey).map((s) => `${s.id}:${s.form}`);
 
-describe('evolutionLines', () => {
+describe('evolutionLine', () => {
   test('a plain chain is one row', () => {
-    const [line, ...rest] = linesOf(6);
-    assert.equal(rest.length, 0);
-    assert.deepEqual(line.stages.map((s) => s.conditions), [[], ['Lv. 16'], ['Lv. 36']]);
-    assert.equal(branches(line.stages), false);
+    const line = lineOf(6);
+    assert.deepEqual(line.map((s) => s.conditions), [[], ['Lv. 16'], ['Lv. 36']]);
+    assert.equal(branches(line), false);
   });
-  test('regional lines follow the main one, without regional-only members in the main line', () => {
-    assert.deepEqual(shape(52), [
-      ['52:', '53:'],
-      ['52:alola', '53:alola'],
-      ['52:galar', '863:'],
-    ]);
-    assert.deepEqual(shape(27), [['27:', '28:'], ['27:alola', '28:alola']]);
-    assert.deepEqual(linesOf(27)[1].stages[1].conditions, ['Use Ice Stone']);
+  test('a form follows only its own line, from every stage', () => {
+    for (const id of [19, 20]) {
+      assert.deepEqual(shape(id), ['19:', '20:']);
+      assert.deepEqual(shape(id, 'alola'), ['19:alola', '20:alola']);
+    }
+    assert.deepEqual(shape(79), ['79:', '80:', '199:']);
+    assert.deepEqual(shape(80, 'galar'), ['79:galar', '80:galar', '199:galar']);
+    assert.deepEqual(lineOf(27, 'alola')[1].conditions, ['Use Ice Stone']);
   });
-  test('a region seen from its first form keeps the plain ancestors and later forms', () => {
-    assert.deepEqual(shape(439), [['439:', '122:'], ['439:', '122:galar', '866:']]);
-    assert.deepEqual(shape(25), [['172:', '25:', '26:'], ['172:', '25:', '26:alola']]);
+  test('each region of a species has its own line', () => {
+    assert.deepEqual(shape(52), ['52:', '53:']);
+    assert.deepEqual(shape(52, 'alola'), ['52:alola', '53:alola']);
+    assert.deepEqual(shape(52, 'galar'), ['52:galar', '863:']);
   });
-  test('every page of the species shows the same lines; a non-regional form keeps its own line', () => {
-    assert.deepEqual(shape(52, 'galar'), shape(52));
+  test('a species only a regional form reaches shows that line', () => {
+    assert.deepEqual(shape(863), ['52:galar', '863:']);
+    assert.deepEqual(shape(865), ['83:galar', '865:']);
+    assert.deepEqual(shape(862), ['263:galar', '264:galar', '862:']);
+    assert.deepEqual(shape(903), ['215:hisui', '903:']);
+  });
+  test('a form with nothing to follow shows no line', () => {
+    assert.deepEqual(shape(83), []);
+    assert.deepEqual(shape(83, 'galar'), ['83:galar', '865:']);
+  });
+  test('a region that starts after the base is a fork, on all its pages', () => {
+    assert.deepEqual(shape(104), ['104:', '105:', '105:alola']);
+    assert.deepEqual(shape(105), shape(104));
+    assert.deepEqual(shape(105, 'alola'), shape(104));
+    assert.deepEqual(shape(102), ['102:', '103:', '103:alola']);
+    assert.deepEqual(shape(25), ['172:', '25:', '26:', '26:alola']);
+    assert.deepEqual(shape(109), ['109:', '110:', '110:galar']);
+    assert.deepEqual(shape(439), ['439:', '122:', '122:galar', '866:']);
+    assert.deepEqual(shape(866), shape(439));
+    assert.deepEqual(shape(704), ['704:', '705:', '706:', '705:hisui', '706:hisui']);
+    assert.equal(branches(lineOf(104)), true);
+  });
+  test('only the branch names its region, on its own arrow', () => {
+    const regions = (id: number) => lineOf(id).map((s) => s.region);
+    assert.deepEqual(regions(104), [undefined, undefined, 'Alola']);
+    assert.deepEqual(regions(704), [undefined, undefined, undefined, 'Hisui', undefined]);
+    assert.deepEqual(lineOf(104)[2].conditions, ['Lv. 28 · at night']);
+    assert.equal(lineOf(52, 'galar').filter((s) => s.region).length, 0);
+  });
+  test('a stage leads only to what its own form evolves into', () => {
+    const stages = lineOf(439);
+    const [, mime, galarian, rime] = stages;
+    assert.deepEqual(targetsOf(stages, mime), []);
+    assert.deepEqual(targetsOf(stages, galarian), [rime]);
+    assert.deepEqual(targetsOf(stages, stages[0]), [mime, galarian]);
+  });
+  test('both forms of a fork keep their own next stage', () => {
+    const stages = lineOf(704);
+    const [, sliggoo, goodra, hisuianSliggoo, hisuianGoodra] = stages;
+    assert.deepEqual(targetsOf(stages, sliggoo), [goodra]);
+    assert.deepEqual(targetsOf(stages, hisuianSliggoo), [hisuianGoodra]);
+  });
+  test('a non-regional form sees the plain chain or its own steps', () => {
     assert.deepEqual(shape(6, 'mega-x'), shape(6));
-    assert.deepEqual(shape(849, 'low-key')[0], ['848:', '849:low-key']);
+    assert.deepEqual(shape(849, 'low-key'), ['848:', '849:low-key']);
   });
   test('branching chains', () => {
-    assert.equal(branches(linesOf(133)[0].stages), true);
-    assert.equal(linesOf(133)[0].stages.length, 9);
-    assert.equal(branches(linesOf(265)[0].stages), true);
+    assert.equal(branches(lineOf(133)), true);
+    assert.equal(lineOf(133).length, 9);
+    assert.equal(branches(lineOf(265)), true);
+  });
+});
+
+describe('megaSpecies', () => {
+  const index = readData<IndexEntry[]>('index.json');
+  const of = (id: number) => {
+    const chainId = dataEntry<SpeciesDetail>('species', id).evolutionChainId;
+    return megaSpecies(chainId ? dataEntry<EvolutionMember[]>('evolution', chainId) : [], index, id);
+  };
+  test('every stage sees the Megas of its chain', () => {
+    assert.deepEqual(of(1), [3]);
+    assert.deepEqual(of(2), [3]);
+    assert.deepEqual(of(4), [6]);
+    assert.deepEqual(of(133), []);
+  });
+  test('the species shown comes first', () => {
+    assert.deepEqual(of(475), [475, 282]);
+    assert.deepEqual(of(280), [282, 475]);
+  });
+  test('a species with no chain keeps its own Primal', () => {
+    assert.deepEqual(of(382), [382]);
+  });
+});
+
+describe('megaForms', () => {
+  const names = (ownerIds: number[], formKey: string) =>
+    megaForms(ownerIds.map((id) => dataEntry<SpeciesDetail>('species', id)), formKey).map(({ form }) => form.name);
+  test('a default form lists the Megas of its chain', () => {
+    assert.deepEqual(names([80], ''), ['Mega Slowbro']);
+    assert.deepEqual(names([26], ''), ['Mega Raichu X', 'Mega Raichu Y']);
+  });
+  test('a regional form lists none', () => {
+    assert.deepEqual(names([80], 'galar'), []);
+    assert.deepEqual(names([26], 'alola'), []);
+  });
+  test('a Mega page still lists its Megas', () => {
+    assert.deepEqual(names([80], 'mega'), ['Mega Slowbro']);
   });
 });
 
 describe('currentForm', () => {
+  test('the form on a branch of the own line', () => {
+    assert.equal(currentForm(lineOf(105, 'alola'), 105, 'alola'), 'alola');
+  });
   test('the form itself, its region, or the default', () => {
-    assert.equal(currentForm(linesOf(52), 52, 'galar'), 'galar');
-    assert.equal(currentForm(linesOf(555), 555, 'galar-zen'), 'galar-standard');
-    assert.equal(currentForm(linesOf(6), 6, 'mega-x'), '');
+    assert.equal(currentForm(lineOf(52, 'galar'), 52, 'galar'), 'galar');
+    assert.equal(currentForm(lineOf(555, 'galar-zen'), 555, 'galar-zen'), 'galar-standard');
+    assert.equal(currentForm(lineOf(6, 'mega-x'), 6, 'mega-x'), '');
   });
 });
 

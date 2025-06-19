@@ -1,8 +1,11 @@
-import type { EvolutionMember } from './types';
+import type { EvolutionMember, IndexEntry, SpeciesDetail } from './types';
 import { REGIONAL_FORM } from './forms';
 
-/** A chain member as shown: in form `form` ('' = default), evolving by `conditions`. */
-export type ChainStage = Omit<EvolutionMember, 'steps'> & { form: string };
+/**
+ * A chain member as shown: in form `form` ('' = default), evolving from its parent's form `fromForm` by `conditions`.
+ * `region` names the region on the arrow of a regional branch folded into the species' own line.
+ */
+export type ChainStage = Omit<EvolutionMember, 'steps'> & { form: string; fromForm: string; region?: string };
 
 /**
  * The chain as seen from species `id` in form `formKey`: the members that line passes through, each in its form.
@@ -11,7 +14,7 @@ export type ChainStage = Omit<EvolutionMember, 'steps'> & { form: string };
  * (Megas, Rotom) see the plain chain.
  */
 export function chainInForm(chain: EvolutionMember[], id: number, formKey: string): ChainStage[] {
-  const plain = chain.map(({ id, from, conditions }) => ({ id, from, conditions, form: '' }));
+  const plain = chain.map(({ id, from, conditions }) => ({ id, from, conditions, form: '', fromForm: '' }));
   const byId = new Map(chain.map((m) => [m.id, m]));
   const inSteps = (key: string) => chain.some((m) => m.steps?.some((s) => s.from === key || s.into === key));
   // A sub-form without steps follows its region's line: Galarian Zen Darmanitan evolves as Galarian Standard.
@@ -38,7 +41,7 @@ export function chainInForm(chain: EvolutionMember[], id: number, formKey: strin
         shown = { form: steps[0].into, conditions: [...new Set(steps.flatMap((s) => s.conditions))] };
       }
       shown ??= { form: '', conditions: m.conditions };
-      out.push({ id: m.id, from: m.from, ...shown });
+      out.push({ id: m.id, from: m.from, fromForm: parentForm, ...shown });
       walk(m.id, shown.form);
     }
   };
@@ -46,35 +49,27 @@ export function chainInForm(chain: EvolutionMember[], id: number, formKey: strin
   return out;
 }
 
-/** One chain to draw: the species' own line (`key` '') or a regional form's (`key` = the form its line is seen in). */
-export interface EvolutionLine {
-  key: string;
-  /** Species id the line is seen from, whose form `key` names it. */
-  viewId: number;
-  stages: ChainStage[];
-}
-
 /** Region of a regional form key ("galar-zen" → "galar"), or undefined. */
 const regionOf = (key: string) => key.match(REGIONAL_FORM)?.[1];
 
 /**
- * Every line of the chain, as seen on species `id` in form `formKey`: first its own line (in that form when the form
- * has its own steps, Low Key Toxtricity; the plain chain for regional forms and Megas), without members only a
- * regional form evolves into (Perrserker), then one line per region whose forms are in the chain, seen from that
- * region's form nearest the base (Galarian Meowth → Perrserker). Lines of one stage are left out.
+ * The line a page of species `id` in form `formKey` follows: forms evolve only along their own line, so plain Rattata
+ * never shows Alolan Raticate, nor the Alolan form plain Raticate. A species only a regional form reaches shows that
+ * form's line (Perrserker), and a stage with nothing to follow shows none (plain Farfetch'd). A region that starts
+ * after the base is a real fork of the own line, on all its pages (Cubone → Marowak | Alolan Marowak). A non-regional
+ * form with steps keeps its own line (Low Key Toxtricity); other forms see the plain chain.
  */
-export function evolutionLines(chain: EvolutionMember[], id: number, formKey: string): EvolutionLine[] {
+export function evolutionLine(chain: EvolutionMember[], id: number, formKey: string): ChainStage[] {
   const byId = new Map(chain.map((m) => [m.id, m]));
   const depth = (memberId: number): number => {
     const from = byId.get(memberId)?.from;
     return from == null ? 0 : 1 + depth(from);
   };
   const regionalOnly = new Set(chain.filter((m) => m.steps?.some((s) => s.into === '' && regionOf(s.from))).map((m) => m.id));
-  const ownKey = regionOf(formKey) ? '' : formKey;
-  const own = chainInForm(chain, id, ownKey);
   const dropped = new Set<number>();
-  for (const s of own) if (regionalOnly.has(s.id) || (s.from !== null && dropped.has(s.from))) dropped.add(s.id);
-  const lines: EvolutionLine[] = [{ key: '', viewId: id, stages: own.filter((s) => !dropped.has(s.id)) }];
+  const plain = chainInForm(chain, id, regionOf(formKey) ? '' : formKey);
+  for (const s of plain) if (regionalOnly.has(s.id) || (s.from !== null && dropped.has(s.from))) dropped.add(s.id);
+  const own = plain.filter((s) => !dropped.has(s.id));
 
   // Each region's line is seen from its shallowest form: the species a step goes into or comes from.
   const views = new Map<string, { id: number; key: string }>();
@@ -88,16 +83,55 @@ export function evolutionLines(chain: EvolutionMember[], id: number, formKey: st
       }
     }
   }
-  for (const view of views.values()) lines.push({ key: view.key, viewId: view.id, stages: chainInForm(chain, view.id, view.key) });
-  return lines.filter((l) => l.stages.length > 1);
+  const regional = new Map<string, ChainStage[]>();
+  for (const [region, view] of views) {
+    const stages = chainInForm(chain, view.id, view.key);
+    const branch = regionalBranch(stages, view, own);
+    if (branch) own.push(...branch);
+    else regional.set(region, stages);
+  }
+  const regionOnly = own.some((s) => s.id === id) ? undefined : [...regional.values()].find((l) => l.some((s) => s.id === id));
+  const line = regional.get(regionOf(formKey) ?? '') ?? regionOnly ?? own;
+  return line.length > 1 ? line : [];
+}
+
+/** The part of a regional line to fold into the `own` line: from `view` on, when its parent there is in default form. */
+function regionalBranch(stages: ChainStage[], view: { id: number; key: string }, own: ChainStage[]): ChainStage[] | undefined {
+  const start = stages.findIndex((s) => s.id === view.id);
+  const parent = stages[start].from;
+  if (parent === null || stages[start].fromForm || !own.some((s) => s.id === parent && !s.form)) return undefined;
+  const region = regionOf(view.key)!;
+  const branch: ChainStage[] = [{ ...stages[start], region: region.charAt(0).toUpperCase() + region.slice(1) }];
+  // Stages come parent first, so one test keeps the descendants and leaves out what forks off above the view.
+  for (const s of stages.slice(start + 1)) if (branch.some((b) => b.id === s.from && b.form === s.fromForm)) branch.push(s);
+  return branch;
+}
+
+/** What `stage` evolves into: Galarian Mr. Mime leads to Mr. Rime, plain Mr. Mime to nothing. */
+export const targetsOf = (stages: ChainStage[], stage: ChainStage) => stages.filter((s) => s.from === stage.id && s.fromForm === stage.form);
+
+/**
+ * Species of the chain (`id` itself when it has no chain) with Mega or Primal forms, `id` first, whichever stage is
+ * shown: Ivysaur's page leads to Venusaur's Mega.
+ */
+export function megaSpecies(chain: EvolutionMember[], index: IndexEntry[], id: number): number[] {
+  const hasMega = new Set(index.filter((s) => s.forms?.some((f) => f.kind === 'mega')).map((s) => s.id));
+  return [...new Set([id, ...chain.map((m) => m.id)])].filter((m) => hasMega.has(m));
 }
 
 /**
- * The form of species `id` to highlight as the one shown in form `formKey`: the form itself when a line has it, else a
+ * The Mega and Primal forms a page in form `formKey` lists. Only default forms Mega Evolve, so a regional form's page
+ * lists none: Galarian Slowpoke never becomes Mega Slowbro, nor Alolan Raichu Mega Raichu.
+ */
+export const megaForms = (owners: SpeciesDetail[], formKey: string) =>
+  regionOf(formKey) ? [] : owners.flatMap((owner) => (owner.forms ?? []).filter((f) => f.trigger).map((form) => ({ owner, form })));
+
+/**
+ * The form of species `id` to highlight as the one shown in form `formKey`: the form itself when the line has it, else a
  * form of its region (Galarian Zen Darmanitan → Galarian Standard), else the default form (Megas).
  */
-export function currentForm(lines: EvolutionLine[], id: number, formKey: string): string {
-  const forms = lines.flatMap((l) => l.stages).filter((s) => s.id === id).map((s) => s.form);
+export function currentForm(stages: ChainStage[], id: number, formKey: string): string {
+  const forms = stages.filter((s) => s.id === id).map((s) => s.form);
   if (forms.includes(formKey)) return formKey;
   const region = regionOf(formKey);
   return forms.find((f) => region && regionOf(f) === region) ?? '';
