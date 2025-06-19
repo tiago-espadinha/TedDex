@@ -3,10 +3,11 @@ import { loadVersions, useLoad } from '../data/api';
 import { BackupError, exportBackup, importBackup } from '../data/db';
 import { parseGamePref } from '../data/game';
 import { bandStyle } from '../data/gameColors';
-import { FORM_KIND_LABELS } from '../data/dexState';
+import { FORM_KIND_EXAMPLES, FORM_KIND_LABELS } from '../data/dexState';
 import { applyDesign, applyTheme, useDesign, useDexForms, useGame, useSpriteStyle, useTheme, type Theme } from '../data/settings';
 import type { FormKind } from '../data/types';
 import { Icon } from '../components/Icon';
+import { MonImg } from '../components/MonImg';
 import { useToast } from '../components/bits';
 
 export function MoreScreen() {
@@ -95,20 +96,23 @@ export function MoreScreen() {
         <p id="forms-hint" className="hint">
           Show these forms as their own rows, right after their species.
         </p>
-        <div className="switch-list" role="group" aria-labelledby="forms-head" aria-describedby="forms-hint">
+        <div className="form-tiles" role="group" aria-labelledby="forms-head" aria-describedby="forms-hint">
           {(Object.entries(FORM_KIND_LABELS) as [FormKind, string][]).map(([kind, label]) => {
             const on = formKinds.includes(kind);
             return (
               <button
                 key={kind}
                 type="button"
-                className="switch-row"
+                className="form-tile"
                 role="switch"
                 aria-checked={on}
                 onClick={() => setFormKinds(on ? formKinds.filter((k) => k !== kind) : [...formKinds, kind])}
               >
+                <span className="tick" aria-hidden="true">
+                  {on && <Icon name="check" size={14} />}
+                </span>
+                <MonImg {...FORM_KIND_EXAMPLES[kind]} alt="" width={64} height={64} />
                 {label}
-                <span className="track" aria-hidden="true" />
               </button>
             );
           })}

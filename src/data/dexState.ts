@@ -45,6 +45,14 @@ export const FORM_KIND_LABELS: Record<FormKind, string> = {
   other: 'Other battle forms',
 };
 
+/** The form each of those switches shows as its example: Mega Charizard X, Alolan Vulpix, Gigantamax Charizard, Blade Aegislash. */
+export const FORM_KIND_EXAMPLES: Record<FormKind, { id: number; speciesId: number }> = {
+  mega: { id: 10034, speciesId: 6 },
+  regional: { id: 10103, speciesId: 37 },
+  gmax: { id: 10196, speciesId: 6 },
+  other: { id: 10026, speciesId: 681 },
+};
+
 /** The form kinds shown before any choice is stored: all but Gigantamax. */
 export const DEFAULT_FORM_KINDS: FormKind[] = ['mega', 'regional', 'other'];
 

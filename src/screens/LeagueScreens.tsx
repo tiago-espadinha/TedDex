@@ -263,7 +263,10 @@ export function TrainerScreen({ kind }: { kind: TrainerKind }) {
               onClick={() => setPick({ rematch: !pick.rematch, stage: 0, pick: 0 })}
             >
               Show rematches
-              <span className="track" aria-hidden="true" />
+              <span className="seg" aria-hidden="true">
+                <span>First</span>
+                <span>Rematch</span>
+              </span>
             </button>
           )}
           <div className="trainer-picks">
