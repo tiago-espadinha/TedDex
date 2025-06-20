@@ -1,4 +1,4 @@
-import { searchByName } from './reference';
+import { searchEntries } from './query';
 import { isTypeName } from './typeColors';
 import type { MoveCategory, MoveInfo, TypeName } from './types';
 
@@ -60,9 +60,16 @@ function sortValue(m: MoveInfo, sort: Exclude<MoveSort, 'name'>): number {
   }
 }
 
-/** Search (as the other Reference lists), then category, generation and type filters, then the sort. */
+/** A search word's test on a move: its type or category. Any other word is a name. */
+function moveKeyword(term: string): ((entry: { move: MoveInfo }) => boolean) | undefined {
+  if (isTypeName(term)) return ({ move }) => move.type === term;
+  if (MOVE_CATEGORIES.includes(term as MoveCategory)) return ({ move }) => move.category === term;
+  return undefined;
+}
+
+/** Search (operators and keywords, query.ts), then category, generation and type filters, then the sort. */
 export function filterMoves<T extends { name: string; move: MoveInfo }>(entries: T[], f: MoveFilters): T[] {
-  const hits = searchByName(entries, f.query).filter(
+  const hits = searchEntries(entries, f.query, moveKeyword).filter(
     ({ move }) =>
       (!f.categories.length || f.categories.includes(move.category)) &&
       (!f.gens.length || f.gens.includes(move.gen)) &&

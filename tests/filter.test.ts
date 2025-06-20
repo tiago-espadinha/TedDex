@@ -178,7 +178,7 @@ describe('dexRows', () => {
     assert.deepEqual(megaX.types, ['fire', 'dragon']);
     assert.equal(megaX.total, 634);
     assert.deepEqual([megaX.name, megaX.id, megaX.gen, megaX.tags], ['Charizard', 6, 1, ['mega']]);
-    assert.deepEqual(megaX.form, { key: 'mega-x', label: 'Mega', name: 'Mega Charizard X', pokemonId: 10034 });
+    assert.deepEqual(megaX.form, { key: 'mega-x', label: 'Mega', name: 'Mega Charizard X', kind: 'mega', pokemonId: 10034 });
   });
 
   test('Fire+Dragon includes Mega Charizard X only with Megas on', () => {
