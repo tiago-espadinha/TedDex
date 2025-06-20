@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { NO_MOVE_FILTERS, abilityIdByName, activeMoveChoiceFilters, learnable, memberAbility, moveChoices, otherAbilities, type MoveChoiceFilters } from '../src/data/memberOptions';
+import { NO_MOVE_FILTERS, abilityIdByName, activeMoveChoiceFilters, learnable, memberAbility, moveChoices, otherAbilities, withMove, type MoveChoiceFilters } from '../src/data/memberOptions';
 import type { AbilityTable, Learnsets, MoveTable, SpeciesDetail } from '../src/data/types';
 import { dataEntry, readData } from './data-files';
 
@@ -129,5 +129,27 @@ describe('abilityIdByName', () => {
 
   test('is undefined for an unknown name', () => {
     assert.equal(abilityIdByName(table, 'Levitate'), undefined);
+  });
+});
+
+describe('withMove', () => {
+  const UNKNOWN = 999999;
+  const [A, B, C, D, E] = [1, 2, 3, 4, 5];
+
+  test('slots count the moves shown, past a stored move the data lost', () => {
+    assert.deepEqual(withMove([UNKNOWN, A, B], moves, 1), [A]);
+    assert.deepEqual(withMove([UNKNOWN, A, B], moves, 1, C), [A, C]);
+    assert.deepEqual(withMove([UNKNOWN, A, B, C], moves, 3, D), [A, B, C, D]);
+  });
+
+  test('replaces, adds at the end and removes', () => {
+    assert.deepEqual(withMove([A, B], moves, 0, C), [C, B]);
+    assert.deepEqual(withMove([A, B], moves, 2, C), [A, B, C]);
+    assert.deepEqual(withMove([A, B], moves, 0), [B]);
+  });
+
+  test('keeps a move from repeating or a fifth from joining', () => {
+    assert.deepEqual(withMove([A, B], moves, 0, B), [A, B]);
+    assert.deepEqual(withMove([A, B, C, D], moves, 4, E), [A, B, C, D]);
   });
 });

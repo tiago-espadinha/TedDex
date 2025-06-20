@@ -1,12 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVersions, useLoad } from '../data/api';
 import { MOVE_SLOTS, cleanNickname, db, memberTitle, updateMember, type TeamMember } from '../data/db';
 import { detailPath } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { NO_MOVE_FILTERS, activeMoveChoiceFilters, memberAbility, moveChoices, otherAbilities, type MoveChoiceFilters } from '../data/memberOptions';
+import { NO_MOVE_FILTERS, activeMoveChoiceFilters, memberAbility, moveChoices, otherAbilities, withMove, type MoveChoiceFilters } from '../data/memberOptions';
 import { NATURES, natureLabel } from '../data/natures';
+import { parsePeek, type Peek } from '../data/peek';
 import { useGodMode } from '../data/settings';
 import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
@@ -16,6 +17,7 @@ import { MonImg } from '../components/MonImg';
 import { usePeek } from '../components/usePeek';
 import { MoveChoiceFilterSheet } from './MoveChoiceFilterSheet';
 import { MoveCells, MoveHead } from './MovesTab';
+import { QuickView, type PeekAction } from './QuickView';
 import { RenameSheet } from './TeamScreens';
 
 const loadAll = (id: number, formKey?: string) =>
@@ -44,6 +46,7 @@ export function MemberEditor() {
   // Kept while the editor is open, so reopening the move picker keeps them.
   const [moveFilters, setMoveFilters] = useState(NO_MOVE_FILTERS);
   const peek = usePeek();
+  const [search] = useSearchParams();
   // Every move it can have decides whether moves can be added; the filters only narrow the picker.
   const choices = useMemo(() => (data ? moveChoices(data[1], data[2], godMode) : []), [data, godMode]);
   const formKey = member?.formKey ?? null;
@@ -69,12 +72,29 @@ export function MemberEditor() {
   const moveOptions = (f: MoveChoiceFilters) => moveChoices(learnsets, moves, godMode, f).filter((m) => !chosen.includes(m));
   const save = (patch: Partial<TeamMember>) => updateMember(teamId, index, (m) => ({ ...m, ...patch }));
   const setMove = (slot: number, move?: number) =>
-    updateMember(teamId, index, (m) => {
-      const next = [...(m.moves ?? [])];
-      if (move === undefined) next.splice(slot, 1);
-      else if (!next.includes(move) && slot < MOVE_SLOTS) next[Math.min(slot, next.length)] = move;
-      return { ...m, moves: next };
-    });
+    updateMember(teamId, index, (m) => ({ ...m, moves: withMove(m.moves ?? [], moves, slot, move) }));
+  /** Replace and Remove for the item or move this member has, none for anything else (a link, or Forward after a removal). */
+  const peekActions = ({ kind, id }: Peek): PeekAction[] => {
+    const slot = kind === 'move' ? chosen.indexOf(id) : -1;
+    if (kind === 'item' ? id !== member.item : slot < 0) return [];
+    const name = kind === 'item' ? (items[id]?.name ?? 'held item') : moves[id].name;
+    const replace: PeekAction = {
+      label: 'Replace',
+      name: `Replace ${name}`,
+      run: () => setPicking(kind === 'item' ? { kind: 'item' } : { kind: 'move', slot }),
+    };
+    const remove: PeekAction = {
+      label: 'Remove',
+      name: `Remove ${name}`,
+      danger: true,
+      run: () => (kind === 'item' ? save({ item: undefined }) : setMove(slot)),
+    };
+    return kind === 'item' || choices.length > 0 ? [replace, remove] : [remove];
+  };
+  // Replace sets the picker while the quick view steps off its history entry: it opens as the
+  // quick view goes, so the quick view's cleanup can't take its focus or unlock the page under it.
+  const peeked = parsePeek(search.get('peek'));
+  const sheet = peeked ? undefined : picking;
 
   return (
     <>
@@ -168,20 +188,14 @@ export function MemberEditor() {
       </Field>
 
       <Field title="Held item">
-        <div className="pick-field">
-          <button className="game-select" onClick={() => setPicking({ kind: 'item' })}>
-            <span className={member.item ? 'v' : 'v none'}>{member.item ? (items[member.item]?.name ?? 'Unknown item') : 'None'}</span>
-            <Icon name="next" size={18} />
-          </button>
-          {member.item !== undefined && items[member.item] && (
-            <InfoButton name={items[member.item].name} onClick={() => peek({ kind: 'item', id: member.item! })} />
-          )}
-          {member.item !== undefined && (
-            <button className="icon-btn" aria-label="Remove held item" onClick={() => save({ item: undefined })}>
-              <Icon name="close" size={20} />
-            </button>
-          )}
-        </div>
+        <button
+          className="game-select"
+          aria-label={member.item ? `About ${items[member.item]?.name ?? 'held item'}` : 'Choose a held item'}
+          onClick={() => (member.item ? peek({ kind: 'item', id: member.item }) : setPicking({ kind: 'item' }))}
+        >
+          <span className={member.item ? 'v' : 'v none'}>{member.item ? (items[member.item]?.name ?? 'Unknown item') : 'None'}</span>
+          {!member.item && <Icon name="next" size={18} />}
+        </button>
       </Field>
 
       <Field title={`Moves · ${chosen.length} of ${MOVE_SLOTS}`}>
@@ -189,14 +203,14 @@ export function MemberEditor() {
           chosen={chosen}
           moves={moves}
           canAdd={choices.length > 0}
-          onPick={(slot) => setPicking({ kind: 'move', slot })}
+          onAdd={(slot) => setPicking({ kind: 'move', slot })}
           onPeek={(id) => peek({ kind: 'move', id })}
-          onRemove={(slot) => setMove(slot)}
         />
         {!choices.length && <p className="hint">No move data for {mon.name}.</p>}
       </Field>
 
-      {picking?.kind === 'nickname' && (
+      {peeked && <QuickView actions={peekActions} />}
+      {sheet?.kind === 'nickname' && (
         <RenameSheet
           noun={mon.name}
           name={member.nickname ?? ''}
@@ -205,7 +219,7 @@ export function MemberEditor() {
           onClose={() => setPicking(undefined)}
         />
       )}
-      {picking?.kind === 'item' && (
+      {sheet?.kind === 'item' && (
         <PickerSheet
           title="Held item"
           options={itemOptions}
@@ -214,7 +228,7 @@ export function MemberEditor() {
           onClose={() => setPicking(undefined)}
         />
       )}
-      {picking?.kind === 'ability' && abilities && (
+      {sheet?.kind === 'ability' && abilities && (
         <PickerSheet
           title="Any ability"
           options={abilityOptions}
@@ -228,25 +242,25 @@ export function MemberEditor() {
           onClose={() => setPicking(undefined)}
         />
       )}
-      {picking?.kind === 'move' && (
+      {sheet?.kind === 'move' && (
         <PickerSheet
-          title={chosen[picking.slot] ? `Replace ${moves[chosen[picking.slot]].name}` : 'Add a move'}
+          title={chosen[sheet.slot] ? `Replace ${moves[chosen[sheet.slot]].name}` : 'Add a move'}
           options={moveOptions(moveFilters).map((id) => ({ id, name: moves[id].name }))}
           head={<MoveHead />}
           render={(o) => <MoveCells move={moves[o.id]} />}
           filters={activeMoveChoiceFilters(moveFilters)}
-          onFilter={() => setPicking({ kind: 'move-filter', slot: picking.slot })}
-          onPick={(move) => setMove(picking.slot, move)}
+          onFilter={() => setPicking({ kind: 'move-filter', slot: sheet.slot })}
+          onPick={(move) => setMove(sheet.slot, move)}
           onClose={() => setPicking(undefined)}
         />
       )}
-      {picking?.kind === 'move-filter' && (
+      {sheet?.kind === 'move-filter' && (
         <MoveChoiceFilterSheet
           value={moveFilters}
           games={speciesGames}
           countFor={(f) => moveOptions(f).length}
           onChange={setMoveFilters}
-          onClose={() => setPicking({ kind: 'move', slot: picking.slot })}
+          onClose={() => setPicking({ kind: 'move', slot: sheet.slot })}
         />
       )}
     </>
@@ -269,7 +283,7 @@ function Field({ title, action, children }: { title: string; action?: ReactNode;
   );
 }
 
-/** Opens the quick view for a chosen ability, item or move. */
+/** Opens the quick view for the chosen ability. */
 function InfoButton({ name, onClick }: { name: string; onClick: () => void }) {
   return (
     <button className="icon-btn" aria-label={`About ${name}`} onClick={onClick}>
@@ -282,27 +296,25 @@ function MoveSlots({
   chosen,
   moves,
   canAdd,
-  onPick,
+  onAdd,
   onPeek,
-  onRemove,
 }: {
   chosen: number[];
   moves: MoveTable;
   canAdd: boolean;
-  onPick: (slot: number) => void;
+  onAdd: (slot: number) => void;
   onPeek: (move: number) => void;
-  onRemove: (slot: number) => void;
 }) {
   return (
     <>
-      {chosen.length > 0 && <MoveHead trailing />}
+      {chosen.length > 0 && <MoveHead />}
       <ul className="move-slots move-table">
         {Array.from({ length: MOVE_SLOTS }, (_, slot) => {
           const id = chosen[slot];
           if (id === undefined) {
             return canAdd && slot === chosen.length ? (
               <li key={slot}>
-                <button className="add-slot" onClick={() => onPick(slot)}>
+                <button className="add-slot" onClick={() => onAdd(slot)}>
                   <Icon name="plus" size={18} /> Add move
                 </button>
               </li>
@@ -311,15 +323,9 @@ function MoveSlots({
           const m = moves[id];
           return (
             <li key={slot} className="move-row">
-              <button className="move-pick" aria-label={`Replace ${m.name}`} disabled={!canAdd} onClick={() => onPick(slot)}>
+              <button className="move-pick" aria-label={`About ${m.name}`} onClick={() => onPeek(id)}>
                 <MoveCells move={m} />
               </button>
-              <span className="slot-actions">
-                <InfoButton name={m.name} onClick={() => onPeek(id)} />
-                <button className="icon-btn" aria-label={`Remove ${m.name}`} onClick={() => onRemove(slot)}>
-                  <Icon name="close" size={20} />
-                </button>
-              </span>
             </li>
           );
         })}

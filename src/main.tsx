@@ -38,6 +38,8 @@ function Shell() {
   const pushed =
     isPickMode(location) ||
     pathname.startsWith('/pokemon/') || pathname === '/reference/compare' || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
+  // The member editor renders the quick view itself, with its Replace and Remove.
+  const memberEditor = /^\/teams\/\d+\/member/.test(pathname);
   const main = useRef<HTMLElement>(null);
   useKeyboardInset();
   // When navigation removes the focused control, start keyboard and screen reader users at the
@@ -52,7 +54,7 @@ function Shell() {
         <Outlet />
       </main>
       {!pushed && <BottomNav />}
-      <QuickView />
+      {!memberEditor && <QuickView />}
       <ScrollRestoration getKey={scrollKey} />
     </ToastProvider>
   );
