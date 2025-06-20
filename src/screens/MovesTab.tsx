@@ -133,9 +133,9 @@ function MoveRow({ move, moves, level, onPeek }: { move: number; moves: MoveTabl
 }
 
 /** Column labels over a move table; screen readers get each label inside its cell instead. */
-export function MoveHead({ level, trailing }: { level?: boolean; trailing?: boolean }) {
+export function MoveHead({ level }: { level?: boolean }) {
   return (
-    <div className={`move-head${level ? ' with-lv' : ''}${trailing ? ' with-end' : ''}`} aria-hidden="true">
+    <div className={level ? 'move-head with-lv' : 'move-head'} aria-hidden="true">
       {level && <span>Lv</span>}
       <span className="move">Move</span>
       <span>Type</span>

@@ -7,8 +7,17 @@ import { Icon } from '../components/Icon';
 import { Loading, useModalSheet } from '../components/bits';
 import { ItemFacts, MoveFacts } from './ReferenceScreens';
 
-/** The sheet for `?peek=`, wherever it is set; rendered once by the app shell. */
-export function QuickView() {
+/** A button the opening screen adds to the sheet; the sheet closes as it runs. */
+export interface PeekAction {
+  label: string;
+  /** The accessible name, which says what it acts on. */
+  name: string;
+  danger?: boolean;
+  run: () => void;
+}
+
+/** The sheet for `?peek=`, wherever it is set; rendered once by the app shell, or by a screen that adds `actions`. */
+export function QuickView({ actions }: { actions?: (peek: Peek) => PeekAction[] }) {
   const [params, setParams] = useSearchParams();
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -25,12 +34,12 @@ export function QuickView() {
           },
           { replace: true, preventScrollReset: true },
         );
-  return <PeekSheet key={peekValue(peek)} peek={peek} onClose={onClose} />;
+  return <PeekSheet key={peekValue(peek)} peek={peek} actions={actions?.(peek) ?? []} onClose={onClose} />;
 }
 
 const SUMMARIES = { move: MoveSummary, ability: AbilitySummary, item: ItemSummary };
 
-function PeekSheet({ peek, onClose }: { peek: Peek; onClose: () => void }) {
+function PeekSheet({ peek, actions, onClose }: { peek: Peek; actions: PeekAction[]; onClose: () => void }) {
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const titleId = useId();
   const Summary = SUMMARIES[peek.kind];
@@ -39,7 +48,33 @@ function PeekSheet({ peek, onClose }: { peek: Peek; onClose: () => void }) {
       <div className="scrim" onClick={() => close()} />
       <section ref={sheet} tabIndex={-1} className="sheet peek" role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <div className="handle" />
-        <Summary id={peek.id} titleId={titleId} close={() => close()} page={peekPage(peek)} />
+        <Summary
+          id={peek.id}
+          titleId={titleId}
+          close={() => close()}
+          page={peekPage(peek)}
+          actions={
+            actions.length > 0 && (
+              <div className="peek-actions">
+                {actions.map((a) => (
+                  <button
+                    key={a.label}
+                    className={a.danger ? 'primary-btn danger' : 'primary-btn'}
+                    aria-label={a.name}
+                    onClick={() =>
+                      close(() => {
+                        a.run();
+                        onClose();
+                      })
+                    }
+                  >
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            )
+          }
+        />
       </section>
     </>
   );
@@ -51,6 +86,8 @@ interface SummaryProps {
   close: () => void;
   /** The Guide page, for "See Details". */
   page: string;
+  /** Stay available when the entry can't load, so an unknown item can still be removed. */
+  actions: ReactNode;
 }
 
 interface FrameProps extends SummaryProps {
@@ -67,7 +104,7 @@ interface FrameProps extends SummaryProps {
 }
 
 /** Title and close, then the summary once loaded and "See Details"; the same states as the Guide pages. */
-function PeekFrame({ titleId, close, page, one, name, error, loaded, head, art, text }: FrameProps) {
+function PeekFrame({ titleId, close, page, actions, one, name, error, loaded, head, art, text }: FrameProps) {
   let body: ReactNode = <p className="flavor">{text?.split('\n\n')[0] || 'No description in the data yet.'}</p>;
   if (error) body = <p className="empty">Couldn't load this {one.toLowerCase()}. {error.message}</p>;
   else if (!loaded) body = <Loading minHeight={120} />;
@@ -86,6 +123,7 @@ function PeekFrame({ titleId, close, page, one, name, error, loaded, head, art, 
       </div>
       {name && head}
       {body}
+      {actions}
       {name && (
         <Link className="primary-btn" to={page} replace>
           See Details

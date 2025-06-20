@@ -563,6 +563,10 @@ main:focus, .sheet:focus { outline: none; }
 .peek .head-facts dd { color: var(--ink); }
 .peek .peek-head + .flavor { margin-top: 12px; }
 .peek .primary-btn { margin-top: 6px; }
+.peek-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.peek .peek-actions .primary-btn { margin-top: 0; background: var(--surface-2); color: var(--ink); box-shadow: none; }
+.peek .peek-actions .primary-btn.danger { color: var(--danger); }
+.peek-actions + .primary-btn { margin-top: 8px; }
 
 /* Screen changes (View Transitions API, started by the router in main.tsx): the old screen fades out, the new one rises in. */
 ::view-transition-old(root) { animation: fade-out 120ms ease both; }
@@ -741,9 +745,6 @@ a.fact-chip:active { filter: brightness(0.9); }
 @media (min-width: 600px) { .move-table, .move-head { --type-col: 76px; --num-col: 40px; --col-gap: 12px; } }
 .move-table :is(a, button).move-row, .move-table .move-pick, .move-head { display: grid; grid-template-columns: var(--move-cols); column-gap: var(--col-gap); align-items: center; }
 .move-head, .learner-head { padding: 0 13px 6px; font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
-/* Clears the slot's info and remove buttons: border 1 + row padding 4 + 2 × 44 + pick padding 4; stacked on phones, one 44. */
-.move-head.with-end { padding-right: 97px; }
-@media (max-width: 599px) { .move-head.with-end { padding-right: 53px; } }
 .move-head > :not(.move), .learner-head .type, .move-table .num { text-align: center; }
 .move-table .cat-icon { justify-self: center; }
 .move-table .num { font-size: var(--fs-sm); font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -1053,21 +1054,17 @@ button.ability { text-align: left; min-height: 44px; }
 .ability[aria-checked='true'] { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); }
 .ability[aria-checked='true'] small { color: inherit; }
 .game-select .sr-only + select { padding-left: 0; }
-.pick-field { display: flex; align-items: center; gap: 4px; }
 .field-head { display: flex; align-items: center; justify-content: space-between; margin: -6px -10px 0 0; }
 .field-head h2 { margin-bottom: 4px; }
-button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
+button.game-select { width: 100%; margin: 0; text-align: left; }
 .game-select .v { flex: 1; min-width: 0; padding-right: 24px; font-size: var(--fs-body); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .game-select .v.none, .game-select select.none { color: var(--muted); font-weight: 600; }
 .move-slots { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.move-slots .move-row { gap: 0; padding: 0 4px 0 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.move-slots .move-row { padding: 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
 .move-slots .add-slot { width: 100%; }
-/* Info and remove sit side by side, stacked on phones so the move name keeps its room. */
-.slot-actions { flex: none; display: flex; }
-@media (max-width: 599px) { .slot-actions { flex-direction: column; } }
 .ability-any { width: 100%; margin-top: 8px; }
 .ability-any:disabled { opacity: 0.6; }
-.move-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 4px 8px 12px; border: 0; background: transparent; text-align: left; border-radius: 16px; }
+.move-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; border: 0; background: transparent; color: var(--ink); text-align: left; border-radius: 16px; }
 .sheet .search { margin: 12px 0 10px; }
 /* The move picker's filter button sits beside its search. */
 .picker-search { display: flex; align-items: center; gap: 4px; margin: 12px 0 10px; }
@@ -1215,7 +1212,7 @@ button.game-select { flex: 1; min-width: 0; margin: 0; text-align: left; }
   :is(.move-group, .picker, .ref-list, .ref-species) :is(.move-row, .learner-row, .evo-member) { padding-inline: calc(var(--table-gutter) - 1px); }
   /* Design B's lists have no border to make up the missing pixel. */
   [data-design='b'] :is(.move-group, .ref-list, .ref-species) :is(.move-row, .evo-member) { padding-inline: var(--table-gutter); }
-  :is(.move-group, .picker, .ref-species) .learner-head, .move-head:not(.with-end) { padding-inline: var(--table-gutter); }
+  :is(.move-group, .picker, .ref-species) .learner-head, .move-head:not(:has(+ .move-slots)) { padding-inline: var(--table-gutter); }
   /* Locations sits in About beside the Training and Breeding cards, so it keeps the section's margins. */
   .move-group.loc-group > ul { margin-inline: 0; }
   .move-group.loc-group .move-row.loc-row { padding-inline: 12px; }

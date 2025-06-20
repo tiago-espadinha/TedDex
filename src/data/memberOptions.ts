@@ -1,4 +1,5 @@
 import type { AbilityNameTable, LearnMethod, Learnsets, MoveCategory, MoveTable, SpeciesDetail, TypeName } from './types';
+import { MOVE_SLOTS } from './db';
 
 const byName = (moves: MoveTable) => (a: number, b: number) => moves[a].name.localeCompare(moves[b].name);
 
@@ -65,4 +66,15 @@ export function memberAbility(own: SpeciesDetail['abilities'], name: string | un
   if (!name) return undefined;
   const mine = own.find((a) => a.name === name);
   return { id: mine?.id ?? (table && abilityIdByName(table, name)), hidden: mine?.hidden ?? false };
+}
+
+/**
+ * The member's moves with `slot` set to `move`, or removed without one. Slots count the moves the editor
+ * shows, so a stored move the data no longer has is dropped rather than shifting them.
+ */
+export function withMove(stored: number[], moves: MoveTable, slot: number, move?: number): number[] {
+  const next = stored.filter((id) => moves[id]);
+  if (move === undefined) next.splice(slot, 1);
+  else if (!next.includes(move) && slot < MOVE_SLOTS) next[Math.min(slot, next.length)] = move;
+  return next;
 }

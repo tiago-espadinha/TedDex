@@ -1,5 +1,6 @@
 import { ITEM_CATEGORIES, type ItemCategory } from './itemCategories';
-import { searchByName, searchKey } from './reference';
+import { searchEntries } from './query';
+import { searchKey } from './reference';
 import type { ItemInfo } from './types';
 
 /** Filters of the Items reference list. Kept in the URL (`?q=&cat=&gen=`). Pure, for the tests. */
@@ -37,9 +38,45 @@ export const activeItemFilters = (f: ItemFilters) => f.categories.length + f.gen
 /** Names that open with a symbol (the 300 "★And15" Dynamax Crystals) go after the rest instead of first. */
 const symbolFirst = (name: string) => Number(!/^[\p{L}\d]/u.test(name));
 
-/** Search (as the other Reference lists), then category and generation (introduced) filters, each a union. */
+/**
+ * The words a search takes for a category: its name, then the singulars and the parts of the names with an "&", which is
+ * an operator ("tms & trs" still works, both sides being the same category). No "pokeball": it's the Poké Ball's name.
+ */
+export const ITEM_CATEGORY_WORDS: Record<string, ItemCategory> = {
+  ...Object.fromEntries(ITEM_CATEGORIES.map((c) => [slug(c), c])),
+  berry: 'Berries',
+  balls: 'Poké Balls',
+  battle: 'Battle items',
+  battleitem: 'Battle items',
+  held: 'Held items',
+  helditem: 'Held items',
+  megastone: 'Mega Stones',
+  zcrystal: 'Z-Crystals',
+  plate: 'Plates',
+  memory: 'Memories',
+  jewel: 'Jewels',
+  terashard: 'Tera Shards',
+  tm: 'TMs & TRs',
+  tms: 'TMs & TRs',
+  tr: 'TMs & TRs',
+  trs: 'TMs & TRs',
+  key: 'Key items',
+  keyitem: 'Key items',
+  treasure: 'Treasures',
+  ingredient: 'Ingredients & materials',
+  ingredients: 'Ingredients & materials',
+  material: 'Ingredients & materials',
+  materials: 'Ingredients & materials',
+};
+
+function itemKeyword(term: string): ((entry: { item: ItemInfo }) => boolean) | undefined {
+  const category = ITEM_CATEGORY_WORDS[searchKey(term)];
+  return category && (({ item }) => item.category === category);
+}
+
+/** Search (operators and keywords, query.ts), then category and generation (introduced) filters, each a union. */
 export function filterItems<T extends { name: string; item: ItemInfo }>(entries: T[], f: ItemFilters): T[] {
-  return searchByName(entries, f.query)
+  return searchEntries(entries, f.query, itemKeyword)
     .filter(({ item }) => (!f.categories.length || f.categories.includes(item.category)) && (!f.gens.length || f.gens.includes(item.gen)))
     .sort((a, b) => symbolFirst(a.name) - symbolFirst(b.name));
 }
