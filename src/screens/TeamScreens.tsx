@@ -164,7 +164,7 @@ export function TeamTabs() {
 }
 
 /**
- * A sheet that renames a team or Pokédex (up to NAME_LENGTH characters, counted as code points), or sets a member's
+ * A centred dialog that renames a team or Pokédex (up to NAME_LENGTH characters, counted as code points), or sets a member's
  * nickname; `onSave` runs only when the name changed. `nickname` titles it "Nickname", takes up to NICKNAME_LENGTH
  * characters and lets it be emptied to clear it.
  */
@@ -181,15 +181,14 @@ export function RenameSheet({
   onSave: (name: string) => void;
   onClose: () => void;
 }) {
-  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose, { drag: false });
   const [name, setName] = useState(current);
   const headingId = useId();
   const limit = nickname ? NICKNAME_LENGTH : NAME_LENGTH;
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby={headingId}>
-        <div className="handle" />
+      <section ref={sheet} tabIndex={-1} className="sheet dialog" role="dialog" aria-modal="true" aria-labelledby={headingId}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -230,14 +229,13 @@ export function RenameSheet({
 
 /** Asks before deleting `name`; `lost` says what goes with it. Cancel takes focus, so Enter alone can't delete. */
 export function DeleteSheet({ name, lost, onDelete, onClose }: { name: string; lost: string; onDelete: () => void; onClose: () => void }) {
-  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose, { drag: false });
   const headingId = useId();
   const textId = useId();
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="alertdialog" aria-modal="true" aria-labelledby={headingId} aria-describedby={textId}>
-        <div className="handle" />
+      <section ref={sheet} tabIndex={-1} className="sheet dialog" role="alertdialog" aria-modal="true" aria-labelledby={headingId} aria-describedby={textId}>
         <div className="sheet-head">
           <h2 id={headingId} className="confirm-title">
             Delete {name}?

@@ -412,24 +412,24 @@ function SearchHintSheet({ list, onClose }: { list: HintList; onClose: () => voi
 }
 
 // ---------- modal sheet ----------
-/** Length of the `.sheet.closing` animation in styles.css. */
+/** Length of the `.sheet.closing` and `.sheet.dialog.closing` animations in styles.css. */
 const SHEET_CLOSE_MS = 180;
 /** How far a sheet must be dragged down to close. */
 const DRAG_CLOSE_PX = 100;
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
 /**
- * Modal behaviour for a bottom sheet: Escape closes, the page behind doesn't scroll,
+ * Modal behaviour for a sheet or dialog: Escape closes, the page behind doesn't scroll,
  * focus moves in (to a `data-autofocus` field, else the sheet), Tab stays inside, and
  * focus goes back to the opener on close (or to <main> if the opener is gone).
  * On touch, a downward drag while the sheet is scrolled to its top moves the sheet
  * with the finger and closes it past `DRAG_CLOSE_PX`, else springs back; under reduced motion
- * the sheet stays put and only the release counts.
+ * the sheet stays put and only the release counts. `drag: false` leaves that out, for a centred dialog.
  * Returns the sheet's ref and `close(then?)`, which plays the closing animation and then
  * calls `then` (default: `onClose`). Only the first call counts: a tap on the scrim while the
  * sheet sinks must not close it twice (the quick view would step back twice).
  */
-export function useModalSheet<T extends HTMLElement>(onClose: () => void) {
+export function useModalSheet<T extends HTMLElement>(onClose: () => void, { drag = true } = {}) {
   const ref = useRef<T>(null);
   const closing = useRef(false);
   const onCloseRef = useRef(onClose);
@@ -467,14 +467,14 @@ export function useModalSheet<T extends HTMLElement>(onClose: () => void) {
     };
     window.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
-    const stopDrag = sheet && dragToClose(sheet, () => close());
+    const stopDrag = drag && sheet ? dragToClose(sheet, () => close()) : undefined;
     return () => {
       stopDrag?.();
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
       (opener?.isConnected ? opener : document.querySelector('main'))?.focus();
     };
-  }, [close]);
+  }, [close, drag]);
 
   return [ref, close] as const;
 }

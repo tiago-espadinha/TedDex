@@ -126,6 +126,10 @@ export function megaSpecies(chain: EvolutionMember[], index: IndexEntry[], id: n
 export const megaForms = (owners: SpeciesDetail[], formKey: string) =>
   regionOf(formKey) ? [] : owners.flatMap((owner) => (owner.forms ?? []).filter((f) => f.trigger).map((form) => ({ owner, form })));
 
+/** `megas` by species, so Charizard's two Megas share one graph while Gardevoir and Gallade each keep their own. */
+export const megaGroups = (megas: ReturnType<typeof megaForms>) =>
+  [...new Set(megas.map((m) => m.owner))].map((owner) => ({ owner, forms: megas.filter((m) => m.owner === owner).map((m) => m.form) }));
+
 /**
  * The form of species `id` to highlight as the one shown in form `formKey`: the form itself when the line has it, else a
  * form of its region (Galarian Zen Darmanitan → Galarian Standard), else the default form (Megas).

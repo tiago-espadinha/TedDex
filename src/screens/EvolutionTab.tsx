@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { itemSpriteUrl, loadEvolution, loadIndex, loadSpecies, useLoad } from '../data/api';
-import { branches, currentForm, evolutionLine, megaForms, megaSpecies, shortCondition, targetsOf, type ChainStage } from '../data/evolution';
+import { branches, currentForm, evolutionLine, megaForms, megaGroups, megaSpecies, shortCondition, targetsOf, type ChainStage } from '../data/evolution';
 import type { FormVariant, IndexEntry, SpeciesDetail } from '../data/types';
 import { Loading, MonName } from '../components/bits';
 import { MonImg } from '../components/MonImg';
@@ -37,8 +37,8 @@ export function EvolutionTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
       {megas.length > 0 && (
         <Section title={megas.every(({ form }) => form.key === 'primal') ? 'Primal Reversion' : 'Mega Evolution'}>
           <ul className="evo-card evo-megas">
-            {megas.map(({ owner, form }) => (
-              <MegaRow key={`${owner.id}-${form.key}`} mon={owner} form={form} shownForm={owner.id === mon.id ? formKey : null} />
+            {megaGroups(megas).map(({ owner, forms }) => (
+              <MegaGroup key={owner.id} mon={owner} forms={forms} shownForm={owner.id === mon.id ? formKey : null} />
             ))}
           </ul>
         </Section>
@@ -148,30 +148,62 @@ function MonTile({ mediaId, speciesId, name, to, current }: { mediaId: number; s
   );
 }
 
-interface MegaRowProps {
+interface MegaGroupProps {
   mon: SpeciesDetail;
-  form: FormVariant;
+  forms: FormVariant[];
   /** The form of `mon` this page shows; null on another species' page. */
   shownForm: string | null;
 }
 
-/** The species ⇄ one Mega or Primal form, with the stone, orb or move it takes. */
-function MegaRow({ mon, form, shownForm }: MegaRowProps) {
+/** The species ⇄ its Mega or Primal form on one row, or, with several, a fan of them under the species. */
+function MegaGroup({ mon, forms, shownForm }: MegaGroupProps) {
+  const species = <MonTile mediaId={mon.id} speciesId={mon.id} name={mon.name} to={`/pokemon/${mon.id}`} current={shownForm === ''} />;
+  const tile = (form: FormVariant) => (
+    <MonTile mediaId={form.pokemonId} speciesId={mon.id} name={form.name} to={`/pokemon/${mon.id}?form=${form.key}`} current={shownForm === form.key} />
+  );
+  if (forms.length === 1) {
+    return (
+      <li>
+        {species}
+        <MegaStep form={forms[0]} />
+        {tile(forms[0])}
+      </li>
+    );
+  }
+  return (
+    <li className="evo-fan">
+      {species}
+      <ul className={`evo-targets cols-${forms.length === 2 ? 2 : 3}`}>
+        {forms.map((form) => (
+          <li key={form.key}>
+            <MegaStep form={form} down />
+            {tile(form)}
+          </li>
+        ))}
+      </ul>
+    </li>
+  );
+}
+
+/** The stone, orb or move a form takes, over its two-way arrow. */
+function MegaStep({ form, down = false }: { form: FormVariant; down?: boolean }) {
   const trigger = form.trigger!;
   return (
-    <li>
-      <MonTile mediaId={mon.id} speciesId={mon.id} name={mon.name} to={`/pokemon/${mon.id}`} current={shownForm === ''} />
-      <span className="evo-step mega">
-        <b>
-          {trigger.kind === 'item' && <img src={itemSpriteUrl(trigger.id)} alt="" width={24} height={24} loading="lazy" />}
-          {trigger.kind === 'item' ? 'Hold' : 'Know'} {trigger.name}
-        </b>
+    <span className={down ? 'evo-step mega down' : 'evo-step mega'}>
+      <b>
+        {trigger.kind === 'item' && <img src={itemSpriteUrl(trigger.id)} alt="" width={24} height={24} loading="lazy" />}
+        {trigger.kind === 'item' ? 'Hold' : 'Know'} {trigger.name}
+      </b>
+      {down ? (
+        <svg viewBox="0 0 14 22" aria-hidden="true">
+          <path d="M7 2v18M2 15l5 5 5-5M2 7l5-5 5 5" />
+        </svg>
+      ) : (
         <svg viewBox="0 0 56 14" aria-hidden="true">
           <path d="M4 7h48M45 2l7 5-7 5M11 2L4 7l7 5" />
         </svg>
-      </span>
-      <MonTile mediaId={form.pokemonId} speciesId={mon.id} name={form.name} to={`/pokemon/${mon.id}?form=${form.key}`} current={shownForm === form.key} />
-    </li>
+      )}
+    </span>
   );
 }
 

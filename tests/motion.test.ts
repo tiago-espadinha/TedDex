@@ -5,7 +5,7 @@ import { test } from 'node:test';
 const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
 
 /** The one-shot and sliding animations of the micro-interactions: quick, and cheap to run on a phone. */
-const ONE_SHOT = ['pop-in', 'pop', 'bump', 'bolt-on', 'bolt-off', 'lid-open', 'sparkle', 'nav-bounce', 'seg-slide', 'rise-in', 'sink-out'];
+const ONE_SHOT = ['pop-in', 'pop', 'bump', 'bolt-on', 'bolt-off', 'lid-open', 'sparkle', 'nav-bounce', 'seg-slide', 'rise-in', 'sink-out', 'dialog-in', 'dialog-out'];
 const COMPOSITED = new Set(['transform', 'translate', 'scale', 'rotate', 'opacity']);
 
 function keyframes(name: string): string {
