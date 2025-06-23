@@ -1,9 +1,82 @@
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type RefObject } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { cap } from '../data/format';
 import { typeChip } from '../data/typeColors';
 import type { MoveCategory, TypeName } from '../data/types';
 import { Icon, type IconName } from './Icon';
+
+/** How long `data-play` stays on: longer than any one-shot animation in styles.css. */
+const PLAY_MS = 300;
+const playing = new WeakMap<HTMLElement, number>();
+
+/**
+ * Plays a one-shot animation: the `[data-play='<name>']` rules in styles.css, restarted if it is
+ * already running. Nothing at all under reduced motion. The attribute comes off afterwards, so
+ * the element coming back from `display: none` doesn't play it again.
+ */
+export function playAnim(el: HTMLElement, name: string) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (el.dataset.play) {
+    delete el.dataset.play;
+    void el.offsetWidth;
+  }
+  el.dataset.play = name;
+  clearTimeout(playing.get(el));
+  playing.set(el, window.setTimeout(() => delete el.dataset.play, PLAY_MS));
+}
+
+/**
+ * The count on a filter button. It bumps when the count changes, but filter sheets apply live and
+ * cover the button, so while `held` (the sheet is open) the bump waits until the button shows.
+ */
+export function CountBadge({ count, held }: { count: number; held?: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const shown = useRef(count);
+  useLayoutEffect(() => {
+    if (held || shown.current === count) return;
+    shown.current = count;
+    if (ref.current) playAnim(ref.current, 'bump');
+  }, [count, held]);
+  if (count <= 0) return null;
+  return (
+    <span className="badge" aria-hidden="true" ref={ref}>
+      {count}
+    </span>
+  );
+}
+
+const lastSegments = new Map<string, number>();
+
+/**
+ * Slides a `.segmented` control's selected background from the option selected before. It reads
+ * the selection from the DOM, as the options are the caller's. `memory` keeps it across screens,
+ * for links that each render their own control.
+ */
+export function useSegmentSlide<T extends HTMLElement>(memory?: string) {
+  const ref = useRef<T>(null);
+  const last = useRef(memory ? lastSegments.get(memory) : undefined);
+  useLayoutEffect(() => {
+    const options = [...(ref.current?.children ?? [])] as HTMLElement[];
+    const index = options.findIndex((o) => o.matches('[aria-checked="true"], [aria-current="page"]'));
+    if (index < 0) return;
+    const on = options[index];
+    const from = options[last.current ?? index];
+    if (from && from !== on) {
+      on.style.setProperty('--seg-x', `${from.offsetLeft - on.offsetLeft}px`);
+      on.style.setProperty('--seg-w', `${from.offsetWidth / on.offsetWidth}`);
+      playAnim(on, 'seg');
+    }
+    last.current = index;
+    if (memory) lastSegments.set(memory, index);
+  });
+  return ref;
+}
+
+/** A `.segmented` radio group (`className` adds to it) whose selected background slides between options. */
+export function Segmented({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  const ref = useSegmentSlide<HTMLDivElement>();
+  return <div ref={ref} className={className ? `segmented ${className}` : 'segmented'} role="radiogroup" {...props} />;
+}
 
 export function TypeChip({ type, large }: { type: TypeName; large?: boolean }) {
   return (
@@ -53,8 +126,17 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
 export function BottomNav() {
   return (
     <nav className="bottom-nav" aria-label="Main">
+      <span className="nav-ink" aria-hidden="true" />
       {NAV.map((n) => (
-        <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => (isActive ? 'active' : '')}>
+        <NavLink
+          key={n.to}
+          to={n.to}
+          end={n.end}
+          className={({ isActive }) => (isActive ? 'active' : '')}
+          onClick={(e) => {
+            if (!e.currentTarget.classList.contains('active')) playAnim(e.currentTarget, 'nav-bounce');
+          }}
+        >
           <span className="pill">
             <Icon name={n.icon} />
           </span>

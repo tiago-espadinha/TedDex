@@ -12,7 +12,7 @@ import { NATURES } from '../data/natures';
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { AbilityNameTable, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField, TypeChip, useModalSheet } from '../components/bits';
+import { Loading, SearchField, Segmented, TypeChip, playAnim, useModalSheet, useSegmentSlide } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 import { usePeek } from '../components/usePeek';
@@ -150,8 +150,9 @@ export function TeamsScreen() {
 
 /** The Team tab's two lists. */
 export function TeamTabs() {
+  const ref = useSegmentSlide<HTMLElement>('team-tabs');
   return (
-    <nav className="segmented team-tabs" aria-label="Lists">
+    <nav ref={ref} className="segmented team-tabs" aria-label="Lists">
       <NavLink to="/teams" end>
         Teams
       </NavLink>
@@ -289,7 +290,15 @@ export function TeamEditor() {
             {team.members.length} of {TEAM_SIZE}
           </div>
         </div>
-        <button className="icon-btn" aria-label="Delete team" aria-haspopup="dialog" onClick={() => setDeleting(true)}>
+        <button
+          className="icon-btn"
+          aria-label="Delete team"
+          aria-haspopup="dialog"
+          onClick={(e) => {
+            playAnim(e.currentTarget, 'bin');
+            setDeleting(true);
+          }}
+        >
           <Icon name="trash" />
         </button>
       </header>
@@ -401,13 +410,13 @@ export function CoverageBody({ members }: { members: CoverageMember[] }) {
   if (!typeData || !moves) return <Loading />;
   return (
     <>
-      <div className="segmented cov-mode" role="radiogroup" aria-label="Analysis">
+      <Segmented className="cov-mode" aria-label="Analysis">
         {(['defensive', 'offensive', 'stats'] as Mode[]).map((m) => (
           <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}>
             {cap(m)}
           </button>
         ))}
-      </div>
+      </Segmented>
       {mode === 'defensive' ? (
         <DefensiveView mons={members.map((x) => x.mon)} typeData={typeData} />
       ) : mode === 'offensive' ? (

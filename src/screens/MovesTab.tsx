@@ -8,7 +8,7 @@ import { signed } from '../data/format';
 import type { Peek } from '../data/peek';
 import { typeChip } from '../data/typeColors';
 import { Icon } from '../components/Icon';
-import { CategoryIcon, Loading, TypeChip } from '../components/bits';
+import { CategoryIcon, Loading, Segmented, TypeChip } from '../components/bits';
 import { usePeek } from '../components/usePeek';
 
 type Method = keyof Learnset;
@@ -68,13 +68,13 @@ export function MovesTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string
       )}
 
       {methods.length > 1 && (
-        <div className="segmented method-pick" role="radiogroup" aria-label="How it learns them">
+        <Segmented className="method-pick" aria-label="How it learns them">
           {methods.map((m) => (
             <button key={m.key} role="radio" aria-checked={m.key === shown.key} onClick={() => setMethod(m.key)}>
               {m.title}
             </button>
           ))}
-        </div>
+        </Segmented>
       )}
 
       {shown && (

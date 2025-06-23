@@ -1,5 +1,14 @@
 /** Inline stroke icons (no icon font, so they work offline from first launch). */
 const paths = {
+  /* The Dex view toggle: two rows of two squares. For the list shape the squares' inner sides fade and two edges
+     grow across the gap, so a row reads as one bar, drawn with transforms only (.view-toggle in styles.css). */
+  view: [0, 11].map((y) => (
+    <g key={y} transform={`translate(0 ${y})`}>
+      <path d="M8 3H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3M16 3h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3" />
+      <path className="inner" d="M8 3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2M16 3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2" />
+      <path className="bridge" d="M8 3h8M8 10h8" />
+    </g>
+  )),
   back: <path d="M15 5l-7 7 7 7" />,
   next: <path d="M9 5l7 7-7 7" />,
   up: <path d="M12 19V5M5 12l7-7 7 7" />,
@@ -10,20 +19,6 @@ const paths = {
     </>
   ),
   filter: <path d="M4 6h16M7 12h10M10 18h4" />,
-  grid: (
-    <>
-      <rect x="3" y="3" width="7" height="7" rx="2" />
-      <rect x="14" y="3" width="7" height="7" rx="2" />
-      <rect x="3" y="14" width="7" height="7" rx="2" />
-      <rect x="14" y="14" width="7" height="7" rx="2" />
-    </>
-  ),
-  list: (
-    <>
-      <rect x="3" y="4" width="18" height="6" rx="2" />
-      <rect x="3" y="14" width="18" height="6" rx="2" />
-    </>
-  ),
   plus: <path d="M12 5v14M5 12h14" />,
   info: (
     <>
@@ -111,7 +106,12 @@ const paths = {
       <path d="M6.5 8h11L20 20H4z" />
     </>
   ),
-  trash: <path d="M5 7h14M10 11v6M14 11v6M7 7l1 13h8l1-13M9 7V4h6v3" />,
+  trash: (
+    <>
+      <path d="M10 11v6M14 11v6M7 7l1 13h8l1-13" />
+      <path className="lid" d="M5 7h14M9 7V4h6v3" />
+    </>
+  ),
   // Move categories (drawn on a coloured badge by CategoryIcon), each stretched along a 30° diagonal:
   // a spike bubble, rings, an oval split by an S-curve with one side filled.
   physical: (

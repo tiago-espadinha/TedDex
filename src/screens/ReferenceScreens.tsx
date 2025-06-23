@@ -13,7 +13,7 @@ import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } fro
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { CategoryIcon, Loading, MonName, SearchField, TypeChip } from '../components/bits';
+import { CategoryIcon, CountBadge, Loading, MonName, SearchField, Segmented, TypeChip } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { MoveCells, MoveHead } from './MovesTab';
 import { AbilityFilterSheet } from './AbilityFilterSheet';
@@ -196,11 +196,7 @@ function SearchList() {
             onClick={() => setSheetOpen(true)}
           >
             <Icon name="filter" size={24} />
-            {filtered > 0 && (
-              <span className="badge" aria-hidden="true">
-                {filtered}
-              </span>
-            )}
+            <CountBadge count={filtered} held={sheetOpen} />
           </button>
           {sheetOpen && moveFilters && (
             <MoveFilterSheet
@@ -487,13 +483,13 @@ function MoveLearners({ learners, index, gameGen }: { learners: MoveReference['l
           </p>
         )}
         {methods.length > 1 && (
-          <div className="segmented method-pick" role="radiogroup" aria-label="How they learn it">
+          <Segmented className="method-pick" aria-label="How they learn it">
             {methods.map(([m, label]) => (
               <button key={m} role="radio" aria-checked={m === method} onClick={() => setMethod(m)}>
                 {label}
               </button>
             ))}
-          </div>
+          </Segmented>
         )}
       </div>
       <LearnerTable title={title} ids={inGen(method)} index={index} />
