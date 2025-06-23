@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { defensiveMultipliers, itemSpriteUrl, loadAbilities, loadEggGroups, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes, loadVersions, offensiveMultipliers, useLoad } from '../data/api';
 import { EGG_GROUP_COLOR, EGG_GROUP_NOTE } from '../data/eggGroups';
 import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters } from '../data/abilityFilter';
@@ -181,6 +181,7 @@ function SearchList() {
                 to={`/reference/${k.kind}/${e.id}`}
                 className={e.type ? 'move-row tinted' : 'move-row'}
                 style={e.type && { backgroundColor: typeTint(e.type) }}
+                data-morph={e.type ? undefined : `/reference/${k.kind}/${e.id}`}
               >
                 <EntryBody entry={e} />
               </Link>
@@ -300,19 +301,23 @@ interface FrameProps {
   head?: ReactNode;
   /** Picture at the end of the header (item sprites), once loaded. */
   art?: ReactNode;
+  /** The list above has no rows to morph from (the type chart). */
+  noMorph?: boolean;
   children?: ReactNode;
 }
 
 /** Topbar, then the body once loaded; the same loading, error and not-found states for every kind. */
-function EntryFrame({ one, name, error, loaded, tint, head, art, children }: FrameProps) {
+function EntryFrame({ one, name, error, loaded, tint, head, art, noMorph, children }: FrameProps) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   let body = children;
   if (error) body = <p className="empty">Couldn't load this {one.toLowerCase()}. {error.message}</p>;
   else if (!loaded) body = <Loading />;
   else if (!name) body = <p className="empty">This {one.toLowerCase()} isn't in the data.</p>;
   return (
     <>
-      <header className={tint ? 'topbar tinted' : 'topbar'} style={tint && { backgroundColor: typeTint(tint) }}>
+      {/* A morph target only once loaded: until then the title is the placeholder. */}
+      <header className={tint ? 'topbar tinted' : 'topbar'} style={tint && { backgroundColor: typeTint(tint) }} data-morph={name && !noMorph ? pathname : undefined}>
         <button className="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? navigate(-1) : navigate('/reference'))}>
           <Icon name="back" />
         </button>
@@ -738,7 +743,7 @@ function TypeEntry({ id, one }: EntryProps) {
   const { data, error } = useLoad(() => Promise.all([loadTypes(), loadIndex()]), 'types');
   const type = data?.[0].types.find((t) => t === id);
   return (
-    <EntryFrame one={one} name={type && cap(type)} error={error} loaded={!!data} tint={type}>
+    <EntryFrame one={one} name={type && cap(type)} error={error} loaded={!!data} tint={type} noMorph>
       {type && data && (
         <>
           <TypeChart type={type} data={data[0]} />

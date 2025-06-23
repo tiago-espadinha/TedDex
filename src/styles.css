@@ -583,6 +583,23 @@ main:focus, .sheet:focus { outline: none; }
 ::view-transition-old(root) { animation: fade-out 120ms ease both; }
 ::view-transition-new(root) { animation: rise-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(12px); } }
+/* Going back plays that in reverse; tabs are siblings, so they only cross-fade (direction classes from main.tsx). */
+@keyframes sink-out { to { opacity: 0; transform: translateY(12px); } }
+.vt-back::view-transition-old(root) { animation: sink-out 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.vt-back::view-transition-new(root) { animation: fade 120ms ease both; }
+.vt-tab::view-transition-old(root) { animation: fade-out 120ms ease both; }
+.vt-tab::view-transition-new(root) { animation: fade 120ms ease both; }
+/* Shared elements (src/data/screenMorph.ts): the browser moves and resizes each group while its images cross-fade. */
+::view-transition-group(morph-card), ::view-transition-group(morph-title), ::view-transition-group(morph-sub), ::view-transition-group(morph-art) { animation-duration: 240ms; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+::view-transition-new(morph-card), ::view-transition-old(morph-art), ::view-transition-new(morph-art) { animation-duration: 240ms; }
+/* The old card goes as fast as the old screen, so a sheet's text doesn't sit over the new page's. */
+::view-transition-old(morph-card) { animation-duration: 120ms; }
+/* The new screen waits for the old one to go, so moving text never crosses a page body at full strength. */
+.vt-morph::view-transition-new(root) { animation: rise-in 160ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both; }
+.vt-morph.vt-back::view-transition-old(root) { animation: fade-out 120ms ease both; }
+.vt-morph.vt-back::view-transition-new(root) { animation: fade 160ms ease 80ms both; }
+/* Text scales with its height from the left, whatever width its row or header gives it, so it never stretches. */
+::view-transition-old(morph-title), ::view-transition-new(morph-title), ::view-transition-old(morph-sub), ::view-transition-new(morph-sub) { animation-duration: 240ms; width: auto; height: 100%; }
 .bottom-nav { view-transition-name: bottom-nav; }
 .team-tabs { view-transition-name: team-tabs; }
 /* These stay put across a screen change, live, so their pills can slide: no old snapshot to cross-fade with. */

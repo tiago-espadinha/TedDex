@@ -121,7 +121,7 @@ export function TeamsScreen() {
         {teams?.length === 0 && <p className="empty">No teams yet. Tap + to create one.</p>}
         {teams?.length !== 0 && shown?.length === 0 && <p className="empty">No teams match “{query}”.</p>}
         {shown?.map((t) => (
-          <Link key={t.id} to={`/teams/${t.id}`} className="team-row team-list-row">
+          <Link key={t.id} to={`/teams/${t.id}`} className="team-row team-list-row" data-morph={`/teams/${t.id}`} data-morph-card>
             <span className="head">
               <Icon name="ball" size={16} />
               <span className="name">{t.name}</span>
@@ -276,7 +276,7 @@ export function TeamEditor() {
 
   return (
     <>
-      <header className="topbar">
+      <header className="topbar" data-morph={`/teams/${id}`} data-morph-card>
         <Link to="/teams" className="icon-btn" aria-label="Back to teams">
           <Icon name="back" />
         </Link>

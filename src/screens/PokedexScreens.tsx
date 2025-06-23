@@ -67,7 +67,7 @@ export function PokedexList() {
           const scope = dexScope(d, versions);
           const counter = caughtCounter(d, scope, regional);
           return (
-            <Link key={d.id} to={`/teams/pokedex/${d.id}`} className="team-row dex-row">
+            <Link key={d.id} to={`/teams/pokedex/${d.id}`} className="team-row dex-row" data-morph={`/teams/pokedex/${d.id}`} data-morph-card>
               <DexArt game={scope?.known ? d.game : undefined} />
               <span className="head">
                 <span className="name">{d.name}</span>
@@ -226,7 +226,7 @@ export function PokedexScreen() {
 
   return (
     <>
-      <header className="topbar dex-top">
+      <header className="topbar dex-top" data-morph={`/teams/pokedex/${id}`} data-morph-card>
         <Link to="/teams/pokedex" className="icon-btn" aria-label="Back to Pokédex">
           <Icon name="back" />
         </Link>

@@ -46,7 +46,7 @@ function PeekSheet({ peek, actions, onClose }: { peek: Peek; actions: PeekAction
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet peek" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <section ref={sheet} tabIndex={-1} className="sheet peek" role="dialog" aria-modal="true" aria-labelledby={titleId} data-morph={peekPage(peek)} data-morph-card>
         <div className="handle" />
         <Summary
           id={peek.id}

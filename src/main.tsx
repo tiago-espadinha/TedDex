@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation, type Location } from 'react-router-dom';
 import { BottomNav, ToastProvider, useKeyboardInset } from './components/bits';
 import { isPicking } from './data/dexState';
+import { clearNames, prepareMorph, screenDirection } from './data/screenMorph';
 import { applyDesign, applyTheme, type Design, type Theme } from './data/settings';
 import { warmSprites } from './data/spriteCache';
 import { CompareScreen } from './screens/CompareScreen';
@@ -96,7 +97,7 @@ const router = createBrowserRouter([
 
 // Screen changes animate with the View Transitions API (no-op where unsupported). Wrapping navigate
 // covers every <Link> and navigate() call; only path changes animate, so typing in a search box
-// (search params) doesn't, and Back replays the transition of the forward step.
+// (search params) doesn't, and Back replays the transition of the forward step, in reverse.
 const navigate = router.navigate;
 router.navigate = ((to: Parameters<typeof navigate>[0], opts?: Parameters<typeof navigate>[1]) => {
   if (typeof to === 'number') return navigate(to);
@@ -104,26 +105,51 @@ router.navigate = ((to: Parameters<typeof navigate>[0], opts?: Parameters<typeof
   return navigate(to, { ...opts, viewTransition: opts?.viewTransition ?? (path != null && path !== location.pathname) });
 }) as typeof navigate;
 
-// Back replays a transition into any path that ever animated, even when only the search changes (closing the
-// quick view). Skip those: nothing visible changes, and a running transition swallows taps.
-let shownPath = location.pathname;
-let previousPath = shownPath;
+const historyIndex = () => (history.state as { idx?: number } | null)?.idx ?? 0;
+const place = (loc: Location) => ({ pathname: loc.pathname, picking: isPickMode(loc) });
 let shownLocation = router.state.location;
+let previousLocation = shownLocation;
+let shownIndex = historyIndex();
+let delta = 0;
 router.subscribe((state) => {
   // Only location changes count: loading and fetcher updates would make every path look unchanged.
   if (state.location === shownLocation) return;
+  previousLocation = shownLocation;
   shownLocation = state.location;
-  previousPath = shownPath;
-  shownPath = state.location.pathname;
+  delta = state.historyAction === 'POP' ? historyIndex() - shownIndex : 0;
+  shownIndex = historyIndex();
 });
 const startViewTransition = document.startViewTransition?.bind(document);
 if (startViewTransition) {
+  let latest: ViewTransition | undefined;
   document.startViewTransition = ((arg: Parameters<typeof startViewTransition>[0]) => {
-    const transition = startViewTransition(arg);
-    if (previousPath === shownPath) {
+    const root = document.documentElement;
+    const from = previousLocation.pathname;
+    const to = shownLocation.pathname;
+    // Back replays a transition into any path that ever animated, even when only the search changes (closing the
+    // quick view). Skip those: nothing visible changes, and a running transition swallows taps.
+    if (from === to) {
+      const transition = startViewTransition(arg);
       transition.ready.catch(() => {});
       transition.skipTransition();
+      return transition;
     }
+    const direction = screenDirection(place(previousLocation), place(shownLocation), delta);
+    root.classList.remove('vt-back', 'vt-tab', 'vt-morph');
+    if (direction !== 'forward') root.classList.add(`vt-${direction}`);
+    const nameNewScreen = prepareMorph(from, to, direction);
+    const transition = startViewTransition(async () => {
+      // React Router always passes a function.
+      await (arg as () => Promise<void>)();
+      await nameNewScreen();
+    });
+    latest = transition;
+    transition.ready.catch(() => {});
+    transition.finished.finally(() => {
+      if (latest !== transition) return;
+      root.classList.remove('vt-back', 'vt-tab', 'vt-morph');
+      clearNames();
+    });
     return transition;
   }) as typeof document.startViewTransition;
 }
