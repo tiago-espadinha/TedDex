@@ -99,9 +99,10 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
       <div className="dex-search">
         <SearchField
           label="Search Pokémon"
-          placeholder="Name, number, type"
+          placeholder="Name or number"
           value={filters.query}
           onChange={(query) => setFilters({ ...filters, query })}
+          hints="dex"
         />
       </div>
       {!shown ? (

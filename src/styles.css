@@ -44,6 +44,7 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --font: Manrope, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-code: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   /* Type scale for body, label and table text; nothing is set under --fs-xs. Headings keep their own sizes. */
   --fs-xs: 12px;
   --fs-sm: 13px;
@@ -465,6 +466,10 @@ main:focus, .sheet:focus { outline: none; }
 .to-top:active { background: var(--surface-2); }
 .no-nav .to-top { bottom: calc(var(--safe-bottom) + 84px); }
 .icon-btn.sm { width: 36px; height: 36px; }
+/* A phone's header field is too narrow for the "?" beside a query: the clear button takes its place until the field is empty or pinned. */
+@media (max-width: 599px) {
+  :is(.dex-head, .topbar) .search.in-head:not(.pinned):has(input:not(:placeholder-shown)) .search-help { display: none; }
+}
 .icon-btn[aria-pressed='true'] { background: var(--primary-soft); color: var(--primary-soft-ink); }
 
 .grid-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0 16px; }
@@ -548,7 +553,7 @@ main:focus, .sheet:focus { outline: none; }
 .hint { font-size: var(--fs-xs); color: var(--muted); margin: 6px 2px; }
 
 /* Controls drawn smaller than 44 px get an invisible 44 px hit area; their visual size is unchanged. */
-:is(.gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn) {
+:is(.gen-btn, .type-toggle, .segmented button, .tabs button, .text-btn, .search-help) {
   position: relative;
   &::after { content: ''; position: absolute; inset: min(0px, 50% - 22px); }
 }
@@ -563,6 +568,20 @@ main:focus, .sheet:focus { outline: none; }
 /* Closing a sheet: it sinks and the scrim fades (SHEET_CLOSE_MS in bits.tsx). */
 .sheet.closing { animation: sink 180ms ease-in forwards; }
 .scrim:has(+ .sheet.closing) { animation: fade-out 180ms ease-in forwards; }
+.hint-sheet code { display: inline-block; padding: 3px 8px; border-radius: 8px; background: var(--surface-2); color: var(--ink); font-family: var(--font-code); font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
+.hint-sheet dl { margin: 0; display: grid; gap: 8px; }
+.hint-sheet dd { margin: 0; font-size: var(--fs-md); color: var(--ink-2); }
+.hint-sheet dl > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.hint-ops { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hint-ops code { min-width: 44px; text-align: center; }
+.hint-examples dd { flex: 1 1 140px; }
+@media (max-width: 599px) {
+  .hint-sheet .hint-examples > div { flex-direction: column; align-items: flex-start; gap: 3px; }
+  .hint-examples dd { flex: none; }
+}
+.hint-words dt { flex: 0 0 84px; font-size: var(--fs-sm); font-weight: 700; color: var(--ink); }
+.hint-words dd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.hint-sheet .hint { margin: 10px 0 0; }
 /* Quick view: a move, ability or item summary over the current screen. */
 .peek-head { display: flex; align-items: center; gap: 12px; margin-right: -8px; }
 .peek-head .grow { flex: 1; min-width: 0; }
@@ -1241,7 +1260,7 @@ button.game-select { width: 100%; margin: 0; text-align: left; }
 [data-design='b'] .ref-table.natures .fact-chip { padding-inline: 6px; font-size: var(--fs-sm); }
 [data-design='b'] .nav-ink::before { border-radius: 4px; }
 [data-design='b'] .sheet { border-radius: 8px 8px 0 0; }
-[data-design='b'] :is(.search, .to-top, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
+[data-design='b'] :is(.hint-sheet code, .search, .to-top, .gen-btn, .fact, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
   .move-slots .move-row, .move-pick, .summary .tile, .coming, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .evo-card, .evo-mon, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }

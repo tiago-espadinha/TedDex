@@ -165,7 +165,7 @@ function SearchList() {
           <h1>{k.title}</h1>
           {data && <div className="sub">{filtered || query ? `${shown.length} of ${data.length}` : `${data.length} in the data`}</div>}
         </div>
-        <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} />
+        <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} hints={k.kind === 'moves' || k.kind === 'items' ? k.kind : undefined} />
       </header>
       {error && <p className="empty">Couldn't load {k.title.toLowerCase()}. {error.message}</p>}
       {!data && !error && <Loading />}

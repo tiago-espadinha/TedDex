@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type RefObject } from 'react';
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type RefObject } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { cap } from '../data/format';
+import { SEARCH_HINTS, SEARCH_OPERATORS, type HintList } from '../data/searchHints';
 import { typeChip } from '../data/typeColors';
 import type { MoveCategory, TypeName } from '../data/types';
 import { Icon, type IconName } from './Icon';
@@ -288,6 +289,7 @@ function usePinnedSearch() {
  * Search field that sits in a screen's header row, next to its title. `trailing` goes inside the
  * field on the right (after the clear button), like the Dex grid/list toggle. Scrolled away, it
  * pins at the top in a compact form, and a back-to-top arrow appears above the filter button.
+ * `hints` adds the "?" that opens the list's search tips.
  */
 export function SearchField({
   label,
@@ -295,13 +297,16 @@ export function SearchField({
   onChange,
   placeholder,
   trailing,
+  hints,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   trailing?: ReactNode;
+  hints?: HintList;
 }) {
+  const [hintsOpen, setHintsOpen] = useState(false);
   const { slot, field, pinTop, toTop } = usePinnedSearch();
   useBlurOnDrag(field);
   // The bar stays mounted at its last height, so it can fade out under the field on unpin.
@@ -312,8 +317,8 @@ export function SearchField({
       <div className={`search-bar${pinTop == null ? '' : ' on'}`} style={{ '--pin-top': `${barTop}px` } as CSSProperties} aria-hidden="true" />
       <label ref={field} className={`search in-head${pinTop == null ? '' : ' pinned'}`} style={{ top: pinTop == null ? undefined : `calc(${pinTop}px + var(--vv-top, 0px))` }}>
         <Icon name="search" size={20} />
-        <span className="sr-only">{label}</span>
         <input
+          aria-label={label}
           type="search"
           inputMode="search"
           autoComplete="off"
@@ -326,8 +331,14 @@ export function SearchField({
             <Icon name="close" size={18} />
           </button>
         )}
+        {hints && (
+          <button className="icon-btn sm search-help" aria-label="Search tips" aria-haspopup="dialog" onClick={() => setHintsOpen(true)}>
+            <Icon name="help" size={20} />
+          </button>
+        )}
         {trailing}
       </label>
+      {hints && hintsOpen && <SearchHintSheet list={hints} onClose={() => setHintsOpen(false)} />}
       {toTop && (
         <button
           className="to-top"
@@ -342,6 +353,61 @@ export function SearchField({
         </button>
       )}
     </div>
+  );
+}
+
+/** What a list's search takes: the operators, its keywords and examples that work there. */
+function SearchHintSheet({ list, onClose }: { list: HintList; onClose: () => void }) {
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
+  const titleId = useId();
+  const { keywords, examples } = SEARCH_HINTS[list];
+  return (
+    <>
+      <div className="scrim" onClick={() => close()} />
+      <section ref={sheet} tabIndex={-1} className="sheet hint-sheet" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+        <div className="handle" />
+        <div className="sheet-head">
+          <h2 id={titleId}>Search tips</h2>
+          <button className="icon-btn" aria-label="Close" onClick={() => close()}>
+            <Icon name="close" />
+          </button>
+        </div>
+        <h3>Operators</h3>
+        <dl className="hint-ops">
+          {SEARCH_OPERATORS.map((o) => (
+            <div key={o.sign}>
+              <dt><code>{o.sign}</code></dt>
+              <dd>{o.meaning}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="hint">A space stays part of the name, so combine with &amp;.</p>
+        <h3>Keywords</h3>
+        <dl className="hint-words">
+          {keywords.map((k) => (
+            <div key={k.label}>
+              <dt>{k.label}</dt>
+              <dd>
+                {k.words.map((w) => (
+                  <code key={w}>{w}</code>
+                ))}
+                {k.note && <span>{k.note}</span>}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p className="hint">Any other word searches the names.</p>
+        <h3>Examples</h3>
+        <dl className="hint-examples">
+          {examples.map((e) => (
+            <div key={e.query}>
+              <dt><code>{e.query}</code></dt>
+              <dd>{e.meaning}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    </>
   );
 }
 

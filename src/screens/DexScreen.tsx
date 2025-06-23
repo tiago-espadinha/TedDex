@@ -96,9 +96,10 @@ export function DexScreen() {
   const search = (
     <SearchField
       label="Search Pokémon"
-      placeholder="Name, number, type"
+      placeholder="Name or number"
       value={filters.query}
       onChange={(query) => setFilters({ ...filters, query })}
+      hints="dex"
       trailing={
         <button
           className="icon-btn sm view-toggle"
