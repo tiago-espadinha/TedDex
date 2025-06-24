@@ -8,7 +8,7 @@ import { applyDesign, applyTheme, useDesign, useDexForms, useGame, useSpriteStyl
 import type { FormKind } from '../data/types';
 import { Icon } from '../components/Icon';
 import { MonImg } from '../components/MonImg';
-import { useToast } from '../components/bits';
+import { Segmented, useToast } from '../components/bits';
 
 export function MoreScreen() {
   const [design, setDesign] = useDesign();
@@ -57,14 +57,14 @@ export function MoreScreen() {
 
       <div className="section" style={{ padding: 0 }}>
         <h2>Design</h2>
-        <div className="segmented" role="radiogroup" aria-label="Design">
+        <Segmented aria-label="Design">
           <button role="radio" aria-checked={design === 'a'} onClick={() => setDesign('a')}>
             A: Material
           </button>
           <button role="radio" aria-checked={design === 'b'} onClick={() => setDesign('b')}>
             B: Dark
           </button>
-        </div>
+        </Segmented>
 
         <h2 style={{ marginTop: 22 }}>Theme</h2>
         {design === 'b' && (
@@ -72,23 +72,23 @@ export function MoreScreen() {
             Design B is dark only. Switch to Design A to choose a theme.
           </p>
         )}
-        <div className="segmented" role="radiogroup" aria-label="Theme" aria-describedby={design === 'b' ? 'theme-hint' : undefined}>
+        <Segmented aria-label="Theme" aria-describedby={design === 'b' ? 'theme-hint' : undefined}>
           {(['system', 'light', 'dark'] as Theme[]).map((t) => (
             <button key={t} role="radio" aria-checked={theme === t} disabled={design === 'b'} onClick={() => setTheme(t)}>
               {t[0].toUpperCase() + t.slice(1)}
             </button>
           ))}
-        </div>
+        </Segmented>
 
         <h2 style={{ marginTop: 22 }}>Dex images</h2>
-        <div className="segmented" role="radiogroup" aria-label="Dex images">
+        <Segmented aria-label="Dex images">
           <button role="radio" aria-checked={sprite === 'sprite'} onClick={() => setSprite('sprite')}>
             Sprites
           </button>
           <button role="radio" aria-checked={sprite === 'art'} onClick={() => setSprite('art')}>
             Artwork
           </button>
-        </div>
+        </Segmented>
 
         <h2 style={{ marginTop: 22 }} id="forms-head">
           Forms in the Dex

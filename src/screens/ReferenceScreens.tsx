@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { defensiveMultipliers, itemSpriteUrl, loadAbilities, loadEggGroups, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes, loadVersions, offensiveMultipliers, useLoad } from '../data/api';
 import { EGG_GROUP_COLOR, EGG_GROUP_NOTE } from '../data/eggGroups';
 import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters } from '../data/abilityFilter';
@@ -13,7 +13,7 @@ import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } fro
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { CategoryIcon, Loading, MonName, SearchField, TypeChip } from '../components/bits';
+import { CategoryIcon, CountBadge, Loading, MonName, SearchField, Segmented, TypeChip } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { MoveCells, MoveHead } from './MovesTab';
 import { AbilityFilterSheet } from './AbilityFilterSheet';
@@ -165,7 +165,7 @@ function SearchList() {
           <h1>{k.title}</h1>
           {data && <div className="sub">{filtered || query ? `${shown.length} of ${data.length}` : `${data.length} in the data`}</div>}
         </div>
-        <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} />
+        <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} hints={k.kind === 'moves' || k.kind === 'items' ? k.kind : undefined} />
       </header>
       {error && <p className="empty">Couldn't load {k.title.toLowerCase()}. {error.message}</p>}
       {!data && !error && <Loading />}
@@ -181,6 +181,7 @@ function SearchList() {
                 to={`/reference/${k.kind}/${e.id}`}
                 className={e.type ? 'move-row tinted' : 'move-row'}
                 style={e.type && { backgroundColor: typeTint(e.type) }}
+                data-morph={e.type ? undefined : `/reference/${k.kind}/${e.id}`}
               >
                 <EntryBody entry={e} />
               </Link>
@@ -196,11 +197,7 @@ function SearchList() {
             onClick={() => setSheetOpen(true)}
           >
             <Icon name="filter" size={24} />
-            {filtered > 0 && (
-              <span className="badge" aria-hidden="true">
-                {filtered}
-              </span>
-            )}
+            <CountBadge count={filtered} held={sheetOpen} />
           </button>
           {sheetOpen && moveFilters && (
             <MoveFilterSheet
@@ -304,19 +301,23 @@ interface FrameProps {
   head?: ReactNode;
   /** Picture at the end of the header (item sprites), once loaded. */
   art?: ReactNode;
+  /** The list above has no rows to morph from (the type chart). */
+  noMorph?: boolean;
   children?: ReactNode;
 }
 
 /** Topbar, then the body once loaded; the same loading, error and not-found states for every kind. */
-function EntryFrame({ one, name, error, loaded, tint, head, art, children }: FrameProps) {
+function EntryFrame({ one, name, error, loaded, tint, head, art, noMorph, children }: FrameProps) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   let body = children;
   if (error) body = <p className="empty">Couldn't load this {one.toLowerCase()}. {error.message}</p>;
   else if (!loaded) body = <Loading />;
   else if (!name) body = <p className="empty">This {one.toLowerCase()} isn't in the data.</p>;
   return (
     <>
-      <header className={tint ? 'topbar tinted' : 'topbar'} style={tint && { backgroundColor: typeTint(tint) }}>
+      {/* A morph target only once loaded: until then the title is the placeholder. */}
+      <header className={tint ? 'topbar tinted' : 'topbar'} style={tint && { backgroundColor: typeTint(tint) }} data-morph={name && !noMorph ? pathname : undefined}>
         <button className="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? navigate(-1) : navigate('/reference'))}>
           <Icon name="back" />
         </button>
@@ -487,13 +488,13 @@ function MoveLearners({ learners, index, gameGen }: { learners: MoveReference['l
           </p>
         )}
         {methods.length > 1 && (
-          <div className="segmented method-pick" role="radiogroup" aria-label="How they learn it">
+          <Segmented className="method-pick" aria-label="How they learn it">
             {methods.map(([m, label]) => (
               <button key={m} role="radio" aria-checked={m === method} onClick={() => setMethod(m)}>
                 {label}
               </button>
             ))}
-          </div>
+          </Segmented>
         )}
       </div>
       <LearnerTable title={title} ids={inGen(method)} index={index} />
@@ -742,7 +743,7 @@ function TypeEntry({ id, one }: EntryProps) {
   const { data, error } = useLoad(() => Promise.all([loadTypes(), loadIndex()]), 'types');
   const type = data?.[0].types.find((t) => t === id);
   return (
-    <EntryFrame one={one} name={type && cap(type)} error={error} loaded={!!data} tint={type}>
+    <EntryFrame one={one} name={type && cap(type)} error={error} loaded={!!data} tint={type} noMorph>
       {type && data && (
         <>
           <TypeChart type={type} data={data[0]} />

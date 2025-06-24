@@ -12,7 +12,7 @@ import { catchChance, evYieldParts, formatMultiplier, formatNo, genderText, stat
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { SpeciesDetail, TypeData, TypeName } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, MonName, TypeChip, useToast } from '../components/bits';
+import { Loading, MonName, TypeChip, playAnim, useToast } from '../components/bits';
 import { usePager } from '../components/usePager';
 import { usePeek } from '../components/usePeek';
 import { MonImg } from '../components/MonImg';
@@ -129,7 +129,10 @@ export function DetailScreen() {
               aria-label="Favourite"
               aria-pressed={!!favourite}
               disabled={favourite === undefined}
-              onClick={() => toggleFavourite(id, formKey)}
+              onClick={(e) => {
+                if (!favourite) playAnim(e.currentTarget, 'heart');
+                toggleFavourite(id, formKey);
+              }}
             >
               <Icon name="heart" />
             </button>

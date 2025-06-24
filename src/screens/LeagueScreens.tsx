@@ -8,7 +8,7 @@ import type { MemberView } from '../data/forms';
 import { bandStyle } from '../data/gameColors';
 import type { AbilityTable, FormVariant, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTrainer, MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip } from '../components/bits';
+import { Loading, Segmented, TypeChip } from '../components/bits';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 import { usePeek } from '../components/usePeek';
 import { teamType } from '../data/teamType';
@@ -364,13 +364,13 @@ function Picker({ labels, fallback, pick, onPick, labelledBy }: {
       <div className="league-pick-label" id={id}>
         {prefix || fallback}
       </div>
-      <div className="segmented league-pick" role="radiogroup" aria-labelledby={`${labelledBy} ${id}`}>
+      <Segmented className="league-pick" aria-labelledby={`${labelledBy} ${id}`}>
         {options.map((o, i) => (
           <button key={i} role="radio" aria-checked={i === pick} onClick={() => onPick(i)}>
             {o}
           </button>
         ))}
-      </div>
+      </Segmented>
     </>
   );
 }

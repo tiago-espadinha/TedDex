@@ -11,7 +11,7 @@ import { DEFAULT_FILTERS, SORT_LABELS, detailPath, isPicking, saveOrder, useDexF
 import { typeTint } from '../data/typeColors';
 import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
-import { Loading, MonName, SearchField, TypeChip, useToast } from '../components/bits';
+import { CountBadge, Loading, MonName, SearchField, TypeChip, useToast } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { FilterSheet } from './FilterSheet';
 import { useDexForms, useDexView, useGame, useSpriteStyle } from '../data/settings';
@@ -96,17 +96,18 @@ export function DexScreen() {
   const search = (
     <SearchField
       label="Search Pokémon"
-      placeholder="Name, number, type"
+      placeholder="Name or number"
       value={filters.query}
       onChange={(query) => setFilters({ ...filters, query })}
+      hints="dex"
       trailing={
         <button
-          className="icon-btn sm"
+          className="icon-btn sm view-toggle"
           aria-label="List view"
           aria-pressed={view === 'list'}
           onClick={() => setView(view === 'list' ? 'grid' : 'list')}
         >
-          <Icon name={view === 'list' ? 'grid' : 'list'} size={20} />
+          <Icon name="view" size={20} />
         </button>
       }
     />
@@ -176,11 +177,7 @@ export function DexScreen() {
         onClick={() => setSheetOpen(true)}
       >
         <Icon name="filter" size={24} />
-        {activeCount > 0 && (
-          <span className="badge" aria-hidden="true">
-            {activeCount}
-          </span>
-        )}
+        {!waiting && <CountBadge count={activeCount} held={sheetOpen} />}
       </button>
 
       {sheetOpen && (

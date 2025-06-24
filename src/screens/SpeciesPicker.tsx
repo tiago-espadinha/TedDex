@@ -9,7 +9,7 @@ import { FUSE_OPTIONS, applyFilters, dexRows } from '../data/filter';
 import { useFavourites } from '../data/favourites';
 import { formatNo } from '../data/format';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField } from '../components/bits';
+import { CountBadge, Loading, SearchField } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { FilterSheet } from './FilterSheet';
 
@@ -99,9 +99,10 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
       <div className="dex-search">
         <SearchField
           label="Search Pokémon"
-          placeholder="Name, number, type"
+          placeholder="Name or number"
           value={filters.query}
           onChange={(query) => setFilters({ ...filters, query })}
+          hints="dex"
         />
       </div>
       {!shown ? (
@@ -117,11 +118,7 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
       )}
       <button className="fab" aria-label={active ? `Filter, ${active} active` : 'Filter'} onClick={() => setSheetOpen(true)}>
         <Icon name="filter" size={24} />
-        {active > 0 && (
-          <span className="badge" aria-hidden="true">
-            {active}
-          </span>
-        )}
+        <CountBadge count={active} held={sheetOpen} />
       </button>
       {sheetOpen && rows && (
         <FilterSheet

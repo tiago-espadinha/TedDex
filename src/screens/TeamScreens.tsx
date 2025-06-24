@@ -12,7 +12,7 @@ import { NATURES } from '../data/natures';
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { AbilityNameTable, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField, TypeChip, useModalSheet } from '../components/bits';
+import { Loading, SearchField, Segmented, TypeChip, playAnim, useModalSheet, useSegmentSlide } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 import { usePeek } from '../components/usePeek';
@@ -121,7 +121,7 @@ export function TeamsScreen() {
         {teams?.length === 0 && <p className="empty">No teams yet. Tap + to create one.</p>}
         {teams?.length !== 0 && shown?.length === 0 && <p className="empty">No teams match “{query}”.</p>}
         {shown?.map((t) => (
-          <Link key={t.id} to={`/teams/${t.id}`} className="team-row team-list-row">
+          <Link key={t.id} to={`/teams/${t.id}`} className="team-row team-list-row" data-morph={`/teams/${t.id}`} data-morph-card>
             <span className="head">
               <Icon name="ball" size={16} />
               <span className="name">{t.name}</span>
@@ -150,8 +150,9 @@ export function TeamsScreen() {
 
 /** The Team tab's two lists. */
 export function TeamTabs() {
+  const ref = useSegmentSlide<HTMLElement>('team-tabs');
   return (
-    <nav className="segmented team-tabs" aria-label="Lists">
+    <nav ref={ref} className="segmented team-tabs" aria-label="Lists">
       <NavLink to="/teams" end>
         Teams
       </NavLink>
@@ -163,7 +164,7 @@ export function TeamTabs() {
 }
 
 /**
- * A sheet that renames a team or Pokédex (up to NAME_LENGTH characters, counted as code points), or sets a member's
+ * A centred dialog that renames a team or Pokédex (up to NAME_LENGTH characters, counted as code points), or sets a member's
  * nickname; `onSave` runs only when the name changed. `nickname` titles it "Nickname", takes up to NICKNAME_LENGTH
  * characters and lets it be emptied to clear it.
  */
@@ -180,15 +181,14 @@ export function RenameSheet({
   onSave: (name: string) => void;
   onClose: () => void;
 }) {
-  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose, { drag: false });
   const [name, setName] = useState(current);
   const headingId = useId();
   const limit = nickname ? NICKNAME_LENGTH : NAME_LENGTH;
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby={headingId}>
-        <div className="handle" />
+      <section ref={sheet} tabIndex={-1} className="sheet dialog" role="dialog" aria-modal="true" aria-labelledby={headingId}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -229,14 +229,13 @@ export function RenameSheet({
 
 /** Asks before deleting `name`; `lost` says what goes with it. Cancel takes focus, so Enter alone can't delete. */
 export function DeleteSheet({ name, lost, onDelete, onClose }: { name: string; lost: string; onDelete: () => void; onClose: () => void }) {
-  const [sheet, close] = useModalSheet<HTMLElement>(onClose);
+  const [sheet, close] = useModalSheet<HTMLElement>(onClose, { drag: false });
   const headingId = useId();
   const textId = useId();
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="alertdialog" aria-modal="true" aria-labelledby={headingId} aria-describedby={textId}>
-        <div className="handle" />
+      <section ref={sheet} tabIndex={-1} className="sheet dialog" role="alertdialog" aria-modal="true" aria-labelledby={headingId} aria-describedby={textId}>
         <div className="sheet-head">
           <h2 id={headingId} className="confirm-title">
             Delete {name}?
@@ -275,7 +274,7 @@ export function TeamEditor() {
 
   return (
     <>
-      <header className="topbar">
+      <header className="topbar" data-morph={`/teams/${id}`} data-morph-card>
         <Link to="/teams" className="icon-btn" aria-label="Back to teams">
           <Icon name="back" />
         </Link>
@@ -289,7 +288,15 @@ export function TeamEditor() {
             {team.members.length} of {TEAM_SIZE}
           </div>
         </div>
-        <button className="icon-btn" aria-label="Delete team" aria-haspopup="dialog" onClick={() => setDeleting(true)}>
+        <button
+          className="icon-btn"
+          aria-label="Delete team"
+          aria-haspopup="dialog"
+          onClick={(e) => {
+            playAnim(e.currentTarget, 'bin');
+            setDeleting(true);
+          }}
+        >
           <Icon name="trash" />
         </button>
       </header>
@@ -401,13 +408,13 @@ export function CoverageBody({ members }: { members: CoverageMember[] }) {
   if (!typeData || !moves) return <Loading />;
   return (
     <>
-      <div className="segmented cov-mode" role="radiogroup" aria-label="Analysis">
+      <Segmented className="cov-mode" aria-label="Analysis">
         {(['defensive', 'offensive', 'stats'] as Mode[]).map((m) => (
           <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}>
             {cap(m)}
           </button>
         ))}
-      </div>
+      </Segmented>
       {mode === 'defensive' ? (
         <DefensiveView mons={members.map((x) => x.mon)} typeData={typeData} />
       ) : mode === 'offensive' ? (

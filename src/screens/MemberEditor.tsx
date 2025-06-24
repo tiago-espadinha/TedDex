@@ -12,7 +12,7 @@ import { useGodMode } from '../data/settings';
 import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, TypeChip, useModalSheet, useToast } from '../components/bits';
+import { CountBadge, Loading, TypeChip, playAnim, useModalSheet, useToast } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { usePeek } from '../components/usePeek';
 import { MoveChoiceFilterSheet } from './MoveChoiceFilterSheet';
@@ -118,7 +118,8 @@ export function MemberEditor() {
           aria-label="God mode"
           aria-pressed={godMode}
           title={godModeText(godMode)}
-          onClick={() => {
+          onClick={(e) => {
+            playAnim(e.currentTarget, godMode ? 'bolt-off' : 'bolt-on');
             setGodMode(!godMode);
             toast({ text: godModeText(!godMode) });
           }}
@@ -388,11 +389,7 @@ function PickerSheet({
           {onFilter && (
             <button className="icon-btn filter-btn" aria-label={filters ? `Filter, ${filters} active` : 'Filter'} onClick={() => close(onFilter)}>
               <Icon name="filter" size={22} />
-              {filters > 0 && (
-                <span className="badge" aria-hidden="true">
-                  {filters}
-                </span>
-              )}
+              <CountBadge count={filters} />
             </button>
           )}
         </div>

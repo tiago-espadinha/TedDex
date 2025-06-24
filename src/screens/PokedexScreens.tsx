@@ -25,7 +25,7 @@ import {
 import { teamMatches } from '../data/teamSearch';
 import type { IndexEntry, Pokedexes, VersionGroup } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, MonName, SearchField } from '../components/bits';
+import { CountBadge, Loading, MonName, SearchField, Segmented, playAnim } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { PokedexFilterSheet } from './PokedexFilterSheet';
 import { DeleteSheet, RenameSheet, TeamTabs } from './TeamScreens';
@@ -67,7 +67,7 @@ export function PokedexList() {
           const scope = dexScope(d, versions);
           const counter = caughtCounter(d, scope, regional);
           return (
-            <Link key={d.id} to={`/teams/pokedex/${d.id}`} className="team-row dex-row">
+            <Link key={d.id} to={`/teams/pokedex/${d.id}`} className="team-row dex-row" data-morph={`/teams/pokedex/${d.id}`} data-morph-card>
               <DexArt game={scope?.known ? d.game : undefined} />
               <span className="head">
                 <span className="name">{d.name}</span>
@@ -226,7 +226,7 @@ export function PokedexScreen() {
 
   return (
     <>
-      <header className="topbar dex-top">
+      <header className="topbar dex-top" data-morph={`/teams/pokedex/${id}`} data-morph-card>
         <Link to="/teams/pokedex" className="icon-btn" aria-label="Back to Pokédex">
           <Icon name="back" />
         </Link>
@@ -254,20 +254,28 @@ export function PokedexScreen() {
             <Icon name="pencil" />
           </Link>
         )}
-        <button className="icon-btn" aria-label="Delete Pokédex" aria-haspopup="dialog" onClick={() => setDeleting(true)}>
+        <button
+          className="icon-btn"
+          aria-label="Delete Pokédex"
+          aria-haspopup="dialog"
+          onClick={(e) => {
+            playAnim(e.currentTarget, 'bin');
+            setDeleting(true);
+          }}
+        >
           <Icon name="trash" />
         </button>
       </header>
 
       {views && views.length > 1 && (
         <div className="dex-switch">
-          <div className="segmented" role="radiogroup" aria-label="Pokédex">
+          <Segmented aria-label="Pokédex">
             {views.map((v) => (
               <button key={v.key} role="radio" aria-checked={v === view} onClick={() => setView(v.key)}>
                 {v.label}
               </button>
             ))}
-          </div>
+          </Segmented>
         </div>
       )}
       <div className="dex-search">
@@ -281,11 +289,7 @@ export function PokedexScreen() {
       {!shown ? <Loading /> : <DexGrid dexId={id} states={dex.states} cells={shown} digits={view.key === 'national' || view.key === 'custom' ? 4 : 3} species={species} />}
       <button className="fab" aria-label={active ? `Filter, ${active} active` : 'Filter'} onClick={() => setSheetOpen(true)}>
         <Icon name="filter" size={24} />
-        {active > 0 && (
-          <span className="badge" aria-hidden="true">
-            {active}
-          </span>
-        )}
+        <CountBadge count={active} held={sheetOpen} />
       </button>
       {sheetOpen && view && (
         <PokedexFilterSheet
@@ -340,7 +344,10 @@ const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }
       <button
         className={`dex-cell s${state}`}
         aria-label={`${state ? `${no} ${name}` : no}, ${DEX_STATE_LABELS[state].toLowerCase()}. Tap for ${DEX_STATE_LABELS[nextState(state)].toLowerCase()}`}
-        onClick={() => onTap(id)}
+        onClick={(e) => {
+          playAnim(e.currentTarget, 'cell');
+          onTap(id);
+        }}
       >
         <MonImg id={id} shiny={state === 3} alt="" loading="lazy" width={72} height={72} />
         <span className="no">{state ? <MonName name={name} /> : no}</span>

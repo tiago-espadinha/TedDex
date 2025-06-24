@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { branches, currentForm, evolutionLine, megaForms, megaSpecies, shortCondition, targetsOf } from '../src/data/evolution';
+import { branches, currentForm, evolutionLine, megaForms, megaGroups, megaSpecies, shortCondition, targetsOf } from '../src/data/evolution';
 import type { EvolutionMember, IndexEntry, SpeciesDetail } from '../src/data/types';
 import { dataEntry, readData } from './data-files';
 
@@ -118,6 +118,39 @@ describe('megaForms', () => {
   });
   test('a Mega page still lists its Megas', () => {
     assert.deepEqual(names([80], 'mega'), ['Mega Slowbro']);
+  });
+});
+
+describe('megaGroups', () => {
+  const index = readData<IndexEntry[]>('index.json');
+  /** The page's groups as "owner: form count", from the same calls the page makes. */
+  const groups = (id: number, formKey = '') => {
+    const chainId = dataEntry<SpeciesDetail>('species', id).evolutionChainId;
+    const owners = megaSpecies(chainId ? dataEntry<EvolutionMember[]>('evolution', chainId) : [], index, id);
+    const megas = megaForms(owners.map((o) => dataEntry<SpeciesDetail>('species', o)), formKey);
+    return megaGroups(megas).map(({ owner, forms }) => `${owner.name}: ${forms.length}`);
+  };
+  test('only the species with several Megas fan, to as many as they have', () => {
+    const fans = index
+      .filter((s) => s.forms?.some((f) => f.kind === 'mega'))
+      .flatMap((s) => groups(s.id).filter((g) => g.startsWith(`${s.name}:`) && !g.endsWith(': 1')));
+    assert.deepEqual(fans.sort(), [
+      'Absol: 2', 'Charizard: 2', 'Garchomp: 2', 'Lucario: 2', 'Magearna: 2', 'Meowstic: 2', 'Mewtwo: 2', 'Raichu: 2', 'Tatsugiri: 3',
+    ]);
+  });
+  test('earlier stages see the fan of the species that Mega Evolves', () => {
+    assert.deepEqual(groups(4), ['Charizard: 2']);
+    assert.deepEqual(groups(5), ['Charizard: 2']);
+  });
+  test('one Mega stays one form', () => {
+    assert.deepEqual(groups(3), ['Venusaur: 1']);
+  });
+  test('Megas on different species of a chain stay separate', () => {
+    assert.deepEqual(groups(280), ['Gardevoir: 1', 'Gallade: 1']);
+    assert.deepEqual(groups(475), ['Gallade: 1', 'Gardevoir: 1']);
+  });
+  test('a regional form has no groups', () => {
+    assert.deepEqual(groups(26, 'alola'), []);
   });
 });
 
