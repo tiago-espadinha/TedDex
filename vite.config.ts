@@ -18,8 +18,8 @@ const spriteVersion = (() => {
   return hash.digest('hex').slice(0, 12);
 })();
 
-/** Artwork (species and forms) and cries, cached on first view: the runtime cache must hold all of them. */
-const mediaFiles = ['artwork', 'cries'].reduce((n, dir) => n + readdirSync(`${MEDIA}${dir}`).length, 0);
+/** Artwork (species and forms, plain and shiny) and cries, cached on first view: the runtime cache must hold all of them. */
+const mediaFiles = ['artwork', 'artwork/shiny', 'cries'].reduce((n, dir) => n + readdirSync(`${MEDIA}${dir}`).length, 0);
 
 /** Emits data/sprites.json (version + file names per folder) for the warm-up; it is precached with the other data. */
 const spriteList = (): Plugin => ({
@@ -67,7 +67,7 @@ export default defineConfig({
             options: { cacheName: `sprites-${spriteVersion}`, cacheableResponse: { statuses: [200] } },
           },
           {
-            // Artwork and cries (~27 MB in total) are cached the first time they are seen.
+            // Artwork and cries (~53 MB in total) are cached the first time they are seen.
             // Range support lets Safari play a cached cry, since it requests audio in byte ranges.
             // Room for every artwork and cry, with headroom for new forms.
             // A media rebuild keeps the URLs (a copy cached earlier stays valid), so ignore Vary (the warm-up fetch and Safari's audio request differ).

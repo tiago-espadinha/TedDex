@@ -84,6 +84,16 @@ export function useLoad<T>(loader: () => Promise<T>, key: unknown, initial?: () 
 export const spriteUrl = (id: number) => `/media/sprites/${id}.webp`;
 export const shinySpriteUrl = (id: number) => `/media/sprites/shiny/${id}.webp`;
 export const artworkUrl = (id: number) => `/media/artwork/${id}.webp`;
+export const shinyArtworkUrl = (id: number) => `/media/artwork/shiny/${id}.webp`;
+
+/**
+ * The images to try for a Pokémon, best first. Artwork never viewed isn't cached offline, so each artwork falls back
+ * to its sprite; a form without a file falls back to its species, and shiny falls back to plain.
+ */
+export function monImageChain({ id, speciesId, art, shiny }: { id: number; speciesId: number; art: boolean; shiny?: boolean }) {
+  const shinyOf = (of: number) => [...(art ? [shinyArtworkUrl(of)] : []), shinySpriteUrl(of)];
+  return [...new Set([...(shiny ? [...shinyOf(id), ...shinyOf(speciesId)] : []), ...(art ? [artworkUrl(id)] : []), spriteUrl(id), spriteUrl(speciesId)])];
+}
 export const cryUrl = (id: number) => `/media/cries/${id}.m4a`;
 export const itemSpriteUrl = (id: number | string) => `/media/items/${id}.webp`;
 export const trainerSpriteUrl = (key: string) => `/media/trainers/${key}.webp`;

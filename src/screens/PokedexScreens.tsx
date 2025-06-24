@@ -337,7 +337,7 @@ function DexGrid({
   );
 }
 
-/** Not-seen cells show the number in the view, the others the name; shiny cells show the shiny sprite. */
+/** Not-seen cells show the number in the view, the others the name; shiny cells show the shiny image. */
 const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }: { id: number; no: string; name: string; state: DexState; onTap: (id: number) => void }) {
   return (
     <li>

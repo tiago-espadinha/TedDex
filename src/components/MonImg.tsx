@@ -1,12 +1,11 @@
 import { useState, type ImgHTMLAttributes } from 'react';
-import { artworkUrl, shinySpriteUrl, spriteUrl } from '../data/api';
+import { monImageChain } from '../data/api';
 import { useSpriteStyle, type SpriteStyle } from '../data/settings';
 
 /**
  * A Pokémon's sprite or artwork, as the Settings sprite style chooses, or `look` for the Settings tiles that preview
- * each style (`shiny` always takes the shiny sprite, since there is no shiny artwork). Artwork that was never viewed
- * isn't cached offline, so a failed load falls back to the precached sprite (`onArtworkFail` is told), then to the
- * species' sprite (`speciesId`) for a form without one (Mega Zygarde).
+ * each style, plain or `shiny`. A failed load moves down `monImageChain` (`onArtworkFail` is told when artwork failed):
+ * artwork that was never viewed isn't cached offline, and some forms have no file of their own (Mega Zygarde).
  */
 export function MonImg({
   id,
@@ -21,12 +20,11 @@ export function MonImg({
   'id' | 'src' | 'onError'
 >) {
   const [spriteStyle] = useSpriteStyle();
-  const art = (look ?? spriteStyle) === 'art' && !shiny;
-  const chain = [...new Set([...(art ? [artworkUrl(id)] : []), shiny ? shinySpriteUrl(id) : spriteUrl(id), spriteUrl(speciesId)])];
+  const chain = monImageChain({ id, speciesId, art: (look ?? spriteStyle) === 'art', shiny });
   // The fallback step belongs to the first URL, so a reused element starts over when it shows another Pokémon.
   const [failed, setFailed] = useState({ src: '', at: 0 });
   const at = failed.src === chain[0] ? failed.at : 0;
-  const isArt = art && at === 0;
+  const isArt = chain[at].startsWith('/media/artwork/');
   return (
     <img
       {...img}
