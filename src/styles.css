@@ -978,7 +978,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .form-tile img { width: 64px; height: 64px; filter: grayscale(1) opacity(0.65); transition: filter 0.15s; }
 .form-tile .tick { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 22px; height: 22px; border: 1.5px solid var(--muted); border-radius: 50%; }
 .form-tile[aria-checked='true'] { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-soft-ink); }
-.form-tile[aria-checked='true'] img { filter: none; }
+.form-tile:is([aria-checked='true'], [role='radio']) img { filter: none; }
 .form-tile[aria-checked='true'] .tick { border-color: var(--primary); background: var(--primary); color: var(--primary-ink); }
 :is(.league-head, .trainer-hero) .role { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--on-tint-muted); }
 .trainer-hero .badge-name { margin-top: 4px; font-size: var(--fs-sm); color: var(--on-tint-2); }

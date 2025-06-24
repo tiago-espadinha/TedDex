@@ -10,6 +10,7 @@ import { chunkPath, unpackLearnsets, unpackLocations, type ChunkKind, type Packe
  * service worker), so these are plain fetches memoised in memory.
  */
 const memo = new Map<string, Promise<unknown>>();
+const loaded = new Map<string, unknown>();
 
 function getJson<T>(path: string): Promise<T> {
   let p = memo.get(path) as Promise<T> | undefined;
@@ -18,7 +19,7 @@ function getJson<T>(path: string): Promise<T> {
       if (!r.ok) throw new Error(`Failed to load ${path} (${r.status})`);
       return r.json() as Promise<T>;
     });
-    p.catch(() => memo.delete(path));
+    p.then((json) => loaded.set(path, json), () => memo.delete(path));
     memo.set(path, p);
   }
   return p;
@@ -35,6 +36,8 @@ function getEntry<F, T>(kind: ChunkKind, id: number, pick: (file: F) => T | unde
 const plainEntry = <T>(kind: ChunkKind, id: number) => getEntry(kind, id, (file: Record<number, T>) => file[id]);
 
 export const loadIndex = () => getJson<IndexEntry[]>('/data/index.json');
+/** The index if it has already loaded, for a screen that must draw it in its first commit. */
+export const loadedIndex = () => loaded.get('/data/index.json') as IndexEntry[] | undefined;
 export const loadTypes = () => getJson<TypeData>('/data/types.json');
 export const loadSpecies = (id: number) => plainEntry<SpeciesDetail>('species', id);
 /** A species' learnsets, or its form `formKey`'s when that form learns other moves. */
@@ -42,6 +45,7 @@ export const loadLearnsets = (id: number, formKey?: string | null) =>
   getEntry('learnsets', id, (file: Record<number, PackedLearnsets>) => file[id] && unpackLearnsets(file[id], formKey));
 export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
+export const loadedVersions = () => loaded.get('/data/versions.json') as VersionGroup[] | undefined;
 export const loadPokedexes = () => getJson<Pokedexes>('/data/pokedexes.json');
 export const loadItems = () => getJson<ItemTable>('/data/items.json');
 export const loadEvolution = (chainId: number) => plainEntry<EvolutionMember[]>('evolution', chainId);
@@ -58,9 +62,9 @@ export type TrainerKind = 'league' | 'gyms';
 export const loadTrainerGames = (kind: TrainerKind) => getJson<LeagueSummary[]>(`/data/${kind}/index.json`);
 export const loadTrainerGame = (kind: TrainerKind, id: string) => getJson<LeagueGame>(`/data/${kind}/${id}.json`);
 
-/** Small hook: resolves a promise-returning loader, re-running when `key` changes. */
-export function useLoad<T>(loader: () => Promise<T>, key: unknown): { data?: T; error?: Error } {
-  const [state, setState] = useState<{ data?: T; error?: Error; key?: unknown }>({});
+/** Small hook: resolves a promise-returning loader, re-running when `key` changes. `initial` is data already in hand for the first render. */
+export function useLoad<T>(loader: () => Promise<T>, key: unknown, initial?: () => T | undefined): { data?: T; error?: Error } {
+  const [state, setState] = useState<{ data?: T; error?: Error; key?: unknown }>(() => ({ data: initial?.(), key }));
   useEffect(() => {
     let alive = true;
     loader().then(

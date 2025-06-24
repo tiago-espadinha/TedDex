@@ -51,12 +51,13 @@ function Shell() {
   }, [pathname]);
   return (
     <ToastProvider>
+      {/* Before the screens: their own restoring (the Dex tab's) runs after this one's. */}
+      <ScrollRestoration getKey={scrollKey} />
       <main ref={main} tabIndex={-1} className={pushed ? 'app no-nav' : 'app'}>
         <Outlet />
       </main>
       {!pushed && <BottomNav />}
       {!memberEditor && <QuickView />}
-      <ScrollRestoration getKey={scrollKey} />
     </ToastProvider>
   );
 }

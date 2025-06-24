@@ -53,6 +53,9 @@ export const FORM_KIND_EXAMPLES: Record<FormKind, { id: number; speciesId: numbe
   other: { id: 10026, speciesId: 681 },
 };
 
+/** The Pokémon the Settings art style tiles draw: Pikachu. */
+export const ART_STYLE_EXAMPLE = 25;
+
 /** The form kinds shown before any choice is stored: all but Gigantamax. */
 export const DEFAULT_FORM_KINDS: FormKind[] = ['mega', 'regional', 'other'];
 
