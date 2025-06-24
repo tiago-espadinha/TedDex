@@ -99,6 +99,12 @@ describe('memberView', () => {
     });
   });
 
+  test('carries shiny, with or without a form', () => {
+    assert.equal(memberView({ speciesId: 6, shiny: true }, grid)?.shiny, true);
+    assert.equal(memberView({ speciesId: 6, formKey: 'mega-x', shiny: true }, grid, charizard)?.shiny, true);
+    assert.equal(memberView({ speciesId: 6 }, grid)?.shiny, undefined);
+  });
+
   test('uses the grid row for the default form, or while the species file is not loaded', () => {
     const plain = { name: 'Charizard', types: ['fire', 'flying'], stats: stats(89), total: 534, mediaId: 6, speciesId: 6 };
     assert.deepEqual(memberView({ speciesId: 6 }, grid, charizard), plain);

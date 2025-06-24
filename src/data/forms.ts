@@ -29,8 +29,8 @@ export function applyForm(mon: SpeciesDetail, key: string | null): { view: Speci
 }
 
 /**
- * What a team slot shows for a member: its name, types, base stats and the id its sprite uses, and its form's
- * abilities when the species file is loaded (the grid row has none).
+ * What a team slot shows for a member: its name, types, base stats, the id its sprite uses and whether it is shiny,
+ * and its form's abilities when the species file is loaded (the grid row has none).
  */
 export interface MemberView {
   name: string;
@@ -40,6 +40,7 @@ export interface MemberView {
   mediaId: number;
   /** Its species, whose sprite stands in for a form without one. */
   speciesId: number;
+  shiny?: boolean;
   abilities?: SpeciesDetail['abilities'];
 }
 
@@ -47,10 +48,11 @@ export interface MemberView {
  * A team member in its form when it has one and `detail` (its species file) is loaded, else as its
  * grid row. Undefined when neither is known.
  */
-export function memberView(member: { speciesId: number; formKey?: string }, row?: IndexEntry, detail?: SpeciesDetail): MemberView | undefined {
+export function memberView(member: { speciesId: number; formKey?: string; shiny?: boolean }, row?: IndexEntry, detail?: SpeciesDetail): MemberView | undefined {
+  const shiny = member.shiny && { shiny: true };
   if (member.formKey && detail) {
     const { view, mediaId } = applyForm(detail, member.formKey);
-    return { name: view.name, types: view.types, stats: view.stats, total: view.total, mediaId, speciesId: member.speciesId, abilities: view.abilities };
+    return { name: view.name, types: view.types, stats: view.stats, total: view.total, mediaId, speciesId: member.speciesId, abilities: view.abilities, ...shiny };
   }
-  return row && { name: row.name, types: row.types, stats: row.stats, total: row.total, mediaId: row.id, speciesId: row.id };
+  return row && { name: row.name, types: row.types, stats: row.stats, total: row.total, mediaId: row.id, speciesId: row.id, ...shiny };
 }

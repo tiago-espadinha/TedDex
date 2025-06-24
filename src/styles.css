@@ -471,6 +471,8 @@ main:focus, .sheet:focus { outline: none; }
   :is(.dex-head, .topbar) .search.in-head:not(.pinned):has(input:not(:placeholder-shown)) .search-help { display: none; }
 }
 .icon-btn[aria-pressed='true'] { background: var(--primary-soft); color: var(--primary-soft-ink); }
+.icon-btn.shiny-toggle[aria-pressed='true'] { background: var(--shiny-bg); color: var(--shiny-ink); }
+.icon-btn.shiny-toggle[aria-pressed='true'] svg { fill: currentColor; }
 
 .grid-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0 16px; }
 @media (min-width: 600px) { .grid-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -656,6 +658,8 @@ main:focus, .sheet:focus { outline: none; }
 [data-play='heart'] svg { animation: pop 220ms ease-out; }
 [data-play='bolt-on'] svg { animation: bolt-on 220ms ease-out; }
 [data-play='bolt-off'] svg { animation: bolt-off 200ms ease-out; }
+[data-play='star-on'] svg { animation: sparkle 240ms ease-out; }
+[data-play='star-off'] svg { animation: bolt-off 200ms ease-out; }
 [data-play='bin'] .lid { transform-box: fill-box; transform-origin: left bottom; animation: lid-open 220ms ease-out; }
 [data-play='bump'] { animation: bump 200ms ease-out; }
 [data-play='cell'] img { animation: pop 200ms ease-out; }
@@ -1287,7 +1291,7 @@ button.game-select { width: 100%; margin: 0; text-align: left; }
 [data-design='b'] :is(.slot .meta, .move-row .meta, .mon-card .no, .topbar .sub, .peek-head .sub, .team-row .meta, .hint) { font-weight: 400; }
 [data-design='b'] .topbar:not(.tinted) .sub { color: var(--ink-2); }
 /* --primary-soft is the bar colour in Design B, so a pressed header button takes the primary fill. */
-[data-design='b'] .topbar:not(.tinted) > .icon-btn[aria-pressed='true'] { background: var(--primary); color: var(--primary-ink); }
+[data-design='b'] .topbar:not(.tinted) > .icon-btn:not(.shiny-toggle)[aria-pressed='true'] { background: var(--primary); color: var(--primary-ink); }
 [data-design='b'] :is(.section h2, .league-head .trainer-name, .move-group h2, .eff-group h3, .place-game h3) { font-weight: 600; }
 [data-design='b'] .ref-list .name { font-weight: 500; }
 [data-design='b'] :is(.fab, .primary-btn) { border-radius: 4px; background: var(--bar); color: var(--ink); box-shadow: var(--shadow-fab); font-weight: 500; letter-spacing: 0.5px; }

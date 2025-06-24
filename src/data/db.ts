@@ -7,12 +7,13 @@ import type { ItemTable, MoveTable, SpeciesDetail, VersionGroup } from './types'
 /**
  * A team slot. `formKey` is a key from the species' `forms` (absent for the default form), `nature`
  * a name from NATURES, `item` an items.json id, `moves` moves.json ids. `nickname` is trimmed, never blank,
- * at most NICKNAME_LENGTH characters.
+ * at most NICKNAME_LENGTH characters. `shiny` is true or absent.
  */
 export interface TeamMember {
   speciesId: number;
   formKey?: string;
   nickname?: string;
+  shiny?: boolean;
   ability?: string;
   nature?: string;
   item?: number;
@@ -156,6 +157,8 @@ class DexDB extends Dexie {
             });
         }
       });
+    // v13: members may be shiny. Every v12 member is a valid v13 member, so nothing to upgrade.
+    this.version(13).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' });
   }
 }
 
@@ -255,7 +258,7 @@ export async function toggleFavourite(speciesId: number, formKey = '') {
 export async function exportBackup(): Promise<string> {
   const [teams, pokedexes, favs] = await Promise.all([db.teams.toArray(), db.pokedexes.toArray(), db.favourites.toArray()]);
   const favourites = favs.map(({ speciesId, formKey }) => (formKey ? { speciesId, formKey } : { speciesId }));
-  return JSON.stringify({ app: 'material-dex', version: 9, teams, pokedexes, favourites }, null, 2);
+  return JSON.stringify({ app: 'material-dex', version: 10, teams, pokedexes, favourites }, null, 2);
 }
 
 /** Thrown by parseBackup; the message is shown to the user as is. */
@@ -268,9 +271,10 @@ const NATURE_NAMES = new Set(NATURES.map((n) => n.name));
 /** What is wrong with a member, or null. Abilities and moves are checked for shape, not per species. */
 function memberProblem(m: unknown): string | null {
   if (typeof m !== 'object' || m === null) return 'is not a Pokémon';
-  const { speciesId, formKey, nickname, ability, nature, item, moves } = m as Record<string, unknown>;
+  const { speciesId, formKey, nickname, shiny, ability, nature, item, moves } = m as Record<string, unknown>;
   if (!isSpecies(speciesId)) return 'is not a known Pokémon';
   if (nickname !== undefined && (typeof nickname !== 'string' || [...nickname.trim()].length > NICKNAME_LENGTH)) return 'has an invalid nickname';
+  if (shiny !== undefined && typeof shiny !== 'boolean') return 'has an invalid shiny flag';
   if (formKey !== undefined && (typeof formKey !== 'string' || formKey.length > 40)) return 'has an invalid form';
   if (ability !== undefined && (typeof ability !== 'string' || ability.length > 40)) return 'has an invalid ability';
   if (nature !== undefined && !NATURE_NAMES.has(nature as string)) return 'has an unknown nature';
@@ -283,9 +287,9 @@ function memberProblem(m: unknown): string | null {
 }
 
 /**
- * Validates an exported backup (version 1 to 9; nicknames from 9). Throws BackupError on the first problem, so a bad
+ * Validates an exported backup (version 1 to 10; nicknames from 9, shiny from 10). Throws BackupError on the first problem, so a bad
  * file writes nothing. Names are cut to NAME_LENGTH; teams without a name get "Team N" numbered after `existing`; the team game of
- * versions 5 and 6 and the god mode of versions 1 to 9 (per member before 4, then per team) are dropped. Nicknames are trimmed; a blank one is dropped.
+ * versions 5 and 6 and the god mode of versions 1 to 9 (per member before 4, then per team) are dropped. Nicknames are trimmed; a blank one is dropped. A member not shiny has no `shiny`.
  */
 export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
   let parsed: unknown;
@@ -308,9 +312,9 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
     });
     return {
       name: (typeof name === 'string' && cleanName(name)) || `Team ${existing + i + 1}`,
-      members: (members as TeamMember[]).map(({ speciesId, formKey, nickname, ability, nature, item, moves }) => {
+      members: (members as TeamMember[]).map(({ speciesId, formKey, nickname, shiny, ability, nature, item, moves }) => {
         const cleaned = nickname === undefined ? undefined : cleanNickname(nickname);
-        return { speciesId, formKey: formKey || undefined, ...(cleaned !== undefined && { nickname: cleaned }), ability, nature, item, moves };
+        return { speciesId, formKey: formKey || undefined, ...(cleaned !== undefined && { nickname: cleaned }), ...(shiny && { shiny }), ability, nature, item, moves };
       }),
       updatedAt: Date.now(),
     };
@@ -348,7 +352,7 @@ export function checkKnownFavouriteForms(favourites: Favourite[], species: Map<n
 }
 
 /**
- * Validates the favourites of a backup (version 8 and 9; older backups have none). Throws BackupError on the first
+ * Validates the favourites of a backup (version 8 to 10; older backups have none). Throws BackupError on the first
  * problem. Call after parseBackup, which checks the file.
  */
 export function parseFavourites(json: string): Favourite[] {
@@ -370,7 +374,7 @@ export function parseFavourites(json: string): Favourite[] {
 }
 
 /**
- * Validates the Pokédexes of a backup (version 6 to 9; older backups have none; custom ones from 7). Throws
+ * Validates the Pokédexes of a backup (version 6 to 10; older backups have none; custom ones from 7). Throws
  * BackupError on the first problem.
  * Names are cut to NAME_LENGTH; Pokédexes without a name get "Pokédex N" numbered after `existing`. Call after parseBackup, which checks the file.
  */

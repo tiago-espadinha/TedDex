@@ -114,6 +114,18 @@ export function MemberEditor() {
           </div>
         </div>
         <button
+          className="icon-btn shiny-toggle"
+          aria-label="Shiny"
+          aria-pressed={!!member.shiny}
+          title="Shiny"
+          onClick={(e) => {
+            playAnim(e.currentTarget, member.shiny ? 'star-off' : 'star-on');
+            updateMember(teamId, index, ({ shiny, ...m }) => (shiny ? m : { ...m, shiny: true }));
+          }}
+        >
+          <Icon name="star" />
+        </button>
+        <button
           className="icon-btn"
           aria-label="God mode"
           aria-pressed={godMode}
@@ -130,7 +142,7 @@ export function MemberEditor() {
 
       <div className="list">
         <Link to={detailPath(mon.id, form?.key)} className="slot member-hero" style={{ backgroundColor: typeTint(mon.types[0]) }}>
-          <MonImg id={mediaId} speciesId={member.speciesId} alt="" width={64} height={64} />
+          <MonImg id={mediaId} speciesId={member.speciesId} shiny={member.shiny} alt="" width={64} height={64} />
           <div style={{ minWidth: 0 }}>
             <div className="chips">{mon.types.map((t) => <TypeChip key={t} type={t} />)}</div>
             <div className="meta">View in Dex</div>
