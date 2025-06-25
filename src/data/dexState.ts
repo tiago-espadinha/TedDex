@@ -79,11 +79,9 @@ export interface DexFilters {
   sort: SortKey;
   /** One quick category at a time, combined with the other filters. */
   category: DexCategory | null;
-  /** The global game whose limit (species up to its generation) was lifted; another game brings a limit back. */
-  liftedGame: number | null;
 }
 
-export const DEFAULT_FILTERS: DexFilters = { query: '', gens: [], types: [], sort: 'number', category: null, liftedGame: null };
+export const DEFAULT_FILTERS: DexFilters = { query: '', gens: [], types: [], sort: 'number', category: null };
 
 const KEY = 'dex-filters';
 const ORDER_KEY = 'dex-order';

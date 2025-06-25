@@ -45,7 +45,6 @@ export const loadLearnsets = (id: number, formKey?: string | null) =>
   getEntry('learnsets', id, (file: Record<number, PackedLearnsets>) => file[id] && unpackLearnsets(file[id], formKey));
 export const loadMoves = () => getJson<MoveTable>('/data/moves.json');
 export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json');
-export const loadedVersions = () => loaded.get('/data/versions.json') as VersionGroup[] | undefined;
 export const loadPokedexes = () => getJson<Pokedexes>('/data/pokedexes.json');
 export const loadItems = () => getJson<ItemTable>('/data/items.json');
 export const loadEvolution = (chainId: number) => plainEntry<EvolutionMember[]>('evolution', chainId);

@@ -59,7 +59,7 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
   const [selected, setSelected] = useState(() => new Set(initial));
   // A second tap on Done while the first save runs would create another Pokédex.
   const [busy, setBusy] = useState(false);
-  const shown = useMemo(() => (rows ? applyFilters(rows, fuse, filters, undefined, favourites) : undefined), [rows, fuse, filters, favourites]);
+  const shown = useMemo(() => (rows ? applyFilters(rows, fuse, filters, favourites) : undefined), [rows, fuse, filters, favourites]);
   const active = filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
   const toggle = useCallback(
     (id: number) =>
@@ -123,7 +123,7 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
       {sheetOpen && rows && (
         <FilterSheet
           value={filters}
-          countFor={(f) => applyFilters(rows, fuse, f, undefined, favourites).length}
+          countFor={(f) => applyFilters(rows, fuse, f, favourites).length}
           onChange={setFilters}
           onClose={() => setSheetOpen(false)}
         />

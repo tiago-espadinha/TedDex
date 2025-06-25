@@ -22,7 +22,7 @@
  *   reference/items.json      item id -> name, category, generation introduced, price (0 = not sold), short effect
  *                             (no "Held: " preamble), wild holders as [version group, species, rarity %]; every named item
  *                             but unused ones
- *   reference/moves/c<n>.json move description, full effect, and its learners per method as [species, generation bitmask]
+ *   reference/moves/c<n>.json move description, full effect, and its learners per method as [species, version group bitmask (bit id-1)]
  *   locations/c<n>.json   wild encounters per game (version id) as tuples into one string table per chunk, any form;
  *                         expansion versions (The Isle of Armor…) count as their base game
  *   games.json            games (versions) with encounter data and their version group, oldest first
@@ -38,6 +38,7 @@ import { POKEAPI_ITEM_CATEGORIES } from '../src/data/itemCategories';
 import { packLearnsets, packLocations, toChunks } from '../src/data/chunks';
 import { eggGroupSlug } from '../src/data/eggGroups';
 import { formKind, hasOwnFormData, REGIONAL_FORM } from '../src/data/forms';
+import { learnerBit } from '../src/data/moveLearners';
 import type { EggGroupTable, EvolutionMember, Locations } from '../src/data/types';
 
 const CSV_BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv';
@@ -456,10 +457,8 @@ async function main() {
     (r) => r.pokemon_id,
   );
   const usedMoves = new Set<string>();
-  /** move id -> species ids that learn it, filled while writing learnsets. */
-  /** move id -> learn method -> species id -> bitmask of generations (bit n-1 = Gen n), filled while writing learnsets. */
+  /** move id -> learn method -> species id -> bitmask of version groups (bit id-1), filled while writing learnsets. */
   const learnersByMove = new Map<string, Record<string, Map<number, number>>>();
-  const genOfVersionGroup = new Map(versionGroups.map((g) => [g.id, Number(g.generation_id)]));
   const usedVersionGroups = new Set<string>();
 
   const STAT_KEYS = ['', 'hp', 'atk', 'def', 'spa', 'spd', 'spe'] as const;
@@ -608,7 +607,7 @@ async function main() {
       const byMethod = learnersByMove.get(r.move_id) ?? {};
       learnersByMove.set(r.move_id, byMethod);
       const bySpecies = (byMethod[method] ??= new Map());
-      bySpecies.set(speciesId, (bySpecies.get(speciesId) ?? 0) | (1 << (genOfVersionGroup.get(r.version_group_id)! - 1)));
+      bySpecies.set(speciesId, (bySpecies.get(speciesId) ?? 0) | learnerBit(Number(r.version_group_id)));
       usedVersionGroups.add(r.version_group_id);
     }
     return learnset;

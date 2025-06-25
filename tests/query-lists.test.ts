@@ -14,9 +14,13 @@ describe('Dex search on the real index', () => {
   const index = readData<IndexEntry[]>('index.json');
   const search = (query: string, kinds: FormKind[] = [], f: Partial<DexFilters> = {}, favourites?: Set<string>) => {
     const rows = dexRows(index, kinds);
-    return applyFilters(rows, new Fuse(rows, FUSE_OPTIONS), { ...DEFAULT_FILTERS, ...f, query }, undefined, favourites);
+    return applyFilters(rows, new Fuse(rows, FUSE_OPTIONS), { ...DEFAULT_FILTERS, ...f, query }, favourites);
   };
   const ids = (rows: { id: number }[]) => rows.map((r) => r.id);
+
+  test('no filter lists every species', () => {
+    assert.equal(search('').length, 1025);
+  });
 
   test('a query with no operator or keyword matches the name search as before', () => {
     const rows = dexRows(index, []);

@@ -43,16 +43,6 @@ describe('applyFilters', () => {
     assert.deepEqual(ids({ query: 'zzzz' }), []);
   });
 
-  test('upTo keeps species up to that number, forms included, before the other filters', () => {
-    const run = (f: Partial<DexFilters>, upTo?: number) => applyFilters(ALL, fuse, { ...DEFAULT_FILTERS, ...f }, upTo).map((m) => m.id);
-    assert.deepEqual(run({}, 251), [1, 6, 25, 250]);
-    assert.deepEqual(run({ query: 'fire' }, 251), [6, 250]);
-    assert.deepEqual(run({ sort: 'name' }, 151), [1, 6, 25]);
-    assert.deepEqual(run({}, undefined), [1, 6, 25, 250, 255, 315]);
-    const rows = dexRows([{ ...ALL[1], forms: [{ key: 'mega-x', label: 'Mega X', name: 'Mega Charizard X', kind: 'mega', pokemonId: 10034, types: ['fire', 'dragon'], stats: ALL[1].stats, total: 634, heightM: 1.7, weightKg: 110.5 }] }, ALL[3]], ['mega']);
-    assert.deepEqual(applyFilters(rows, null, DEFAULT_FILTERS, 151).map((m) => m.form?.key ?? ''), ['', 'mega-x']);
-  });
-
   test('name search without a Fuse index leaves the list as is', () => {
     assert.equal(applyFilters(ALL, null, { ...DEFAULT_FILTERS, query: 'pika' }).length, ALL.length);
   });
@@ -92,18 +82,17 @@ describe('applyFilters', () => {
   test('Favourites keeps the rows whose species and form are favourites, and combines with the other filters', () => {
     const megaX = { key: 'mega-x', label: 'Mega X', name: 'Mega Charizard X', kind: 'mega', pokemonId: 10034, types: ['fire', 'dragon'], stats: ALL[1].stats, total: 634, heightM: 1.7, weightKg: 110.5 } as IndexForm;
     const rows = dexRows([ALL[0], { ...ALL[1], forms: [megaX] }, ...ALL.slice(2)], ['mega']);
-    const run = (favs: string[], f: Partial<DexFilters> = {}, upTo?: number) =>
-      applyFilters(rows, null, { ...DEFAULT_FILTERS, category: 'favourite', ...f }, upTo, new Set(favs)).map((m) => favouriteKey(m.id, m.form?.key));
+    const run = (favs: string[], f: Partial<DexFilters> = {}) =>
+      applyFilters(rows, null, { ...DEFAULT_FILTERS, category: 'favourite', ...f }, new Set(favs)).map((m) => favouriteKey(m.id, m.form?.key));
     const favs = [favouriteKey(1), favouriteKey(6, 'mega-x'), favouriteKey(255)];
     assert.deepEqual(favs, ['1', '6:mega-x', '255']);
     // The form is a favourite, not its species: only the form row shows.
     assert.deepEqual(run(favs), ['1', '6:mega-x', '255']);
     assert.deepEqual(run(favs, { types: ['fire'] }), ['6:mega-x', '255']);
     assert.deepEqual(run(favs, { gens: [1] }), ['1', '6:mega-x']);
-    assert.deepEqual(run(favs, {}, 251), ['1', '6:mega-x']);
     assert.deepEqual(run([]), []);
     // Without the form's row (its Dex switch off), a favourite form shows nothing.
-    assert.deepEqual(applyFilters(ALL, null, { ...DEFAULT_FILTERS, category: 'favourite' }, undefined, new Set(favs)).map((m) => m.id), [1, 255]);
+    assert.deepEqual(applyFilters(ALL, null, { ...DEFAULT_FILTERS, category: 'favourite' }, new Set(favs)).map((m) => m.id), [1, 255]);
     // Still loading: nothing matches yet.
     assert.deepEqual(applyFilters(ALL, null, { ...DEFAULT_FILTERS, category: 'favourite' }).length, 0);
   });
