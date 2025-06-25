@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { NO_MOVE_FILTERS, abilityIdByName, activeMoveChoiceFilters, learnable, memberAbility, moveChoices, otherAbilities, withMove, type MoveChoiceFilters } from '../src/data/memberOptions';
+import { NO_MOVE_FILTERS, abilityIdByName, activeMoveChoiceFilters, learnable, memberAbility, moveChoices, moveFilterGame, otherAbilities, withMove, type MoveChoiceFilters } from '../src/data/memberOptions';
 import type { AbilityTable, Learnsets, MoveTable, SpeciesDetail } from '../src/data/types';
 import { dataEntry, readData } from './data-files';
 
@@ -72,7 +72,8 @@ describe('moveChoices with filters', () => {
 
   test('counts the active filters', () => {
     assert.equal(activeMoveChoiceFilters(NO_MOVE_FILTERS), 0);
-    assert.equal(activeMoveChoiceFilters(filters({ game: RED_BLUE, methods: ['egg'], types: ['fire', 'water'] })), 4);
+    assert.equal(activeMoveChoiceFilters(filters({ methods: ['egg'], types: ['fire', 'water'] })), 3);
+    assert.equal(activeMoveChoiceFilters(filters({ methods: ['egg'] }), true), 2);
   });
 });
 
@@ -151,5 +152,20 @@ describe('withMove', () => {
   test('keeps a move from repeating or a fifth from joining', () => {
     assert.deepEqual(withMove([A, B], moves, 0, B), [A, B]);
     assert.deepEqual(withMove([A, B, C, D], moves, 4, E), [A, B, C, D]);
+  });
+});
+
+describe('moveFilterGame', () => {
+  test('Any game narrows to nothing, whatever is shared', () => {
+    assert.equal(moveFilterGame(6, true, 25), undefined);
+    assert.equal(moveFilterGame('latest', true, 25), undefined);
+  });
+
+  test('Latest is the species newest game', () => {
+    assert.equal(moveFilterGame('latest', false, 25), 25);
+  });
+
+  test('a shared game the species lacks stays, so it offers nothing', () => {
+    assert.equal(moveFilterGame(1, false, 25), 1);
   });
 });

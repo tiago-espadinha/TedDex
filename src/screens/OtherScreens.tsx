@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { loadVersions, useLoad } from '../data/api';
 import { BackupError, exportBackup, importBackup } from '../data/db';
-import { parseGamePref } from '../data/game';
-import { bandStyle } from '../data/gameColors';
 import { ART_STYLE_EXAMPLE, FORM_KIND_EXAMPLES, FORM_KIND_LABELS } from '../data/dexState';
-import { applyDesign, applyTheme, useDesign, useDexForms, useGame, useSpriteStyle, useTheme, type SpriteStyle, type Theme } from '../data/settings';
+import { applyDesign, applyTheme, useDesign, useDexForms, useSpriteStyle, useTheme, type SpriteStyle, type Theme } from '../data/settings';
 import type { FormKind } from '../data/types';
 import { Icon } from '../components/Icon';
 import { MonImg } from '../components/MonImg';
@@ -49,8 +46,6 @@ export function MoreScreen() {
   const [design, setDesign] = useDesign();
   const [theme, setTheme] = useTheme();
   const [formKinds, setFormKinds] = useDexForms();
-  const [game, setGame] = useGame();
-  const versions = useLoad(loadVersions, 'versions').data;
   const [dataVersion, setDataVersion] = useState<string>();
   const fileInput = useRef<HTMLInputElement>(null);
   const toast = useToast();
@@ -146,31 +141,6 @@ export function MoreScreen() {
             );
           })}
         </div>
-
-        <h2 style={{ marginTop: 22 }}>Game</h2>
-        <p id="game-hint" className="hint" style={{ marginBottom: 10 }}>
-          Moves and Locations open on this game. Latest shows each Pokémon's newest game.
-        </p>
-        <label
-          className={game === 'latest' ? 'game-select' : 'game-select game-band'}
-          style={game === 'latest' ? undefined : bandStyle(versions?.find((v) => v.id === game)?.label ?? '')}
-          hidden={!versions}
-        >
-          <span className="sr-only">Game</span>
-          <select
-            value={game}
-            aria-describedby="game-hint"
-            onChange={(e) => setGame(parseGamePref(e.target.value))}
-          >
-            <option value="latest">Latest</option>
-            {versions?.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.label}
-              </option>
-            ))}
-          </select>
-          <Icon name="next" size={18} />
-        </label>
 
         <h2 style={{ marginTop: 22 }}>Backup</h2>
         <p className="hint" style={{ marginBottom: 10 }}>

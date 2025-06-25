@@ -19,6 +19,7 @@ import { MonImg } from '../components/MonImg';
 import { EvolutionTab } from './EvolutionTab';
 import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
+import { SharedGameSheet } from '../components/GamePicker';
 
 const TABS = ['About', 'Stats', 'Moves'] as const;
 type Tab = (typeof TABS)[number];
@@ -199,6 +200,7 @@ export function DetailScreen() {
         </div>
       </div>
       <div style={{ height: 24 }} />
+      <SharedGameSheet />
     </>
   );
 }

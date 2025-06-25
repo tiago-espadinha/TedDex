@@ -867,6 +867,16 @@ a.fact-chip:active { filter: brightness(0.9); }
 .loc-row .ver { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 8px; color: var(--on-type); font-size: var(--fs-xs); font-weight: 700; vertical-align: 1px; white-space: nowrap; }
 .loc-row .ver + .ver { margin-left: 4px; }
 .game-fallback { margin: 0 2px 10px; }
+/* The game sheet's rows: --band on the left edge, the chosen one on --primary-soft with a check. */
+.game-rows { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.sheet > .game-rows { margin-top: 12px; }
+.game-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 12px 6px 18px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-align: left; overflow: hidden; }
+.game-row:active { background: var(--surface-2); }
+.game-row[aria-current='true'] { border-color: transparent; background: var(--primary-soft); color: var(--primary-soft-ink); }
+.game-row .body { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.game-row .name { font-size: var(--fs-body); font-weight: 700; }
+.game-row .meta { font-size: var(--fs-sm); color: var(--muted); }
+.game-row[aria-current='true'] .meta { color: inherit; }
 .place-game { margin-top: 16px; }
 .place-game.game-band { padding-left: 14px; }
 .place-game.game-band::before { border-radius: 3px; }
@@ -1150,6 +1160,8 @@ button.ability { text-align: left; min-height: 44px; }
 .field-head { display: flex; align-items: center; justify-content: space-between; margin: -6px -10px 0 0; }
 .field-head h2 { margin-bottom: 4px; }
 button.game-select { width: 100%; margin: 0; text-align: left; }
+button.game-select:not(:focus-visible) { outline: none; }
+.game-select .k + .v { margin-left: 10px; }
 .game-select .v { flex: 1; min-width: 0; padding-right: 24px; font-size: var(--fs-body); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .game-select .v.none, .game-select select.none { color: var(--muted); font-weight: 600; }
 .move-slots { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
@@ -1279,7 +1291,7 @@ button.game-select { width: 100%; margin: 0; text-align: left; }
 [data-design='b'] .sheet { --sheet-radius: 8px; }
 /* B's sheet is the page colour, which the scrim all but matches: a floating dialog needs a raised surface and an edge. */
 [data-design='b'] .sheet.dialog { background: var(--surface); box-shadow: 0 0 0 1px var(--outline); }
-[data-design='b'] :is(.hint-sheet code, .search, .to-top, .gen-btn, .fact, .look, .fact-chip, .ability, .game-select, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
+[data-design='b'] :is(.hint-sheet code, .search, .to-top, .gen-btn, .fact, .look, .fact-chip, .ability, .game-select, .game-row, .team-row, .dex-cell, .evo-list, .learner-row img, .picker-list,
   .move-slots .move-row, .move-pick, .summary .tile, .coming, .league-moves li > *, .league-chip, .trainer-sprite, .evo-member img, .evo-card, .evo-mon, .trainer-mon .evo-member .lv, .cov td, .toast) { border-radius: 4px; }
 /* Lists become separate shadowed strips, like the B mockups. */
 [data-design='b'] :is(.ref-list, .move-group ul, .ref-species .evo-list) { display: flex; flex-direction: column; gap: 6px; border: 0; background: none; overflow: visible; }

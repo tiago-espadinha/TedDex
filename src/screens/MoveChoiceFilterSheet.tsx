@@ -1,8 +1,7 @@
 import { CategoryIcon, useModalSheet } from '../components/bits';
 import { useLiveDraft } from '../components/useLiveDraft';
-import { Icon } from '../components/Icon';
+import { GameTrigger, type GameChoice } from '../components/GamePicker';
 import { cap } from '../data/format';
-import { bandStyle } from '../data/gameColors';
 import { NO_MOVE_FILTERS, type MoveChoiceFilters } from '../data/memberOptions';
 import { MOVE_CATEGORIES } from '../data/moveFilter';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
@@ -18,16 +17,24 @@ const METHODS: [LearnMethod, string][] = [
 const ALL_METHODS = METHODS.map(([m]) => m);
 const toggle = <T,>(list: T[], x: T) => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
 
-/** Game, learn method, category and type filters for the member editor's move picker. `games` are the species' games. */
+/** Game, learn method, category and type filters for the member editor's move picker. `onGame` swaps it for the game sheet; `onReset` is for what the draft doesn't hold, Any game. */
 export function MoveChoiceFilterSheet({
   value,
-  games,
+  game,
+  versions,
+  shows,
+  onGame,
+  onReset,
   countFor,
   onChange,
   onClose,
 }: {
   value: MoveChoiceFilters;
-  games: VersionGroup[];
+  game: GameChoice;
+  versions: VersionGroup[];
+  shows?: number;
+  onGame: () => void;
+  onReset: () => void;
   countFor: (f: MoveChoiceFilters) => number;
   /** Called on every change: the sheet applies its filters live. */
   onChange: (f: MoveChoiceFilters) => void;
@@ -36,7 +43,6 @@ export function MoveChoiceFilterSheet({
   const [draft, setDraft] = useLiveDraft(value, onChange);
   const [sheet, close] = useModalSheet<HTMLElement>(onClose);
   const count = countFor(draft);
-  const chosenGame = games.find((g) => g.id === draft.game);
 
   return (
     <>
@@ -45,27 +51,19 @@ export function MoveChoiceFilterSheet({
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="move-choice-filter-title">Filter moves</h2>
-          <button className="text-btn" onClick={() => setDraft(() => NO_MOVE_FILTERS)}>
+          <button
+            className="text-btn"
+            onClick={() => {
+              setDraft(() => NO_MOVE_FILTERS);
+              onReset();
+            }}
+          >
             Reset
           </button>
         </div>
 
         <h3>Learnable in</h3>
-        <label className={chosenGame ? 'game-select game-band' : 'game-select'} style={chosenGame && bandStyle(chosenGame.label)}>
-          <span className="sr-only">Game</span>
-          <select
-            value={draft.game ?? ''}
-            onChange={(e) => setDraft((d) => ({ ...d, game: e.target.value ? Number(e.target.value) : undefined }))}
-          >
-            <option value="">Any game</option>
-            {games.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.label}
-              </option>
-            ))}
-          </select>
-          <Icon name="next" size={18} />
-        </label>
+        <GameTrigger value={game} versions={versions} shows={shows} autoFocus onClick={() => close(onGame)} />
 
         <ToggleAllHeading
           title="Learn method"
