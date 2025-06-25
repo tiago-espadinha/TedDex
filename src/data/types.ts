@@ -167,12 +167,12 @@ export type LearnMethod = keyof Learnset;
 
 /**
  * One move in reference/moves/c<n>.json: the in-game description, the full effect (paragraphs split by a blank line), and
- * who learns it: per method, [species id, bitmask of generations (bit n-1 = Gen n)], a form's moves counting for its species, by species id.
+ * who learns it: per method, [species id, bitmask of version groups (bit id-1)], a form's moves counting for its species, by species id.
  */
 export interface MoveReference {
   description: string;
   effect: string;
-  learners: Partial<Record<LearnMethod, [species: number, gens: number][]>>;
+  learners: Partial<Record<LearnMethod, [species: number, games: number][]>>;
 }
 
 /**

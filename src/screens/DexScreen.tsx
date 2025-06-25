@@ -3,7 +3,7 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { loadIndex, loadVersions, loadedIndex, loadedVersions, useLoad } from '../data/api';
+import { loadIndex, loadedIndex, useLoad } from '../data/api';
 import { formatNo } from '../data/format';
 import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
@@ -14,8 +14,7 @@ import { Icon } from '../components/Icon';
 import { CountBadge, Loading, MonName, SearchField, TypeChip, useToast } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { FilterSheet } from './FilterSheet';
-import { useDexForms, useDexView, useGame, useSpriteStyle } from '../data/settings';
-import { lastSpecies } from '../data/pokedex';
+import { useDexForms, useDexView, useSpriteStyle } from '../data/settings';
 import { useFavourites } from '../data/favourites';
 
 const ROW_H = 118; // card 108 + gap 10
@@ -78,18 +77,10 @@ export function DexScreen() {
   const [view, setView] = useDexView();
   const [formKinds] = useDexForms();
   const perRow = view === 'list' ? 1 : cols;
-  // A chosen game limits the list to the species up to its generation, until the filter sheet's Game toggle lifts it (`liftedGame`).
-  // Without the versions file the list shows unlimited rather than loading forever.
-  const [game] = useGame();
-  const { data: versions, error: versionsError } = useLoad(loadVersions, 'versions', loadedVersions);
-  const limit = game === 'latest' ? undefined : versions?.find((v) => v.id === game);
-  const upTo = (f: DexFilters) => (limit && f.liftedGame !== limit.id ? lastSpecies(limit.gen) : undefined);
-  const waiting = game !== 'latest' && !versions && !versionsError;
 
-  const rows = useMemo(() => (all && !waiting ? dexRows(all, formKinds) : null), [all, waiting, formKinds]);
+  const rows = useMemo(() => (all ? dexRows(all, formKinds) : null), [all, formKinds]);
   const fuse = useMemo(() => (rows ? new Fuse(rows, FUSE_OPTIONS) : null), [rows]);
-  const limitTo = upTo(filters);
-  const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters, limitTo, favourites) : []), [rows, fuse, filters, limitTo, favourites]);
+  const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters, favourites) : []), [rows, fuse, filters, favourites]);
   useEffect(() => {
     if (!picking) saveOrder(list.map((m) => detailPath(m.id, m.form?.key)));
   }, [list, picking]);
@@ -105,7 +96,7 @@ export function DexScreen() {
   // Row heights differ between the views: measure again when switching.
   useEffect(() => virtual.measure(), [virtual, rowHeight]);
 
-  const activeCount = (limitTo ? 1 : 0) + filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
+  const activeCount = filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
 
   async function pick(id: number, formKey?: string) {
     if (pickTeam == null) return;
@@ -207,14 +198,13 @@ export function DexScreen() {
         onClick={() => setSheetOpen(true)}
       >
         <Icon name="filter" size={24} />
-        {!waiting && <CountBadge count={activeCount} held={sheetOpen} />}
+        <CountBadge count={activeCount} held={sheetOpen} />
       </button>
 
       {sheetOpen && (
         <FilterSheet
           value={filters}
-          game={limit}
-          countFor={(f) => (rows ? applyFilters(rows, fuse, f, upTo(f), favourites).length : 0)}
+          countFor={(f) => (rows ? applyFilters(rows, fuse, f, favourites).length : 0)}
           onChange={(f) => {
             setFilters(f);
             window.scrollTo({ top: 0 });

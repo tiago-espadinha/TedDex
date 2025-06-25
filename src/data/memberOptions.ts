@@ -1,5 +1,6 @@
 import type { AbilityNameTable, LearnMethod, Learnsets, MoveCategory, MoveTable, SpeciesDetail, TypeName } from './types';
 import { MOVE_SLOTS } from './db';
+import type { GamePref } from './game';
 
 const byName = (moves: MoveTable) => (a: number, b: number) => moves[a].name.localeCompare(moves[b].name);
 
@@ -28,8 +29,14 @@ export interface MoveChoiceFilters {
 
 export const NO_MOVE_FILTERS: MoveChoiceFilters = { methods: [], types: [], categories: [] };
 
-/** How many filters are on, for the filter button's badge. */
-export const activeMoveChoiceFilters = (f: MoveChoiceFilters) => (f.game !== undefined ? 1 : 0) + f.methods.length + f.types.length + f.categories.length;
+/**
+ * The game the move filter narrows to: none for Any game, the species' newest for Latest, else the shared game, kept
+ * even when the species isn't in it so it offers nothing rather than falling through to every game.
+ */
+export const moveFilterGame = (shared: GamePref, anyGame: boolean, newest?: number) => (anyGame ? undefined : shared === 'latest' ? newest : shared);
+
+/** How many filters are on, for the filter button's badge; the game counts only when `gameChanged` from what the picker opens on. */
+export const activeMoveChoiceFilters = (f: MoveChoiceFilters, gameChanged = false) => (gameChanged ? 1 : 0) + f.methods.length + f.types.length + f.categories.length;
 
 /**
  * The moves the member editor offers, sorted by name: what the species learns (see `learnable`), or in god mode every

@@ -49,8 +49,8 @@ function subscribeGame(listener: () => void) {
   return () => gameListeners.delete(listener);
 }
 /**
- * The chosen game, shared live by every screen that shows it (Settings, Moves, Locations), so picking one in a tab
- * moves the others too.
+ * The chosen game, shared live by every screen that shows it (Moves, Locations, the member editor's move filter), so
+ * picking one moves the others too.
  */
 export const useGame = () => [useSyncExternalStore(subscribeGame, () => game), setGame] as const;
 

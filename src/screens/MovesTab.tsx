@@ -1,13 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { loadLearnsets, loadMoves, loadVersions, useLoad } from '../data/api';
-import { bandStyle } from '../data/gameColors';
-import { resolveGame } from '../data/game';
+import { knownGame, shownGame } from '../data/game';
 import { useGame } from '../data/settings';
 import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types';
 import { signed } from '../data/format';
 import type { Peek } from '../data/peek';
 import { typeChip } from '../data/typeColors';
-import { Icon } from '../components/Icon';
+import { GamePicker } from '../components/GamePicker';
 import { CategoryIcon, Loading, Segmented, TypeChip } from '../components/bits';
 import { usePeek } from '../components/usePeek';
 
@@ -24,7 +23,7 @@ const loadAll = (id: number, formKey: string) => Promise.all([loadLearnsets(id, 
 /** `mon` is the species as shown in form `formKey`; the moves are that form's when it learns its own. */
 export function MovesTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
   const { data, error } = useLoad(() => loadAll(mon.id, formKey), `${mon.id}|${formKey}`);
-  const [chosen, setChosen] = useGame();
+  const [stored] = useGame();
   const [method, setMethod] = useState<Method>('level');
   const peek = usePeek();
 
@@ -35,13 +34,22 @@ export function MovesTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string
   const games = versions.filter((v) => learnsets[v.id]);
   if (!games.length) return <Note>No move data for {mon.name} yet.</Note>;
 
-  const game = resolveGame(
+  const chosen = knownGame(stored, versions);
+  const vg = shownGame(
     games.map((g) => g.id),
     chosen,
-  )!;
-  const vg = game.group;
-  const label = (id: number) => versions.find((v) => v.id === id)?.label ?? 'the chosen game';
-  const fallback = game.missed !== undefined && `${mon.name} isn't in ${label(game.missed)}. Showing ${label(vg)}.`;
+  );
+  if (vg === undefined) {
+    return (
+      <div className="section">
+        <GamePicker versions={versions} describedBy="moves-missing" />
+        <p id="moves-missing" className="hint game-fallback">
+          {mon.name} isn't in {versions.find((v) => v.id === chosen)?.label}.
+        </p>
+      </div>
+    );
+  }
+
   const set = learnsets[vg];
   // Only methods with moves in this game; keep the chosen one if the game has it.
   const methods = METHODS.filter((m) => set[m.key].length > 0);
@@ -50,22 +58,7 @@ export function MovesTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string
 
   return (
     <div className="section">
-      <label className="game-select game-band" style={bandStyle(label(vg))}>
-        <span className="k">Game</span>
-        <select value={vg} onChange={(e) => setChosen(Number(e.target.value))} aria-describedby={fallback ? 'moves-fallback' : undefined}>
-          {games.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.label}
-            </option>
-          ))}
-        </select>
-        <Icon name="next" size={18} />
-      </label>
-      {fallback && (
-        <p id="moves-fallback" className="hint game-fallback">
-          {fallback}
-        </p>
-      )}
+      <GamePicker versions={versions} shows={vg} />
 
       {methods.length > 1 && (
         <Segmented className="method-pick" aria-label="How it learns them">

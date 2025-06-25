@@ -5,10 +5,10 @@ import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVe
 import { MOVE_SLOTS, cleanNickname, db, memberTitle, updateMember, type TeamMember } from '../data/db';
 import { detailPath } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { NO_MOVE_FILTERS, activeMoveChoiceFilters, memberAbility, moveChoices, otherAbilities, withMove, type MoveChoiceFilters } from '../data/memberOptions';
+import { NO_MOVE_FILTERS, activeMoveChoiceFilters, memberAbility, moveChoices, moveFilterGame, otherAbilities, withMove, type MoveChoiceFilters } from '../data/memberOptions';
 import { NATURES, natureLabel } from '../data/natures';
 import { parsePeek, type Peek } from '../data/peek';
-import { useGodMode } from '../data/settings';
+import { useGame, useGodMode } from '../data/settings';
 import { typeTint } from '../data/typeColors';
 import type { MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
@@ -16,6 +16,8 @@ import { CountBadge, Loading, TypeChip, playAnim, useModalSheet, useToast } from
 import { MonImg } from '../components/MonImg';
 import { usePeek } from '../components/usePeek';
 import { MoveChoiceFilterSheet } from './MoveChoiceFilterSheet';
+import { GameSheet, useGameSheet } from '../components/GamePicker';
+import { knownGame } from '../data/game';
 import { MoveCells, MoveHead } from './MovesTab';
 import { QuickView, type PeekAction } from './QuickView';
 import { RenameSheet } from './TeamScreens';
@@ -45,6 +47,11 @@ export function MemberEditor() {
   const [picking, setPicking] = useState<Picking>();
   // Kept while the editor is open, so reopening the move picker keeps them.
   const [moveFilters, setMoveFilters] = useState(NO_MOVE_FILTERS);
+  // The game choice made in this editor; until one is, god mode opens on every move and otherwise the shared game shows.
+  const [pickedAnyGame, setPickedAnyGame] = useState<boolean>();
+  const anyGame = pickedAnyGame ?? godMode;
+  const [storedGame, setGame] = useGame();
+  const gameSheet = useGameSheet();
   const peek = usePeek();
   const [search] = useSearchParams();
   // Every move it can have decides whether moves can be added; the filters only narrow the picker.
@@ -69,7 +76,11 @@ export function MemberEditor() {
     .map(([id, { name }]) => ({ id: Number(id), name }))
     .sort((a, b) => a.name.localeCompare(b.name));
   const speciesGames = versions.filter((v) => learnsets[v.id]);
-  const moveOptions = (f: MoveChoiceFilters) => moveChoices(learnsets, moves, godMode, f).filter((m) => !chosen.includes(m));
+  const sharedGame = knownGame(storedGame, versions);
+  const newestGame = speciesGames.at(-1)?.id;
+  const filterGame = moveFilterGame(sharedGame, anyGame, newestGame);
+  const moveOptions = (f: MoveChoiceFilters) => moveChoices(learnsets, moves, godMode, { ...f, game: filterGame }).filter((m) => !chosen.includes(m));
+  const notInGame = filterGame !== undefined && !learnsets[filterGame] && `${mon.name} isn't in ${versions.find((v) => v.id === filterGame)?.label}.`;
   const save = (patch: Partial<TeamMember>) => updateMember(teamId, index, (m) => ({ ...m, ...patch }));
   const setMove = (slot: number, move?: number) =>
     updateMember(teamId, index, (m) => ({ ...m, moves: withMove(m.moves ?? [], moves, slot, move) }));
@@ -94,7 +105,7 @@ export function MemberEditor() {
   // Replace sets the picker while the quick view steps off its history entry: it opens as the
   // quick view goes, so the quick view's cleanup can't take its focus or unlock the page under it.
   const peeked = parsePeek(search.get('peek'));
-  const sheet = peeked ? undefined : picking;
+  const sheet = peeked || gameSheet.open ? undefined : picking;
 
   return (
     <>
@@ -133,6 +144,7 @@ export function MemberEditor() {
           onClick={(e) => {
             playAnim(e.currentTarget, godMode ? 'bolt-off' : 'bolt-on');
             setGodMode(!godMode);
+            setPickedAnyGame(undefined);
             toast({ text: godModeText(!godMode) });
           }}
         >
@@ -261,7 +273,8 @@ export function MemberEditor() {
           options={moveOptions(moveFilters).map((id) => ({ id, name: moves[id].name }))}
           head={<MoveHead />}
           render={(o) => <MoveCells move={moves[o.id]} />}
-          filters={activeMoveChoiceFilters(moveFilters)}
+          filters={activeMoveChoiceFilters(moveFilters, anyGame !== godMode)}
+          emptyNote={notInGame || undefined}
           onFilter={() => setPicking({ kind: 'move-filter', slot: sheet.slot })}
           onPick={(move) => setMove(sheet.slot, move)}
           onClose={() => setPicking(undefined)}
@@ -270,10 +283,26 @@ export function MemberEditor() {
       {sheet?.kind === 'move-filter' && (
         <MoveChoiceFilterSheet
           value={moveFilters}
-          games={speciesGames}
+          game={anyGame ? 'any' : sharedGame}
+          versions={versions}
+          shows={newestGame}
+          onGame={gameSheet.show}
+          onReset={() => setPickedAnyGame(undefined)}
           countFor={(f) => moveOptions(f).length}
           onChange={setMoveFilters}
           onClose={() => setPicking({ kind: 'move', slot: sheet.slot })}
+        />
+      )}
+      {gameSheet.open && (
+        <GameSheet
+          value={anyGame ? 'any' : sharedGame}
+          versions={versions}
+          offerAny
+          onPick={(choice) => {
+            setPickedAnyGame(choice === 'any');
+            if (choice !== 'any') setGame(choice);
+          }}
+          onClose={gameSheet.hide}
         />
       )}
     </>
@@ -359,6 +388,7 @@ function PickerSheet({
   head,
   render,
   filters = 0,
+  emptyNote,
   onFilter,
   onPick,
   onClose,
@@ -370,6 +400,8 @@ function PickerSheet({
   render: (o: Option) => ReactNode;
   /** How many filters are on, for the badge on the filter button. */
   filters?: number;
+  /** Why the list is empty, in place of "Nothing matches the filters." */
+  emptyNote?: string;
   /** Shows a filter button beside the search, which closes the picker and calls this. */
   onFilter?: () => void;
   onPick: (id: number) => void;
@@ -421,7 +453,7 @@ function PickerSheet({
             </li>
           ))}
         </ul>
-        {!shown.length && <p className="empty">{q || !onFilter ? `Nothing matches “${query}”.` : 'Nothing matches the filters.'}</p>}
+        {!shown.length && <p className="empty">{emptyNote ?? (q || !onFilter ? `Nothing matches “${query}”.` : 'Nothing matches the filters.')}</p>}
       </section>
     </>
   );

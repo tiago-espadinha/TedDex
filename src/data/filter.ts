@@ -84,12 +84,11 @@ function dexTerm<T extends DexRow>(term: string, negated: boolean, fuse: Fuse<T>
 }
 
 /**
- * Search + category/generation/type filters + sort, in that order, over the species up to number `upTo` (the global
- * game's generation; all when undefined). Types match any of the chosen ones. The Favourites category keeps the rows
- * whose species and form are in `favourites` (favouriteKey). Pure, so it's easy to test.
+ * Search + category/generation/type filters + sort, in that order. Types match any of the chosen ones. The Favourites
+ * category keeps the rows whose species and form are in `favourites` (favouriteKey). Pure, so it's easy to test.
  */
-export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f: DexFilters, upTo?: number, favourites?: ReadonlySet<string>): T[] {
-  let list = upTo === undefined ? all : all.filter((m) => m.id <= upTo);
+export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f: DexFilters, favourites?: ReadonlySet<string>): T[] {
+  let list = all;
   const query = parseQuery(f.query);
   if (query) list = list.filter(compileQuery<T>(query, (term, negated) => dexTerm(term, negated, fuse, favourites)));
   const category = f.category;
