@@ -4,15 +4,16 @@
  *
  *   npm run media             # download missing sources (cached in .cache/media/) and convert
  *   npm run media -- --fresh  # re-download and re-convert everything
- *   npm run media -- --redo=artwork,cries  # re-convert those kinds from the cache (after changing their options)
+ *   npm run media -- --redo=artwork,artwork/shiny,cries  # re-convert those kinds from the cache (after changing their options)
  *
  * Reads the species list from public/data/index.json, their forms from the species/ chunks and the items from
  * reference/items.json (with their PokeAPI names from the CSV cache), so run `npm run data` first.
  *
  * Output (all under public/media/; forms use their Pokémon id, e.g. 10034 for Mega Charizard X):
  *   sprites/<id>.webp   96 px front sprite, lossless WebP (precached by the service worker); species and forms
- *   sprites/shiny/<id>.webp  the same, shiny; species only
+ *   sprites/shiny/<id>.webp  the same, shiny; species and forms
  *   artwork/<id>.webp   368 px official artwork (2× the 184 px hero), WebP q65 (cached on first view); species and forms
+ *   artwork/shiny/<id>.webp  the same, shiny; species and forms
  *   cries/<id>.m4a      latest cry, AAC 40 kbps mono (iOS Safari can't reliably play OGG); species only
  *   items/<id>.webp     item sprite, 48–64 px WebP (precached); every item in reference/items.json
  *   guide/<name>.webp   pixel-art sprites for the Guide menu rows, doubled, lossless (precached)
@@ -48,17 +49,13 @@ type Kind = {
   ids: 'species' | 'forms' | 'items';
 };
 
+const ARTWORK_OPTIONS = ['-vf', 'scale=368:368:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '65', '-compression_level', '6'];
+
 const KINDS: Kind[] = [
   { dir: 'sprites', source: (id) => `${SPRITES}/${id}.png`, ext: 'webp', ffmpeg: ['-c:v', 'libwebp', '-lossless', '1'], ids: 'forms' },
-  // Shiny sprites for the Pokédex tracker's shiny cells, which track species only.
-  { dir: 'sprites/shiny', source: (id) => `${SPRITES}/shiny/${id}.png`, ext: 'webp', ffmpeg: ['-c:v', 'libwebp', '-lossless', '1'], ids: 'species' },
-  {
-    dir: 'artwork',
-    source: (id) => `${SPRITES}/other/official-artwork/${id}.png`,
-    ext: 'webp',
-    ffmpeg: ['-vf', 'scale=368:368:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '65', '-compression_level', '6'],
-    ids: 'forms',
-  },
+  { dir: 'sprites/shiny', source: (id) => `${SPRITES}/shiny/${id}.png`, ext: 'webp', ffmpeg: ['-c:v', 'libwebp', '-lossless', '1'], ids: 'forms' },
+  { dir: 'artwork', source: (id) => `${SPRITES}/other/official-artwork/${id}.png`, ext: 'webp', ffmpeg: ARTWORK_OPTIONS, ids: 'forms' },
+  { dir: 'artwork/shiny', source: (id) => `${SPRITES}/other/official-artwork/shiny/${id}.png`, ext: 'webp', ffmpeg: ARTWORK_OPTIONS, ids: 'forms' },
   {
     dir: 'cries',
     source: (id) => `${CRIES}/${id}.ogg`,

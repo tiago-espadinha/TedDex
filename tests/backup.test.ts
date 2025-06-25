@@ -172,6 +172,26 @@ describe('parseBackup', () => {
     }
   });
 
+  test('round-trips shiny in a version 10 backup, a form member included', () => {
+    const json = JSON.stringify({ app: 'material-dex', version: 10, teams: [{ name: 'A', members: [{ speciesId: 25, shiny: true }, { speciesId: 6, formKey: 'mega-x', shiny: true }, { speciesId: 1 }] }] });
+    const [team] = parseBackup(json);
+    assert.deepEqual(team.members.map((m) => m.shiny), [true, true, undefined]);
+    assert.equal(team.members[1].formKey, 'mega-x');
+    assert.deepEqual(parseBackup(backup([team]))[0].members, team.members);
+  });
+
+  test('imports members of version 1 to 9 backups as not shiny, and drops a false flag', () => {
+    for (let version = 1; version <= 9; version++) {
+      const [team] = parseBackup(JSON.stringify({ app: 'material-dex', version, teams: [{ name: 'A', members: [{ speciesId: 25 }] }] }));
+      assert.equal('shiny' in team.members[0], false);
+    }
+    assert.equal('shiny' in parseBackup(oneMember({ speciesId: 25, shiny: false }))[0].members[0], false);
+  });
+
+  test('rejects a shiny flag that is not a boolean', () => {
+    for (const shiny of [1, 0, 'true', null, []]) rejects(oneMember({ speciesId: 25, shiny }), /^Team 1 in the file: member 1 has an invalid shiny flag$/);
+  });
+
   test('trims nicknames and drops blank ones', () => {
     assert.equal(parseBackup(oneMember({ speciesId: 25, nickname: '  Sparky ' }))[0].members[0].nickname, 'Sparky');
     for (const nickname of ['', '   ']) assert.equal('nickname' in parseBackup(oneMember({ speciesId: 25, nickname }))[0].members[0], false);

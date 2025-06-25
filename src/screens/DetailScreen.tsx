@@ -193,7 +193,7 @@ export function DetailScreen() {
 
       <div className="pager" {...swipe}>
         <div id="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} ref={panelRef}>
-          {tab === 'About' && <About mon={view} formKey={formKey} />}
+          {tab === 'About' && <About mon={view} formKey={formKey} mediaId={mediaId} />}
           {tab === 'Stats' && <Stats mon={view} typeData={typeData} />}
           {tab === 'Moves' && <MovesTab key={mon.id} mon={view} formKey={formKey} />}
         </div>
@@ -293,8 +293,30 @@ function Fact({ k, wide, children }: { k: string; wide?: boolean; children: Reac
   );
 }
 
-/** Description, evolution and locations, then the Training and Breeding facts, all of `mon` in form `formKey`. */
-function About({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
+/** The form shown, plain and shiny, in the Settings art style. */
+function Appearance({ mon, mediaId }: { mon: SpeciesDetail; mediaId: number }) {
+  return (
+    <div className="section">
+      <h2>Appearance</h2>
+      <div className="looks">
+        <figure className="look">
+          <MonImg id={mediaId} speciesId={mon.id} alt={mon.name} loading="lazy" width={128} height={128} />
+          <figcaption>Normal</figcaption>
+        </figure>
+        <figure className="look shiny">
+          <MonImg id={mediaId} speciesId={mon.id} shiny alt={`Shiny ${mon.name}`} loading="lazy" width={128} height={128} />
+          <figcaption>
+            <Icon name="star" size={16} />
+            Shiny
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  );
+}
+
+/** Description, appearance, evolution and locations, then the Training and Breeding facts, all of `mon` in form `formKey`. */
+function About({ mon, formKey, mediaId }: { mon: SpeciesDetail; formKey: string; mediaId: number }) {
   const ev = evYieldParts(mon.evYield);
   const female = (mon.genderRate / 8) * 100;
   return (
@@ -304,6 +326,7 @@ function About({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
           <p className="flavor">{mon.flavor}</p>
         </div>
       )}
+      <Appearance mon={mon} mediaId={mediaId} />
       <EvolutionTab mon={mon} formKey={formKey} />
       <LocationsTab key={mon.id} mon={mon} formKey={formKey} />
       <div className="section">

@@ -1,9 +1,9 @@
 import Fuse from 'fuse.js';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { loadIndex, loadVersions, useLoad } from '../data/api';
+import { loadIndex, loadVersions, loadedIndex, loadedVersions, useLoad } from '../data/api';
 import { formatNo } from '../data/format';
 import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
@@ -32,8 +32,26 @@ function useColumns() {
   return cols;
 }
 
+/** The Dex tab's spot. In memory, so a reload or relaunch starts at the top. */
+let dexScrollY = 0;
+
+/**
+ * Restores the spot once the list has its height and saves it on leaving. Rendered before the rest of the screen:
+ * its effect then runs before the pinned search reads the scroll, and its cleanup before the list goes.
+ */
+function KeepDexScroll() {
+  useLayoutEffect(() => {
+    window.scrollTo({ top: dexScrollY });
+    return () => {
+      dexScrollY = window.scrollY;
+    };
+  }, []);
+  return null;
+}
+
 export function DexScreen() {
-  const { data: all, error } = useLoad(loadIndex, 'index');
+  // Data already loaded is there in the first commit, so coming back draws the list at its spot with no empty frame.
+  const { data: all, error } = useLoad(loadIndex, 'index', loadedIndex);
   const favourites = useFavourites();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [params] = useSearchParams();
@@ -63,7 +81,7 @@ export function DexScreen() {
   // A chosen game limits the list to the species up to its generation, until the filter sheet's Game toggle lifts it (`liftedGame`).
   // Without the versions file the list shows unlimited rather than loading forever.
   const [game] = useGame();
-  const { data: versions, error: versionsError } = useLoad(loadVersions, 'versions');
+  const { data: versions, error: versionsError } = useLoad(loadVersions, 'versions', loadedVersions);
   const limit = game === 'latest' ? undefined : versions?.find((v) => v.id === game);
   const upTo = (f: DexFilters) => (limit && f.liftedGame !== limit.id ? lastSpecies(limit.gen) : undefined);
   const waiting = game !== 'latest' && !versions && !versionsError;
@@ -78,7 +96,12 @@ export function DexScreen() {
 
   const lines = Math.ceil(list.length / perRow);
   const rowHeight = view === 'list' ? LIST_ROW_H : ROW_H;
-  const virtual = useWindowVirtualizer({ count: lines, estimateSize: () => rowHeight, overscan: 4 });
+  // The virtualizer scrolls the window to this on mount; left to default, it would take the previous screen's scroll.
+  const virtual = useWindowVirtualizer({ count: lines, estimateSize: () => rowHeight, overscan: 4, initialOffset: picking ? 0 : dexScrollY });
+  // A list that shrank while away can land short of the spot with no scroll event, leaving the virtualizer past its rows.
+  useLayoutEffect(() => {
+    if (virtual.scrollOffset !== window.scrollY) window.dispatchEvent(new Event('scroll'));
+  }, [virtual]);
   // Row heights differ between the views: measure again when switching.
   useEffect(() => virtual.measure(), [virtual, rowHeight]);
 
@@ -98,7 +121,10 @@ export function DexScreen() {
       label="Search Pokémon"
       placeholder="Name or number"
       value={filters.query}
-      onChange={(query) => setFilters({ ...filters, query })}
+      onChange={(query) => {
+        setFilters({ ...filters, query });
+        window.scrollTo({ top: 0 });
+      }}
       hints="dex"
       trailing={
         <button
@@ -113,8 +139,12 @@ export function DexScreen() {
     />
   );
 
+  // A list that depends on the favourites (the category, or the word in a search) has its height only once they load.
+  const hasHeight = rows && favourites;
+
   return (
     <>
+      {!picking && hasHeight && <KeepDexScroll />}
       {picking ? (
         <header className="topbar dex-top">
           <button className="icon-btn" aria-label="Back" onClick={back}>

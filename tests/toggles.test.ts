@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { FORM_KIND_EXAMPLES, FORM_KIND_LABELS } from '../src/data/dexState';
+import { ART_STYLE_EXAMPLE, FORM_KIND_EXAMPLES, FORM_KIND_LABELS } from '../src/data/dexState';
 import type { IndexEntry } from '../src/data/types';
 
 const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
@@ -65,6 +65,12 @@ test('every form switch has an example with a sprite and artwork', () => {
       assert.ok(existsSync(new URL(`../public/media/${dir}/${id}.webp`, import.meta.url)), `${dir}/${id}`);
     }
     assert.ok(existsSync(new URL(`../public/media/sprites/${speciesId}.webp`, import.meta.url)), `sprites/${speciesId}`);
+  }
+});
+
+test('the art style example has a sprite and artwork', () => {
+  for (const dir of ['sprites', 'artwork']) {
+    assert.ok(existsSync(new URL(`../public/media/${dir}/${ART_STYLE_EXAMPLE}.webp`, import.meta.url)), `${dir}/${ART_STYLE_EXAMPLE}`);
   }
 });
 

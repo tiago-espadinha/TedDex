@@ -132,7 +132,7 @@ export function TeamsScreen() {
                   const mon = view?.(m);
                   return (
                     <span key={i}>
-                      <MonImg id={mon?.mediaId ?? m.speciesId} speciesId={m.speciesId} alt="" title={mon?.name} width={80} height={80} />
+                      <MonImg id={mon?.mediaId ?? m.speciesId} speciesId={m.speciesId} shiny={m.shiny} alt="" title={mon?.name} width={80} height={80} />
                     </span>
                   );
                 })}
@@ -313,6 +313,7 @@ export function TeamEditor() {
                     <MonHead
                       spriteId={mon?.mediaId ?? m.speciesId}
                       speciesId={m.speciesId}
+                      shiny={m.shiny}
                       name={name}
                       types={mon?.types ?? []}
                       note={m.nature && <NatureChip name={m.nature} />}
@@ -530,7 +531,7 @@ function CoverageTable<R extends CoverageRow>({
             <th scope="col">{lead}</th>
             {mons.map((m, i) => (
               <th scope="col" key={i}>
-                <MonImg id={m.mediaId} speciesId={m.speciesId} alt="" />
+                <MonImg id={m.mediaId} speciesId={m.speciesId} shiny={m.shiny} alt="" />
                 <span className="sr-only">{m.name}</span>
               </th>
             ))}

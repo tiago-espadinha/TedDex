@@ -10,10 +10,11 @@ import { CategoryIcon, MonName, TypeChip } from './bits';
  * `MonHead` in an `.evo-member` row (a link to the species on league pages).
  */
 
-/** Sprite on its first type's tint, name and type chips (`note` at the end of their row), then `aside` (a level badge). */
+/** Sprite (`shiny` for a saved team's shiny member) on its first type's tint, name and type chips (`note` at the end of their row), then `aside` (a level badge). */
 export function MonHead({
   spriteId,
   speciesId,
+  shiny,
   name,
   types,
   note,
@@ -21,6 +22,7 @@ export function MonHead({
 }: {
   spriteId: number;
   speciesId: number;
+  shiny?: boolean;
   name: string;
   types: TypeName[];
   note?: ReactNode;
@@ -31,6 +33,7 @@ export function MonHead({
       <MonImg
         id={spriteId}
         speciesId={speciesId}
+        shiny={shiny}
         alt=""
         width={56}
         height={56}
