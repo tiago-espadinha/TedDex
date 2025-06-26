@@ -23,7 +23,7 @@
  *                             (no "Held: " preamble), wild holders as [version group, species, rarity %]; every named item
  *                             but unused ones
  *   reference/moves/c<n>.json move description, full effect, and its learners per method as [species, version group bitmask (bit id-1)]
- *   locations/c<n>.json   wild encounters per game (version id) as tuples into one string table per chunk, any form;
+ *   locations/c<n>.json   wild encounters per game (version id) as tuples into one string table per chunk, any form (`npm run availability` adds text rows after this);
  *                         expansion versions (The Isle of Armor…) count as their base game
  *   games.json            games (versions) with encounter data and their version group, oldest first
  *   meta.json             data version + build time (the HEAD commit date, so it never postdates the history)

@@ -4,7 +4,7 @@ import type { EncounterRow, Game, Locations } from './types';
 export interface Encounter {
   area: string;
   method: string;
-  /** "Lv. 2–4", or "Lv. 32" when there is one level. */
+  /** "Lv. 2–4", "Lv. 32" when there is one level, or '' on a text row (Bulbapedia's "Trade", min 0), which has no method either. */
   levels: string;
   /** "45%", "Up to 45%" when it depends on time, season or other conditions, or '' when unknown (Let's Go). */
   chance: string;
@@ -20,16 +20,17 @@ export interface GroupEncounter extends Encounter {
 
 /**
  * Only the rows of form `formKey` ('' = the species), dropping games left empty. A regional form shows only its own
- * rows (Alolan Golem has none); other forms without rows of their own (Megas, Zen Mode, Blade) are found as their species.
+ * rows (no Alolan Golem in Red); any other form with data of its own shows its rows in the games that have some and is
+ * found as its species elsewhere (Wash Rotom in Platinum), like the forms without such data (Megas).
  */
 export function locationsOfForm(data: Locations, formKey: string): Locations {
   const keyOf = (row: EncounterRow) => (row[8] ? data.strings[row[8]] : '');
-  const hasRows = Object.values(data.games).some((rows) => rows.some((row) => keyOf(row) === formKey));
-  const key = hasOwnFormData(formKey) && (hasRows || REGIONAL_FORM.test(formKey)) ? formKey : '';
+  const own = hasOwnFormData(formKey) ? formKey : '';
   const games: Locations['games'] = {};
   for (const [game, rows] of Object.entries(data.games)) {
-    const own = rows.filter((row) => keyOf(row) === key);
-    if (own.length) games[Number(game)] = own;
+    const ofForm = rows.filter((row) => keyOf(row) === own);
+    const shown = ofForm.length || REGIONAL_FORM.test(own) ? ofForm : rows.filter((row) => keyOf(row) === '');
+    if (shown.length) games[Number(game)] = shown;
   }
   return { strings: data.strings, games };
 }
@@ -39,7 +40,7 @@ export function encountersIn(data: Locations, game: number): Encounter[] {
   return (data.games[game] ?? []).map(([area, method, min, max, rate, upTo, note, form]) => ({
     area: data.strings[area],
     method: data.strings[method],
-    levels: min === max ? `Lv. ${min}` : `Lv. ${min}–${max}`,
+    levels: !min ? '' : min === max ? `Lv. ${min}` : `Lv. ${min}–${max}`,
     chance: rate ? `${upTo ? 'Up to ' : ''}${rate}%` : '',
     note: data.strings[note],
     form: data.strings[form],

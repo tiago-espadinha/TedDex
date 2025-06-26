@@ -91,11 +91,12 @@ describe('form locations', () => {
     for (const game of Object.keys(alola.games)) for (const e of encountersIn(alola, Number(game))) assert.equal(e.form, '');
   });
 
-  test('battle-only forms are found as their species; a regional form without rows has none', () => {
+  test("battle-only forms are found as their species; a regional form never shows the species' rows", () => {
     const plain = (id: number) => rowCount(locationsOfForm(locations(id), ''));
     assert.equal(rowCount(locationsOfForm(locations(555), 'zen')), plain(555));
     assert.equal(rowCount(locationsOfForm(locations(6), 'mega-x')), plain(6));
-    assert.equal(rowCount(locationsOfForm(locations(76), 'alola')), 0);
+    assert.equal(locationsOfForm(locations(76), 'alola').games[1], undefined); // Golem is in Red, Alolan Golem isn't
+    assert.equal(rowCount(locationsOfForm({ strings: [''], games: { 1: [[0, 0, 5, 5, 0, 0, 0, 0]] } }, 'alola')), 0);
   });
 
   test('species with no own-form rows keep every row in the plain view', () => {
