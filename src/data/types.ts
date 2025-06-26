@@ -216,7 +216,7 @@ export interface ItemPlaceGame {
   note?: string[];
 }
 
-/** games.json: games (versions, not version groups) with encounter data, oldest first. */
+/** games.json: games (versions, not version groups) with encounter data, oldest first, then those only Bulbapedia's text covers. */
 export interface Game {
   id: number;
   label: string;
@@ -229,12 +229,13 @@ export interface Game {
  * One area and method in one game. Text fields are indexes into `Locations.strings` (0 = none);
  * `rate` is the chance in percent under the best conditions (0 when unknown), and `upTo` is 1 when it depends on them.
  * `form` names a form we don't ship ("Large Size"); `formKey`, present only on rows of a form we ship, is its `?form=` key.
+ * A text row (`min` 0, `method` 0, `npm run availability`) has only `area`, Bulbapedia's text ("Evolve from Charmeleon"), and the form columns.
  */
 export type EncounterRow = [
   area: number, method: number, min: number, max: number, rate: number, upTo: 0 | 1, note: number, form: number, formKey?: number,
 ];
 
-/** One species' encounters, unpacked from locations/c<n>.json by chunks.ts: wild encounters per game id (only games the species appears in). */
+/** One species' encounters, unpacked from locations/c<n>.json by chunks.ts: encounters and text rows per game id (only games the species appears in). */
 export interface Locations {
   strings: string[];
   games: Record<number, EncounterRow[]>;

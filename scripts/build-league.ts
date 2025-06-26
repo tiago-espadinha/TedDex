@@ -23,6 +23,7 @@ import type {
   SpeciesDetail, TypeData, TypeName, VersionGroup,
 } from '../src/data/types';
 import { chunkOf } from '../src/data/chunks';
+import { fetchPage, USER_AGENT, WIKI } from './bulbapedia';
 import { nameKey, parseLevel, parseParties, plainText, type RawMember, type RawParty } from './league';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -37,8 +38,6 @@ const SPRITE_CACHE = join(CACHE, 'sprites');
 const SPRITES = join(ROOT, 'public', 'media', 'trainers');
 const ARCHIVES = 'https://archives.bulbagarden.net/wiki/Special:FilePath';
 const FRESH = process.argv.includes('--fresh');
-const WIKI = 'https://bulbapedia.bulbagarden.net';
-const USER_AGENT = 'material-dex-web data build (non-commercial fan project)';
 const run = promisify(execFile);
 
 /** Sprite suffixes that are only cosmetic (or the default form) for the species that use them. */
@@ -92,17 +91,9 @@ const pageUrl = (page: string) => `${WIKI}/wiki/${encodeURIComponent(page.replac
 async function wikitext(page: string): Promise<string> {
   const file = join(CACHE, `${page.replace(/[^\w()-]+/g, '_')}.wiki`);
   if (!FRESH && existsSync(file)) return readFile(file, 'utf8');
-  console.log(`  fetching ${page}`);
-  // Through curl: Bulbapedia challenges Node's fetch.
-  const url = `${WIKI}/w/index.php?title=${encodeURIComponent(page)}&action=raw`;
-  const { stdout } = await run('curl', ['-sS', '-A', USER_AGENT, '-w', '\n%{http_code}', url], { maxBuffer: 1 << 26 });
-  const cut = stdout.lastIndexOf('\n');
-  const status = Number(stdout.slice(cut + 1));
-  if (status !== 200) throw new Error(`${page}: HTTP ${status}`);
-  const text = stdout.slice(0, cut);
+  const text = await fetchPage(page);
   if (text.startsWith('#REDIRECT')) throw new Error(`${page} redirects: ${text.split('\n')[0]}; use the target page`);
   await writeFile(file, text);
-  await sleep(1000); // be polite to the wiki
   return text;
 }
 

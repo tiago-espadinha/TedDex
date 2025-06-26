@@ -11,7 +11,7 @@ import { DEFAULT_FILTERS, SORT_LABELS, detailPath, isPicking, saveOrder, useDexF
 import { typeTint } from '../data/typeColors';
 import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
-import { CountBadge, Loading, MonName, SearchField, TypeChip, useToast } from '../components/bits';
+import { CountBadge, Loading, MonName, SearchField, TypeChip, showNav, useToast } from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { FilterSheet } from './FilterSheet';
 import { useDexForms, useDexView, useSpriteStyle } from '../data/settings';
@@ -41,6 +41,7 @@ let dexScrollY = 0;
 function KeepDexScroll() {
   useLayoutEffect(() => {
     window.scrollTo({ top: dexScrollY });
+    showNav();
     return () => {
       dexScrollY = window.scrollY;
     };

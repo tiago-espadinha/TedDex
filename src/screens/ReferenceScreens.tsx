@@ -13,7 +13,7 @@ import { NATURES, STAT_ABBR, dislikedFlavor, flavorChip, likedFlavor, type Flavo
 import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName, VersionGroup } from '../data/types';
-import { GamePicker, SharedGameSheet } from '../components/GamePicker';
+import { GamePicker, NotInGame, SharedGameSheet } from '../components/GamePicker';
 import { Icon } from '../components/Icon';
 import { CategoryIcon, CountBadge, Loading, MonName, SearchField, Segmented, TypeChip } from '../components/bits';
 import { MonImg } from '../components/MonImg';
@@ -382,7 +382,7 @@ function MoveEntry({ id, one }: EntryProps) {
           </>
         )}
       </EntryFrame>
-      <SharedGameSheet />
+      <SharedGameSheet latestNote="Each move's newest game" />
     </>
   );
 }
@@ -460,9 +460,7 @@ function MoveLearners({ name, learners, index, versions }: { name: string; learn
       <div className="section">
         <h2>Learned by</h2>
         <GamePicker versions={versions} describedBy="learners-missing" />
-        <p id="learners-missing" className="hint game-fallback">
-          {name} isn't in {versions.find((v) => v.id === chosen)?.label}.
-        </p>
+        <NotInGame id="learners-missing" name={name} versions={versions} />
       </div>
     );
   }

@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation, type Location } from 'react-router-dom';
-import { BottomNav, ToastProvider, useKeyboardInset } from './components/bits';
+import { BottomNav, ToastProvider, useKeyboardInset, useNavHiding } from './components/bits';
 import { isPicking } from './data/dexState';
 import { clearNames, prepareMorph, screenDirection } from './data/screenMorph';
 import { applyDesign, applyTheme, type Design, type Theme } from './data/settings';
@@ -32,17 +32,13 @@ const isPickMode = (loc: { pathname: string; search: string }) => loc.pathname =
 /** Each pick starts at the top, like its empty search; other screens restore their scroll by path and search. */
 const scrollKey = (loc: Location) => (isPickMode(loc) ? loc.key : loc.pathname + loc.search);
 
-/** Screens pushed on top of a tab hide the bottom nav, like a native stack. */
 function Shell() {
-  const location = useLocation();
-  const { pathname } = location;
-  const pushed =
-    isPickMode(location) ||
-    pathname.startsWith('/pokemon/') || pathname === '/reference/compare' || /^\/teams\/\d+\/(coverage|member)/.test(pathname) || /^\/reference\/[^/]+\/./.test(pathname);
+  const { pathname, key } = useLocation();
   // The member editor renders the quick view itself, with its Replace and Remove.
   const memberEditor = /^\/teams\/\d+\/member/.test(pathname);
   const main = useRef<HTMLElement>(null);
   useKeyboardInset();
+  useNavHiding(key);
   // When navigation removes the focused control, start keyboard and screen reader users at the
   // top of the new screen. Controls that survive (prev/next on detail) keep focus.
   useEffect(() => {
@@ -53,10 +49,10 @@ function Shell() {
     <ToastProvider>
       {/* Before the screens: their own restoring (the Dex tab's) runs after this one's. */}
       <ScrollRestoration getKey={scrollKey} />
-      <main ref={main} tabIndex={-1} className={pushed ? 'app no-nav' : 'app'}>
+      <main ref={main} tabIndex={-1} className="app">
         <Outlet />
       </main>
-      {!pushed && <BottomNav />}
+      <BottomNav />
       {!memberEditor && <QuickView />}
     </ToastProvider>
   );

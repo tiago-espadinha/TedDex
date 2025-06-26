@@ -13,6 +13,7 @@
     "media": "tsx scripts/build-media.ts",
     "league": "tsx scripts/build-league.ts",
     "item-places": "tsx scripts/build-item-places.ts",
+    "availability": "tsx scripts/build-availability.ts",
     "dex-sprites": "tsx scripts/build-dex-sprites.ts"
   },
   "dependencies": {

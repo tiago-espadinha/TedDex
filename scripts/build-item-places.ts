@@ -11,11 +11,10 @@
  */
 import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { join } from 'node:path';
 import type { ItemInfo, ItemPlaceGame, ItemPlaces, ItemReferenceTable } from '../src/data/types';
 import { toChunks } from '../src/data/chunks';
+import { fetchPage, WIKI } from './bulbapedia';
 import { gameOfGroup, parseAcquisition, type AcquisitionRow } from './itemPlaces';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -23,9 +22,6 @@ const CACHE = join(ROOT, '.cache', 'bulbapedia', 'items');
 const DATA = join(ROOT, 'public', 'data', 'reference');
 const OUT = join(DATA, 'places');
 const FRESH = process.argv.includes('--fresh');
-const WIKI = 'https://bulbapedia.bulbagarden.net';
-const USER_AGENT = 'material-dex-web data build (non-commercial fan project)';
-const run = promisify(execFile);
 
 /** Items Bulbapedia covers on list pages rather than item pages. */
 const NO_PAGE = /^(TM|TR|HM)\d+$|^★/;
@@ -42,22 +38,14 @@ const VARIANT_GROUPS: Record<string, number[]> = {
 /** Text lines PokeAPI's held chips already say. */
 const HELD_BY_WILD = /^Held by wild [^,;]*$/;
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const pageUrl = (page: string) => `${WIKI}/wiki/${encodeURIComponent(page.replace(/ /g, '_'))}`;
 
 /** Raw wikitext of a page, "" when it does not exist. */
 async function wikitext(page: string): Promise<string> {
   const file = join(CACHE, `${page.replace(/[^\w()-]+/g, '_')}.wiki`);
   if (!FRESH && existsSync(file)) return readFile(file, 'utf8');
-  console.log(`  fetching ${page}`);
-  const url = `${WIKI}/w/index.php?title=${encodeURIComponent(page)}&action=raw`;
-  const { stdout } = await run('curl', ['-sS', '-A', USER_AGENT, '-w', '\n%{http_code}', url], { maxBuffer: 1 << 26 });
-  const cut = stdout.lastIndexOf('\n');
-  const status = Number(stdout.slice(cut + 1));
-  if (status !== 200 && status !== 404) throw new Error(`${page}: HTTP ${status}`);
-  const text = status === 200 ? stdout.slice(0, cut) : '';
+  const text = await fetchPage(page, { missingOk: true });
   await writeFile(file, text);
-  await sleep(1000); // be polite to the wiki
   return text;
 }
 

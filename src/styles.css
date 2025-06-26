@@ -399,14 +399,18 @@ main:focus, .sheet:focus { outline: none; }
 
 /* ---------- shell ---------- */
 .app { min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--nav-h) + var(--safe-bottom)); max-width: 720px; margin: 0 auto; }
-.app.no-nav { padding-bottom: var(--safe-bottom); }
-.no-nav .fab { bottom: calc(var(--safe-bottom) + 16px); }
 
 .bottom-nav {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; max-width: 720px; margin: 0 auto;
   height: calc(var(--nav-h) + var(--safe-bottom)); padding: 8px 8px var(--safe-bottom);
   background: var(--nav); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+/* Scrolling down, the nav slides away and what is anchored above it takes its place, over the safe area. */
+.bottom-nav { transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+:is(.fab, .to-top, .toast) { transition: translate 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+/* 1 px more for Design B's top line. */
+.nav-away .bottom-nav { transform: translateY(calc(100% + 1px)); }
+.nav-away :is(.fab, .to-top) { translate: 0 var(--nav-h); }
 /* Typing on a touch screen, the keyboard takes the nav's place; its space stays, so nothing moves. */
 @media (pointer: coarse) { .app:has(input:focus) ~ .bottom-nav { display: none; } }
 .bottom-nav a { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--ink-2); font-size: var(--fs-xs); font-weight: 600; }
@@ -464,7 +468,6 @@ main:focus, .sheet:focus { outline: none; }
 /* Back to top: centred over the filter button's column, above it, whether or not the screen has one. */
 .to-top { position: fixed; z-index: 15; right: calc(max(16px, calc((100vw - 720px) / 2 + 16px)) + 6px); bottom: calc(var(--nav-h) + var(--safe-bottom) + 84px); width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--surface); color: var(--ink); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-fab); cursor: pointer; animation: pop-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .to-top:active { background: var(--surface-2); }
-.no-nav .to-top { bottom: calc(var(--safe-bottom) + 84px); }
 .icon-btn.sm { width: 36px; height: 36px; }
 /* A phone's header field is too narrow for the "?" beside a query: the clear button takes its place until the field is empty or pinned. */
 @media (max-width: 599px) {
@@ -631,7 +634,7 @@ main:focus, .sheet:focus { outline: none; }
 /* These stay put across a screen change, live, so their pills can slide: no old snapshot to cross-fade with. */
 ::view-transition-old(bottom-nav), ::view-transition-old(team-tabs) { animation: none; opacity: 0; }
 ::view-transition-new(bottom-nav), ::view-transition-new(team-tabs) { animation: none; }
-/* Only on one side of the change (a pushed screen has no nav), they fade like the screen. */
+/* Only on one side of the change (the Team tab's switch, the nav hidden for a keyboard), they fade like the screen. */
 ::view-transition-old(bottom-nav):only-child, ::view-transition-old(team-tabs):only-child { animation: fade-out 120ms ease both; opacity: 1; }
 ::view-transition-new(bottom-nav):only-child, ::view-transition-new(team-tabs):only-child { animation: fade 220ms ease both; }
 
@@ -867,6 +870,9 @@ a.fact-chip:active { filter: brightness(0.9); }
 .loc-row .ver { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 8px; color: var(--on-type); font-size: var(--fs-xs); font-weight: 700; vertical-align: 1px; white-space: nowrap; }
 .loc-row .ver + .ver { margin-left: 4px; }
 .game-fallback { margin: 0 2px 10px; }
+.game-absent { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; margin: 0 2px 10px; }
+.game-absent .hint { margin: 0; }
+.game-absent .text-btn { min-height: 44px; }
 /* The game sheet's rows: --band on the left edge, the chosen one on --primary-soft with a check. */
 .game-rows { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .sheet > .game-rows { margin-top: 12px; }
@@ -1057,6 +1063,7 @@ a.move-row.tinted { color: var(--on-tint); }
 .coming { margin: 8px 0; padding: 18px; border-radius: 16px; border: 1.5px dashed var(--outline); color: var(--muted); font-size: var(--fs-md); line-height: 1.5; }
 
 .toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + var(--safe-bottom) + 24px); translate: -50% 0; z-index: 50; max-width: calc(100vw - 32px); padding: 12px 18px; border-radius: 14px; background: var(--toast-bg); color: var(--toast-ink); font-size: var(--fs-md); font-weight: 600; box-shadow: var(--shadow-toast); animation: rise 200ms ease; }
+.nav-away .toast { translate: -50% var(--nav-h); }
 .toast a { color: var(--toast-link); font-weight: 800; margin-left: 10px; }
 
 /* ---------- teams ---------- */

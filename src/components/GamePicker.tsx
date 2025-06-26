@@ -100,12 +100,14 @@ export function GameSheet({
   value,
   versions,
   offerAny,
+  latestNote = "Each Pokémon's newest game",
   onPick,
   onClose,
 }: {
   value: GameChoice;
   versions: VersionGroup[];
   offerAny?: boolean;
+  latestNote?: string;
   onPick: (choice: GameChoice) => void;
   onClose: () => void;
 }) {
@@ -128,7 +130,7 @@ export function GameSheet({
           </button>
         </div>
         <ul className="game-rows">
-          <GameRow name="Latest" note="Each Pokémon's newest game" on={value === 'latest'} onPick={() => pick('latest')} />
+          <GameRow name="Latest" note={latestNote} on={value === 'latest'} onPick={() => pick('latest')} />
           {offerAny && <GameRow name="Any game" on={value === 'any'} onPick={() => pick('any')} />}
         </ul>
         {gens.map((gen) => (
@@ -156,10 +158,31 @@ export function GamePicker({ versions, shows, describedBy }: { versions: Version
 }
 
 /** The sheet of the screen's `GamePicker`s, while the URL asks for it. */
-export function SharedGameSheet() {
+export function SharedGameSheet({ latestNote }: { latestNote?: string }) {
   const [stored, setGame] = useGame();
   const { open, hide } = useGameSheet();
   const { data: versions } = useLoad(loadVersions, 'versions');
   if (!open || !versions) return null;
-  return <GameSheet value={knownGame(stored, versions)} versions={versions} onPick={(choice) => choice !== 'any' && setGame(choice)} onClose={hide} />;
+  return <GameSheet value={knownGame(stored, versions)} versions={versions} latestNote={latestNote} onPick={(choice) => choice !== 'any' && setGame(choice)} onClose={hide} />;
+}
+
+/** Goes after a `GamePicker` whose game has nothing for `name`; `id` is that picker's `describedBy`. */
+export function NotInGame({ id, name, versions }: { id: string; name: string; versions: VersionGroup[] }) {
+  const [stored, setGame] = useGame();
+  const game = versions.find((v) => v.id === stored)?.label;
+  const toLatest = (button: HTMLElement) => {
+    // The button goes with this state; the picker above it stays, so focus waits there.
+    button.closest('.section')?.querySelector<HTMLElement>('.game-select')?.focus();
+    setGame('latest');
+  };
+  return (
+    <div className="game-absent">
+      <p id={id} role="status" className="hint">
+        {name} isn't in {game}.
+      </p>
+      <button className="text-btn" onClick={(e) => toLatest(e.currentTarget)}>
+        Show Latest
+      </button>
+    </div>
+  );
 }

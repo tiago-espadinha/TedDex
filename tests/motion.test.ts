@@ -56,6 +56,15 @@ test('the sliding nav pill and the view toggle stay under 250 ms', () => {
   }
 });
 
+test('the nav and what moves with it slide by transform or translate, under 250 ms', () => {
+  for (const [selector, prop] of [['.bottom-nav {', 'transform'], [':is(.fab, .to-top, .toast) {', 'translate']]) {
+    const rule = css.split('\n').find((line) => line.startsWith(selector) && line.includes('transition:')) ?? '';
+    const match = rule.match(/transition: ([a-z-]+) (\d+)ms/);
+    assert.equal(match?.[1], prop, selector);
+    assert.ok(Number(match?.[2]) <= 250, selector);
+  }
+});
+
 test('the toast is centred by translate, so the rise keyframes can set transform', () => {
   const toast = css.match(/\.toast \{[^}]*\}/)?.[0] ?? '';
   assert.match(toast, /translate: -50% 0/);

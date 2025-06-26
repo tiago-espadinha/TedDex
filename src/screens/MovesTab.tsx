@@ -6,7 +6,7 @@ import type { Learnset, MoveInfo, MoveTable, SpeciesDetail } from '../data/types
 import { signed } from '../data/format';
 import type { Peek } from '../data/peek';
 import { typeChip } from '../data/typeColors';
-import { GamePicker } from '../components/GamePicker';
+import { GamePicker, NotInGame } from '../components/GamePicker';
 import { CategoryIcon, Loading, Segmented, TypeChip } from '../components/bits';
 import { usePeek } from '../components/usePeek';
 
@@ -43,9 +43,7 @@ export function MovesTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string
     return (
       <div className="section">
         <GamePicker versions={versions} describedBy="moves-missing" />
-        <p id="moves-missing" className="hint game-fallback">
-          {mon.name} isn't in {versions.find((v) => v.id === chosen)?.label}.
-        </p>
+        <NotInGame id="moves-missing" name={mon.name} versions={versions} />
       </div>
     );
   }

@@ -1,17 +1,17 @@
-import { loadGames, loadLearnsets, loadLocations, loadVersions, useLoad } from '../data/api';
+import { loadGames, loadLocations, loadVersions, useLoad } from '../data/api';
 import { knownGame, shownGame } from '../data/game';
 import { gameColors } from '../data/gameColors';
 import { encountersInGroup, locationsOfForm } from '../data/locations';
 import { useGame } from '../data/settings';
 import type { SpeciesDetail } from '../data/types';
-import { GamePicker } from '../components/GamePicker';
+import { GamePicker, NotInGame } from '../components/GamePicker';
 import { Loading } from '../components/bits';
 
-const loadAll = (id: number, formKey: string) => Promise.all([loadLocations(id), loadGames(), loadVersions(), loadLearnsets(id, formKey)]);
+const loadAll = (id: number) => Promise.all([loadLocations(id), loadGames(), loadVersions()]);
 
 /** `mon` is the species as shown in form `formKey` (its name); the rows are that form's. */
 export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string }) {
-  const { data, error } = useLoad(() => loadAll(mon.id, formKey), `${mon.id}|${formKey}`);
+  const { data, error } = useLoad(() => loadAll(mon.id), `${mon.id}`);
   const [stored] = useGame();
 
   if (error) {
@@ -24,7 +24,7 @@ export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
   }
   if (!data) return <Loading minHeight={160} />;
 
-  const [all, allGames, versions, learnsets] = data;
+  const [all, allGames, versions] = data;
   const locations = locationsOfForm(all, formKey);
   const groups = versions.filter((vg) => allGames.some((g) => g.group === vg.id && locations.games[g.id]));
   const chosen = knownGame(stored, versions);
@@ -33,20 +33,17 @@ export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
     chosen,
   );
   if (group === undefined) {
-    const label = versions.find((v) => v.id === chosen)?.label;
     return (
       <div className="section">
         <h2>Locations</h2>
         <GamePicker versions={versions} describedBy="loc-missing" />
-        <p id="loc-missing" className="hint game-fallback">
-          {chosen === 'latest'
-            ? `${mon.name} has no wild encounters, gifts or in-game trades on record.`
-            : !learnsets[chosen]
-              ? `${mon.name} isn't in ${label}.`
-              : allGames.some((g) => g.group === chosen)
-                ? `${mon.name} has no encounters in ${label}.`
-                : `Encounter data doesn't cover ${label}.`}
-        </p>
+        {chosen === 'latest' ? (
+          <p id="loc-missing" className="hint game-fallback">
+            No way to get {mon.name} is on record.
+          </p>
+        ) : (
+          <NotInGame id="loc-missing" name={mon.name} versions={versions} />
+        )}
       </div>
     );
   }
@@ -74,11 +71,13 @@ export function LocationsTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
                     </span>
                   ))}
                 </span>
-                <span className="meta">
-                  <span>{e.method}</span>
-                  <span>{e.levels}</span>
-                  {e.chance && <span>{e.chance}</span>}
-                </span>
+                {e.method && (
+                  <span className="meta">
+                    <span>{e.method}</span>
+                    <span>{e.levels}</span>
+                    {e.chance && <span>{e.chance}</span>}
+                  </span>
+                )}
                 {(e.form || e.note) && <span className="note">{[e.form, e.note].filter(Boolean).join(' · ')}</span>}
               </span>
             </li>
