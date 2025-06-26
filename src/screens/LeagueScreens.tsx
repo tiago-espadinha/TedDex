@@ -8,7 +8,7 @@ import type { MemberView } from '../data/forms';
 import { bandStyle } from '../data/gameColors';
 import type { AbilityTable, FormVariant, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTrainer, MoveTable } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, Segmented, TypeChip } from '../components/bits';
+import { Loading, Segmented, TypeChip, showNav } from '../components/bits';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 import { usePeek } from '../components/usePeek';
 import { teamType } from '../data/teamType';
@@ -124,7 +124,10 @@ function useRestoreScroll(ready: boolean) {
   useLayoutEffect(() => {
     if (!ready) return;
     const saved = savedScroll.get(key);
-    if (back && saved) window.scrollTo({ top: saved });
+    if (back && saved) {
+      window.scrollTo({ top: saved });
+      showNav();
+    }
     return () => {
       savedScroll.set(key, window.scrollY);
     };
