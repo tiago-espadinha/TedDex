@@ -1,18 +1,45 @@
 import { useId, useLayoutEffect } from 'react';
 import { Link, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom';
 import {
-  itemSpriteUrl, loadAbilities, loadIndex, loadItemReference, loadItems, loadMoves, loadSpecies, loadTrainerGame, loadTrainerGames,
-  trainerSpriteUrl, useLoad, type TrainerKind,
+  itemSpriteUrl,
+  loadAbilities,
+  loadIndex,
+  loadItemReference,
+  loadItems,
+  loadMoves,
+  loadSpecies,
+  loadTrainerGame,
+  loadTrainerGames,
+  trainerSpriteUrl,
+  useLoad,
+  type TrainerKind,
 } from '../data/api';
 import type { MemberView } from '../data/forms';
 import { bandStyle } from '../data/gameColors';
-import type { AbilityTable, FormVariant, IndexEntry, ItemTable, LeagueGame, LeagueMember, LeagueTrainer, MoveTable } from '../data/types';
+import type {
+  AbilityTable,
+  FormVariant,
+  IndexEntry,
+  ItemTable,
+  LeagueGame,
+  LeagueMember,
+  LeagueTrainer,
+  MoveTable,
+} from '../data/types';
 import { Icon } from '../components/Icon';
 import { Loading, Segmented, TypeChip, showNav } from '../components/bits';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 import { usePeek } from '../components/usePeek';
 import { teamType } from '../data/teamType';
-import { findTrainer, readTeamPick, shownTeam, teamPickParams, teamSummary, trainerSlug, type TeamPick } from '../data/trainers';
+import {
+  findTrainer,
+  readTeamPick,
+  shownTeam,
+  teamPickParams,
+  teamSummary,
+  trainerSlug,
+  type TeamPick,
+} from '../data/trainers';
 import { typeTint } from '../data/typeColors';
 import { CoverageBody } from './TeamScreens';
 
@@ -89,12 +116,18 @@ function monOf(m: LeagueMember, tables: Tables): MemberView {
 async function loadGame(kind: TrainerKind, id: string): Promise<[LeagueGame, Tables] | null> {
   if (!(await loadTrainerGames(kind)).some((g) => g.id === id)) return null;
   const [game, index, moves, abilities, held] = await Promise.all([
-    loadTrainerGame(kind, id), loadIndex(), loadMoves(), loadAbilities(), loadItems(),
+    loadTrainerGame(kind, id),
+    loadIndex(),
+    loadMoves(),
+    loadAbilities(),
+    loadItems(),
   ]);
   const teams = game.trainers.flatMap((t) => [...t.teams, ...(t.rematches ?? []).flatMap((r) => r.teams)]);
   const members = teams.flatMap((team) => team.members);
   // A few teams hold Berries with no battle effect, which only the full item table names.
-  const items: ItemTable = members.some((m) => m.item !== undefined && !held[m.item]) ? await loadItemReference() : held;
+  const items: ItemTable = members.some((m) => m.item !== undefined && !held[m.item])
+    ? await loadItemReference()
+    : held;
   const formed = [...new Set(members.filter((m) => m.form).map((m) => m.id))];
   const forms = new Map<string, FormVariant>();
   for (const s of await Promise.all(formed.map(loadSpecies))) {
@@ -107,7 +140,11 @@ async function loadGame(kind: TrainerKind, id: string): Promise<[LeagueGame, Tab
 function BackButton({ fallback }: { fallback: string }) {
   const navigate = useNavigate();
   return (
-    <button className="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? navigate(-1) : navigate(fallback))}>
+    <button
+      className="icon-btn"
+      aria-label="Back"
+      onClick={() => (history.length > 1 ? navigate(-1) : navigate(fallback))}
+    >
       <Icon name="back" />
     </button>
   );
@@ -145,10 +182,20 @@ export function LeagueGameScreen({ kind }: { kind: TrainerKind }) {
         <BackButton fallback={`/reference/${kind}`} />
         <div className="grow">
           <h1>{game?.label ?? TITLES[kind]}</h1>
-          {game && <div className="sub">{game.region} · Gen {game.gen}</div>}
+          {game && (
+            <div className="sub">
+              {game.region} · Gen {game.gen}
+            </div>
+          )}
         </div>
       </header>
-      {error && <Missing to={`/reference/${kind}`} link="All games" text="Couldn't load this game. Check your connection and try again." />}
+      {error && (
+        <Missing
+          to={`/reference/${kind}`}
+          link="All games"
+          text="Couldn't load this game. Check your connection and try again."
+        />
+      )}
       {data === null && <Missing to={`/reference/${kind}`} link="All games" text="This game isn't in the data." />}
       {data === undefined && !error && <Loading />}
       {game && tables && (
@@ -156,7 +203,12 @@ export function LeagueGameScreen({ kind }: { kind: TrainerKind }) {
           {game.note && <p className="hint league-note">{game.note}</p>}
           <ul className="league-trainers">
             {game.trainers.map((t, i) => (
-              <TrainerRow key={`${t.name}-${i}`} to={`/reference/${kind}/${game.id}/${trainerSlug(t.name)}`} trainer={t} tables={tables} />
+              <TrainerRow
+                key={`${t.name}-${i}`}
+                to={`/reference/${kind}/${game.id}/${trainerSlug(t.name)}`}
+                trainer={t}
+                tables={tables}
+              />
             ))}
           </ul>
         </>
@@ -224,7 +276,13 @@ function useTrainer(kind: TrainerKind) {
   const setPick = (p: TeamPick) => setParams(teamPickParams(p), { replace: true, preventScrollReset: true });
   const gamePath = `/reference/${kind}/${gameId}`;
   const missing =
-    (error && <Missing to={gamePath} link="All trainers" text="Couldn't load this trainer. Check your connection and try again." />) ||
+    (error && (
+      <Missing
+        to={gamePath}
+        link="All trainers"
+        text="Couldn't load this trainer. Check your connection and try again."
+      />
+    )) ||
     (data === null && <Missing to={`/reference/${kind}`} link="All games" text="This game isn't in the data." />) ||
     (game && !trainer && <Missing to={gamePath} link="All trainers" text="This trainer isn't in this game." />) ||
     (data === undefined && <Loading />);
@@ -315,7 +373,10 @@ export function TrainerScreen({ kind }: { kind: TrainerKind }) {
 }
 
 function tintOf(t: LeagueTrainer, members: LeagueMember[], tables: Tables) {
-  const tint = teamType(t.type, members.map((m) => monOf(m, tables).types));
+  const tint = teamType(
+    t.type,
+    members.map((m) => monOf(m, tables).types),
+  );
   return tint && { backgroundColor: typeTint(tint) };
 }
 
@@ -325,7 +386,9 @@ export function TrainerCoverageScreen({ kind }: { kind: TrainerKind }) {
   return (
     <>
       <header className="topbar">
-        <BackButton fallback={trainer ? `${gamePath}/${trainerSlug(trainer.name)}${search && `?${search}`}` : gamePath} />
+        <BackButton
+          fallback={trainer ? `${gamePath}/${trainerSlug(trainer.name)}${search && `?${search}`}` : gamePath}
+        />
         <div className="grow">
           <h1>Coverage</h1>
           {trainer && (
@@ -347,12 +410,23 @@ function splitLabels(labels: string[]): { prefix: string; options: string[] } {
   let n = 0;
   while (words.every((w) => n < w.length - 1 && w[n] === words[0][n])) n++;
   // "(before Stark Mountain)" → "Before Stark Mountain".
-  const option = (w: string[]) => w.slice(n).join(' ').replace(/^\((.*)\)$/, '$1').replace(/^./, (c) => c.toUpperCase());
+  const option = (w: string[]) =>
+    w
+      .slice(n)
+      .join(' ')
+      .replace(/^\((.*)\)$/, '$1')
+      .replace(/^./, (c) => c.toUpperCase());
   return { prefix: words[0].slice(0, n).join(' '), options: words.map(option) };
 }
 
 /** A labelled row of radio buttons; `labels` share their leading words, which become the heading. */
-function Picker({ labels, fallback, pick, onPick, labelledBy }: {
+function Picker({
+  labels,
+  fallback,
+  pick,
+  onPick,
+  labelledBy,
+}: {
   labels: string[];
   /** Heading when the labels share no leading words. */
   fallback: string;
@@ -382,12 +456,22 @@ function Picker({ labels, fallback, pick, onPick, labelledBy }: {
 function TrainerMon({ member: m, tables }: { member: LeagueMember; tables: Tables }) {
   const peek = usePeek();
   const { mediaId, name, types } = monOf(m, tables);
-  const item = m.item !== undefined && tables.items[m.item] ? { id: m.item, name: tables.items[m.item].name } : undefined;
-  const ability = m.ability !== undefined && tables.abilities[m.ability] ? { id: m.ability, name: tables.abilities[m.ability].name } : undefined;
+  const item =
+    m.item !== undefined && tables.items[m.item] ? { id: m.item, name: tables.items[m.item].name } : undefined;
+  const ability =
+    m.ability !== undefined && tables.abilities[m.ability]
+      ? { id: m.ability, name: tables.abilities[m.ability].name }
+      : undefined;
   return (
     <li className="team-mon trainer-mon" style={{ backgroundColor: types[0] ? typeTint(types[0]) : 'var(--surface)' }}>
       <Link className="evo-member" to={`/pokemon/${m.id}${m.form ? `?form=${m.form}` : ''}`}>
-        <MonHead spriteId={mediaId} speciesId={m.id} name={name} types={types} aside={<span className="lv">Lv {m.level}</span>} />
+        <MonHead
+          spriteId={mediaId}
+          speciesId={m.id}
+          name={name}
+          types={types}
+          aside={<span className="lv">Lv {m.level}</span>}
+        />
       </Link>
       {(ability || item || m.tera || m.battleForm) && (
         <MonFacts>
@@ -414,8 +498,9 @@ function TrainerMon({ member: m, tables }: { member: LeagueMember; tables: Table
           {m.battleForm && <Fact k="In battle">{battleFormLabel(m.battleForm)}</Fact>}
         </MonFacts>
       )}
-      {m.moves.length > 0 && <MonMoves name={name} moves={m.moves} table={tables.moves} onPeek={(id) => peek({ kind: 'move', id })} />}
+      {m.moves.length > 0 && (
+        <MonMoves name={name} moves={m.moves} table={tables.moves} onPeek={(id) => peek({ kind: 'move', id })} />
+      )}
     </li>
   );
 }
-

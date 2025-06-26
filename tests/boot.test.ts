@@ -23,9 +23,9 @@ test('the boot spinner is inside the React root, so mounting replaces it', () =>
 });
 
 test('no external stylesheet blocks the first paint', () => {
-  const head = html.slice(0, html.indexOf('</head>')).replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
+  const head = html.slice(0, html.indexOf('</head>')).replace(/<noscript\s*>[\s\S]*?<\/noscript>/g, '');
   for (const [link] of head.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)) {
-    if (/href="https?:/.test(link)) assert.match(link, /media="print" onload="this.media='all'"/, link);
+    if (/href="https?:/.test(link)) assert.match(link, /media="print"\s+onload="this\.media\s*=\s*'all'"/, link);
   }
 });
 

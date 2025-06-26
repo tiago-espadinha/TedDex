@@ -5,8 +5,20 @@ export const eggGroupSlug = (name: string) => name.toLowerCase().replace(/[^a-z0
 
 /** Chip and page colours borrowed from the type chips (white text passes 4.5:1 on each). */
 export const EGG_GROUP_COLOR: Record<string, TypeName> = {
-  Monster: 'fire', 'Water 1': 'water', 'Water 2': 'water', 'Water 3': 'water', Bug: 'bug', Flying: 'flying', Field: 'ground',
-  Fairy: 'fairy', Grass: 'grass', 'Human-Like': 'fighting', Mineral: 'rock', Amorphous: 'ghost', Dragon: 'dragon', Ditto: 'psychic',
+  Monster: 'fire',
+  'Water 1': 'water',
+  'Water 2': 'water',
+  'Water 3': 'water',
+  Bug: 'bug',
+  Flying: 'flying',
+  Field: 'ground',
+  Fairy: 'fairy',
+  Grass: 'grass',
+  'Human-Like': 'fighting',
+  Mineral: 'rock',
+  Amorphous: 'ghost',
+  Dragon: 'dragon',
+  Ditto: 'psychic',
   Undiscovered: 'normal',
 };
 

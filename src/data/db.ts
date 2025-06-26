@@ -56,7 +56,8 @@ export const MOVE_SLOTS = 4;
 export const NICKNAME_LENGTH = 12;
 
 /** A nickname as stored: trimmed, cut to NICKNAME_LENGTH characters, undefined when blank. */
-export const cleanNickname = (nickname: string) => [...nickname.trim()].slice(0, NICKNAME_LENGTH).join('').trim() || undefined;
+export const cleanNickname = (nickname: string) =>
+  [...nickname.trim()].slice(0, NICKNAME_LENGTH).join('').trim() || undefined;
 
 export const NAME_LENGTH = 20;
 
@@ -121,9 +122,17 @@ class DexDB extends Dexie {
     // v8: Pokédexes may have a species list (custom). Every v7 Pokédex is a valid v8 one, so nothing to upgrade.
     this.version(8).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt' });
     // v9: favourites in their own table, one row per species and form.
-    this.version(9).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' });
+    this.version(9).stores({
+      teams: '++id, updatedAt',
+      pokedexes: '++id, updatedAt',
+      favourites: '[speciesId+formKey]',
+    });
     // v10: members may have a nickname. Every v9 member is a valid v10 member, so nothing to upgrade.
-    this.version(10).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' });
+    this.version(10).stores({
+      teams: '++id, updatedAt',
+      pokedexes: '++id, updatedAt',
+      favourites: '[speciesId+formKey]',
+    });
     // v11: god mode is a device preference (GOD_MODE_KEY), no longer kept on the team; it starts on if any team had it.
     this.version(11)
       .stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' })
@@ -158,7 +167,11 @@ class DexDB extends Dexie {
         }
       });
     // v13: members may be shiny. Every v12 member is a valid v13 member, so nothing to upgrade.
-    this.version(13).stores({ teams: '++id, updatedAt', pokedexes: '++id, updatedAt', favourites: '[speciesId+formKey]' });
+    this.version(13).stores({
+      teams: '++id, updatedAt',
+      pokedexes: '++id, updatedAt',
+      favourites: '[speciesId+formKey]',
+    });
   }
 }
 
@@ -185,7 +198,10 @@ export async function addToTeam(teamId: number, speciesId: number, formKey?: str
   return db.transaction('rw', db.teams, async () => {
     const team = await db.teams.get(teamId);
     if (!team || team.members.length >= TEAM_SIZE) return false;
-    await db.teams.update(teamId, { members: [...team.members, formKey ? { speciesId, formKey } : { speciesId }], updatedAt: Date.now() });
+    await db.teams.update(teamId, {
+      members: [...team.members, formKey ? { speciesId, formKey } : { speciesId }],
+      updatedAt: Date.now(),
+    });
     return true;
   });
 }
@@ -210,13 +226,23 @@ export async function removeFromTeam(teamId: number, index: number) {
 /** Creates a Pokédex for `game` (a version group; absent for any game). */
 export async function createPokedex(game?: number): Promise<number> {
   const count = await db.pokedexes.count();
-  return db.pokedexes.add({ name: `Pokédex ${count + 1}`, ...(game !== undefined && { game }), states: {}, updatedAt: Date.now() });
+  return db.pokedexes.add({
+    name: `Pokédex ${count + 1}`,
+    ...(game !== undefined && { game }),
+    states: {},
+    updatedAt: Date.now(),
+  });
 }
 
 /** Creates a custom Pokédex listing `species`, kept in national order. */
 export async function createCustomPokedex(species: number[]): Promise<number> {
   const count = await db.pokedexes.count();
-  return db.pokedexes.add({ name: `Pokédex ${count + 1}`, species: speciesList(species), states: {}, updatedAt: Date.now() });
+  return db.pokedexes.add({
+    name: `Pokédex ${count + 1}`,
+    species: speciesList(species),
+    states: {},
+    updatedAt: Date.now(),
+  });
 }
 
 /** Replaces a custom Pokédex's list. States of species taken off are kept (not counted), so adding one back restores it. */
@@ -256,7 +282,11 @@ export async function toggleFavourite(speciesId: number, formKey = '') {
 
 // ---- backup (export/import as JSON, since iOS can evict web storage) ----
 export async function exportBackup(): Promise<string> {
-  const [teams, pokedexes, favs] = await Promise.all([db.teams.toArray(), db.pokedexes.toArray(), db.favourites.toArray()]);
+  const [teams, pokedexes, favs] = await Promise.all([
+    db.teams.toArray(),
+    db.pokedexes.toArray(),
+    db.favourites.toArray(),
+  ]);
   const favourites = favs.map(({ speciesId, formKey }) => (formKey ? { speciesId, formKey } : { speciesId }));
   return JSON.stringify({ app: 'material-dex', version: 10, teams, pokedexes, favourites }, null, 2);
 }
@@ -273,7 +303,8 @@ function memberProblem(m: unknown): string | null {
   if (typeof m !== 'object' || m === null) return 'is not a Pokémon';
   const { speciesId, formKey, nickname, shiny, ability, nature, item, moves } = m as Record<string, unknown>;
   if (!isSpecies(speciesId)) return 'is not a known Pokémon';
-  if (nickname !== undefined && (typeof nickname !== 'string' || [...nickname.trim()].length > NICKNAME_LENGTH)) return 'has an invalid nickname';
+  if (nickname !== undefined && (typeof nickname !== 'string' || [...nickname.trim()].length > NICKNAME_LENGTH))
+    return 'has an invalid nickname';
   if (shiny !== undefined && typeof shiny !== 'boolean') return 'has an invalid shiny flag';
   if (formKey !== undefined && (typeof formKey !== 'string' || formKey.length > 40)) return 'has an invalid form';
   if (ability !== undefined && (typeof ability !== 'string' || ability.length > 40)) return 'has an invalid ability';
@@ -312,10 +343,21 @@ export function parseBackup(json: string, existing = 0): Omit<Team, 'id'>[] {
     });
     return {
       name: (typeof name === 'string' && cleanName(name)) || `Team ${existing + i + 1}`,
-      members: (members as TeamMember[]).map(({ speciesId, formKey, nickname, shiny, ability, nature, item, moves }) => {
-        const cleaned = nickname === undefined ? undefined : cleanNickname(nickname);
-        return { speciesId, formKey: formKey || undefined, ...(cleaned !== undefined && { nickname: cleaned }), ...(shiny && { shiny }), ability, nature, item, moves };
-      }),
+      members: (members as TeamMember[]).map(
+        ({ speciesId, formKey, nickname, shiny, ability, nature, item, moves }) => {
+          const cleaned = nickname === undefined ? undefined : cleanNickname(nickname);
+          return {
+            speciesId,
+            formKey: formKey || undefined,
+            ...(cleaned !== undefined && { nickname: cleaned }),
+            ...(shiny && { shiny }),
+            ability,
+            nature,
+            item,
+            moves,
+          };
+        },
+      ),
       updatedAt: Date.now(),
     };
   });
@@ -339,7 +381,8 @@ const hasForm = (species: Map<number, SpeciesDetail>, id: number, formKey?: stri
 export function checkKnownForms(teams: Omit<Team, 'id'>[], species: Map<number, SpeciesDetail>) {
   teams.forEach((t, i) =>
     t.members.forEach((m, j) => {
-      if (!hasForm(species, m.speciesId, m.formKey)) throw new BackupError(`Team ${i + 1} in the file: member ${j + 1} has an unknown form`);
+      if (!hasForm(species, m.speciesId, m.formKey))
+        throw new BackupError(`Team ${i + 1} in the file: member ${j + 1} has an unknown form`);
     }),
   );
 }
@@ -347,7 +390,8 @@ export function checkKnownForms(teams: Omit<Team, 'id'>[], species: Map<number, 
 /** Rejects favourite form keys the species doesn't have. `species` holds the species file of every favourite form. */
 export function checkKnownFavouriteForms(favourites: Favourite[], species: Map<number, SpeciesDetail>) {
   favourites.forEach((f, i) => {
-    if (!hasForm(species, f.speciesId, f.formKey)) throw new BackupError(`Favourite ${i + 1} in the file has an unknown form`);
+    if (!hasForm(species, f.speciesId, f.formKey))
+      throw new BackupError(`Favourite ${i + 1} in the file has an unknown form`);
   });
 }
 
@@ -364,7 +408,8 @@ export function parseFavourites(json: string): Favourite[] {
     const label = `Favourite ${i + 1} in the file`;
     const { speciesId, formKey } = (f ?? {}) as Record<string, unknown>;
     if (!isSpecies(speciesId)) throw new BackupError(`${label} is not a known Pokémon`);
-    if (formKey !== undefined && (typeof formKey !== 'string' || formKey.length > 40)) throw new BackupError(`${label} has an invalid form`);
+    if (formKey !== undefined && (typeof formKey !== 'string' || formKey.length > 40))
+      throw new BackupError(`${label} has an invalid form`);
     const fav = { speciesId, formKey: (formKey as string | undefined) ?? '' };
     const key = `${speciesId}:${fav.formKey}`;
     if (seen.has(key)) throw new BackupError(`${label} is listed twice`);
@@ -388,12 +433,14 @@ export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[
     const { name, game, species, states } = (d ?? {}) as Record<string, unknown>;
     if (game !== undefined && !(isInt(game) && game > 0)) throw new BackupError(`${label} has an invalid game`);
     if (species !== undefined) {
-      if (!Array.isArray(species) || !species.length) throw new BackupError(`${label} has an empty or invalid Pokémon list`);
+      if (!Array.isArray(species) || !species.length)
+        throw new BackupError(`${label} has an empty or invalid Pokémon list`);
       if (game !== undefined) throw new BackupError(`${label} has both a game and a Pokémon list`);
       if (!species.every(isSpecies)) throw new BackupError(`${label} lists an unknown Pokémon`);
       if (new Set(species).size !== species.length) throw new BackupError(`${label} lists a Pokémon twice`);
     }
-    if (typeof states !== 'object' || states === null || Array.isArray(states)) throw new BackupError(`${label} has no states`);
+    if (typeof states !== 'object' || states === null || Array.isArray(states))
+      throw new BackupError(`${label} has no states`);
     // Rebuilt with plain number keys, so a key like "025" can't hide from the grid.
     const clean: Record<number, DexState> = {};
     for (const [id, state] of Object.entries(states)) {
@@ -414,7 +461,8 @@ export function parsePokedexes(json: string, existing = 0): Omit<Pokedex, 'id'>[
 /** Rejects Pokédex games that aren't version groups in versions.json. */
 export function checkKnownGames(dexes: Pick<Pokedex, 'game'>[], versions: VersionGroup[]) {
   dexes.forEach((d, i) => {
-    if (d.game !== undefined && !versions.some((v) => v.id === d.game)) throw new BackupError(`Pokédex ${i + 1} in the file has an unknown game`);
+    if (d.game !== undefined && !versions.some((v) => v.id === d.game))
+      throw new BackupError(`Pokédex ${i + 1} in the file has an unknown game`);
   });
 }
 
@@ -427,7 +475,12 @@ export async function importBackup(json: string): Promise<{ teams: number; poked
     ...teams.flatMap((t) => t.members.filter((m) => m.formKey).map((m) => m.speciesId)),
     ...favourites.filter((f) => f.formKey).map((f) => f.speciesId),
   ]);
-  const [moves, items, versions, details] = await Promise.all([loadMoves(), loadItems(), loadVersions(), Promise.all([...formed].map(loadSpecies))]);
+  const [moves, items, versions, details] = await Promise.all([
+    loadMoves(),
+    loadItems(),
+    loadVersions(),
+    Promise.all([...formed].map(loadSpecies)),
+  ]);
   const species = new Map(details.map((d) => [d.id, d]));
   checkKnownGames(pokedexes, versions);
   checkKnownIds(teams, moves, items);

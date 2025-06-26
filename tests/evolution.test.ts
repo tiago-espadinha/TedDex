@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { branches, currentForm, evolutionLine, megaForms, megaGroups, megaSpecies, shortCondition, targetsOf } from '../src/data/evolution';
+import {
+  branches,
+  currentForm,
+  evolutionLine,
+  megaForms,
+  megaGroups,
+  megaSpecies,
+  shortCondition,
+  targetsOf,
+} from '../src/data/evolution';
 import type { EvolutionMember, IndexEntry, SpeciesDetail } from '../src/data/types';
 import { dataEntry, readData } from './data-files';
 
@@ -14,7 +23,10 @@ const shape = (id: number, formKey = '') => lineOf(id, formKey).map((s) => `${s.
 describe('evolutionLine', () => {
   test('a plain chain is one row', () => {
     const line = lineOf(6);
-    assert.deepEqual(line.map((s) => s.conditions), [[], ['Lv. 16'], ['Lv. 36']]);
+    assert.deepEqual(
+      line.map((s) => s.conditions),
+      [[], ['Lv. 16'], ['Lv. 36']],
+    );
     assert.equal(branches(line), false);
   });
   test('a form follows only its own line, from every stage', () => {
@@ -107,7 +119,10 @@ describe('megaSpecies', () => {
 
 describe('megaForms', () => {
   const names = (ownerIds: number[], formKey: string) =>
-    megaForms(ownerIds.map((id) => dataEntry<SpeciesDetail>('species', id)), formKey).map(({ form }) => form.name);
+    megaForms(
+      ownerIds.map((id) => dataEntry<SpeciesDetail>('species', id)),
+      formKey,
+    ).map(({ form }) => form.name);
   test('a default form lists the Megas of its chain', () => {
     assert.deepEqual(names([80], ''), ['Mega Slowbro']);
     assert.deepEqual(names([26], ''), ['Mega Raichu X', 'Mega Raichu Y']);
@@ -127,7 +142,10 @@ describe('megaGroups', () => {
   const groups = (id: number, formKey = '') => {
     const chainId = dataEntry<SpeciesDetail>('species', id).evolutionChainId;
     const owners = megaSpecies(chainId ? dataEntry<EvolutionMember[]>('evolution', chainId) : [], index, id);
-    const megas = megaForms(owners.map((o) => dataEntry<SpeciesDetail>('species', o)), formKey);
+    const megas = megaForms(
+      owners.map((o) => dataEntry<SpeciesDetail>('species', o)),
+      formKey,
+    );
     return megaGroups(megas).map(({ owner, forms }) => `${owner.name}: ${forms.length}`);
   };
   test('only the species with several Megas fan, to as many as they have', () => {
@@ -135,7 +153,15 @@ describe('megaGroups', () => {
       .filter((s) => s.forms?.some((f) => f.kind === 'mega'))
       .flatMap((s) => groups(s.id).filter((g) => g.startsWith(`${s.name}:`) && !g.endsWith(': 1')));
     assert.deepEqual(fans.sort(), [
-      'Absol: 2', 'Charizard: 2', 'Garchomp: 2', 'Lucario: 2', 'Magearna: 2', 'Meowstic: 2', 'Mewtwo: 2', 'Raichu: 2', 'Tatsugiri: 3',
+      'Absol: 2',
+      'Charizard: 2',
+      'Garchomp: 2',
+      'Lucario: 2',
+      'Magearna: 2',
+      'Meowstic: 2',
+      'Mewtwo: 2',
+      'Raichu: 2',
+      'Tatsugiri: 3',
     ]);
   });
   test('earlier stages see the fan of the species that Mega Evolves', () => {

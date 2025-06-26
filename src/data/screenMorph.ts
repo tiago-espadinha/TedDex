@@ -97,6 +97,11 @@ function waitFor(path: string): Promise<Element | null> {
       if (el) done(el);
     });
     const timer = setTimeout(() => done(null), WAIT_MS);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-morph'] });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-morph'],
+    });
   });
 }

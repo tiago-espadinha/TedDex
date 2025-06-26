@@ -9,24 +9,39 @@ import { VitePWA } from 'vite-plugin-pwa';
 const SPRITE_DIRS = ['sprites', 'sprites/shiny', 'items', 'guide', 'trainers', 'dexes'];
 const MEDIA = fileURLToPath(new URL('./public/media/', import.meta.url));
 const spriteFiles = Object.fromEntries(
-  SPRITE_DIRS.map((dir) => [dir, readdirSync(`${MEDIA}${dir}`).filter((f) => f.endsWith('.webp')).map((f) => f.slice(0, -5)).sort()]),
+  SPRITE_DIRS.map((dir) => [
+    dir,
+    readdirSync(`${MEDIA}${dir}`)
+      .filter((f) => f.endsWith('.webp'))
+      .map((f) => f.slice(0, -5))
+      .sort(),
+  ]),
 );
 /** Changes whenever any sprite does, so the app refetches them into a fresh cache. */
 const spriteVersion = (() => {
   const hash = createHash('sha256');
-  for (const dir of SPRITE_DIRS) for (const name of spriteFiles[dir]) hash.update(`${dir}/${name}`).update(readFileSync(`${MEDIA}${dir}/${name}.webp`));
+  for (const dir of SPRITE_DIRS)
+    for (const name of spriteFiles[dir])
+      hash.update(`${dir}/${name}`).update(readFileSync(`${MEDIA}${dir}/${name}.webp`));
   return hash.digest('hex').slice(0, 12);
 })();
 
 /** Artwork (species and forms, plain and shiny) and cries, cached on first view: the runtime cache must hold all of them. */
-const mediaFiles = ['artwork', 'artwork/shiny', 'cries'].reduce((n, dir) => n + readdirSync(`${MEDIA}${dir}`).length, 0);
+const mediaFiles = ['artwork', 'artwork/shiny', 'cries'].reduce(
+  (n, dir) => n + readdirSync(`${MEDIA}${dir}`).length,
+  0,
+);
 
 /** Emits data/sprites.json (version + file names per folder) for the warm-up; it is precached with the other data. */
 const spriteList = (): Plugin => ({
   name: 'sprite-list',
   apply: 'build',
   generateBundle() {
-    this.emitFile({ type: 'asset', fileName: 'data/sprites.json', source: JSON.stringify({ version: spriteVersion, files: spriteFiles }) });
+    this.emitFile({
+      type: 'asset',
+      fileName: 'data/sprites.json',
+      source: JSON.stringify({ version: spriteVersion, files: spriteFiles }),
+    });
   },
 });
 

@@ -10,12 +10,21 @@ const index = readData<IndexEntry[]>('index.json');
 const species = index.map((m) => dataEntry<SpeciesDetail>('species', m.id));
 
 describe('egg-groups.json', () => {
-  test("each group lists exactly the species whose files name it, in national order", () => {
+  test('each group lists exactly the species whose files name it, in national order', () => {
     const names = new Set(species.flatMap((s) => s.eggGroups));
-    assert.deepEqual(Object.values(groups).map((g) => g.name).sort(), [...names].sort());
+    assert.deepEqual(
+      Object.values(groups)
+        .map((g) => g.name)
+        .sort(),
+      [...names].sort(),
+    );
     for (const [slug, { name, species: ids }] of Object.entries(groups)) {
       assert.equal(slug, eggGroupSlug(name));
-      assert.deepEqual(ids, species.filter((s) => s.eggGroups.includes(name)).map((s) => s.id), name);
+      assert.deepEqual(
+        ids,
+        species.filter((s) => s.eggGroups.includes(name)).map((s) => s.id),
+        name,
+      );
     }
   });
 

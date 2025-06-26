@@ -39,7 +39,11 @@ export function teamSummary(team: LeagueTeam) {
 
 /** The pick in a trainer page's URL: `?rematch=1&stage=<i>&team=<i>`. */
 export function readTeamPick(params: URLSearchParams): TeamPick {
-  return { rematch: params.get('rematch') === '1', stage: Number(params.get('stage') ?? 0), pick: Number(params.get('team') ?? 0) };
+  return {
+    rematch: params.get('rematch') === '1',
+    stage: Number(params.get('stage') ?? 0),
+    pick: Number(params.get('team') ?? 0),
+  };
 }
 
 export function teamPickParams({ rematch, stage, pick }: TeamPick): Record<string, string> {

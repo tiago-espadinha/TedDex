@@ -29,7 +29,14 @@ export function PokedexFilterSheet({
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="dex-filter-title">
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dex-filter-title"
+      >
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="dex-filter-title">Filter Pokémon</h2>
@@ -72,7 +79,11 @@ export function PokedexFilterSheet({
                 className="type-toggle"
                 aria-pressed={on}
                 onClick={() => setDraft((d) => ({ ...d, types: toggle(d.types, t) }))}
-                style={{ borderColor: c, backgroundColor: on ? c : undefined, color: on ? 'var(--on-type)' : 'var(--ink)' }}
+                style={{
+                  borderColor: c,
+                  backgroundColor: on ? c : undefined,
+                  color: on ? 'var(--on-type)' : 'var(--ink)',
+                }}
               >
                 {t}
               </button>

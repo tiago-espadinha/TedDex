@@ -48,5 +48,8 @@ test('morphs stay within the screen-change limit and off under reduced motion', 
     const ms = Number(rule.match(/animation-duration: (\d+)ms/)?.[1]);
     assert.ok(ms > 0 && ms <= 250, rule);
   }
-  assert.match(css, /prefers-reduced-motion: reduce\)[^@]*::view-transition-group\(\*\)[^{]*\{ animation: none !important/);
+  assert.match(
+    css,
+    /prefers-reduced-motion: reduce\)[^@]*::view-transition-group\(\*\)[^{]*\{\s*animation: none !important/,
+  );
 });

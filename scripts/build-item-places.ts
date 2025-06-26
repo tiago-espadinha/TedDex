@@ -134,7 +134,9 @@ async function main() {
   for (const [n, chunk] of toChunks(built)) await writeFile(join(OUT, `c${n}.json`), JSON.stringify(chunk));
   const withSource = built.filter(([, p]) => p.source).length;
   const withAny = built.filter(([, p]) => p.games.length).length;
-  console.log(`${built.length} items, ${withAny} with places, ${withSource} from Bulbapedia → public/data/reference/places/`);
+  console.log(
+    `${built.length} items, ${withAny} with places, ${withSource} from Bulbapedia → public/data/reference/places/`,
+  );
 }
 
 main().catch((err: Error) => {

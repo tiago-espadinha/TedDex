@@ -7,7 +7,10 @@ test('the trainer type wins', () => {
 });
 
 test('without one, the type most members share', () => {
-  assert.equal(teamType(undefined, [['normal', 'flying'], ['psychic'], ['water', 'flying'], ['fire', 'flying']]), 'flying');
+  assert.equal(
+    teamType(undefined, [['normal', 'flying'], ['psychic'], ['water', 'flying'], ['fire', 'flying']]),
+    'flying',
+  );
 });
 
 test('a tie goes to the type met first', () => {

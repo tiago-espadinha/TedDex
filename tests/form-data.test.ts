@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import { describe, test } from 'node:test';
-import { packLearnsets, unpackLearnsets, unpackLocations, type PackedLearnsets, type PackedLocations } from '../src/data/chunks';
+import {
+  packLearnsets,
+  unpackLearnsets,
+  unpackLocations,
+  type PackedLearnsets,
+  type PackedLocations,
+} from '../src/data/chunks';
 import { chainInForm } from '../src/data/evolution';
 import { hasOwnFormData } from '../src/data/forms';
 import { encountersIn, locationsOfForm } from '../src/data/locations';
@@ -41,7 +47,8 @@ describe('form learnsets', () => {
         for (const key of Object.keys(entry.forms ?? {})) {
           assert.ok(keys.has(key) && hasOwnFormData(key), `${id} ${key}`);
           for (const set of Object.values(unpackLearnsets(entry, key))) {
-            for (const m of [...set.level.map(([move]) => move), ...set.machine, ...set.tutor, ...set.egg]) assert.ok(moves[m], `${id} ${key} move ${m}`);
+            for (const m of [...set.level.map(([move]) => move), ...set.machine, ...set.tutor, ...set.egg])
+              assert.ok(moves[m], `${id} ${key} move ${m}`);
           }
         }
       }
@@ -73,13 +80,14 @@ describe('form evolutions', () => {
     assert.deepEqual(names(chainInForm(chainOf(6), 6, 'mega-x')), ['4', '5', '6']);
   });
 
-  test("Galarian Zen Darmanitan follows the Galarian line and keeps its own card", () => {
+  test('Galarian Zen Darmanitan follows the Galarian line and keeps its own card', () => {
     assert.deepEqual(names(chainInForm(chainOf(555), 555, 'galar-zen')), ['554-galar', '555-galar-zen']);
   });
 });
 
 describe('form locations', () => {
-  const locations = (id: number) => unpackLocations(readData<PackedLocations>(`locations/c${Math.floor(id / 64)}.json`), id)!;
+  const locations = (id: number) =>
+    unpackLocations(readData<PackedLocations>(`locations/c${Math.floor(id / 64)}.json`), id)!;
   const rowCount = (l: ReturnType<typeof locations>) => Object.values(l.games).flat().length;
 
   test("Alolan Sandshrew's rows are apart from Sandshrew's and carry no form label", () => {
@@ -88,7 +96,8 @@ describe('form locations', () => {
     const plain = locationsOfForm(all, '');
     assert.ok(rowCount(alola) > 0 && rowCount(plain) > 0);
     assert.equal(rowCount(alola) + rowCount(plain), rowCount(all));
-    for (const game of Object.keys(alola.games)) for (const e of encountersIn(alola, Number(game))) assert.equal(e.form, '');
+    for (const game of Object.keys(alola.games))
+      for (const e of encountersIn(alola, Number(game))) assert.equal(e.form, '');
   });
 
   test("battle-only forms are found as their species; a regional form never shows the species' rows", () => {

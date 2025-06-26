@@ -8,7 +8,15 @@ import type { EncounterRow, EvolutionMember, Game, IndexEntry, Locations, Specie
 import { dataEntry, readData } from './data-files';
 
 const page = (...entries: string[]) =>
-  ['===Game locations===', '{{Availability/Header|type=Fire}}', '{{Availability/Gen|gen=I}}', ...entries, '|}', '|}', '{{Availability/Footer}}'].join('\n');
+  [
+    '===Game locations===',
+    '{{Availability/Header|type=Fire}}',
+    '{{Availability/Gen|gen=I}}',
+    ...entries,
+    '|}',
+    '|}',
+    '{{Availability/Footer}}',
+  ].join('\n');
 const texts = (wiki: string, game: number) => parseAvailability(wiki)![game]?.map((l) => l.text);
 
 describe('parseAvailability', () => {
@@ -26,7 +34,7 @@ describe('parseAvailability', () => {
     const wiki = page(
       '{{Availability/Entry1|v=Emerald|area={{pkmn|breeding|Breed}} {{p|Marill}} or {{p|Azumarill}} holding a [[Sea Incense]]}}',
       '{{Availability/Entry2/None|v=Ruby|v2=Sapphire|area=[[Trade]]<sup>Version 1.2.0+</sup>, [[#In events|Event]]}}',
-      "{{Availability/Entry1|v=Crystal|area=[[Burned Tower]]{{tt|*|Only one}}&nbsp;[[File:Alpha icon.png|link=Alpha Pokémon|14px]]{{sup/t|N}}}}",
+      '{{Availability/Entry1|v=Crystal|area=[[Burned Tower]]{{tt|*|Only one}}&nbsp;[[File:Alpha icon.png|link=Alpha Pokémon|14px]]{{sup/t|N}}}}',
     );
     assert.deepEqual(texts(wiki, 9), ['Breed Marill or Azumarill holding a Sea Incense']);
     assert.deepEqual(texts(wiki, 7), ['Trade, Event']);
@@ -48,16 +56,25 @@ describe('parseAvailability', () => {
       "{{Availability/Entry1|v=Scarlet|area=[[Evolution|Evolve]] {{p|Growlithe}} <small>('''Kantonian/Hisuian Forms''')</small>}}",
       "{{Availability/Entry1|v=Violet|area=Raids (1★ <small>('''Kantonian Form''')</small>, 3★ <small>('''Alolan Form''')</small>)}}",
     );
-    assert.deepEqual(parseAvailability(wiki)![40], [{ text: 'Evolve from Growlithe', forms: ['Kantonian', 'Hisuian'] }]);
+    assert.deepEqual(parseAvailability(wiki)![40], [
+      { text: 'Evolve from Growlithe', forms: ['Kantonian', 'Hisuian'] },
+    ]);
     assert.deepEqual(parseAvailability(wiki)![41][0].forms, ['Kantonian', 'Alolan']);
     assert.doesNotMatch(parseAvailability(wiki)![41][0].text, /Form/);
   });
 
   test("a form tag's breeds pick those forms", () => {
-    const wiki = page("{{Availability/Entry1|v=Scarlet|area=Area Two <small>('''Paldean Form (Combat and Blaze Breeds)''')</small>}}");
+    const wiki = page(
+      "{{Availability/Entry1|v=Scarlet|area=Area Two <small>('''Paldean Form (Combat and Blaze Breeds)''')</small>}}",
+    );
     const [line] = parseAvailability(wiki)![40];
     assert.deepEqual(line, { text: 'Area Two', forms: ['Paldean'], breeds: ['Combat', 'Blaze'] });
-    const out = withAvailability({ strings: [''], games: {} }, { 40: [line] }, ['', 'paldea-combat-breed', 'paldea-blaze-breed', 'paldea-aqua-breed']);
+    const out = withAvailability({ strings: [''], games: {} }, { 40: [line] }, [
+      '',
+      'paldea-combat-breed',
+      'paldea-blaze-breed',
+      'paldea-aqua-breed',
+    ]);
     assert.equal(locationsOfForm(out, 'paldea-combat-breed').games[40].length, 1);
     assert.equal(locationsOfForm(out, 'paldea-aqua-breed').games[40], undefined);
   });
@@ -92,11 +109,18 @@ describe('parseAvailability', () => {
 });
 
 describe('withAvailability', () => {
-  const WILD: Locations = { strings: ['', 'Route 1', 'Grass', 'alola', 'Route 2'], games: { 27: [[4, 2, 3, 5, 30, 0, 0, 0, 3]], 1: [[1, 2, 3, 5, 30, 0, 0, 0]] } };
+  const WILD: Locations = {
+    strings: ['', 'Route 1', 'Grass', 'alola', 'Route 2'],
+    games: { 27: [[4, 2, 3, 5, 30, 0, 0, 0, 3]], 1: [[1, 2, 3, 5, 30, 0, 0, 0]] },
+  };
   const line = (text: string, ...forms: string[]) => ({ text, forms });
 
   test('PokeAPI rows win per game and form; text fills the gaps', () => {
-    const out = withAvailability(WILD, { 1: [line('Gift')], 2: [line('Trade')], 27: [line('Route 2', 'Alolan'), line('Bank', 'Kantonian')] }, ['', 'alola']);
+    const out = withAvailability(
+      WILD,
+      { 1: [line('Gift')], 2: [line('Trade')], 27: [line('Route 2', 'Alolan'), line('Bank', 'Kantonian')] },
+      ['', 'alola'],
+    );
     assert.deepEqual(out.games[1], WILD.games[1]);
     assert.equal(out.strings[out.games[2][0][0]], 'Trade');
     assert.deepEqual(out.games[2][0].slice(1, 7), [0, 0, 0, 0, 0, 0]);
@@ -106,7 +130,11 @@ describe('withAvailability', () => {
   });
 
   test('a regional line goes to every form of the region, and to a note when we ship none', () => {
-    const out = withAvailability({ strings: [''], games: {} }, { 33: [line('Snowslide Slope', 'Galarian')] }, ['', 'galar-standard', 'galar-zen']);
+    const out = withAvailability({ strings: [''], games: {} }, { 33: [line('Snowslide Slope', 'Galarian')] }, [
+      '',
+      'galar-standard',
+      'galar-zen',
+    ]);
     assert.equal(out.games[33].length, 2);
     assert.equal(locationsOfForm(out, 'galar-zen').games[33].length, 1);
     const none = withAvailability({ strings: [''], games: {} }, { 33: [line('Route 2', 'Galarian')] }, ['']);
@@ -114,47 +142,79 @@ describe('withAvailability', () => {
   });
 
   test('a home region reads as the species; other forms stay on its rows as a note', () => {
-    const out = withAvailability({ strings: [''], games: {} }, { 40: [line('Route 3', 'Dusk'), line('Route 4', 'Kantonian')] }, ['', 'dusk']);
+    const out = withAvailability(
+      { strings: [''], games: {} },
+      { 40: [line('Route 3', 'Dusk'), line('Route 4', 'Kantonian')] },
+      ['', 'dusk'],
+    );
     const plain = locationsOfForm(out, '').games[40];
-    assert.deepEqual(plain.map((row) => out.strings[row[7]]), ['Dusk Form', '']);
+    assert.deepEqual(
+      plain.map((row) => out.strings[row[7]]),
+      ['Dusk Form', ''],
+    );
     assert.deepEqual(locationsOfForm(out, 'dusk').games[40], plain);
   });
 
   test('a line tagged with two forms gives a row to each', () => {
-    const out = withAvailability({ strings: [''], games: {} }, { 40: [line('Evolve from Growlithe', 'Kantonian', 'Hisuian')] }, ['', 'hisui']);
+    const out = withAvailability(
+      { strings: [''], games: {} },
+      { 40: [line('Evolve from Growlithe', 'Kantonian', 'Hisuian')] },
+      ['', 'hisui'],
+    );
     assert.equal(locationsOfForm(out, '').games[40].length, 1);
     assert.equal(locationsOfForm(out, 'hisui').games[40].length, 1);
   });
 
   describe('an untagged line and a regional form with no row in that game', () => {
-    const area = (out: Locations, key: string, game: number) => locationsOfForm(out, key).games[game]?.map((row) => out.strings[row[0]]);
+    const area = (out: Locations, key: string, game: number) =>
+      locationsOfForm(out, key).games[game]?.map((row) => out.strings[row[0]]);
 
     test('the form gets the line; the species row stays', () => {
       const parents = { alola: { plain: 'Graveler', regional: 'Alolan Graveler' } };
-      const out = withAvailability({ strings: [''], games: {} }, { 31: [line('Evolve from Graveler')] }, ['', 'alola'], { alola: [31] }, parents);
+      const out = withAvailability(
+        { strings: [''], games: {} },
+        { 31: [line('Evolve from Graveler')] },
+        ['', 'alola'],
+        { alola: [31] },
+        parents,
+      );
       assert.deepEqual(area(out, 'alola', 31), ['Evolve from Alolan Graveler']);
       assert.deepEqual(area(out, '', 31), ['Evolve from Graveler']);
     });
 
     test('other text carries over as it is, once for each line', () => {
-      const out = withAvailability({ strings: [''], games: {} }, { 27: [line('Trade'), line('Pokémon Bank')] }, ['', 'alola'], { alola: [27] });
+      const out = withAvailability(
+        { strings: [''], games: {} },
+        { 27: [line('Trade'), line('Pokémon Bank')] },
+        ['', 'alola'],
+        { alola: [27] },
+      );
       assert.deepEqual(area(out, 'alola', 27), ['Trade', 'Pokémon Bank']);
     });
 
     test('not in a game the form is not in', () => {
-      const out = withAvailability({ strings: [''], games: {} }, { 1: [line('Evolve from Graveler')] }, ['', 'alola'], { alola: [31] });
+      const out = withAvailability({ strings: [''], games: {} }, { 1: [line('Evolve from Graveler')] }, ['', 'alola'], {
+        alola: [31],
+      });
       assert.equal(area(out, 'alola', 1), undefined);
     });
 
     test('not when the form has a row of its own there, tagged or from PokeAPI', () => {
-      const tagged = withAvailability({ strings: [''], games: {} }, { 27: [line('Bank'), line('Trade', 'Alolan')] }, ['', 'alola'], { alola: [27] });
+      const tagged = withAvailability(
+        { strings: [''], games: {} },
+        { 27: [line('Bank'), line('Trade', 'Alolan')] },
+        ['', 'alola'],
+        { alola: [27] },
+      );
       assert.deepEqual(area(tagged, 'alola', 27), ['Trade']);
       const wild = withAvailability(WILD, { 27: [line('Bank')] }, ['', 'alola'], { alola: [27] });
       assert.deepEqual(locationsOfForm(wild, 'alola').games[27], WILD.games[27]);
     });
 
     test('a non-regional form stays found as its species', () => {
-      const out = withAvailability({ strings: [''], games: {} }, { 14: [line('Old Chateau')] }, ['', 'wash'], { wash: [14] });
+      const out = withAvailability({ strings: [''], games: {} }, { 14: [line('Old Chateau')] }, ['', 'wash'], {
+        wash: [14],
+      });
       assert.equal(out.games[14].length, 1);
     });
   });
@@ -166,33 +226,59 @@ describe('withAvailability', () => {
     test('a form from a regional form names the region; one from the plain species does not', () => {
       const golem = [{ id: 76, from: 75, conditions: [], steps: [{ from: 'alola', into: 'alola', conditions: [] }] }];
       const raichu = [{ id: 26, from: 25, conditions: [], steps: [{ from: '', into: 'alola', conditions: [] }] }];
-      assert.deepEqual(regionalParents(golem, 76, nameOf), { alola: { plain: 'Graveler', regional: 'Alolan Graveler' } });
+      assert.deepEqual(regionalParents(golem, 76, nameOf), {
+        alola: { plain: 'Graveler', regional: 'Alolan Graveler' },
+      });
       assert.deepEqual(regionalParents(raichu, 26, nameOf), {});
     });
 
     test('Kantonian Raticate reads plain Rattata while Alolan Raticate reads Alolan Rattata', () => {
-      const raticate = [{ id: 20, from: 19, conditions: [], steps: [{ from: 'alola', into: 'alola', conditions: [] }] }];
+      const raticate = [
+        { id: 20, from: 19, conditions: [], steps: [{ from: 'alola', into: 'alola', conditions: [] }] },
+      ];
       const parents = regionalParents(raticate, 20, () => 'Rattata');
-      const out = withAvailability({ strings: [''], games: {} }, { 27: [line('Evolve from Rattata', 'Kantonian', 'Alolan')] }, ['', 'alola'], {}, parents);
+      const out = withAvailability(
+        { strings: [''], games: {} },
+        { 27: [line('Evolve from Rattata', 'Kantonian', 'Alolan')] },
+        ['', 'alola'],
+        {},
+        parents,
+      );
       assert.equal(out.strings[locationsOfForm(out, '').games[27][0][0]], 'Evolve from Rattata');
       assert.equal(out.strings[locationsOfForm(out, 'alola').games[27][0][0]], 'Evolve from Alolan Rattata');
     });
 
     test('a species from a regional form names it and drops the form note', () => {
       const perrserker = [{ id: 863, from: 52, conditions: [], steps: [{ from: 'galar', into: '', conditions: [] }] }];
-      const out = withAvailability({ strings: [''], games: {} }, { 40: [line('Evolve from Meowth', 'Galarian')] }, [''], {}, regionalParents(perrserker, 863, nameOf));
+      const out = withAvailability(
+        { strings: [''], games: {} },
+        { 40: [line('Evolve from Meowth', 'Galarian')] },
+        [''],
+        {},
+        regionalParents(perrserker, 863, nameOf),
+      );
       const [row] = out.games[40];
       assert.deepEqual([out.strings[row[0]], out.strings[row[7]]], ['Evolve from Galarian Meowth', '']);
     });
   });
 
   test('a line on both a game and its DLC gives one row', () => {
-    const out = withAvailability({ strings: [''], games: {} }, { 33: [line('Trade'), line('Route 1'), line('Trade')] }, ['']);
-    assert.deepEqual(out.games[33].map((row) => out.strings[row[0]]), ['Trade', 'Route 1']);
+    const out = withAvailability(
+      { strings: [''], games: {} },
+      { 33: [line('Trade'), line('Route 1'), line('Trade')] },
+      [''],
+    );
+    assert.deepEqual(
+      out.games[33].map((row) => out.strings[row[0]]),
+      ['Trade', 'Route 1'],
+    );
   });
 
   test('the same line for two forms keeps a row for each', () => {
-    const out = withAvailability({ strings: [''], games: {} }, { 33: [line('Trade', 'Kantonian', 'Galarian')] }, ['', 'galar']);
+    const out = withAvailability({ strings: [''], games: {} }, { 33: [line('Trade', 'Kantonian', 'Galarian')] }, [
+      '',
+      'galar',
+    ]);
     assert.equal(out.games[33].length, 2);
   });
 
@@ -210,7 +296,8 @@ describe('withAvailability', () => {
 });
 
 describe('the built location chunks', () => {
-  const locations = (id: number) => unpackLocations(readData<PackedLocations>(`locations/c${Math.floor(id / 64)}.json`), id)!;
+  const locations = (id: number) =>
+    unpackLocations(readData<PackedLocations>(`locations/c${Math.floor(id / 64)}.json`), id)!;
   const areas = (id: number, game: number) => encountersIn(locations(id), game).map((e) => e.area);
 
   test("the owner's examples", () => {
@@ -238,19 +325,30 @@ describe('the built location chunks', () => {
   test('a form gets its own lines', () => {
     assert.ok(encountersIn(locationsOfForm(locations(479), 'wash'), 14).length > 0); // Wash Rotom is found as Rotom in Platinum
     assert.ok(encountersIn(locationsOfForm(locations(128), 'paldea-aqua-breed'), 40).length > 0);
-    assert.ok(encountersIn(locationsOfForm(locations(59), 'hisui'), 40).some((e) => e.area === 'Evolve from Hisuian Growlithe')); // Hisuian Arcanine
-    assert.ok(encountersIn(locationsOfForm(locations(74), 'alola'), 40).some((e) => e.area.startsWith('Tera Raid Battles'))); // Alolan Geodude
+    assert.ok(
+      encountersIn(locationsOfForm(locations(59), 'hisui'), 40).some((e) => e.area === 'Evolve from Hisuian Growlithe'),
+    ); // Hisuian Arcanine
+    assert.ok(
+      encountersIn(locationsOfForm(locations(74), 'alola'), 40).some((e) => e.area.startsWith('Tera Raid Battles')),
+    ); // Alolan Geodude
   });
 
-  test('Alolan Golem in Let\'s Go evolves from Alolan Graveler; Golem keeps its row', () => {
+  test("Alolan Golem in Let's Go evolves from Alolan Graveler; Golem keeps its row", () => {
     for (const game of [31, 32]) {
-      assert.deepEqual(encountersIn(locationsOfForm(locations(76), 'alola'), game).map((e) => e.area), ['Evolve from Alolan Graveler']);
-      assert.deepEqual(encountersIn(locationsOfForm(locations(76), ''), game).map((e) => e.area), ['Evolve from Graveler']);
+      assert.deepEqual(
+        encountersIn(locationsOfForm(locations(76), 'alola'), game).map((e) => e.area),
+        ['Evolve from Alolan Graveler'],
+      );
+      assert.deepEqual(
+        encountersIn(locationsOfForm(locations(76), ''), game).map((e) => e.area),
+        ['Evolve from Graveler'],
+      );
     }
   });
 
   test("evolve lines name the pre-evolution's own form: the owner's examples", () => {
-    const areasOf = (id: number, form: string, game: number) => encountersIn(locationsOfForm(locations(id), form), game).map((e) => e.area);
+    const areasOf = (id: number, form: string, game: number) =>
+      encountersIn(locationsOfForm(locations(id), form), game).map((e) => e.area);
     assert.deepEqual(areasOf(75, 'alola', 31), ['Evolve from Alolan Geodude']); // Alolan Graveler in Let's Go
     assert.deepEqual(areasOf(80, 'galar', 33), ['Evolve from Galarian Slowpoke']); // Galarian Slowbro in Sword, once though the DLC repeats it
     assert.deepEqual(areasOf(26, 'alola', 27), ['Evolve from Pikachu']); // Alolan Raichu in Sun
@@ -268,7 +366,8 @@ describe('the built location chunks', () => {
       const chain = dataEntry<EvolutionMember[]>('evolution', chainId);
       for (const [form, { plain }] of Object.entries(regionalParents(chain, id, nameOf))) {
         for (const rows of Object.values(locationsOfForm(data, form).games)) {
-          for (const row of rows) assert.ok(!data.strings[row[0]].includes(`Evolve from ${plain}`), `${id} ${form}: ${data.strings[row[0]]}`);
+          for (const row of rows)
+            assert.ok(!data.strings[row[0]].includes(`Evolve from ${plain}`), `${id} ${form}: ${data.strings[row[0]]}`);
         }
       }
     }
@@ -290,21 +389,33 @@ describe('the built location chunks', () => {
         const [, region, name] = text.match(/^Evolve from (Alolan|Galarian|Hisuian|Paldean) (.+)$/) ?? [];
         if (!region) continue;
         const from = index.find((entry) => entry.name === name);
-        assert.ok(from?.forms?.some((f) => f.key.startsWith(regions[region])), `${id}: ${text}`);
+        assert.ok(
+          from?.forms?.some((f) => f.key.startsWith(regions[region])),
+          `${id}: ${text}`,
+        );
       }
     }
   });
 
   test('a version-exclusive regional form reads Trade in the other game', () => {
-    assert.deepEqual(encountersIn(locationsOfForm(locations(27), 'alola'), 32).map((e) => e.area), ['Trade']); // Alolan Sandshrew in Let's Go, Eevee!
-    assert.deepEqual(encountersIn(locationsOfForm(locations(83), 'galar'), 34).map((e) => e.area), ['Trade, Wild Area News']); // Galarian Farfetch'd in Shield
+    assert.deepEqual(
+      encountersIn(locationsOfForm(locations(27), 'alola'), 32).map((e) => e.area),
+      ['Trade'],
+    ); // Alolan Sandshrew in Let's Go, Eevee!
+    assert.deepEqual(
+      encountersIn(locationsOfForm(locations(83), 'galar'), 34).map((e) => e.area),
+      ['Trade, Wild Area News'],
+    ); // Galarian Farfetch'd in Shield
   });
 
   test('no regional tag stays in the text, and every regional form has rows', () => {
     for (const { id, forms } of readData<IndexEntry[]>('index.json')) {
       const data = locations(id);
-      for (const text of data.strings) assert.doesNotMatch(text, /\((?:[\w/]*\/)?(?:Alolan|Galarian|Hisuian|Paldean)[^)]* Forms?\)/, `${id}: ${text}`);
-      for (const { key } of forms ?? []) if (REGIONAL_FORM.test(key)) assert.ok(Object.keys(locationsOfForm(data, key).games).length > 0, `${id} ${key}`);
+      for (const text of data.strings)
+        assert.doesNotMatch(text, /\((?:[\w/]*\/)?(?:Alolan|Galarian|Hisuian|Paldean)[^)]* Forms?\)/, `${id}: ${text}`);
+      for (const { key } of forms ?? [])
+        if (REGIONAL_FORM.test(key))
+          assert.ok(Object.keys(locationsOfForm(data, key).games).length > 0, `${id} ${key}`);
     }
   });
 

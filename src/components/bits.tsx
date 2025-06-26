@@ -1,4 +1,17 @@
-import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type RefObject } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type HTMLAttributes,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { cap } from '../data/format';
 import { nextNavScroll, type NavScroll } from '../data/navHide';
@@ -24,7 +37,10 @@ export function playAnim(el: HTMLElement, name: string) {
   }
   el.dataset.play = name;
   clearTimeout(playing.get(el));
-  playing.set(el, window.setTimeout(() => delete el.dataset.play, PLAY_MS));
+  playing.set(
+    el,
+    window.setTimeout(() => delete el.dataset.play, PLAY_MS),
+  );
 }
 
 /**
@@ -170,7 +186,8 @@ export function useNavHiding(locationKey: string) {
       // iOS bounces past the bottom, and the way back would read as scrolling up.
       const y = Math.min(scrollY, document.documentElement.scrollHeight - innerHeight);
       // A focused tab stays on screen for whoever is scrolling with the keys.
-      const stay = matchMedia('(prefers-reduced-motion: reduce)').matches || document.querySelector('.bottom-nav :focus-visible');
+      const stay =
+        matchMedia('(prefers-reduced-motion: reduce)').matches || document.querySelector('.bottom-nav :focus-visible');
       setNavScroll(stay ? { y, away: false } : nextNavScroll(navScroll, y));
     };
     addEventListener('scroll', onScroll, { passive: true });
@@ -194,7 +211,10 @@ export function useKeyboardInset() {
     const root = document.documentElement.style;
     const update = () => {
       const typing = document.activeElement instanceof HTMLInputElement;
-      root.setProperty('--kb-inset', `${typing ? Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)) : 0}px`);
+      root.setProperty(
+        '--kb-inset',
+        `${typing ? Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)) : 0}px`,
+      );
       root.setProperty('--vv-top', `${typing ? Math.round(vv.offsetTop) : 0}px`);
     };
     vv.addEventListener('resize', update);
@@ -266,7 +286,8 @@ function usePinnedSearch() {
       if (!el) return;
       const bar = document.querySelector('.dex-top');
       // The app's top padding is the safe area.
-      const top = (bar ? bar.getBoundingClientRect().bottom : parseFloat(getComputedStyle(el.closest('.app')!).paddingTop)) + 6;
+      const top =
+        (bar ? bar.getBoundingClientRect().bottom : parseFloat(getComputedStyle(el.closest('.app')!).paddingTop)) + 6;
       const pin = el.getBoundingClientRect().top < top;
       if (pinned !== undefined && pin !== pinned && field.current) {
         const rect = field.current.getBoundingClientRect();
@@ -308,7 +329,12 @@ function usePinnedSearch() {
           height: `${start.rect.height}px`,
           borderRadius: start.radius,
         },
-        { transform: 'none', width: `${end.width}px`, height: `${end.height}px`, borderRadius: getComputedStyle(el).borderRadius },
+        {
+          transform: 'none',
+          width: `${end.width}px`,
+          height: `${end.height}px`,
+          borderRadius: getComputedStyle(el).borderRadius,
+        },
       ],
       { duration: PIN_MORPH_MS, easing: 'cubic-bezier(0.2, 0, 0, 1)' },
     );
@@ -346,8 +372,16 @@ export function SearchField({
   if (pinTop != null && pinTop !== barTop) setBarTop(pinTop);
   return (
     <div className="search-slot" ref={slot}>
-      <div className={`search-bar${pinTop == null ? '' : ' on'}`} style={{ '--pin-top': `${barTop}px` } as CSSProperties} aria-hidden="true" />
-      <label ref={field} className={`search in-head${pinTop == null ? '' : ' pinned'}`} style={{ top: pinTop == null ? undefined : `calc(${pinTop}px + var(--vv-top, 0px))` }}>
+      <div
+        className={`search-bar${pinTop == null ? '' : ' on'}`}
+        style={{ '--pin-top': `${barTop}px` } as CSSProperties}
+        aria-hidden="true"
+      />
+      <label
+        ref={field}
+        className={`search in-head${pinTop == null ? '' : ' pinned'}`}
+        style={{ top: pinTop == null ? undefined : `calc(${pinTop}px + var(--vv-top, 0px))` }}
+      >
         <Icon name="search" size={20} />
         <input
           aria-label={label}
@@ -364,7 +398,12 @@ export function SearchField({
           </button>
         )}
         {hints && (
-          <button className="icon-btn sm search-help" aria-label="Search tips" aria-haspopup="dialog" onClick={() => setHintsOpen(true)}>
+          <button
+            className="icon-btn sm search-help"
+            aria-label="Search tips"
+            aria-haspopup="dialog"
+            onClick={() => setHintsOpen(true)}
+          >
             <Icon name="help" size={20} />
           </button>
         )}
@@ -396,7 +435,14 @@ function SearchHintSheet({ list, onClose }: { list: HintList; onClose: () => voi
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet hint-sheet" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet hint-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
         <div className="handle" />
         <div className="sheet-head">
           <h2 id={titleId}>Search tips</h2>
@@ -408,7 +454,9 @@ function SearchHintSheet({ list, onClose }: { list: HintList; onClose: () => voi
         <dl className="hint-ops">
           {SEARCH_OPERATORS.map((o) => (
             <div key={o.sign}>
-              <dt><code>{o.sign}</code></dt>
+              <dt>
+                <code>{o.sign}</code>
+              </dt>
               <dd>{o.meaning}</dd>
             </div>
           ))}
@@ -433,7 +481,9 @@ function SearchHintSheet({ list, onClose }: { list: HintList; onClose: () => voi
         <dl className="hint-examples">
           {examples.map((e) => (
             <div key={e.query}>
-              <dt><code>{e.query}</code></dt>
+              <dt>
+                <code>{e.query}</code>
+              </dt>
               <dd>{e.meaning}</dd>
             </div>
           ))}
@@ -448,7 +498,8 @@ function SearchHintSheet({ list, onClose }: { list: HintList; onClose: () => voi
 const SHEET_CLOSE_MS = 180;
 /** How far a sheet must be dragged down to close. */
 const DRAG_CLOSE_PX = 100;
-const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE =
+  'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Modal behaviour for a sheet or dialog: Escape closes, the page behind doesn't scroll,
@@ -526,7 +577,9 @@ function dragToClose(sheet: HTMLElement, close: () => void) {
     return false;
   };
   const place = (y: number, animate: boolean) => {
-    sheet.style.transition = scrim.style.transition = animate ? 'transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 200ms' : 'none';
+    sheet.style.transition = scrim.style.transition = animate
+      ? 'transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 200ms'
+      : 'none';
     sheet.style.transform = y ? `translateY(${y}px)` : '';
     scrim.style.opacity = y ? String(Math.max(0, 1 - y / sheet.offsetHeight)) : '';
   };

@@ -27,14 +27,20 @@ describe('items reference data', () => {
   });
 
   test('no effect text starts with "Held:"', () => {
-    assert.deepEqual(list.filter((it) => /^held:/i.test(it.effect)).map((it) => it.name), []);
+    assert.deepEqual(
+      list.filter((it) => /^held:/i.test(it.effect)).map((it) => it.name),
+      [],
+    );
   });
 
   test('names are unique (game-specific copies name their game) and effects have no placeholders', () => {
     const names = list.map((it) => it.name);
     assert.equal(new Set(names).size, names.length);
     assert.ok(names.includes('Poké Ball (Legends: Arceus)'));
-    assert.deepEqual(list.filter((it) => /\[VAR/.test(it.effect)).map((it) => it.name), []);
+    assert.deepEqual(
+      list.filter((it) => /\[VAR/.test(it.effect)).map((it) => it.name),
+      [],
+    );
   });
 
   test('Oran Berry is a berry and Charizardite X came in Gen VI', () => {
@@ -60,7 +66,7 @@ describe('held items data', () => {
     readFileSync(new URL('../public/data/reference/items.json', import.meta.url), 'utf8'),
   ) as ItemReferenceTable;
 
-  test("every held item has its name and generation from the reference table", () => {
+  test('every held item has its name and generation from the reference table', () => {
     assert.ok(Object.keys(held).length > 300);
     for (const [id, it] of Object.entries(held)) {
       assert.equal(it.name, reference[Number(id)]?.name, `item ${id}`);

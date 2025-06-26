@@ -64,13 +64,19 @@ test('every form switch has an example with a sprite and artwork', () => {
     for (const dir of ['sprites', 'artwork']) {
       assert.ok(existsSync(new URL(`../public/media/${dir}/${id}.webp`, import.meta.url)), `${dir}/${id}`);
     }
-    assert.ok(existsSync(new URL(`../public/media/sprites/${speciesId}.webp`, import.meta.url)), `sprites/${speciesId}`);
+    assert.ok(
+      existsSync(new URL(`../public/media/sprites/${speciesId}.webp`, import.meta.url)),
+      `sprites/${speciesId}`,
+    );
   }
 });
 
 test('the art style example has a sprite and artwork', () => {
   for (const dir of ['sprites', 'artwork']) {
-    assert.ok(existsSync(new URL(`../public/media/${dir}/${ART_STYLE_EXAMPLE}.webp`, import.meta.url)), `${dir}/${ART_STYLE_EXAMPLE}`);
+    assert.ok(
+      existsSync(new URL(`../public/media/${dir}/${ART_STYLE_EXAMPLE}.webp`, import.meta.url)),
+      `${dir}/${ART_STYLE_EXAMPLE}`,
+    );
   }
 });
 

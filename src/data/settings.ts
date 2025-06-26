@@ -104,7 +104,8 @@ function subscribeSpriteStyle(listener: () => void) {
   return () => spriteStyleListeners.delete(listener);
 }
 /** Sprites or artwork for every Pokémon image, read once and shared live by every image on screen. */
-export const useSpriteStyle = () => [useSyncExternalStore(subscribeSpriteStyle, () => spriteStyle), setSpriteStyle] as const;
+export const useSpriteStyle = () =>
+  [useSyncExternalStore(subscribeSpriteStyle, () => spriteStyle), setSpriteStyle] as const;
 
 /** The Dex as a grid of cards or a dense list of rows. */
 export type DexView = 'grid' | 'list';

@@ -49,7 +49,17 @@ export function EditPokedexSpecies() {
 }
 
 /** Every species with search and the Dex's filter sheet; a tap selects or deselects one. Done needs at least one. */
-function SpeciesPicker({ title, initial, back, onDone }: { title: string; initial: number[]; back: () => void; onDone: (species: number[]) => Promise<unknown> }) {
+function SpeciesPicker({
+  title,
+  initial,
+  back,
+  onDone,
+}: {
+  title: string;
+  initial: number[];
+  back: () => void;
+  onDone: (species: number[]) => Promise<unknown>;
+}) {
   const { data: index } = useLoad(loadIndex, 'index');
   const rows = useMemo(() => (index ? dexRows(index, []) : undefined), [index]);
   const fuse = useMemo(() => (rows ? new Fuse(rows, FUSE_OPTIONS) : null), [rows]);
@@ -59,8 +69,12 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
   const [selected, setSelected] = useState(() => new Set(initial));
   // A second tap on Done while the first save runs would create another Pokédex.
   const [busy, setBusy] = useState(false);
-  const shown = useMemo(() => (rows ? applyFilters(rows, fuse, filters, favourites) : undefined), [rows, fuse, filters, favourites]);
-  const active = filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
+  const shown = useMemo(
+    () => (rows ? applyFilters(rows, fuse, filters, favourites) : undefined),
+    [rows, fuse, filters, favourites],
+  );
+  const active =
+    filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
   const toggle = useCallback(
     (id: number) =>
       setSelected((s) => {
@@ -116,7 +130,11 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
           ))}
         </ul>
       )}
-      <button className="fab" aria-label={active ? `Filter, ${active} active` : 'Filter'} onClick={() => setSheetOpen(true)}>
+      <button
+        className="fab"
+        aria-label={active ? `Filter, ${active} active` : 'Filter'}
+        onClick={() => setSheetOpen(true)}
+      >
         <Icon name="filter" size={24} />
         <CountBadge count={active} held={sheetOpen} />
       </button>
@@ -133,10 +151,25 @@ function SpeciesPicker({ title, initial, back, onDone }: { title: string; initia
 }
 
 /** A picker cell in the tracker's look: seen when not picked, caught with a check when picked. */
-const PickCell = memo(function PickCell({ id, name, on, onTap }: { id: number; name: string; on: boolean; onTap: (id: number) => void }) {
+const PickCell = memo(function PickCell({
+  id,
+  name,
+  on,
+  onTap,
+}: {
+  id: number;
+  name: string;
+  on: boolean;
+  onTap: (id: number) => void;
+}) {
   return (
     <li>
-      <button className={`dex-cell ${on ? 's2' : 's1'}`} aria-pressed={on} aria-label={`${formatNo(id)} ${name}`} onClick={() => onTap(id)}>
+      <button
+        className={`dex-cell ${on ? 's2' : 's1'}`}
+        aria-pressed={on}
+        aria-label={`${formatNo(id)} ${name}`}
+        onClick={() => onTap(id)}
+      >
         <MonImg id={id} alt="" loading="lazy" width={72} height={72} />
         <span className="no">{name}</span>
         {on && (

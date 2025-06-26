@@ -73,12 +73,22 @@ async function main() {
     for (const key of Object.keys(packed.species)) {
       const id = Number(key);
       const forms = species[id].forms ?? [];
-      const formGames = Object.fromEntries(forms.map((f) => [f.key, games.filter((g) => f.games?.includes(g.group)).map((g) => g.id)]));
+      const formGames = Object.fromEntries(
+        forms.map((f) => [f.key, games.filter((g) => f.games?.includes(g.group)).map((g) => g.id)]),
+      );
       const chainId = species[id].evolutionChainId;
       const chain = chainId === null ? [] : await evolutionChain(chainId);
       const parents = regionalParents(chain, id, (parent) => names.get(parent)!);
-      chunk[id] = withAvailability(unpackLocations(packed, id)!, availability.get(id)!, forms.map((f) => f.key), formGames, parents);
-      textRows += Object.values(chunk[id].games).flat().filter((row) => row[2] === 0).length;
+      chunk[id] = withAvailability(
+        unpackLocations(packed, id)!,
+        availability.get(id)!,
+        forms.map((f) => f.key),
+        formGames,
+        parents,
+      );
+      textRows += Object.values(chunk[id].games)
+        .flat()
+        .filter((row) => row[2] === 0).length;
     }
     await writeFile(join(dir, file), JSON.stringify(packLocations(chunk)));
   }

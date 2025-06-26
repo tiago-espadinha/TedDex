@@ -13,7 +13,13 @@ export interface MoveFilters {
   sort: MoveSort;
 }
 
-export const MOVE_SORTS: Record<MoveSort, string> = { name: 'Name', power: 'Power', accuracy: 'Accuracy', pp: 'PP', priority: 'Priority' };
+export const MOVE_SORTS: Record<MoveSort, string> = {
+  name: 'Name',
+  power: 'Power',
+  accuracy: 'Accuracy',
+  pp: 'PP',
+  priority: 'Priority',
+};
 export const MOVE_CATEGORIES: MoveCategory[] = ['physical', 'special', 'status'];
 
 const list = (raw: string | null) => (raw ? raw.split(',') : []);
@@ -23,7 +29,9 @@ export function readMoveFilters(params: URLSearchParams): MoveFilters {
   return {
     query: params.get('q') ?? '',
     categories: list(params.get('cat')).filter((c): c is MoveCategory => MOVE_CATEGORIES.includes(c as MoveCategory)),
-    gens: list(params.get('gen')).map(Number).filter((g) => g >= 1 && g <= 9),
+    gens: list(params.get('gen'))
+      .map(Number)
+      .filter((g) => g >= 1 && g <= 9),
     types: list(params.get('type')).filter(isTypeName),
     sort: sort && sort in MOVE_SORTS ? (sort as MoveSort) : 'name',
   };
@@ -41,7 +49,8 @@ export function moveFilterParams(f: MoveFilters): Record<string, string> {
 }
 
 /** How many filters (not the query) are on, for the FAB badge. */
-export const activeMoveFilters = (f: MoveFilters) => f.categories.length + f.gens.length + f.types.length + (f.sort !== 'name' ? 1 : 0);
+export const activeMoveFilters = (f: MoveFilters) =>
+  f.categories.length + f.gens.length + f.types.length + (f.sort !== 'name' ? 1 : 0);
 
 /**
  * Highest first. A move that never misses (no accuracy) counts as the most accurate; moves without power or PP

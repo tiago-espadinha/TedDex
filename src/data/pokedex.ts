@@ -42,7 +42,8 @@ export function gameDexes(data: Pokedexes, group: number): RegionalDex[] {
 }
 
 /** How many of `species` are caught (caught or shiny). */
-export const caughtCount = (states: Record<number, DexState>, species: number[]) => species.filter((id) => (states[id] ?? 0) >= 2).length;
+export const caughtCount = (states: Record<number, DexState>, species: number[]) =>
+  species.filter((id) => (states[id] ?? 0) >= 2).length;
 
 /** One cell of a Pokédex view: the species and the number it has in that dex. */
 export interface DexCell {
@@ -60,7 +61,11 @@ export interface DexView {
 /** The game's regional dexes in order, numbered from their `first`, then National up to `last`. */
 export function dexViews(regional: RegionalDex[], last: number): DexView[] {
   return [
-    ...regional.map((d) => ({ key: String(d.id), label: d.name, cells: d.species.map((id, i) => ({ id, no: d.first + i })) })),
+    ...regional.map((d) => ({
+      key: String(d.id),
+      label: d.name,
+      cells: d.species.map((id, i) => ({ id, no: d.first + i })),
+    })),
     { key: 'national', label: 'National', cells: Array.from({ length: last }, (_, i) => ({ id: i + 1, no: i + 1 })) },
   ];
 }
@@ -84,7 +89,13 @@ const list = (raw: string | null) => (raw ? raw.split(',') : []);
 export function readDexFilters(params: URLSearchParams): DexFilters {
   return {
     query: params.get('q') ?? '',
-    states: [...new Set(list(params.get('state')).filter((s) => /^[0-3]$/.test(s)).map(Number) as DexState[])].sort(),
+    states: [
+      ...new Set(
+        list(params.get('state'))
+          .filter((s) => /^[0-3]$/.test(s))
+          .map(Number) as DexState[],
+      ),
+    ].sort(),
     types: list(params.get('type')).filter(isTypeName),
   };
 }

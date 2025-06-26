@@ -29,11 +29,21 @@ export function MoveFilterSheet({
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="move-filter-title">
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="move-filter-title"
+      >
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="move-filter-title">Filter &amp; sort moves</h2>
-          <button className="text-btn" onClick={() => setDraft((d) => ({ ...d, categories: [], gens: [], types: [], sort: 'name' }))}>
+          <button
+            className="text-btn"
+            onClick={() => setDraft((d) => ({ ...d, categories: [], gens: [], types: [], sort: 'name' }))}
+          >
             Reset
           </button>
         </div>
@@ -90,7 +100,11 @@ export function MoveFilterSheet({
                 className="type-toggle"
                 aria-pressed={on}
                 onClick={() => setDraft((d) => ({ ...d, types: toggle(d.types, t) }))}
-                style={{ borderColor: c, backgroundColor: on ? c : undefined, color: on ? 'var(--on-type)' : 'var(--ink)' }}
+                style={{
+                  borderColor: c,
+                  backgroundColor: on ? c : undefined,
+                  color: on ? 'var(--on-type)' : 'var(--ink)',
+                }}
               >
                 {t}
               </button>
@@ -101,7 +115,13 @@ export function MoveFilterSheet({
         <h3>Sort by</h3>
         <div className="sort-grid" role="radiogroup" aria-label="Sort by">
           {SORTS.map(([key, label]) => (
-            <button key={key} className="gen-btn" role="radio" aria-checked={draft.sort === key} onClick={() => setDraft((d) => ({ ...d, sort: key }))}>
+            <button
+              key={key}
+              className="gen-btn"
+              role="radio"
+              aria-checked={draft.sort === key}
+              onClick={() => setDraft((d) => ({ ...d, sort: key }))}
+            >
               {label}
             </button>
           ))}

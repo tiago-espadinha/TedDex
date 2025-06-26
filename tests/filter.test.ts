@@ -6,8 +6,23 @@ import { FUSE_OPTIONS, applyFilters, dexRows, favouriteKey } from '../src/data/f
 import type { FormKind, IndexEntry, IndexForm } from '../src/data/types';
 
 /** A grid row with made-up stats and size; only the fields a test sorts by matter. */
-const mon = (id: number, name: string, types: IndexEntry['types'], gen: number, total: number, atk = 50, weightKg = 10): IndexEntry => ({
-  id, name, types, gen, total, stats: { hp: 50, atk, def: 50, spa: 50, spd: 50, spe: 50 }, heightM: 1, weightKg,
+const mon = (
+  id: number,
+  name: string,
+  types: IndexEntry['types'],
+  gen: number,
+  total: number,
+  atk = 50,
+  weightKg = 10,
+): IndexEntry => ({
+  id,
+  name,
+  types,
+  gen,
+  total,
+  stats: { hp: 50, atk, def: 50, spa: 50, spd: 50, spe: 50 },
+  heightM: 1,
+  weightKg,
 });
 
 const ALL: IndexEntry[] = [
@@ -80,10 +95,23 @@ describe('applyFilters', () => {
   });
 
   test('Favourites keeps the rows whose species and form are favourites, and combines with the other filters', () => {
-    const megaX = { key: 'mega-x', label: 'Mega X', name: 'Mega Charizard X', kind: 'mega', pokemonId: 10034, types: ['fire', 'dragon'], stats: ALL[1].stats, total: 634, heightM: 1.7, weightKg: 110.5 } as IndexForm;
+    const megaX = {
+      key: 'mega-x',
+      label: 'Mega X',
+      name: 'Mega Charizard X',
+      kind: 'mega',
+      pokemonId: 10034,
+      types: ['fire', 'dragon'],
+      stats: ALL[1].stats,
+      total: 634,
+      heightM: 1.7,
+      weightKg: 110.5,
+    } as IndexForm;
     const rows = dexRows([ALL[0], { ...ALL[1], forms: [megaX] }, ...ALL.slice(2)], ['mega']);
     const run = (favs: string[], f: Partial<DexFilters> = {}) =>
-      applyFilters(rows, null, { ...DEFAULT_FILTERS, category: 'favourite', ...f }, new Set(favs)).map((m) => favouriteKey(m.id, m.form?.key));
+      applyFilters(rows, null, { ...DEFAULT_FILTERS, category: 'favourite', ...f }, new Set(favs)).map((m) =>
+        favouriteKey(m.id, m.form?.key),
+      );
     const favs = [favouriteKey(1), favouriteKey(6, 'mega-x'), favouriteKey(255)];
     assert.deepEqual(favs, ['1', '6:mega-x', '255']);
     // The form is a favourite, not its species: only the form row shows.
@@ -92,7 +120,10 @@ describe('applyFilters', () => {
     assert.deepEqual(run(favs, { gens: [1] }), ['1', '6:mega-x']);
     assert.deepEqual(run([]), []);
     // Without the form's row (its Dex switch off), a favourite form shows nothing.
-    assert.deepEqual(applyFilters(ALL, null, { ...DEFAULT_FILTERS, category: 'favourite' }, new Set(favs)).map((m) => m.id), [1, 255]);
+    assert.deepEqual(
+      applyFilters(ALL, null, { ...DEFAULT_FILTERS, category: 'favourite' }, new Set(favs)).map((m) => m.id),
+      [1, 255],
+    );
     // Still loading: nothing matches yet.
     assert.deepEqual(applyFilters(ALL, null, { ...DEFAULT_FILTERS, category: 'favourite' }).length, 0);
   });
@@ -118,13 +149,33 @@ describe('applyFilters', () => {
   test('sorting does not mutate the input', () => {
     const before = ALL.map((m) => m.id);
     ids({ sort: 'name' });
-    assert.deepEqual(ALL.map((m) => m.id), before);
+    assert.deepEqual(
+      ALL.map((m) => m.id),
+      before,
+    );
   });
 });
 
 /** A form for the index: its kind, types and base total; stats and size don't matter here. */
-const form = (key: string, kind: IndexForm['kind'], pokemonId: number, name: string, types: IndexForm['types'], total: number, atk = 50): IndexForm => ({
-  key, label: name.split(' ')[0], kind, pokemonId, name, types, total, stats: { hp: 50, atk, def: 50, spa: 50, spd: 50, spe: 50 }, heightM: 1, weightKg: 10,
+const form = (
+  key: string,
+  kind: IndexForm['kind'],
+  pokemonId: number,
+  name: string,
+  types: IndexForm['types'],
+  total: number,
+  atk = 50,
+): IndexForm => ({
+  key,
+  label: name.split(' ')[0],
+  kind,
+  pokemonId,
+  name,
+  types,
+  total,
+  stats: { hp: 50, atk, def: 50, spa: 50, spd: 50, spe: 50 },
+  heightM: 1,
+  weightKg: 10,
 });
 
 const WITH_FORMS: IndexEntry[] = [
@@ -137,21 +188,33 @@ const WITH_FORMS: IndexEntry[] = [
       form('gmax', 'gmax', 10196, 'Gigantamax Charizard', ['fire', 'flying'], 534, 84),
     ],
   },
-  { ...mon(37, 'Vulpix', ['fire'], 1, 299), tags: ['regional'], forms: [form('alola', 'regional', 10103, 'Alolan Vulpix', ['ice'], 299)] },
-  { ...mon(479, 'Rotom', ['electric', 'ghost'], 4, 440), forms: [form('heat', 'other', 10008, 'Heat Rotom', ['electric', 'fire'], 520)] },
+  {
+    ...mon(37, 'Vulpix', ['fire'], 1, 299),
+    tags: ['regional'],
+    forms: [form('alola', 'regional', 10103, 'Alolan Vulpix', ['ice'], 299)],
+  },
+  {
+    ...mon(479, 'Rotom', ['electric', 'ghost'], 4, 440),
+    forms: [form('heat', 'other', 10008, 'Heat Rotom', ['electric', 'fire'], 520)],
+  },
   mon(149, 'Dragonite', ['dragon', 'flying'], 1, 600, 134),
 ];
 
 /** Rows for the switched-on kinds, filtered; each as its species number plus form key ("6", "6:mega-x"). */
 const rowKeys = (kinds: FormKind[], f: Partial<DexFilters> = {}) => {
   const rows = dexRows(WITH_FORMS, kinds);
-  return applyFilters(rows, new Fuse(rows, FUSE_OPTIONS), { ...DEFAULT_FILTERS, ...f }).map((r) => (r.form ? `${r.id}:${r.form.key}` : `${r.id}`));
+  return applyFilters(rows, new Fuse(rows, FUSE_OPTIONS), { ...DEFAULT_FILTERS, ...f }).map((r) =>
+    r.form ? `${r.id}:${r.form.key}` : `${r.id}`,
+  );
 };
 
 describe('dexRows', () => {
   test('with every switch off there is one row per species, without the form lists', () => {
     const rows = dexRows(WITH_FORMS, []);
-    assert.deepEqual(rows.map((r) => r.id), [6, 37, 479, 149]);
+    assert.deepEqual(
+      rows.map((r) => r.id),
+      [6, 37, 479, 149],
+    );
     assert.ok(rows.every((r) => !('forms' in r) && !r.form));
   });
 
@@ -167,7 +230,13 @@ describe('dexRows', () => {
     assert.deepEqual(megaX.types, ['fire', 'dragon']);
     assert.equal(megaX.total, 634);
     assert.deepEqual([megaX.name, megaX.id, megaX.gen, megaX.tags], ['Charizard', 6, 1, ['mega']]);
-    assert.deepEqual(megaX.form, { key: 'mega-x', label: 'Mega', name: 'Mega Charizard X', kind: 'mega', pokemonId: 10034 });
+    assert.deepEqual(megaX.form, {
+      key: 'mega-x',
+      label: 'Mega',
+      name: 'Mega Charizard X',
+      kind: 'mega',
+      pokemonId: 10034,
+    });
   });
 
   test('Fire+Dragon includes Mega Charizard X only with Megas on', () => {
@@ -187,7 +256,15 @@ describe('dexRows', () => {
     assert.deepEqual(rowKeys(['mega', 'other'], { sort: 'total' }).slice(0, 4), ['6:mega-x', '6:mega-y', '149', '6']);
     assert.deepEqual(rowKeys(['mega'], { sort: 'atk' }).slice(0, 2), ['149', '6:mega-x']);
     assert.deepEqual(rowKeys(['other'], { gens: [4] }), ['479', '479:heat']);
-    assert.deepEqual(rowKeys(['mega', 'regional'], { sort: 'name' }), ['6', '6:mega-x', '6:mega-y', '149', '479', '37', '37:alola']);
+    assert.deepEqual(rowKeys(['mega', 'regional'], { sort: 'name' }), [
+      '6',
+      '6:mega-x',
+      '6:mega-y',
+      '149',
+      '479',
+      '37',
+      '37:alola',
+    ]);
   });
 });
 

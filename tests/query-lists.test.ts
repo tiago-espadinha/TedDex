@@ -57,7 +57,8 @@ describe('Dex search on the real index', () => {
     assert.ok(!without.some((m) => m.form?.kind === 'mega'));
     assert.equal(without.length, all.length - megaRows.length);
     assert.ok(ids(without).includes(6));
-    for (const q of ['mega', 'megas']) assert.equal(search(q, ['mega']).length, all.filter((m) => m.tags?.includes('mega')).length, q);
+    for (const q of ['mega', 'megas'])
+      assert.equal(search(q, ['mega']).length, all.filter((m) => m.tags?.includes('mega')).length, q);
     assert.deepEqual(ids(search('!megas')), ids(search('')));
   });
 
@@ -68,15 +69,33 @@ describe('Dex search on the real index', () => {
     assert.ok(ids(without).includes(37));
     assert.ok(without.length < all.length);
     assert.ok(ids(search('!(regional | fire)', ['regional'])).includes(19));
-    assert.ok(!search('!(regional | fire)', ['regional']).some((m) => m.form?.kind === 'regional' || m.types.includes('fire')));
+    assert.ok(
+      !search('!(regional | fire)', ['regional']).some((m) => m.form?.kind === 'regional' || m.types.includes('fire')),
+    );
   });
 
   test('every Category keyword lists its category, singular and plural', () => {
-    for (const [word, tag] of [['starter', 'starter'], ['starters', 'starter'], ['fossils', 'fossil'], ['legendaries', 'legendary'], ['legendary', 'legendary'],
-      ['mythical', 'mythical'], ['paradox', 'paradox'], ['babies', 'baby'], ['baby', 'baby'], ['regional', 'regional'], ['eeveelutions', 'eeveelution'], ['stone', 'stone']] as const) {
+    for (const [word, tag] of [
+      ['starter', 'starter'],
+      ['starters', 'starter'],
+      ['fossils', 'fossil'],
+      ['legendaries', 'legendary'],
+      ['legendary', 'legendary'],
+      ['mythical', 'mythical'],
+      ['paradox', 'paradox'],
+      ['babies', 'baby'],
+      ['baby', 'baby'],
+      ['regional', 'regional'],
+      ['eeveelutions', 'eeveelution'],
+      ['stone', 'stone'],
+    ] as const) {
       const hits = search(word);
       assert.ok(hits.length > 0, word);
-      assert.deepEqual(ids(hits), index.filter((m) => m.tags?.includes(tag)).map((m) => m.id), word);
+      assert.deepEqual(
+        ids(hits),
+        index.filter((m) => m.tags?.includes(tag)).map((m) => m.id),
+        word,
+      );
     }
   });
 
@@ -94,7 +113,11 @@ describe('Dex search on the real index', () => {
   });
 
   test('the sheet and the query combine with AND', () => {
-    assert.ok(search('fire | water', [], { gens: [1] }).every((m) => m.gen === 1 && (m.types.includes('fire') || m.types.includes('water'))));
+    assert.ok(
+      search('fire | water', [], { gens: [1] }).every(
+        (m) => m.gen === 1 && (m.types.includes('fire') || m.types.includes('water')),
+      ),
+    );
     assert.deepEqual(ids(search('grass', [], { types: ['poison'] })), ids(search('grass & poison')));
   });
 
@@ -102,7 +125,8 @@ describe('Dex search on the real index', () => {
     const everyone = search('').length;
     for (const q of ['&', '|', '!', '(', ')', '& |', '!!', '()']) assert.equal(search(q).length, everyone, q);
     const char = ids(search('char'));
-    for (const q of ['char &', 'char |', '& char', '| char', 'char & !', 'char!', 'char)', '(char', 'char & ()']) assert.deepEqual(ids(search(q)), char, q);
+    for (const q of ['char &', 'char |', '& char', '| char', 'char & !', 'char!', 'char)', '(char', 'char & ()'])
+      assert.deepEqual(ids(search(q)), char, q);
     assert.ok(search('!char').length > 0);
     assert.ok(search('gra&').length > 0);
   });
@@ -114,7 +138,10 @@ test('no name holds an operator but the one "&" that still matches', () => {
     ...Object.values(readData<Record<string, MoveInfo>>('moves.json')).map((m) => m.name),
     ...Object.values(readData<ItemReferenceTable>('reference/items.json')).map((i) => i.name),
   ];
-  assert.deepEqual(names.filter((name) => /[&|!]/.test(name)), ['B&W Grass Tablecloth']);
+  assert.deepEqual(
+    names.filter((name) => /[&|!]/.test(name)),
+    ['B&W Grass Tablecloth'],
+  );
 });
 
 describe('Moves search on the real data', () => {
@@ -127,18 +154,28 @@ describe('Moves search on the real data', () => {
     const hits = search('fire & special');
     assert.ok(hits.length > 0 && hits.every(({ move }) => move.type === 'fire' && move.category === 'special'));
     assert.ok(hits.some((m) => m.name === 'Flamethrower'));
-    assert.deepEqual(hits.map((m) => m.name), [...hits.map((m) => m.name)].sort((a, b) => a.localeCompare(b)));
+    assert.deepEqual(
+      hits.map((m) => m.name),
+      [...hits.map((m) => m.name)].sort((a, b) => a.localeCompare(b)),
+    );
   });
 
   test('a plain name ranks as before, a space and all', () => {
-    assert.deepEqual(search('thunder punch').map((m) => m.name), ['Thunder Punch']);
+    assert.deepEqual(
+      search('thunder punch').map((m) => m.name),
+      ['Thunder Punch'],
+    );
     assert.deepEqual(search('bolt'), searchByName(moves, 'bolt'));
   });
 
   test('a name, a type and a negation combine; sheet filters still apply', () => {
     const punches = search('punch & !fire');
     assert.ok(punches.length > 0 && punches.every(({ name, move }) => /punch/i.test(name) && move.type !== 'fire'));
-    assert.ok(search('status | fire', { gens: [1] }).every(({ move }) => move.gen === 1 && (move.category === 'status' || move.type === 'fire')));
+    assert.ok(
+      search('status | fire', { gens: [1] }).every(
+        ({ move }) => move.gen === 1 && (move.category === 'status' || move.type === 'fire'),
+      ),
+    );
   });
 
   test('a lone keyword also lists the names holding the word; with operators it is exact', () => {
@@ -156,7 +193,10 @@ describe('Moves search on the real data', () => {
 });
 
 describe('Items search on the real data', () => {
-  const items = Object.values(readData<ItemReferenceTable>('reference/items.json')).map((item) => ({ name: item.name, item }));
+  const items = Object.values(readData<ItemReferenceTable>('reference/items.json')).map((item) => ({
+    name: item.name,
+    item,
+  }));
   const search = (query: string) => filterItems(items, { query, categories: [], gens: [] });
 
   test('berry | !held lists everything but the held items that are not berries', () => {
@@ -176,11 +216,17 @@ describe('Items search on the real data', () => {
   test('a real item name stays a name search, the Poké Ball included', () => {
     const balls = search('Poké Ball');
     assert.ok(balls.length > 0 && balls.every((e) => /pok.\s?ball/i.test(e.name)));
-    assert.deepEqual(search("Parcel (Let's Go)").map((e) => e.name), ["Parcel (Let's Go)"]);
+    assert.deepEqual(
+      search("Parcel (Let's Go)").map((e) => e.name),
+      ["Parcel (Let's Go)"],
+    );
   });
 
   test('no category word is the exact name of an item', () => {
-    assert.deepEqual(items.filter((e) => searchKey(e.name) in ITEM_CATEGORY_WORDS).map((e) => e.name), []);
+    assert.deepEqual(
+      items.filter((e) => searchKey(e.name) in ITEM_CATEGORY_WORDS).map((e) => e.name),
+      [],
+    );
   });
 
   test('a lone keyword also lists the names holding the word; with operators it is exact', () => {

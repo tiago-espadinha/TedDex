@@ -40,15 +40,18 @@ export function offensiveCoverage(attacks: TypeName[][], data: TypeData) {
     return { type: def, mults, count: mults.filter((x) => x !== null && x > 1).length };
   });
   const best = (r: CoverageRow) => Math.max(...r.mults.map((x) => x ?? 0));
-  return { rows, hits: rows.filter((r) => r.count > 0).length, walls: rows.filter((r) => best(r) < 1).map((r) => r.type) };
+  return {
+    rows,
+    hits: rows.filter((r) => r.count > 0).length,
+    walls: rows.filter((r) => best(r) < 1).map((r) => r.type),
+  };
 }
 
 type BaseStats = { stats: StatBlock; total: number };
 
 /** The members' mean base stats and total, each rounded to a whole number (half up). */
 export function averageStats(members: BaseStats[]): BaseStats {
-  const mean = (f: (m: BaseStats) => number) =>
-    Math.round(members.reduce((sum, m) => sum + f(m), 0) / members.length);
+  const mean = (f: (m: BaseStats) => number) => Math.round(members.reduce((sum, m) => sum + f(m), 0) / members.length);
   const stat = (k: keyof StatBlock) => mean((m) => m.stats[k]);
   return {
     stats: { hp: stat('hp'), atk: stat('atk'), def: stat('def'), spa: stat('spa'), spd: stat('spd'), spe: stat('spe') },
@@ -75,7 +78,10 @@ export function matchupGroups(types: TypeName[], data: TypeData): MatchupGroup[]
   return groups
     .map(([label, test]) => ({
       label,
-      hits: data.types.filter((t) => test(mult[t])).map((type) => ({ type, mult: mult[type] })).sort((x, y) => y.mult - x.mult),
+      hits: data.types
+        .filter((t) => test(mult[t]))
+        .map((type) => ({ type, mult: mult[type] }))
+        .sort((x, y) => y.mult - x.mult),
     }))
     .filter((g) => g.hits.length);
 }

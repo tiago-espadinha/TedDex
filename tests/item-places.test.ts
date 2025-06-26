@@ -42,7 +42,11 @@ describe('parseAcquisition', () => {
     assert.deepEqual(
       rows.map((r) => [r.games.map((g) => g.label), r.once, r.repeat]),
       [
-        [['Ruby / Sapphire / Emerald'], ['S.S. Tidal'], ['Battle Tower (35+ win streak) (Ruby / Sapphire)', 'Pickup (Lv. 81-100 (Emerald))']],
+        [
+          ['Ruby / Sapphire / Emerald'],
+          ['S.S. Tidal'],
+          ['Battle Tower (35+ win streak) (Ruby / Sapphire)', 'Pickup (Lv. 81-100 (Emerald))'],
+        ],
         [['Sun / Moon', 'Ultra Sun / Ultra Moon'], [], ['Held by wild Munchlax and wild Snorlax (100% chance each)']],
         [['Scarlet / Violet', 'The Indigo Disk'], [], ['Item Printer']],
         [['Legends: Z-A'], ['Quasartico Inc.'], []],
@@ -82,7 +86,10 @@ describe('parseAcquisition', () => {
   test('fails on game codes and templates it does not know, and on rows with too many cells', () => {
     const table = (row: string) => `===Acquisition===\n{{ItemAvailability/head|items}}\n|-\n${row}\n|}`;
     assert.throws(() => parseAcquisition(table('| {{gameabbrev4|QQ}}\n| x\n| y')), /Unknown game code "QQ"/);
-    assert.throws(() => parseAcquisition(table('| {{gameabbrev4|DP}}\n| {{mystery|x}}\n| y')), /Unknown template \{\{mystery\}\}/);
+    assert.throws(
+      () => parseAcquisition(table('| {{gameabbrev4|DP}}\n| {{mystery|x}}\n| y')),
+      /Unknown template \{\{mystery\}\}/,
+    );
     assert.throws(() => parseAcquisition(table('| {{gameabbrev4|DP}}\n| a\n| b\n| c')), /Row with 4 cells/);
   });
 });
@@ -90,11 +97,17 @@ describe('parseAcquisition', () => {
 describe('cellLines', () => {
   test('links, location templates and notes read as text', () => {
     assert.deepEqual(
-      cellLines('[[Route]]s {{rtn|12|Kanto}} and {{rtn|16|Kanto}}<br/>{{DL|Pokémon Battle Revolution|Shop}} (7200 [[Poké Coupon]]s)'),
+      cellLines(
+        '[[Route]]s {{rtn|12|Kanto}} and {{rtn|16|Kanto}}<br/>{{DL|Pokémon Battle Revolution|Shop}} (7200 [[Poké Coupon]]s)',
+      ),
       ['Routes 12 and 16', 'Shop (7200 Poké Coupons)'],
     );
-    assert.deepEqual(cellLines('{{b|Oran}} at [[Village Bridge]]{{sup/s|Su}}'), ['Oran Berry at Village Bridge (Summer)']);
-    assert.deepEqual(cellLines('<sup>1</sup>/<sub>16</sub> chance<ref>[https://example.org source]</ref>'), ['1/16 chance']);
+    assert.deepEqual(cellLines('{{b|Oran}} at [[Village Bridge]]{{sup/s|Su}}'), [
+      'Oran Berry at Village Bridge (Summer)',
+    ]);
+    assert.deepEqual(cellLines('<sup>1</sup>/<sub>16</sub> chance<ref>[https://example.org source]</ref>'), [
+      '1/16 chance',
+    ]);
   });
 
   test('leftover markup fails the build', () => {
@@ -104,8 +117,14 @@ describe('cellLines', () => {
 
 describe('game codes', () => {
   test('combined codes split into games, longest code first', () => {
-    assert.deepEqual(gameCodes('7', 'SMUSUMPE').map((g) => g.label), ['Sun / Moon', 'Ultra Sun / Ultra Moon', "Let's Go, Pikachu! / Let's Go, Eevee!"]);
-    assert.deepEqual(gameCodes('ss', 'ColoXD').map((g) => g.label), ['Colosseum', 'XD: Gale of Darkness']);
+    assert.deepEqual(
+      gameCodes('7', 'SMUSUMPE').map((g) => g.label),
+      ['Sun / Moon', 'Ultra Sun / Ultra Moon', "Let's Go, Pikachu! / Let's Go, Eevee!"],
+    );
+    assert.deepEqual(
+      gameCodes('ss', 'ColoXD').map((g) => g.label),
+      ['Colosseum', 'XD: Gale of Darkness'],
+    );
   });
 
   test('later games sort after earlier ones; a version group finds its game', () => {

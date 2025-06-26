@@ -1,12 +1,14 @@
 {
   "name": "material-dex-web",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "preview": "vite preview",
     "data": "tsx scripts/build-data.ts",
@@ -30,6 +32,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "oxfmt": "0.75.0",
     "oxlint": "^1.81.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.2",

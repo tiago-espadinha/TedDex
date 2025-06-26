@@ -60,10 +60,46 @@ describe('offensiveMultipliers', () => {
 
 describe('attackingTypes', () => {
   const MOVES: MoveTable = {
-    1: { name: 'Thunderbolt', type: 'electric', category: 'special', power: 90, accuracy: 100, pp: 15, priority: 0, gen: 1 },
-    2: { name: 'Thunder Wave', type: 'electric', category: 'status', power: null, accuracy: 90, pp: 20, priority: 0, gen: 1 },
-    3: { name: 'Volt Tackle', type: 'electric', category: 'physical', power: 120, accuracy: 100, pp: 15, priority: 0, gen: 1 },
-    4: { name: 'Calm Mind', type: 'psychic', category: 'status', power: null, accuracy: null, pp: 20, priority: 0, gen: 1 },
+    1: {
+      name: 'Thunderbolt',
+      type: 'electric',
+      category: 'special',
+      power: 90,
+      accuracy: 100,
+      pp: 15,
+      priority: 0,
+      gen: 1,
+    },
+    2: {
+      name: 'Thunder Wave',
+      type: 'electric',
+      category: 'status',
+      power: null,
+      accuracy: 90,
+      pp: 20,
+      priority: 0,
+      gen: 1,
+    },
+    3: {
+      name: 'Volt Tackle',
+      type: 'electric',
+      category: 'physical',
+      power: 120,
+      accuracy: 100,
+      pp: 15,
+      priority: 0,
+      gen: 1,
+    },
+    4: {
+      name: 'Calm Mind',
+      type: 'psychic',
+      category: 'status',
+      power: null,
+      accuracy: null,
+      pp: 20,
+      priority: 0,
+      gen: 1,
+    },
     5: { name: 'Surf', type: 'water', category: 'special', power: 90, accuracy: 100, pp: 15, priority: 0, gen: 1 },
   };
 

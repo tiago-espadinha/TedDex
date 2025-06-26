@@ -46,7 +46,16 @@ function PeekSheet({ peek, actions, onClose }: { peek: Peek; actions: PeekAction
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet peek" role="dialog" aria-modal="true" aria-labelledby={titleId} data-morph={peekPage(peek)} data-morph-card>
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet peek"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        data-morph={peekPage(peek)}
+        data-morph-card
+      >
         <div className="handle" />
         <Summary
           id={peek.id}
@@ -106,7 +115,12 @@ interface FrameProps extends SummaryProps {
 /** Title and close, then the summary once loaded and "See Details"; the same states as the Guide pages. */
 function PeekFrame({ titleId, close, page, actions, one, name, error, loaded, head, art, text }: FrameProps) {
   let body: ReactNode = <p className="flavor">{text?.split('\n\n')[0] || 'No description in the data yet.'}</p>;
-  if (error) body = <p className="empty">Couldn't load this {one.toLowerCase()}. {error.message}</p>;
+  if (error)
+    body = (
+      <p className="empty">
+        Couldn't load this {one.toLowerCase()}. {error.message}
+      </p>
+    );
   else if (!loaded) body = <Loading minHeight={120} />;
   else if (!name) body = <p className="empty">This {one.toLowerCase()} isn't in the data.</p>;
   return (
@@ -135,7 +149,10 @@ function PeekFrame({ titleId, close, page, actions, one, name, error, loaded, he
 
 function MoveSummary(props: SummaryProps) {
   const { id } = props;
-  const { data, error } = useLoad(() => loadMoves().then(async (moves) => [moves[id], moves[id] && (await loadMoveReference(id))] as const), id);
+  const { data, error } = useLoad(
+    () => loadMoves().then(async (moves) => [moves[id], moves[id] && (await loadMoveReference(id))] as const),
+    id,
+  );
   const [move, ref] = data ?? [];
   return (
     <PeekFrame

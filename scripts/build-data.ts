@@ -51,11 +51,13 @@ const FRESH = process.argv.includes('--fresh');
 /** Build time for meta.json: the HEAD commit date; now when git or a commit is missing. */
 function buildTime(): Date {
   try {
-    const date = new Date(execFileSync('git', ['log', '-1', '--format=%cI'], {
-      cwd: ROOT,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim());
+    const date = new Date(
+      execFileSync('git', ['log', '-1', '--format=%cI'], {
+        cwd: ROOT,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim(),
+    );
     if (!Number.isNaN(date.getTime())) return date;
   } catch {
     // no git, or no commits
@@ -97,9 +99,23 @@ const FORM_NAMES: Record<string, string> = {
  * are missing for most items from Gen 5 on (Assault Vest, Eviolite), so categories decide instead.
  */
 const HELD_ITEM_CATEGORIES = new Set([
-  'held-items', 'choice', 'type-enhancement', 'plates', 'species-specific', 'bad-held-items',
-  'effort-training', 'training', 'jewels', 'mega-stones', 'memories', 'z-crystals',
-  'medicine', 'picky-healing', 'in-a-pinch', 'type-protection', 'other',
+  'held-items',
+  'choice',
+  'type-enhancement',
+  'plates',
+  'species-specific',
+  'bad-held-items',
+  'effort-training',
+  'training',
+  'jewels',
+  'mega-stones',
+  'memories',
+  'z-crystals',
+  'medicine',
+  'picky-healing',
+  'in-a-pinch',
+  'type-protection',
+  'other',
 ]);
 /**
  * Items with no item_game_indices row: Oak's Parcel is Gen I; the rest (Legends: Z-A Mega Stones, Metal Alloy)
@@ -186,37 +202,129 @@ const CONDITION_LABELS: Record<string, string> = {
 };
 /** Hand-picked categories PokeAPI has no flag for, by species identifier (the build fails on an unknown one). */
 const STARTERS = [
-  'bulbasaur', 'charmander', 'squirtle', 'chikorita', 'cyndaquil', 'totodile', 'treecko', 'torchic', 'mudkip',
-  'turtwig', 'chimchar', 'piplup', 'snivy', 'tepig', 'oshawott', 'chespin', 'fennekin', 'froakie',
-  'rowlet', 'litten', 'popplio', 'grookey', 'scorbunny', 'sobble', 'sprigatito', 'fuecoco', 'quaxly',
+  'bulbasaur',
+  'charmander',
+  'squirtle',
+  'chikorita',
+  'cyndaquil',
+  'totodile',
+  'treecko',
+  'torchic',
+  'mudkip',
+  'turtwig',
+  'chimchar',
+  'piplup',
+  'snivy',
+  'tepig',
+  'oshawott',
+  'chespin',
+  'fennekin',
+  'froakie',
+  'rowlet',
+  'litten',
+  'popplio',
+  'grookey',
+  'scorbunny',
+  'sobble',
+  'sprigatito',
+  'fuecoco',
+  'quaxly',
 ];
 /** Revived from fossils, with their evolutions. */
 const FOSSILS = [
-  'omanyte', 'omastar', 'kabuto', 'kabutops', 'aerodactyl', 'lileep', 'cradily', 'anorith', 'armaldo',
-  'cranidos', 'rampardos', 'shieldon', 'bastiodon', 'tirtouga', 'carracosta', 'archen', 'archeops',
-  'tyrunt', 'tyrantrum', 'amaura', 'aurorus', 'dracozolt', 'arctozolt', 'dracovish', 'arctovish',
+  'omanyte',
+  'omastar',
+  'kabuto',
+  'kabutops',
+  'aerodactyl',
+  'lileep',
+  'cradily',
+  'anorith',
+  'armaldo',
+  'cranidos',
+  'rampardos',
+  'shieldon',
+  'bastiodon',
+  'tirtouga',
+  'carracosta',
+  'archen',
+  'archeops',
+  'tyrunt',
+  'tyrantrum',
+  'amaura',
+  'aurorus',
+  'dracozolt',
+  'arctozolt',
+  'dracovish',
+  'arctovish',
 ];
 const PARADOX = [
-  'great-tusk', 'scream-tail', 'brute-bonnet', 'flutter-mane', 'slither-wing', 'sandy-shocks', 'roaring-moon',
-  'walking-wake', 'gouging-fire', 'raging-bolt', 'iron-treads', 'iron-bundle', 'iron-hands', 'iron-jugulis',
-  'iron-moth', 'iron-thorns', 'iron-valiant', 'iron-leaves', 'iron-boulder', 'iron-crown',
+  'great-tusk',
+  'scream-tail',
+  'brute-bonnet',
+  'flutter-mane',
+  'slither-wing',
+  'sandy-shocks',
+  'roaring-moon',
+  'walking-wake',
+  'gouging-fire',
+  'raging-bolt',
+  'iron-treads',
+  'iron-bundle',
+  'iron-hands',
+  'iron-jugulis',
+  'iron-moth',
+  'iron-thorns',
+  'iron-valiant',
+  'iron-leaves',
+  'iron-boulder',
+  'iron-crown',
 ];
 const EVOLUTION_STONES = new Set([
-  'fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone', 'sun-stone', 'shiny-stone', 'dusk-stone',
-  'dawn-stone', 'ice-stone',
+  'fire-stone',
+  'water-stone',
+  'thunder-stone',
+  'leaf-stone',
+  'moon-stone',
+  'sun-stone',
+  'shiny-stone',
+  'dusk-stone',
+  'dawn-stone',
+  'ice-stone',
 ]);
 const EEVEE_CHAIN = '67';
 /** The games' names for growth_rates and egg_groups identifiers (PokeAPI uses the internal ones). */
 const GROWTH_RATES: Record<string, string> = {
-  slow: 'Slow', medium: 'Medium Fast', fast: 'Fast', 'medium-slow': 'Medium Slow',
-  'slow-then-very-fast': 'Erratic', 'fast-then-very-slow': 'Fluctuating',
+  slow: 'Slow',
+  medium: 'Medium Fast',
+  fast: 'Fast',
+  'medium-slow': 'Medium Slow',
+  'slow-then-very-fast': 'Erratic',
+  'fast-then-very-slow': 'Fluctuating',
 };
 const EGG_GROUPS: Record<string, string> = {
-  monster: 'Monster', water1: 'Water 1', bug: 'Bug', flying: 'Flying', ground: 'Field', fairy: 'Fairy', plant: 'Grass',
-  humanshape: 'Human-Like', water3: 'Water 3', mineral: 'Mineral', indeterminate: 'Amorphous', water2: 'Water 2',
-  ditto: 'Ditto', dragon: 'Dragon', 'no-eggs': 'Undiscovered',
+  monster: 'Monster',
+  water1: 'Water 1',
+  bug: 'Bug',
+  flying: 'Flying',
+  ground: 'Field',
+  fairy: 'Fairy',
+  plant: 'Grass',
+  humanshape: 'Human-Like',
+  water3: 'Water 3',
+  mineral: 'Mineral',
+  indeterminate: 'Amorphous',
+  water2: 'Water 2',
+  ditto: 'Ditto',
+  dragon: 'Dragon',
+  'no-eggs': 'Undiscovered',
 };
-const TIMES: Record<string, string> = { day: 'during the day', night: 'at night', dusk: 'at dusk', 'full-moon': 'under a full moon' };
+const TIMES: Record<string, string> = {
+  day: 'during the day',
+  night: 'at night',
+  dusk: 'at dusk',
+  'full-moon': 'under a full moon',
+};
 
 type Row = Record<string, string>;
 
@@ -266,7 +374,7 @@ async function load(name: string): Promise<Row[]> {
   return parseCsv(await readFile(file, 'utf8'));
 }
 
-const groupBy = <T,>(rows: T[], key: (r: T) => string | number) => {
+const groupBy = <T>(rows: T[], key: (r: T) => string | number) => {
   const m = new Map<string | number, T[]>();
   for (const r of rows) {
     const k = key(r);
@@ -277,9 +385,19 @@ const groupBy = <T,>(rows: T[], key: (r: T) => string | number) => {
   return m;
 };
 
-const clean = (s: string) => s.replace(/[\f\n\r]+/g, ' ').replace(/­/g, '').replace(/\s+/g, ' ').trim();
+const clean = (s: string) =>
+  s
+    .replace(/[\f\n\r]+/g, ' ')
+    .replace(/­/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 /** Long prose: each paragraph cleaned, paragraphs kept apart by a blank line. */
-const paragraphs = (s: string) => s.split(/\n\s*\n/).map(clean).filter(Boolean).join('\n\n');
+const paragraphs = (s: string) =>
+  s
+    .split(/\n\s*\n/)
+    .map(clean)
+    .filter(Boolean)
+    .join('\n\n');
 
 interface Learnset {
   level: [number, number][];
@@ -343,59 +461,59 @@ async function main() {
     pokedexVersionGroups,
     dexNumbers,
   ] = await Promise.all(
-      [
-        'pokemon_species',
-        'pokemon',
-        'types',
-        'pokemon_types',
-        'pokemon_stats',
-        'pokemon_abilities',
-        'ability_names',
-        'type_efficacy',
-        'pokemon_species_names',
-        'pokemon_species_flavor_text',
-        'pokemon_moves',
-        'moves',
-        'move_names',
-        'version_groups',
-        'versions',
-        'version_names',
-        'pokemon_evolution',
-        'pokemon_forms',
-        'pokemon_form_names',
-        'item_names',
-        'location_names',
-        'type_names',
-        'evolution_trigger_prose',
-        'items',
-        'item_categories',
-        'abilities',
-        'ability_prose',
-        'ability_flavor_text',
-        'move_effect_prose',
-        'move_flavor_text',
-        'item_prose',
-        'item_flavor_text',
-        'pokemon_items',
-        'item_game_indices',
-        'encounters',
-        'encounter_slots',
-        'encounter_methods',
-        'encounter_method_prose',
-        'encounter_condition_values',
-        'encounter_condition_value_prose',
-        'encounter_condition_value_map',
-        'locations',
-        'location_areas',
-        'location_area_prose',
-        'growth_rates',
-        'egg_groups',
-        'pokemon_egg_groups',
-        'pokedex_prose',
-        'pokedex_version_groups',
-        'pokemon_dex_numbers',
-      ].map(load),
-    );
+    [
+      'pokemon_species',
+      'pokemon',
+      'types',
+      'pokemon_types',
+      'pokemon_stats',
+      'pokemon_abilities',
+      'ability_names',
+      'type_efficacy',
+      'pokemon_species_names',
+      'pokemon_species_flavor_text',
+      'pokemon_moves',
+      'moves',
+      'move_names',
+      'version_groups',
+      'versions',
+      'version_names',
+      'pokemon_evolution',
+      'pokemon_forms',
+      'pokemon_form_names',
+      'item_names',
+      'location_names',
+      'type_names',
+      'evolution_trigger_prose',
+      'items',
+      'item_categories',
+      'abilities',
+      'ability_prose',
+      'ability_flavor_text',
+      'move_effect_prose',
+      'move_flavor_text',
+      'item_prose',
+      'item_flavor_text',
+      'pokemon_items',
+      'item_game_indices',
+      'encounters',
+      'encounter_slots',
+      'encounter_methods',
+      'encounter_method_prose',
+      'encounter_condition_values',
+      'encounter_condition_value_prose',
+      'encounter_condition_value_map',
+      'locations',
+      'location_areas',
+      'location_area_prose',
+      'growth_rates',
+      'egg_groups',
+      'pokemon_egg_groups',
+      'pokedex_prose',
+      'pokedex_version_groups',
+      'pokemon_dex_numbers',
+    ].map(load),
+  );
 
   // --- types: the 18 battle types only (skip stellar/unknown/shadow) ---
   const battleTypes = types.filter((t) => Number(t.id) <= 18);
@@ -409,9 +527,7 @@ async function main() {
   }
 
   // --- lookups ---
-  const defaultPokemon = new Map(
-    pokemon.filter((p) => p.is_default === '1').map((p) => [p.species_id, p]),
-  );
+  const defaultPokemon = new Map(pokemon.filter((p) => p.is_default === '1').map((p) => [p.species_id, p]));
   const altPokemon = groupBy(
     pokemon.filter((p) => p.is_default === '0' && !p.identifier.includes('totem')),
     (p) => p.species_id,
@@ -453,7 +569,9 @@ async function main() {
   // --- learnsets: default forms and forms with moves of their own, main-series games, the four methods the Moves tab shows ---
   const defaultPokemonIds = new Set([...defaultPokemon.values()].map((p) => p.id));
   const movesByPokemon = groupBy(
-    pokemonMoves.filter((r) => !SKIPPED_VERSION_GROUPS.has(r.version_group_id) && LEARN_METHODS[r.pokemon_move_method_id]),
+    pokemonMoves.filter(
+      (r) => !SKIPPED_VERSION_GROUPS.has(r.version_group_id) && LEARN_METHODS[r.pokemon_move_method_id],
+    ),
     (r) => r.pokemon_id,
   );
   const usedMoves = new Set<string>();
@@ -479,8 +597,13 @@ async function main() {
   await mkdir(join(OUT, 'species'), { recursive: true });
   await mkdir(join(OUT, 'learnsets'), { recursive: true });
   /** Writes per-id entries as the chunk files `src/data/chunks.ts` reads. */
-  const writeChunks = async <T>(dir: string, entries: Iterable<[number, T]>, pack: (chunk: Record<number, T>) => unknown = (c) => c) => {
-    for (const [n, chunk] of toChunks(entries)) await writeFile(join(OUT, dir, `c${n}.json`), JSON.stringify(pack(chunk)));
+  const writeChunks = async <T>(
+    dir: string,
+    entries: Iterable<[number, T]>,
+    pack: (chunk: Record<number, T>) => unknown = (c) => c,
+  ) => {
+    for (const [n, chunk] of toChunks(entries))
+      await writeFile(join(OUT, dir, `c${n}.json`), JSON.stringify(pack(chunk)));
   };
   const speciesOut = new Map<number, unknown>();
   const eggGroupTable: EggGroupTable = {};
@@ -506,7 +629,11 @@ async function main() {
       total: Object.values(stats).reduce((a, b) => a + b, 0),
       abilities: (abilitiesByPokemon.get(p.id) ?? [])
         .sort((a, b) => Number(a.slot) - Number(b.slot))
-        .map((a) => ({ id: Number(a.ability_id), name: abilityName.get(a.ability_id) ?? `#${a.ability_id}`, hidden: a.is_hidden === '1' })),
+        .map((a) => ({
+          id: Number(a.ability_id),
+          name: abilityName.get(a.ability_id) ?? `#${a.ability_id}`,
+          hidden: a.is_hidden === '1',
+        })),
       heightM: Number(p.height) / 10,
       weightKg: Number(p.weight) / 10,
       evYield,
@@ -536,13 +663,20 @@ async function main() {
       .filter(
         ({ data, labels }) =>
           labels.key.endsWith('gmax') ||
-          !same(data.types, base.types) || !same(data.stats, base.stats) || !same(data.abilities, base.abilities),
+          !same(data.types, base.types) ||
+          !same(data.stats, base.stats) ||
+          !same(data.abilities, base.abilities),
       );
     if (!alts.length) return undefined;
     const first = { pokemonId: Number(p.id), ...formLabels(p, s, speciesName), ...base };
     const forms = [
       first,
-      ...alts.map(({ alt, data, labels }) => ({ pokemonId: Number(alt.id), ...labels, ...data, games: formGames(alt, labels.key) })),
+      ...alts.map(({ alt, data, labels }) => ({
+        pokemonId: Number(alt.id),
+        ...labels,
+        ...data,
+        games: formGames(alt, labels.key),
+      })),
     ];
     // Forms sharing a label: name the ability when that tells them apart (Zygarde 10% with Power Construct),
     // else spell out the key (Meowstic "Male Mega" / "Female Mega").
@@ -570,7 +704,9 @@ async function main() {
   const paradox = handPicked(PARADOX, 'PARADOX');
   const stoneItems = new Set(items.filter((it) => EVOLUTION_STONES.has(it.identifier)).map((it) => it.id));
   if (stoneItems.size !== EVOLUTION_STONES.size) throw new Error('EVOLUTION_STONES: an item is missing from items.csv');
-  const stoneEvolved = new Set(evolutions.filter((e) => stoneItems.has(e.trigger_item_id)).map((e) => e.evolved_species_id));
+  const stoneEvolved = new Set(
+    evolutions.filter((e) => stoneItems.has(e.trigger_item_id)).map((e) => e.evolved_species_id),
+  );
   /** Categories a species belongs to, from its flags, forms and evolution. */
   function tagsOf(s: Row, forms: { key: string }[] = []) {
     const tags: string[] = [];
@@ -719,7 +855,8 @@ async function main() {
     for (const f of forms?.slice(1) ?? []) {
       if (!hasOwnFormData(f.key) || !movesByPokemon.has(String(f.pokemonId))) continue;
       const own = learnsetOf(String(f.pokemonId), id);
-      if (Object.entries(own).some(([vg, set]) => JSON.stringify(set) !== JSON.stringify(learnset[vg]))) formLearnsets[f.key] = own;
+      if (Object.entries(own).some(([vg, set]) => JSON.stringify(set) !== JSON.stringify(learnset[vg])))
+        formLearnsets[f.key] = own;
     }
     learnsetsOut.set(id, packLearnsets(learnset, formLearnsets));
   }
@@ -767,16 +904,21 @@ async function main() {
   for (const r of pokedexVersionGroups) {
     const group = Number(r.version_group_id);
     // Only games in versions.json; PokeAPI also lists the Isle of Armor and Crown Tundra dexes under Sword/Shield.
-    if (versionList.some((v) => v.id === group)) dexIdsByGroup.set(group, [...(dexIdsByGroup.get(group) ?? []), Number(r.pokedex_id)]);
+    if (versionList.some((v) => v.id === group))
+      dexIdsByGroup.set(group, [...(dexIdsByGroup.get(group) ?? []), Number(r.pokedex_id)]);
   }
   const missingDex = versionList.filter((v) => !dexIdsByGroup.has(v.id));
   if (missingDex.length) throw new Error(`No regional Pokédex for ${missingDex.map((v) => v.label).join(', ')}`);
-  const dexName = new Map(pokedexProse.filter((r) => Number(r.local_language_id) === ENGLISH).map((r) => [Number(r.pokedex_id), r.name]));
+  const dexName = new Map(
+    pokedexProse.filter((r) => Number(r.local_language_id) === ENGLISH).map((r) => [Number(r.pokedex_id), r.name]),
+  );
   const dexSpecies = groupBy(dexNumbers, (r) => Number(r.pokedex_id));
   const usedDexIds = [...new Set([...dexIdsByGroup.values()].flat())].sort((a, b) => a - b);
   const pokedexes = {
     dexes: usedDexIds.map((id) => {
-      const entries = (dexSpecies.get(id) ?? []).map((r) => [Number(r.pokedex_number), Number(r.species_id)]).sort((a, b) => a[0] - b[0]);
+      const entries = (dexSpecies.get(id) ?? [])
+        .map((r) => [Number(r.pokedex_number), Number(r.species_id)])
+        .sort((a, b) => a[0] - b[0]);
       if (!entries.length) throw new Error(`Pokédex ${id} has no species`);
       return {
         id,
@@ -828,7 +970,8 @@ async function main() {
         // use move
         const times = Number(e.minimum_move_count);
         parts.push(`Use ${moveName.get(e.used_move_id) ?? 'a move'}${times ? ` ${times} times` : ''}`);
-        if (e.evolution_trigger_id !== '14') parts.push(e.evolution_trigger_id === '11' ? 'agile style' : 'strong style');
+        if (e.evolution_trigger_id !== '14')
+          parts.push(e.evolution_trigger_id === '11' ? 'agile style' : 'strong style');
         break;
       }
       default:
@@ -854,7 +997,8 @@ async function main() {
     if (e.turn_upside_down === '1') parts.push('console held upside down');
     if (e.needs_multiplayer === '1') parts.push('in Union Circle');
     if (e.minimum_steps) parts.push(`after ${Number(e.minimum_steps).toLocaleString('en')} steps`);
-    if (e.minimum_damage_taken && e.evolution_trigger_id !== '9') parts.push(`after losing ${e.minimum_damage_taken} HP`);
+    if (e.minimum_damage_taken && e.evolution_trigger_id !== '9')
+      parts.push(`after losing ${e.minimum_damage_taken} HP`);
     if (e.nature_bitmask) parts.push('certain natures');
     // A chance that only picks the form (Maushold, Dudunsparce) isn't a condition of evolving.
     if (e.percentage_chance && !e.evolved_pokemon_form_id) parts.push(`${e.percentage_chance}% chance`);
@@ -866,7 +1010,9 @@ async function main() {
   const evoRows = groupBy(evolutions, (e) => e.evolved_species_id);
   function conditionsFor(speciesId: string): string[] {
     const rows = evoRows.get(speciesId) ?? [];
-    const plain = rows.filter((e) => isDefaultForm(e.required_pokemon_form_id) && isDefaultForm(e.evolved_pokemon_form_id));
+    const plain = rows.filter(
+      (e) => isDefaultForm(e.required_pokemon_form_id) && isDefaultForm(e.evolved_pokemon_form_id),
+    );
     const latest = (list: Row[]) => {
       const current = list.filter((e) => e.is_default === '1');
       return current.length ? current : list;
@@ -890,7 +1036,11 @@ async function main() {
   function formStepsFor(speciesId: string): NonNullable<EvolutionMember['steps']> {
     const rows = (evoRows.get(speciesId) ?? [])
       .filter((e) => !isDefaultForm(e.required_pokemon_form_id) || !isDefaultForm(e.evolved_pokemon_form_id))
-      .map((e) => ({ e, from: shippedFormKey(e.required_pokemon_form_id), into: shippedFormKey(e.evolved_pokemon_form_id) }))
+      .map((e) => ({
+        e,
+        from: shippedFormKey(e.required_pokemon_form_id),
+        into: shippedFormKey(e.evolved_pokemon_form_id),
+      }))
       .filter((r) => r.from !== undefined && r.into !== undefined);
     return [...groupBy(rows, (r) => `${r.from}|${r.into}`).values()].map((list) => {
       const current = list.filter((r) => r.e.is_default === '1');
@@ -942,12 +1092,16 @@ async function main() {
   const speciesOfPokemon = new Map(pokemon.map((p) => [p.id, Number(p.species_id)]));
   /** Species ids (sorted, deduplicated) for rows keyed by Pokémon id; forms count as their species. */
   const speciesIds = (rows: Row[]) =>
-    [...new Set(rows.map((r) => speciesOfPokemon.get(r.pokemon_id)).filter((id): id is number => !!id && id <= index.length))]
-      .sort((a, b) => a - b);
+    [
+      ...new Set(
+        rows.map((r) => speciesOfPokemon.get(r.pokemon_id)).filter((id): id is number => !!id && id <= index.length),
+      ),
+    ].sort((a, b) => a - b);
 
   await mkdir(join(OUT, 'reference', 'moves'), { recursive: true });
   const moveProseIds = new Map<string, string>();
-  for (const p of moveEffectProse) if (Number(p.local_language_id) === ENGLISH) moveProseIds.set(p.move_effect_id, paragraphs(p.effect));
+  for (const p of moveEffectProse)
+    if (Number(p.local_language_id) === ENGLISH) moveProseIds.set(p.move_effect_id, paragraphs(p.effect));
   const moveFlavorText = effectText([], '', moveFlavor, 'move_id');
   const moveReferenceOut = new Map<number, unknown>();
   for (const m of moves) {
@@ -964,7 +1118,9 @@ async function main() {
 
   const abilityEffect = effectText(abilityProse, 'ability_id', abilityFlavor, 'ability_id');
   const abilityDetails = new Map(
-    abilityProse.filter((p) => Number(p.local_language_id) === ENGLISH && p.effect).map((p) => [p.ability_id, paragraphs(p.effect)]),
+    abilityProse
+      .filter((p) => Number(p.local_language_id) === ENGLISH && p.effect)
+      .map((p) => [p.ability_id, paragraphs(p.effect)]),
   );
   const holdersByAbility = groupBy(pokemonAbilities, (r) => r.ability_id);
   const abilityTable: Record<string, unknown> = {};
@@ -1001,7 +1157,8 @@ async function main() {
     return [...best.values()].sort((a, b) => a[0] - b[0] || b[2] - a[2] || a[1] - b[1]);
   };
   const firstGen = new Map<string, number>();
-  for (const g of itemGameIndices) firstGen.set(g.item_id, Math.min(Number(g.generation_id), firstGen.get(g.item_id) ?? Infinity));
+  for (const g of itemGameIndices)
+    firstGen.set(g.item_id, Math.min(Number(g.generation_id), firstGen.get(g.item_id) ?? Infinity));
   const itemGen = (it: Row) => firstGen.get(it.id) ?? ITEM_GEN_FALLBACK[it.identifier] ?? NEWEST_GEN;
 
   // --- held items ---
@@ -1018,7 +1175,8 @@ async function main() {
   for (const it of items) {
     const name = itemName.get(it.id);
     const identifier = categoryIdentifier.get(it.category_id) ?? '';
-    if (!(identifier in POKEAPI_ITEM_CATEGORIES)) throw new Error(`Item category ${identifier || it.category_id} has no group in itemCategories.ts`);
+    if (!(identifier in POKEAPI_ITEM_CATEGORIES))
+      throw new Error(`Item category ${identifier || it.category_id} has no group in itemCategories.ts`);
     const category = POKEAPI_ITEM_CATEGORIES[identifier];
     if (!name || !category) continue;
     itemReference[it.id] = {
@@ -1041,11 +1199,14 @@ async function main() {
       if (variant) it.name = `${name} (${variant})`;
     }
     const names = same.map(([, it]) => it.name);
-    if (new Set(names).size < names.length) throw new Error(`Items share the name ${name}: add a rule to ITEM_VARIANTS`);
+    if (new Set(names).size < names.length)
+      throw new Error(`Items share the name ${name}: add a rule to ITEM_VARIANTS`);
   }
 
   // --- locations: wild encounters per game (PokeAPI has them from Red/Blue to Sword/Shield) ---
-  const gameVersions = new Map(versions.filter((v) => !SKIPPED_VERSION_GROUPS.has(v.version_group_id)).map((v) => [v.id, v]));
+  const gameVersions = new Map(
+    versions.filter((v) => !SKIPPED_VERSION_GROUPS.has(v.version_group_id)).map((v) => [v.id, v]),
+  );
   const slotById = new Map(encounterSlots.map((s) => [s.id, s]));
   const methodById = new Map(encounterMethods.map((m) => [m.id, m]));
   const methodProse = english(encounterMethodProse, 'encounter_method_id');
@@ -1055,7 +1216,9 @@ async function main() {
   const conditionProse = english(encounterConditionValueProse, 'encounter_condition_value_id');
   const conditionLabel = (v: Row) => {
     const stars = v.identifier.match(/^max-den-rating-(\d)-star$/)?.[1];
-    return stars ? `${stars}★` : CONDITION_LABELS[v.identifier] ?? conditionProse.get(v.id) ?? titleCase(v.identifier);
+    return stars
+      ? `${stars}★`
+      : (CONDITION_LABELS[v.identifier] ?? conditionProse.get(v.id) ?? titleCase(v.identifier));
   };
   const conditionValues = new Map<string, ConditionValue>(
     encounterConditionValues.map((v) => [v.id, { type: v.encounter_condition_id, name: conditionLabel(v) }]),
@@ -1071,7 +1234,8 @@ async function main() {
     if (!area.identifier) return place;
     const prose = areaProse.get(id) ?? '';
     const part =
-      prose.match(/\((.+)\)$/)?.[1] ?? (prose.startsWith(`${place} `) ? prose.slice(place.length + 1) : titleCase(area.identifier));
+      prose.match(/\((.+)\)$/)?.[1] ??
+      (prose.startsWith(`${place} `) ? prose.slice(place.length + 1) : titleCase(area.identifier));
     return `${place} (${part})`;
   }
   const methodLabel = (id: string) => {
@@ -1080,7 +1244,9 @@ async function main() {
   };
   /** Form name for encounters with a non-default Pokémon, e.g. "Alolan Form". */
   const encounterForm = (pokemonId: string) =>
-    defaultPokemonIds.has(pokemonId) ? undefined : formName.get(defaultFormOf.get(pokemonId)?.id ?? '')?.form_name || undefined;
+    defaultPokemonIds.has(pokemonId)
+      ? undefined
+      : formName.get(defaultFormOf.get(pokemonId)?.id ?? '')?.form_name || undefined;
 
   const wild = encounters
     .filter((e) => gameVersions.has(e.version_id) && (speciesOfPokemon.get(e.pokemon_id) ?? Infinity) <= index.length)
@@ -1129,7 +1295,13 @@ async function main() {
       // Rows of a form with its own data carry its key (the Locations tab shows them with that form); others keep the form's name.
       const formKey = formKeyOfPokemon.get(pokemonId) ?? '';
       (byGame[versionId] ??= []).push([
-        ref(areaName(areaId)), ref(methodLabel(methodId)), s.min, s.max, rate, s.upTo ? 1 : 0, ref(s.note),
+        ref(areaName(areaId)),
+        ref(methodLabel(methodId)),
+        s.min,
+        s.max,
+        rate,
+        s.upTo ? 1 : 0,
+        ref(s.note),
         ...(hasOwnFormData(formKey) ? [0, ref(formKey)] : [ref(encounterForm(pokemonId))]),
       ]);
       gamesWithEncounters.add(versionId);
@@ -1142,8 +1314,8 @@ async function main() {
     .map((id) => gameVersions.get(id)!)
     .sort(
       (a, b) =>
-        Number(versionGroupById.get(a.version_group_id)?.order) - Number(versionGroupById.get(b.version_group_id)?.order) ||
-        Number(a.id) - Number(b.id),
+        Number(versionGroupById.get(a.version_group_id)?.order) -
+          Number(versionGroupById.get(b.version_group_id)?.order) || Number(a.id) - Number(b.id),
     )
     .map((v) => ({
       id: Number(v.id),

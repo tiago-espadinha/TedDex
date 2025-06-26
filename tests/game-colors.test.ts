@@ -22,7 +22,10 @@ function luminance(hex: string) {
 const contrastOnWhite = (hex: string) => 1.05 / (luminance(hex) + 0.05);
 
 test('every game has a token in :root and Design B, white text passes 4.5:1, Design A dark keeps the light ones', () => {
-  for (const [name, block] of Object.entries({ 'Design A': blockAfter(':root {'), 'Design B': blockAfter(":root[data-design='b'] {") })) {
+  for (const [name, block] of Object.entries({
+    'Design A': blockAfter(':root {'),
+    'Design B': blockAfter(":root[data-design='b'] {"),
+  })) {
     for (const slug of GAME_SLUGS) {
       const hex = block.match(new RegExp(`--game-${slug}: (#[0-9a-f]{6});`))?.[1];
       assert.ok(hex, `${name}: --game-${slug}`);
@@ -30,7 +33,8 @@ test('every game has a token in :root and Design B, white text passes 4.5:1, Des
       assert.ok(ratio >= 4.5, `${name}: ${slug} ${hex} is ${ratio.toFixed(2)}:1`);
     }
   }
-  for (const selector of [":root:not([data-theme='light']) {", ":root[data-theme='dark'] {"]) assert.doesNotMatch(blockAfter(selector), /--game-/, selector);
+  for (const selector of [":root:not([data-theme='light']) {", ":root[data-theme='dark'] {"])
+    assert.doesNotMatch(blockAfter(selector), /--game-/, selector);
 });
 
 test('slugs drop accents, apostrophes and punctuation', () => {
@@ -59,7 +63,8 @@ function assertKnown(label: string) {
 test('every version, version group and league game has its colours', () => {
   for (const g of readData<Game[]>('games.json')) assertKnown(g.label);
   for (const v of readData<VersionGroup[]>('versions.json')) assertKnown(v.label);
-  for (const kind of ['league', 'gyms']) for (const g of readData<{ label: string }[]>(`${kind}/index.json`)) assertKnown(g.label);
+  for (const kind of ['league', 'gyms'])
+    for (const g of readData<{ label: string }[]>(`${kind}/index.json`)) assertKnown(g.label);
 });
 
 test('every item place game has its colours', () => {

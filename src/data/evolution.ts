@@ -23,7 +23,7 @@ export function chainInForm(chain: EvolutionMember[], id: number, formKey: strin
   if (!formKey || !lineKey) return plain;
 
   const path = new Map<number, { form: string; conditions: string[] }>();
-  for (let m = byId.get(id), form = lineKey; m; ) {
+  for (let m = byId.get(id), form = lineKey; m;) {
     const step = form ? m.steps?.find((s) => s.into === form) : undefined;
     path.set(m.id, { form, conditions: step?.conditions ?? m.conditions });
     form = step?.from ?? '';
@@ -65,7 +65,9 @@ export function evolutionLine(chain: EvolutionMember[], id: number, formKey: str
     const from = byId.get(memberId)?.from;
     return from == null ? 0 : 1 + depth(from);
   };
-  const regionalOnly = new Set(chain.filter((m) => m.steps?.some((s) => s.into === '' && regionOf(s.from))).map((m) => m.id));
+  const regionalOnly = new Set(
+    chain.filter((m) => m.steps?.some((s) => s.into === '' && regionOf(s.from))).map((m) => m.id),
+  );
   const dropped = new Set<number>();
   const plain = chainInForm(chain, id, regionOf(formKey) ? '' : formKey);
   for (const s of plain) if (regionalOnly.has(s.id) || (s.from !== null && dropped.has(s.from))) dropped.add(s.id);
@@ -90,25 +92,33 @@ export function evolutionLine(chain: EvolutionMember[], id: number, formKey: str
     if (branch) own.push(...branch);
     else regional.set(region, stages);
   }
-  const regionOnly = own.some((s) => s.id === id) ? undefined : [...regional.values()].find((l) => l.some((s) => s.id === id));
+  const regionOnly = own.some((s) => s.id === id)
+    ? undefined
+    : [...regional.values()].find((l) => l.some((s) => s.id === id));
   const line = regional.get(regionOf(formKey) ?? '') ?? regionOnly ?? own;
   return line.length > 1 ? line : [];
 }
 
 /** The part of a regional line to fold into the `own` line: from `view` on, when its parent there is in default form. */
-function regionalBranch(stages: ChainStage[], view: { id: number; key: string }, own: ChainStage[]): ChainStage[] | undefined {
+function regionalBranch(
+  stages: ChainStage[],
+  view: { id: number; key: string },
+  own: ChainStage[],
+): ChainStage[] | undefined {
   const start = stages.findIndex((s) => s.id === view.id);
   const parent = stages[start].from;
   if (parent === null || stages[start].fromForm || !own.some((s) => s.id === parent && !s.form)) return undefined;
   const region = regionOf(view.key)!;
   const branch: ChainStage[] = [{ ...stages[start], region: region.charAt(0).toUpperCase() + region.slice(1) }];
   // Stages come parent first, so one test keeps the descendants and leaves out what forks off above the view.
-  for (const s of stages.slice(start + 1)) if (branch.some((b) => b.id === s.from && b.form === s.fromForm)) branch.push(s);
+  for (const s of stages.slice(start + 1))
+    if (branch.some((b) => b.id === s.from && b.form === s.fromForm)) branch.push(s);
   return branch;
 }
 
 /** What `stage` evolves into: Galarian Mr. Mime leads to Mr. Rime, plain Mr. Mime to nothing. */
-export const targetsOf = (stages: ChainStage[], stage: ChainStage) => stages.filter((s) => s.from === stage.id && s.fromForm === stage.form);
+export const targetsOf = (stages: ChainStage[], stage: ChainStage) =>
+  stages.filter((s) => s.from === stage.id && s.fromForm === stage.form);
 
 /**
  * Species of the chain (`id` itself when it has no chain) with Mega or Primal forms, `id` first, whichever stage is
@@ -124,11 +134,16 @@ export function megaSpecies(chain: EvolutionMember[], index: IndexEntry[], id: n
  * lists none: Galarian Slowpoke never becomes Mega Slowbro, nor Alolan Raichu Mega Raichu.
  */
 export const megaForms = (owners: SpeciesDetail[], formKey: string) =>
-  regionOf(formKey) ? [] : owners.flatMap((owner) => (owner.forms ?? []).filter((f) => f.trigger).map((form) => ({ owner, form })));
+  regionOf(formKey)
+    ? []
+    : owners.flatMap((owner) => (owner.forms ?? []).filter((f) => f.trigger).map((form) => ({ owner, form })));
 
 /** `megas` by species, so Charizard's two Megas share one graph while Gardevoir and Gallade each keep their own. */
 export const megaGroups = (megas: ReturnType<typeof megaForms>) =>
-  [...new Set(megas.map((m) => m.owner))].map((owner) => ({ owner, forms: megas.filter((m) => m.owner === owner).map((m) => m.form) }));
+  [...new Set(megas.map((m) => m.owner))].map((owner) => ({
+    owner,
+    forms: megas.filter((m) => m.owner === owner).map((m) => m.form),
+  }));
 
 /**
  * The form of species `id` to highlight as the one shown in form `formKey`: the form itself when the line has it, else a
@@ -167,7 +182,9 @@ export function shortCondition(condition: string): string {
   const parts = condition.split(' · ');
   const kept = parts.length > 1 ? parts.filter((p) => p !== 'Level up') : parts;
   const text = kept
-    .map((part) => SHORT_PARTS.reduce((out, [pattern, short]) => (pattern.test(out) ? out.replace(pattern, short) : out), part))
+    .map((part) =>
+      SHORT_PARTS.reduce((out, [pattern, short]) => (pattern.test(out) ? out.replace(pattern, short) : out), part),
+    )
     .join(', ');
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

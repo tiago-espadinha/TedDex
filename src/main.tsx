@@ -1,6 +1,13 @@
 import { StrictMode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Outlet, RouterProvider, ScrollRestoration, createBrowserRouter, useLocation, type Location } from 'react-router-dom';
+import {
+  Outlet,
+  RouterProvider,
+  ScrollRestoration,
+  createBrowserRouter,
+  useLocation,
+  type Location,
+} from 'react-router-dom';
 import { BottomNav, ToastProvider, useKeyboardInset, useNavHiding } from './components/bits';
 import { isPicking } from './data/dexState';
 import { clearNames, prepareMorph, screenDirection } from './data/screenMorph';
@@ -27,7 +34,8 @@ try {
 }
 
 /** Dex pick mode (adding to a team, a Compare side), pushed over the screen that opened it. */
-const isPickMode = (loc: { pathname: string; search: string }) => loc.pathname === '/' && isPicking(new URLSearchParams(loc.search));
+const isPickMode = (loc: { pathname: string; search: string }) =>
+  loc.pathname === '/' && isPicking(new URLSearchParams(loc.search));
 
 /** Each pick starts at the top, like its empty search; other screens restore their scroll by path and search. */
 const scrollKey = (loc: Location) => (isPickMode(loc) ? loc.key : loc.pathname + loc.search);
@@ -99,7 +107,10 @@ const navigate = router.navigate;
 router.navigate = ((to: Parameters<typeof navigate>[0], opts?: Parameters<typeof navigate>[1]) => {
   if (typeof to === 'number') return navigate(to);
   const path = typeof to === 'string' ? new URL(to, location.href).pathname : to?.pathname;
-  return navigate(to, { ...opts, viewTransition: opts?.viewTransition ?? (path != null && path !== location.pathname) });
+  return navigate(to, {
+    ...opts,
+    viewTransition: opts?.viewTransition ?? (path != null && path !== location.pathname),
+  });
 }) as typeof navigate;
 
 const historyIndex = () => (history.state as { idx?: number } | null)?.idx ?? 0;
@@ -158,4 +169,6 @@ createRoot(document.getElementById('root')!).render(
 );
 
 // Fill the offline sprite cache once the first screen has loaded (see spriteCache.ts).
-window.addEventListener('load', () => warmSprites().catch((err) => console.warn('Sprite warm-up stopped:', err)), { once: true });
+window.addEventListener('load', () => warmSprites().catch((err) => console.warn('Sprite warm-up stopped:', err)), {
+  once: true,
+});

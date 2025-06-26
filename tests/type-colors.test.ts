@@ -50,7 +50,8 @@ test('white chip text passes 4.5:1 on every chip, in every design', () => {
 });
 
 test('every move category has a badge token in :root, and its white glyph passes 4.5:1 in every design', () => {
-  for (const c of ['physical', 'special', 'status']) assert.match(rootBlock, new RegExp(`--cat-${c}: #[0-9a-f]{6};`), c);
+  for (const c of ['physical', 'special', 'status'])
+    assert.match(rootBlock, new RegExp(`--cat-${c}: #[0-9a-f]{6};`), c);
   assert.match(rootBlock, /--on-cat: #ffffff;/);
   const badges = [...css.matchAll(/--cat-([a-z]+): (#[0-9a-f]{6});/g)];
   assert.ok(badges.length >= 6);

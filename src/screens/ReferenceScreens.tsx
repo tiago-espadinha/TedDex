@@ -1,6 +1,20 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { defensiveMultipliers, itemSpriteUrl, loadAbilities, loadEggGroups, loadIndex, loadItemPlaces, loadItemReference, loadMoveReference, loadMoves, loadTypes, loadVersions, offensiveMultipliers, useLoad } from '../data/api';
+import {
+  defensiveMultipliers,
+  itemSpriteUrl,
+  loadAbilities,
+  loadEggGroups,
+  loadIndex,
+  loadItemPlaces,
+  loadItemReference,
+  loadMoveReference,
+  loadMoves,
+  loadTypes,
+  loadVersions,
+  offensiveMultipliers,
+  useLoad,
+} from '../data/api';
 import { EGG_GROUP_COLOR, EGG_GROUP_NOTE } from '../data/eggGroups';
 import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters } from '../data/abilityFilter';
 import { knownGame, shownGame } from '../data/game';
@@ -12,7 +26,18 @@ import { activeItemFilters, filterItems, itemFilterParams, readItemFilters } fro
 import { NATURES, STAT_ABBR, dislikedFlavor, flavorChip, likedFlavor, type Flavor } from '../data/natures';
 import { activeMoveFilters, filterMoves, moveFilterParams, readMoveFilters } from '../data/moveFilter';
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
-import type { IndexEntry, ItemInfo, ItemPlaceGame, ItemPlaces, LearnMethod, MoveInfo, MoveReference, TypeData, TypeName, VersionGroup } from '../data/types';
+import type {
+  IndexEntry,
+  ItemInfo,
+  ItemPlaceGame,
+  ItemPlaces,
+  LearnMethod,
+  MoveInfo,
+  MoveReference,
+  TypeData,
+  TypeName,
+  VersionGroup,
+} from '../data/types';
 import { GamePicker, NotInGame, SharedGameSheet } from '../components/GamePicker';
 import { Icon } from '../components/Icon';
 import { CategoryIcon, CountBadge, Loading, MonName, SearchField, Segmented, TypeChip } from '../components/bits';
@@ -30,8 +55,18 @@ const KINDS: { kind: Kind; title: string; one: string; blurb: string }[] = [
   { kind: 'items', title: 'Items', one: 'Item', blurb: 'Every item: what it does, its price and where to find it' },
   { kind: 'natures', title: 'Natures', one: 'Nature', blurb: 'Stats each nature raises and lowers, and flavours' },
   { kind: 'gyms', title: 'Gym Leaders', one: 'Gym Leader', blurb: "Every game's Gym teams, badges and rematches" },
-  { kind: 'league', title: 'Elite Four & Champion', one: 'Elite Four', blurb: "Every game's league teams and movesets" },
-  { kind: 'compare', title: 'Comparator', one: 'Comparator', blurb: 'Two Pokémon side by side: weaknesses, stats and size' },
+  {
+    kind: 'league',
+    title: 'Elite Four & Champion',
+    one: 'Elite Four',
+    blurb: "Every game's league teams and movesets",
+  },
+  {
+    kind: 'compare',
+    title: 'Comparator',
+    one: 'Comparator',
+    blurb: 'Two Pokémon side by side: weaknesses, stats and size',
+  },
   { kind: 'types', title: 'Types', one: 'Type', blurb: 'The full type chart' },
 ];
 
@@ -121,7 +156,10 @@ function SearchList() {
   // Moves, items and abilities also filter (moves sort too) in a sheet; their filters live in the URL next to the query.
   const moveFilters = useMemo(() => (k?.kind === 'moves' ? readMoveFilters(params) : undefined), [k?.kind, params]);
   const itemFilters = useMemo(() => (k?.kind === 'items' ? readItemFilters(params) : undefined), [k?.kind, params]);
-  const abilityFilters = useMemo(() => (k?.kind === 'abilities' ? readAbilityFilters(params) : undefined), [k?.kind, params]);
+  const abilityFilters = useMemo(
+    () => (k?.kind === 'abilities' ? readAbilityFilters(params) : undefined),
+    [k?.kind, params],
+  );
   const moves = useMemo(() => (data ?? []).filter((e): e is MoveEntry => !!e.move), [data]);
   const items = useMemo(() => (data ?? []).filter((e): e is ItemEntry => !!e.item), [data]);
   // Only the generations that introduced an ability (III onwards) get a button in the sheet.
@@ -165,14 +203,32 @@ function SearchList() {
         </Link>
         <div className="head-title">
           <h1>{k.title}</h1>
-          {data && <div className="sub">{filtered || query ? `${shown.length} of ${data.length}` : `${data.length} in the data`}</div>}
+          {data && (
+            <div className="sub">
+              {filtered || query ? `${shown.length} of ${data.length}` : `${data.length} in the data`}
+            </div>
+          )}
         </div>
-        <SearchField label={`Search ${k.title.toLowerCase()}`} placeholder="Search" value={query} onChange={setQuery} hints={k.kind === 'moves' || k.kind === 'items' ? k.kind : undefined} />
+        <SearchField
+          label={`Search ${k.title.toLowerCase()}`}
+          placeholder="Search"
+          value={query}
+          onChange={setQuery}
+          hints={k.kind === 'moves' || k.kind === 'items' ? k.kind : undefined}
+        />
       </header>
-      {error && <p className="empty">Couldn't load {k.title.toLowerCase()}. {error.message}</p>}
+      {error && (
+        <p className="empty">
+          Couldn't load {k.title.toLowerCase()}. {error.message}
+        </p>
+      )}
       {!data && !error && <Loading />}
       {data && !shown.length && (
-        <p className="empty">{filtered ? `No ${k.title.toLowerCase()} match these filters.` : `No ${k.title.toLowerCase()} match “${query}”.`}</p>
+        <p className="empty">
+          {filtered
+            ? `No ${k.title.toLowerCase()} match these filters.`
+            : `No ${k.title.toLowerCase()} match “${query}”.`}
+        </p>
       )}
       {shown.length > 0 && k.kind === 'moves' && <MoveHead />}
       {shown.length > 0 && (
@@ -313,14 +369,27 @@ function EntryFrame({ one, name, error, loaded, tint, head, art, noMorph, childr
   const navigate = useNavigate();
   const { pathname } = useLocation();
   let body = children;
-  if (error) body = <p className="empty">Couldn't load this {one.toLowerCase()}. {error.message}</p>;
+  if (error)
+    body = (
+      <p className="empty">
+        Couldn't load this {one.toLowerCase()}. {error.message}
+      </p>
+    );
   else if (!loaded) body = <Loading />;
   else if (!name) body = <p className="empty">This {one.toLowerCase()} isn't in the data.</p>;
   return (
     <>
       {/* A morph target only once loaded: until then the title is the placeholder. */}
-      <header className={tint ? 'topbar tinted' : 'topbar'} style={tint && { backgroundColor: typeTint(tint) }} data-morph={name && !noMorph ? pathname : undefined}>
-        <button className="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? navigate(-1) : navigate('/reference'))}>
+      <header
+        className={tint ? 'topbar tinted' : 'topbar'}
+        style={tint && { backgroundColor: typeTint(tint) }}
+        data-morph={name && !noMorph ? pathname : undefined}
+      >
+        <button
+          className="icon-btn"
+          aria-label="Back"
+          onClick={() => (history.length > 1 ? navigate(-1) : navigate('/reference'))}
+        >
           <Icon name="back" />
         </button>
         <div className="grow">
@@ -361,14 +430,27 @@ export function EggGroupEntry() {
 function MoveEntry({ id, one }: EntryProps) {
   const n = Number(id);
   const { data, error } = useLoad(
-    () => Promise.all([loadMoves(), loadIndex(), loadVersions()]).then(async ([moves, index, versions]) => ({ moves, index, versions, ref: moves[n] && (await loadMoveReference(n)) })),
+    () =>
+      Promise.all([loadMoves(), loadIndex(), loadVersions()]).then(async ([moves, index, versions]) => ({
+        moves,
+        index,
+        versions,
+        ref: moves[n] && (await loadMoveReference(n)),
+      })),
     n,
   );
   const move = data?.moves[n];
   const ref = data?.ref;
   return (
     <>
-      <EntryFrame one={one} name={move?.name} error={error} loaded={!!data} tint={move?.type} head={move && <MoveFacts move={move} />}>
+      <EntryFrame
+        one={one}
+        name={move?.name}
+        error={error}
+        loaded={!!data}
+        tint={move?.type}
+        head={move && <MoveFacts move={move} />}
+      >
         {move && ref && data && (
           <>
             {ref.description && (
@@ -444,14 +526,27 @@ const LEARN_METHODS: [LearnMethod, string][] = [
 ];
 
 /** Who learns the move in the shared game, one learn method at a time (a species can be in several). */
-function MoveLearners({ name, learners, index, versions }: { name: string; learners: MoveReference['learners']; index: IndexEntry[]; versions: VersionGroup[] }) {
+function MoveLearners({
+  name,
+  learners,
+  index,
+  versions,
+}: {
+  name: string;
+  learners: MoveReference['learners'];
+  index: IndexEntry[];
+  versions: VersionGroup[];
+}) {
   const [stored] = useGame();
   const [pickMethod, setMethod] = useState<LearnMethod>('level');
   const games = learnerGames(
     learners,
     versions.map((v) => v.id),
   );
-  if (!games.length) return <SpeciesList title="Learned by" ids={[]} index={index} none="No Pokémon learn it in the main-series games." />;
+  if (!games.length)
+    return (
+      <SpeciesList title="Learned by" ids={[]} index={index} none="No Pokémon learn it in the main-series games." />
+    );
 
   const chosen = knownGame(stored, versions);
   const group = shownGame(games, chosen);
@@ -507,7 +602,10 @@ function AbilityEntry({ id, one }: EntryProps) {
 function ItemEntry({ id, one }: EntryProps) {
   const n = Number(id);
   const { data, error } = useLoad(
-    () => Promise.all([loadItemReference(), loadIndex()]).then(async ([items, index]) => [items, index, items[n] && (await loadItemPlaces(n))] as const),
+    () =>
+      Promise.all([loadItemReference(), loadIndex()]).then(
+        async ([items, index]) => [items, index, items[n] && (await loadItemPlaces(n))] as const,
+      ),
     n,
   );
   const item = data?.[0][n];
@@ -614,7 +712,17 @@ function TableHead({ title, sub }: { title: string; sub: string }) {
 
 /** A natures table cell: the stat or flavour as a coloured chip, or — for the neutral natures. */
 function NatureCell({ text, color }: { text?: ReactNode; color?: string }) {
-  return <td>{text ? <span className="fact-chip" style={{ backgroundColor: color }}>{text}</span> : '—'}</td>;
+  return (
+    <td>
+      {text ? (
+        <span className="fact-chip" style={{ backgroundColor: color }}>
+          {text}
+        </span>
+      ) : (
+        '—'
+      )}
+    </td>
+  );
 }
 
 /** Stat names as a screen reader should say them. */
@@ -645,10 +753,18 @@ function NatureTable() {
           <thead>
             <tr>
               <th scope="col">Nature</th>
-              <th scope="col" className="up">Increased</th>
-              <th scope="col" className="down">Decreased</th>
-              <th scope="col" className="up">Likes</th>
-              <th scope="col" className="down">Dislikes</th>
+              <th scope="col" className="up">
+                Increased
+              </th>
+              <th scope="col" className="down">
+                Decreased
+              </th>
+              <th scope="col" className="up">
+                Likes
+              </th>
+              <th scope="col" className="down">
+                Dislikes
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -823,7 +939,14 @@ function LearnerTable({ title, ids, index }: { title: string; ids: number[]; ind
           <li key={m.id}>
             <Link className="learner-row" to={`/pokemon/${m.id}`}>
               <span className="no">{formatNo(m.id)}</span>
-              <MonImg id={m.id} alt="" width={40} height={40} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
+              <MonImg
+                id={m.id}
+                alt=""
+                width={40}
+                height={40}
+                loading="lazy"
+                style={{ backgroundColor: typeTint(m.types[0]) }}
+              />
               <span className="name">
                 <MonName name={m.name} />
               </span>
@@ -855,7 +978,14 @@ function SpeciesList({ title, ids, index, none }: { title: string; ids: number[]
           {mons.map((m) => (
             <li key={m.id}>
               <Link className="evo-member" to={`/pokemon/${m.id}`}>
-                <MonImg id={m.id} alt="" width={56} height={56} loading="lazy" style={{ backgroundColor: typeTint(m.types[0]) }} />
+                <MonImg
+                  id={m.id}
+                  alt=""
+                  width={56}
+                  height={56}
+                  loading="lazy"
+                  style={{ backgroundColor: typeTint(m.types[0]) }}
+                />
                 <span className="body">
                   <span className="name">
                     <span className="no">{formatNo(m.id)}</span> <MonName name={m.name} />

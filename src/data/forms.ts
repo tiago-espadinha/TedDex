@@ -21,11 +21,18 @@ export const hasOwnFormData = (key: string) => !!key && formKind(key) !== 'mega'
  * The species as seen in form `key`: its name, types, stats, abilities, size and EV yield replaced by the
  * form's. Unknown or empty keys give the default form. `mediaId` is the id its sprite and artwork use.
  */
-export function applyForm(mon: SpeciesDetail, key: string | null): { view: SpeciesDetail; form?: FormVariant; mediaId: number } {
+export function applyForm(
+  mon: SpeciesDetail,
+  key: string | null,
+): { view: SpeciesDetail; form?: FormVariant; mediaId: number } {
   const form = key ? mon.forms?.find((f) => f.key === key) : undefined;
   if (!form) return { view: mon, mediaId: mon.id };
   const { name, types, stats, total, abilities, heightM, weightKg, evYield } = form;
-  return { view: { ...mon, name, types, stats, total, abilities, heightM, weightKg, evYield }, form, mediaId: form.pokemonId };
+  return {
+    view: { ...mon, name, types, stats, total, abilities, heightM, weightKg, evYield },
+    form,
+    mediaId: form.pokemonId,
+  };
 }
 
 /**
@@ -48,11 +55,34 @@ export interface MemberView {
  * A team member in its form when it has one and `detail` (its species file) is loaded, else as its
  * grid row. Undefined when neither is known.
  */
-export function memberView(member: { speciesId: number; formKey?: string; shiny?: boolean }, row?: IndexEntry, detail?: SpeciesDetail): MemberView | undefined {
+export function memberView(
+  member: { speciesId: number; formKey?: string; shiny?: boolean },
+  row?: IndexEntry,
+  detail?: SpeciesDetail,
+): MemberView | undefined {
   const shiny = member.shiny && { shiny: true };
   if (member.formKey && detail) {
     const { view, mediaId } = applyForm(detail, member.formKey);
-    return { name: view.name, types: view.types, stats: view.stats, total: view.total, mediaId, speciesId: member.speciesId, abilities: view.abilities, ...shiny };
+    return {
+      name: view.name,
+      types: view.types,
+      stats: view.stats,
+      total: view.total,
+      mediaId,
+      speciesId: member.speciesId,
+      abilities: view.abilities,
+      ...shiny,
+    };
   }
-  return row && { name: row.name, types: row.types, stats: row.stats, total: row.total, mediaId: row.id, speciesId: row.id, ...shiny };
+  return (
+    row && {
+      name: row.name,
+      types: row.types,
+      stats: row.stats,
+      total: row.total,
+      mediaId: row.id,
+      speciesId: row.id,
+      ...shiny,
+    }
+  );
 }

@@ -75,7 +75,11 @@ export function parseQuery(query: string): QueryNode | null {
  * The test for each item of a parsed query; `resolve` runs once per term, so a term's search isn't repeated per item.
  * `negated` tells it the term's test will be inverted (an odd number of "!" above it), for words that mean less when negated.
  */
-export function compileQuery<T>(node: QueryNode, resolve: (term: string, negated: boolean) => (item: T) => boolean, negated = false): (item: T) => boolean {
+export function compileQuery<T>(
+  node: QueryNode,
+  resolve: (term: string, negated: boolean) => (item: T) => boolean,
+  negated = false,
+): (item: T) => boolean {
   if (node.kind === 'term') return resolve(node.term, negated);
   if (node.kind === 'not') {
     const test = compileQuery(node.node, resolve, !negated);
@@ -94,14 +98,21 @@ const nameTest = (term: string) => {
  * The search of the Moves and Items lists. A lone name ranks as searchByName does; a lone keyword also lists the names
  * holding the word, so "rock" keeps Rock Climb. With operators a keyword is exact. Anything but a lone name lists A to Z.
  */
-export function searchEntries<T extends { name: string }>(entries: T[], query: string, keyword: (term: string) => ((entry: T) => boolean) | undefined): T[] {
+export function searchEntries<T extends { name: string }>(
+  entries: T[],
+  query: string,
+  keyword: (term: string) => ((entry: T) => boolean) | undefined,
+): T[] {
   const node = parseQuery(query);
   if (!node) return searchByName(entries, '');
   if (node.kind === 'term') {
     const inKeyword = keyword(node.term);
     if (!inKeyword) return searchByName(entries, node.term);
     const inName = nameTest(node.term);
-    return searchByName(entries.filter((e) => inKeyword(e) || inName(e)), '');
+    return searchByName(
+      entries.filter((e) => inKeyword(e) || inName(e)),
+      '',
+    );
   }
   return searchByName(entries.filter(compileQuery<T>(node, (term) => keyword(term) ?? nameTest(term))), '');
 }

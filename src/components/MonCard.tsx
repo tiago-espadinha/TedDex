@@ -91,7 +91,11 @@ export function MonMoves({
           <>
             {move && <CategoryIcon category={move.category} decorative />}
             {move?.name ?? `Move ${id}`}
-            {move && <span className="sr-only">, {move.type}, {move.category}</span>}
+            {move && (
+              <span className="sr-only">
+                , {move.type}, {move.category}
+              </span>
+            )}
           </>
         );
         return (

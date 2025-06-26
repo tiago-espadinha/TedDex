@@ -39,7 +39,9 @@ function dexScope(dex: Pokedex, versions?: VersionGroup[]) {
   if (dex.game === undefined) return { label: 'National', last: lastSpecies(), known: false };
   if (!versions) return undefined;
   const version = versions.find((v) => v.id === dex.game);
-  return version ? { label: version.label, last: lastSpecies(version.gen), known: true } : { label: 'Unknown game', last: lastSpecies(), known: false };
+  return version
+    ? { label: version.label, last: lastSpecies(version.gen), known: true }
+    : { label: 'Unknown game', last: lastSpecies(), known: false };
 }
 
 // ---------------- saved Pokédexes ----------------
@@ -50,24 +52,40 @@ export function PokedexList() {
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
   // Game labels come with versions.json; a search waits for them rather than missing.
-  const shown = query && !versions ? undefined : dexes?.filter((d) => teamMatches(d.name, [dexScope(d, versions)?.label ?? ''], query));
+  const shown =
+    query && !versions
+      ? undefined
+      : dexes?.filter((d) => teamMatches(d.name, [dexScope(d, versions)?.label ?? ''], query));
 
   return (
     <>
       <header className="dex-head">
         <h1>Pokédex</h1>
-        <SearchField label="Search Pokédexes" placeholder="Name or game" value={query} onChange={(q) => setParams(q ? { q } : {}, { replace: true })} />
+        <SearchField
+          label="Search Pokédexes"
+          placeholder="Name or game"
+          value={query}
+          onChange={(q) => setParams(q ? { q } : {}, { replace: true })}
+        />
       </header>
       <TeamTabs />
       <div className="list with-fab">
         {!shown && <Loading />}
-        {shown && dexes?.length === 0 && <p className="empty">No Pokédexes yet. Create one to track what you've seen and caught.</p>}
+        {shown && dexes?.length === 0 && (
+          <p className="empty">No Pokédexes yet. Create one to track what you've seen and caught.</p>
+        )}
         {dexes?.length !== 0 && shown?.length === 0 && <p className="empty">No Pokédexes match “{query}”.</p>}
         {shown?.map((d) => {
           const scope = dexScope(d, versions);
           const counter = caughtCounter(d, scope, regional);
           return (
-            <Link key={d.id} to={`/teams/pokedex/${d.id}`} className="team-row dex-row" data-morph={`/teams/pokedex/${d.id}`} data-morph-card>
+            <Link
+              key={d.id}
+              to={`/teams/pokedex/${d.id}`}
+              className="team-row dex-row"
+              data-morph={`/teams/pokedex/${d.id}`}
+              data-morph-card
+            >
               <DexArt game={scope?.known ? d.game : undefined} />
               <span className="head">
                 <span className="name">{d.name}</span>
@@ -113,7 +131,11 @@ function caughtCounter(dex: Pokedex, scope: ReturnType<typeof dexScope>, regiona
 function DexArt({ game }: { game?: number }) {
   return (
     <span className="dex-art" aria-hidden="true">
-      {game !== undefined ? <img src={dexSpriteUrl(game)} alt="" width={80} height={80} /> : <Icon name="dex" size={40} />}
+      {game !== undefined ? (
+        <img src={dexSpriteUrl(game)} alt="" width={80} height={80} />
+      ) : (
+        <Icon name="dex" size={40} />
+      )}
     </span>
   );
 }
@@ -216,11 +238,22 @@ export function PokedexScreen() {
   if (dex === undefined) return <Loading />;
   if (!dex) return <p className="empty">This Pokédex no longer exists.</p>;
   const scope = dexScope(dex, versions);
-  const views = dex.species ? [customView(dex.species)] : scope && regional ? dexViews(scope.known ? gameDexes(regional, dex.game!) : [], scope.last) : undefined;
+  const views = dex.species
+    ? [customView(dex.species)]
+    : scope && regional
+      ? dexViews(scope.known ? gameDexes(regional, dex.game!) : [], scope.last)
+      : undefined;
   const view = views?.find((v) => v.key === params.get('dex')) ?? views?.[0];
-  const caught = view && caughtCount(dex.states, view.cells.map((c) => c.id));
-  const setView = (key: string) => setParams({ ...(key !== views![0].key && { dex: key }), ...dexFilterParams(filters) }, { replace: true });
-  const setFilters = (f: DexFilters) => setParams({ ...(params.has('dex') && { dex: params.get('dex')! }), ...dexFilterParams(f) }, { replace: true });
+  const caught =
+    view &&
+    caughtCount(
+      dex.states,
+      view.cells.map((c) => c.id),
+    );
+  const setView = (key: string) =>
+    setParams({ ...(key !== views![0].key && { dex: key }), ...dexFilterParams(filters) }, { replace: true });
+  const setFilters = (f: DexFilters) =>
+    setParams({ ...(params.has('dex') && { dex: params.get('dex')! }), ...dexFilterParams(f) }, { replace: true });
   const shown = view && index && filterDexCells(view.cells, snapshot?.states ?? dex.states, species, filters);
   const active = activeDexFilters(filters);
 
@@ -286,8 +319,22 @@ export function PokedexScreen() {
           onChange={(query) => setFilters({ ...filters, query })}
         />
       </div>
-      {!shown ? <Loading /> : <DexGrid dexId={id} states={dex.states} cells={shown} digits={view.key === 'national' || view.key === 'custom' ? 4 : 3} species={species} />}
-      <button className="fab" aria-label={active ? `Filter, ${active} active` : 'Filter'} onClick={() => setSheetOpen(true)}>
+      {!shown ? (
+        <Loading />
+      ) : (
+        <DexGrid
+          dexId={id}
+          states={dex.states}
+          cells={shown}
+          digits={view.key === 'national' || view.key === 'custom' ? 4 : 3}
+          species={species}
+        />
+      )}
+      <button
+        className="fab"
+        aria-label={active ? `Filter, ${active} active` : 'Filter'}
+        onClick={() => setSheetOpen(true)}
+      >
         <Icon name="filter" size={24} />
         <CountBadge count={active} held={sheetOpen} />
       </button>
@@ -299,12 +346,24 @@ export function PokedexScreen() {
           onClose={() => setSheetOpen(false)}
         />
       )}
-      {renaming && <RenameSheet noun="Pokédex" name={dex.name} onSave={(name) => renamePokedex(id, name)} onClose={() => setRenaming(false)} />}
+      {renaming && (
+        <RenameSheet
+          noun="Pokédex"
+          name={dex.name}
+          onSave={(name) => renamePokedex(id, name)}
+          onClose={() => setRenaming(false)}
+        />
+      )}
       {deleting && (
         <DeleteSheet
           name={dex.name}
           lost={`Its seen and caught records${dex.species ? ' and its Pokémon list' : ''} go with it.`}
-          onDelete={() => db.pokedexes.delete(id).then(() => navigate('/teams/pokedex', { replace: true }), () => setDeleting(false))}
+          onDelete={() =>
+            db.pokedexes.delete(id).then(
+              () => navigate('/teams/pokedex', { replace: true }),
+              () => setDeleting(false),
+            )
+          }
           onClose={() => setDeleting(false)}
         />
       )}
@@ -331,14 +390,33 @@ function DexGrid({
   return (
     <ul className="dex-grid" aria-label="Pokémon, tap to change state">
       {cells.map(({ id, no }) => (
-        <DexCellButton key={id} id={id} no={formatNo(no, digits)} name={species.get(id)?.name ?? formatNo(id)} state={states[id] ?? 0} onTap={cycle} />
+        <DexCellButton
+          key={id}
+          id={id}
+          no={formatNo(no, digits)}
+          name={species.get(id)?.name ?? formatNo(id)}
+          state={states[id] ?? 0}
+          onTap={cycle}
+        />
       ))}
     </ul>
   );
 }
 
 /** Not-seen cells show the number in the view, the others the name; shiny cells show the shiny image. */
-const DexCellButton = memo(function DexCellButton({ id, no, name, state, onTap }: { id: number; no: string; name: string; state: DexState; onTap: (id: number) => void }) {
+const DexCellButton = memo(function DexCellButton({
+  id,
+  no,
+  name,
+  state,
+  onTap,
+}: {
+  id: number;
+  no: string;
+  name: string;
+  state: DexState;
+  onTap: (id: number) => void;
+}) {
   return (
     <li>
       <button

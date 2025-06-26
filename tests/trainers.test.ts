@@ -13,7 +13,10 @@ describe('trainer pages', () => {
     for (const data of [gyms, league]) {
       for (const { id } of data.index) {
         const slugs = data.game(id).trainers.map((t) => trainerSlug(t.name));
-        assert.ok(slugs.every((s) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(s)), `${id}: ${slugs.join(', ')}`);
+        assert.ok(
+          slugs.every((s) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(s)),
+          `${id}: ${slugs.join(', ')}`,
+        );
         assert.equal(new Set(slugs).size, slugs.length, `${id}: ${slugs.join(', ')}`);
       }
     }
@@ -22,7 +25,10 @@ describe('trainer pages', () => {
   test('Brock in Red/Blue: 2 Pokémon, Lv 14', () => {
     const brock = findTrainer(gyms.game('red-blue'), 'brock');
     assert.ok(brock);
-    assert.deepEqual(teamSummary(shownTeam(brock, { rematch: false, stage: 0, pick: 0 }).team), { count: 2, level: 14 });
+    assert.deepEqual(teamSummary(shownTeam(brock, { rematch: false, stage: 0, pick: 0 }).team), {
+      count: 2,
+      level: 14,
+    });
   });
 
   test('an unknown slug finds nobody', () => {

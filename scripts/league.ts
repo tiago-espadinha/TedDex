@@ -139,4 +139,8 @@ export function plainText(wiki: string): string {
 
 /** Lowercase letters and digits only, so "DoubleSlap", "Double Slap" and "Double-Slap" meet. */
 export const nameKey = (s: string) =>
-  s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');

@@ -47,7 +47,14 @@ export function MoveChoiceFilterSheet({
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="move-choice-filter-title">
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="move-choice-filter-title"
+      >
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="move-choice-filter-title">Filter moves</h2>
@@ -72,7 +79,12 @@ export function MoveChoiceFilterSheet({
         />
         <div className="gen-grid">
           {METHODS.map(([m, label]) => (
-            <button key={m} className="gen-btn" aria-pressed={draft.methods.includes(m)} onClick={() => setDraft((d) => ({ ...d, methods: toggle(d.methods, m) }))}>
+            <button
+              key={m}
+              className="gen-btn"
+              aria-pressed={draft.methods.includes(m)}
+              onClick={() => setDraft((d) => ({ ...d, methods: toggle(d.methods, m) }))}
+            >
               {label}
             </button>
           ))}
@@ -112,7 +124,11 @@ export function MoveChoiceFilterSheet({
                 className="type-toggle"
                 aria-pressed={on}
                 onClick={() => setDraft((d) => ({ ...d, types: toggle(d.types, t) }))}
-                style={{ borderColor: c, backgroundColor: on ? c : undefined, color: on ? 'var(--on-type)' : 'var(--ink)' }}
+                style={{
+                  borderColor: c,
+                  backgroundColor: on ? c : undefined,
+                  color: on ? 'var(--on-type)' : 'var(--ink)',
+                }}
               >
                 {t}
               </button>

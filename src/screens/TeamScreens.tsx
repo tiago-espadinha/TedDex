@@ -1,9 +1,29 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { attackingTypes, itemSpriteUrl, loadAbilityNames, loadIndex, loadItems, loadMoves, loadSpecies, loadTypes, useLoad } from '../data/api';
+import {
+  attackingTypes,
+  itemSpriteUrl,
+  loadAbilityNames,
+  loadIndex,
+  loadItems,
+  loadMoves,
+  loadSpecies,
+  loadTypes,
+  useLoad,
+} from '../data/api';
 import { averageStats, defensiveCoverage, offensiveCoverage, type CoverageRow } from '../data/coverage';
-import { NAME_LENGTH, NICKNAME_LENGTH, TEAM_SIZE, createTeam, db, memberTitle, removeFromTeam, renameTeam, type TeamMember } from '../data/db';
+import {
+  NAME_LENGTH,
+  NICKNAME_LENGTH,
+  TEAM_SIZE,
+  createTeam,
+  db,
+  memberTitle,
+  removeFromTeam,
+  renameTeam,
+  type TeamMember,
+} from '../data/db';
 import { STAT_ROWS, cap, formatMultiplier, formatNo, formatScore, statColor } from '../data/format';
 import { memberView, type MemberView } from '../data/forms';
 import { memberAbility } from '../data/memberOptions';
@@ -12,7 +32,15 @@ import { NATURES } from '../data/natures';
 import { STAT_COLOR, typeChip, typeTint } from '../data/typeColors';
 import type { AbilityNameTable, ItemTable, MoveTable, TypeData } from '../data/types';
 import { Icon } from '../components/Icon';
-import { Loading, SearchField, Segmented, TypeChip, playAnim, useModalSheet, useSegmentSlide } from '../components/bits';
+import {
+  Loading,
+  SearchField,
+  Segmented,
+  TypeChip,
+  playAnim,
+  useModalSheet,
+  useSegmentSlide,
+} from '../components/bits';
 import { MonImg } from '../components/MonImg';
 import { Fact, MonFacts, MonHead, MonMoves } from '../components/MonCard';
 import { usePeek } from '../components/usePeek';
@@ -83,7 +111,9 @@ function MemberDetails({
           )}
         </MonFacts>
       )}
-      {chosen && moves && <MonMoves name={name} moves={chosen} table={moves} onPeek={(id) => peek({ kind: 'move', id })} />}
+      {chosen && moves && (
+        <MonMoves name={name} moves={chosen} table={moves} onPeek={(id) => peek({ kind: 'move', id })} />
+      )}
     </>
   );
 }
@@ -107,13 +137,27 @@ export function TeamsScreen() {
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
   // Member names come with the index and form species files; a search waits for them rather than missing.
-  const shown = query && !formsReady ? undefined : teams?.filter((t) => teamMatches(t.name, t.members.flatMap((m) => [view?.(m)?.name, m.nickname]).filter((n): n is string => !!n), query));
+  const shown =
+    query && !formsReady
+      ? undefined
+      : teams?.filter((t) =>
+          teamMatches(
+            t.name,
+            t.members.flatMap((m) => [view?.(m)?.name, m.nickname]).filter((n): n is string => !!n),
+            query,
+          ),
+        );
 
   return (
     <>
       <header className="dex-head">
         <h1>Teams</h1>
-        <SearchField label="Search teams" placeholder="Team or Pokémon" value={query} onChange={(q) => setParams(q ? { q } : {}, { replace: true })} />
+        <SearchField
+          label="Search teams"
+          placeholder="Team or Pokémon"
+          value={query}
+          onChange={(q) => setParams(q ? { q } : {}, { replace: true })}
+        />
       </header>
       <TeamTabs />
       <div className="list with-fab">
@@ -121,7 +165,13 @@ export function TeamsScreen() {
         {teams?.length === 0 && <p className="empty">No teams yet. Tap + to create one.</p>}
         {teams?.length !== 0 && shown?.length === 0 && <p className="empty">No teams match “{query}”.</p>}
         {shown?.map((t) => (
-          <Link key={t.id} to={`/teams/${t.id}`} className="team-row team-list-row" data-morph={`/teams/${t.id}`} data-morph-card>
+          <Link
+            key={t.id}
+            to={`/teams/${t.id}`}
+            className="team-row team-list-row"
+            data-morph={`/teams/${t.id}`}
+            data-morph-card
+          >
             <span className="head">
               <Icon name="ball" size={16} />
               <span className="name">{t.name}</span>
@@ -132,7 +182,15 @@ export function TeamsScreen() {
                   const mon = view?.(m);
                   return (
                     <span key={i}>
-                      <MonImg id={mon?.mediaId ?? m.speciesId} speciesId={m.speciesId} shiny={m.shiny} alt="" title={mon?.name} width={80} height={80} />
+                      <MonImg
+                        id={mon?.mediaId ?? m.speciesId}
+                        speciesId={m.speciesId}
+                        shiny={m.shiny}
+                        alt=""
+                        title={mon?.name}
+                        width={80}
+                        height={80}
+                      />
                     </span>
                   );
                 })}
@@ -188,7 +246,14 @@ export function RenameSheet({
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet dialog" role="dialog" aria-modal="true" aria-labelledby={headingId}>
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+      >
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -228,14 +293,32 @@ export function RenameSheet({
 }
 
 /** Asks before deleting `name`; `lost` says what goes with it. Cancel takes focus, so Enter alone can't delete. */
-export function DeleteSheet({ name, lost, onDelete, onClose }: { name: string; lost: string; onDelete: () => void; onClose: () => void }) {
+export function DeleteSheet({
+  name,
+  lost,
+  onDelete,
+  onClose,
+}: {
+  name: string;
+  lost: string;
+  onDelete: () => void;
+  onClose: () => void;
+}) {
   const [sheet, close] = useModalSheet<HTMLElement>(onClose, { drag: false });
   const headingId = useId();
   const textId = useId();
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet dialog" role="alertdialog" aria-modal="true" aria-labelledby={headingId} aria-describedby={textId}>
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        aria-describedby={textId}
+      >
         <div className="sheet-head">
           <h2 id={headingId} className="confirm-title">
             Delete {name}?
@@ -308,7 +391,11 @@ export function TeamEditor() {
               const mon = view?.(m);
               const name = memberTitle(mon?.name ?? formatNo(m.speciesId), m.nickname);
               return (
-                <li key={`${m.speciesId}-${i}`} className="team-mon" style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}>
+                <li
+                  key={`${m.speciesId}-${i}`}
+                  className="team-mon"
+                  style={{ backgroundColor: mon ? typeTint(mon.types[0]) : 'var(--surface)' }}
+                >
                   <Link to={`/teams/${id}/member/${i}`} className="evo-member">
                     <MonHead
                       spriteId={mon?.mediaId ?? m.speciesId}
@@ -349,12 +436,28 @@ export function TeamEditor() {
           </Link>
         </div>
       )}
-      {renaming && <RenameSheet noun="team" name={team.name} onSave={(name) => renameTeam(id, name)} onClose={() => setRenaming(false)} />}
+      {renaming && (
+        <RenameSheet
+          noun="team"
+          name={team.name}
+          onSave={(name) => renameTeam(id, name)}
+          onClose={() => setRenaming(false)}
+        />
+      )}
       {deleting && (
         <DeleteSheet
           name={team.name}
-          lost={team.members.length ? `Its ${team.members.length} Pokémon and their moves, items and nicknames go with it.` : 'It has no Pokémon yet.'}
-          onDelete={() => db.teams.delete(id).then(() => navigate('/teams', { replace: true }), () => setDeleting(false))}
+          lost={
+            team.members.length
+              ? `Its ${team.members.length} Pokémon and their moves, items and nicknames go with it.`
+              : 'It has no Pokémon yet.'
+          }
+          onDelete={() =>
+            db.teams.delete(id).then(
+              () => navigate('/teams', { replace: true }),
+              () => setDeleting(false),
+            )
+          }
           onClose={() => setDeleting(false)}
         />
       )}
@@ -396,7 +499,11 @@ export function CoverageScreen() {
           </div>
         </div>
       </header>
-      {!members.length ? <p className="empty">Add Pokémon to this team to analyse it.</p> : <CoverageBody members={members} />}
+      {!members.length ? (
+        <p className="empty">Add Pokémon to this team to analyse it.</p>
+      ) : (
+        <CoverageBody members={members} />
+      )}
     </>
   );
 }
@@ -428,7 +535,10 @@ export function CoverageBody({ members }: { members: CoverageMember[] }) {
 }
 
 function DefensiveView({ mons, typeData }: { mons: MemberView[]; typeData: TypeData }) {
-  const { rows, threat, stabHits } = defensiveCoverage(mons.map((m) => m.types), typeData);
+  const { rows, threat, stabHits } = defensiveCoverage(
+    mons.map((m) => m.types),
+    typeData,
+  );
 
   return (
     <>
@@ -470,7 +580,13 @@ function OffensiveView({
           {walls.length ? walls.map(cap).join(', ') : 'Nothing'}
         </Tile>
       </div>
-      <CoverageTable mons={members.map((x) => x.mon)} rows={rows} lead="DEFEND" cell={offensiveCell} last={HITS_COLUMN} />
+      <CoverageTable
+        mons={members.map((x) => x.mon)}
+        rows={rows}
+        lead="DEFEND"
+        cell={offensiveCell}
+        last={HITS_COLUMN}
+      />
     </>
   );
 }
@@ -486,7 +602,14 @@ function StatsView({ mons }: { mons: MemberView[] }) {
           <span className="label">{label}</span>
           <span className="val">{stats[k]}</span>
           <span className="track">
-            <span className="fill" style={{ display: 'block', width: `${Math.min(100, (stats[k] / 180) * 100)}%`, background: statColor(stats[k]) }} />
+            <span
+              className="fill"
+              style={{
+                display: 'block',
+                width: `${Math.min(100, (stats[k] / 180) * 100)}%`,
+                background: statColor(stats[k]),
+              }}
+            />
           </span>
         </div>
       ))}
@@ -593,7 +716,8 @@ function hitsCell({ count }: CoverageRow): [ReactNode, CSSProperties] {
 /** Defending: taking more damage is bad (warm), less is good (green). */
 function defensiveCell(m: number | null): CSSProperties {
   if (m === null) return { background: 'var(--neutral-cell)' };
-  if (m > 1) return { background: 'var(--weak-bg)', color: 'var(--weak-ink)', filter: m >= 4 ? 'saturate(1.6)' : undefined };
+  if (m > 1)
+    return { background: 'var(--weak-bg)', color: 'var(--weak-ink)', filter: m >= 4 ? 'saturate(1.6)' : undefined };
   if (m === 0) return { background: 'var(--immune-bg)', color: 'var(--ink)' };
   if (m < 1) return { background: 'var(--resist-bg)', color: 'var(--resist-ink)' };
   return { background: 'var(--neutral-cell)' };

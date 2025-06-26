@@ -7,7 +7,16 @@ import { loadIndex, loadedIndex, useLoad } from '../data/api';
 import { formatNo } from '../data/format';
 import { SLOTS, comparePath, parseCompare, type SlotName } from '../data/compare';
 import { addToTeam, db } from '../data/db';
-import { DEFAULT_FILTERS, SORT_LABELS, detailPath, isPicking, saveOrder, useDexFilters, type DexFilters, type SortKey } from '../data/dexState';
+import {
+  DEFAULT_FILTERS,
+  SORT_LABELS,
+  detailPath,
+  isPicking,
+  saveOrder,
+  useDexFilters,
+  type DexFilters,
+  type SortKey,
+} from '../data/dexState';
 import { typeTint } from '../data/typeColors';
 import { FUSE_OPTIONS, applyFilters, dexRows, sortValue, type DexRow } from '../data/filter';
 import { Icon } from '../components/Icon';
@@ -62,10 +71,15 @@ export function DexScreen() {
   const dexFilters = useDexFilters();
   const pickFilters = useState<DexFilters>(DEFAULT_FILTERS);
   const [filters, setFilters] = picking ? pickFilters : dexFilters;
-  const teamName = useLiveQuery(() => (pickTeam != null ? db.teams.get(pickTeam).then((t) => t?.name) : undefined), [pickTeam]);
+  const teamName = useLiveQuery(
+    () => (pickTeam != null ? db.teams.get(pickTeam).then((t) => t?.name) : undefined),
+    [pickTeam],
+  );
   const navigate = useNavigate();
   const backToCompare = (slot?: SlotName, id?: number, form?: string) =>
-    navigate(comparePath({ ...parseCompare(params), ...(slot && id ? { [slot]: { id, form } } : {}) }), { replace: true });
+    navigate(comparePath({ ...parseCompare(params), ...(slot && id ? { [slot]: { id, form } } : {}) }), {
+      replace: true,
+    });
   // Back goes to the screen that opened pick mode: Compare, which it replaced, or the team (afresh on a direct link).
   const back = () => {
     if (compareSlot) backToCompare();
@@ -81,7 +95,10 @@ export function DexScreen() {
 
   const rows = useMemo(() => (all ? dexRows(all, formKinds) : null), [all, formKinds]);
   const fuse = useMemo(() => (rows ? new Fuse(rows, FUSE_OPTIONS) : null), [rows]);
-  const list = useMemo(() => (rows ? applyFilters(rows, fuse, filters, favourites) : []), [rows, fuse, filters, favourites]);
+  const list = useMemo(
+    () => (rows ? applyFilters(rows, fuse, filters, favourites) : []),
+    [rows, fuse, filters, favourites],
+  );
   useEffect(() => {
     if (!picking) saveOrder(list.map((m) => detailPath(m.id, m.form?.key)));
   }, [list, picking]);
@@ -89,7 +106,12 @@ export function DexScreen() {
   const lines = Math.ceil(list.length / perRow);
   const rowHeight = view === 'list' ? LIST_ROW_H : ROW_H;
   // The virtualizer scrolls the window to this on mount; left to default, it would take the previous screen's scroll.
-  const virtual = useWindowVirtualizer({ count: lines, estimateSize: () => rowHeight, overscan: 4, initialOffset: picking ? 0 : dexScrollY });
+  const virtual = useWindowVirtualizer({
+    count: lines,
+    estimateSize: () => rowHeight,
+    overscan: 4,
+    initialOffset: picking ? 0 : dexScrollY,
+  });
   // A list that shrank while away can land short of the spot with no scroll event, leaving the virtualizer past its rows.
   useLayoutEffect(() => {
     if (virtual.scrollOffset !== window.scrollY) window.dispatchEvent(new Event('scroll'));
@@ -97,7 +119,8 @@ export function DexScreen() {
   // Row heights differ between the views: measure again when switching.
   useEffect(() => virtual.measure(), [virtual, rowHeight]);
 
-  const activeCount = filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
+  const activeCount =
+    filters.gens.length + filters.types.length + (filters.category ? 1 : 0) + (filters.sort !== 'number' ? 1 : 0);
 
   async function pick(id: number, formKey?: string) {
     if (pickTeam == null) return;
@@ -144,7 +167,9 @@ export function DexScreen() {
           </button>
           <div className="grow">
             <h1 className="team-name">{compareSlot ? 'Comparator' : 'Add Pokémon'}</h1>
-            <div className="sub">{compareSlot ? (compareSlot === 'a' ? 'First Pokémon' : 'Second Pokémon') : teamName}</div>
+            <div className="sub">
+              {compareSlot ? (compareSlot === 'a' ? 'First Pokémon' : 'Second Pokémon') : teamName}
+            </div>
           </div>
         </header>
       ) : (
@@ -159,7 +184,9 @@ export function DexScreen() {
       {!rows && !error && <Loading />}
       {rows && list.length === 0 && (
         <p className="empty">
-          {filters.category === 'favourite' && !favourites?.size ? 'No favourites yet. Tap the heart on a Pokémon to add it.' : 'No Pokémon match these filters.'}
+          {filters.category === 'favourite' && !favourites?.size
+            ? 'No favourites yet. Tap the heart on a Pokémon to add it.'
+            : 'No Pokémon match these filters.'}
         </p>
       )}
 
@@ -218,7 +245,15 @@ export function DexScreen() {
 }
 
 /** Short labels for the stat sorts on a card; screen readers get the full name from `SORT_LABELS`. */
-const SORT_SHORT: Partial<Record<SortKey, string>> = { total: 'BST', hp: 'HP', atk: 'ATT', def: 'DEF', spa: 'S.ATT', spd: 'S.DEF', spe: 'SPD' };
+const SORT_SHORT: Partial<Record<SortKey, string>> = {
+  total: 'BST',
+  hp: 'HP',
+  atk: 'ATT',
+  def: 'DEF',
+  spa: 'S.ATT',
+  spd: 'S.DEF',
+  spe: 'SPD',
+};
 
 /** What the card shows for the current sort, e.g. "ATT 84", or the weight icon and "90.5 kg"; nothing for number and name. */
 function sortedBy(m: DexRow, sort: SortKey): ReactNode {
@@ -236,7 +271,19 @@ function sortedBy(m: DexRow, sort: SortKey): ReactNode {
 }
 
 /** A species or form in the grid (card) or in list view (`row`: sprite on the left, number over name). */
-function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; row: boolean; value?: ReactNode; onPick?: () => void }) {
+function MonCard({
+  mon,
+  art,
+  row,
+  value,
+  onPick,
+}: {
+  mon: DexRow;
+  art: boolean;
+  row: boolean;
+  value?: ReactNode;
+  onPick?: () => void;
+}) {
   const mediaId = mon.form?.pokemonId ?? mon.id;
   const body = (
     <>
@@ -268,7 +315,11 @@ function MonCard({ mon, art, row, value, onPick }: { mon: DexRow; art: boolean; 
   const cls = ['mon-card', row && 'row', art && 'sprite-art'].filter(Boolean).join(' ');
   if (onPick)
     return (
-      <button className={cls} style={{ ...style, border: 0, textAlign: 'left', font: 'inherit', width: '100%' }} onClick={onPick}>
+      <button
+        className={cls}
+        style={{ ...style, border: 0, textAlign: 'left', font: 'inherit', width: '100%' }}
+        onClick={onPick}
+      >
         {body}
       </button>
     );

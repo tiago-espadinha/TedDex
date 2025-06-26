@@ -58,7 +58,8 @@ export function GameTrigger({
 }) {
   const label = (id?: number) => versions.find((v) => v.id === id)?.label;
   const banded = value === 'any' ? undefined : label(value === 'latest' ? shows : value);
-  const text = value === 'any' ? 'Any game' : value === 'latest' ? ['Latest', banded].filter(Boolean).join(' · ') : banded;
+  const text =
+    value === 'any' ? 'Any game' : value === 'latest' ? ['Latest', banded].filter(Boolean).join(' · ') : banded;
   return (
     <button
       className={banded ? 'game-select game-band' : 'game-select'}
@@ -75,7 +76,19 @@ export function GameTrigger({
   );
 }
 
-function GameRow({ name, note, band, on, onPick }: { name: string; note?: string; band?: string; on: boolean; onPick: () => void }) {
+function GameRow({
+  name,
+  note,
+  band,
+  on,
+  onPick,
+}: {
+  name: string;
+  note?: string;
+  band?: string;
+  on: boolean;
+  onPick: () => void;
+}) {
   return (
     <li>
       <button
@@ -121,7 +134,14 @@ export function GameSheet({
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="game-sheet-title">
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="game-sheet-title"
+      >
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="game-sheet-title">Game</h2>
@@ -151,10 +171,26 @@ export function GameSheet({
 }
 
 /** The shared game's control; the screen renders `SharedGameSheet` once, outside any pager or `.section`. */
-export function GamePicker({ versions, shows, describedBy }: { versions: VersionGroup[]; shows?: number; describedBy?: string }) {
+export function GamePicker({
+  versions,
+  shows,
+  describedBy,
+}: {
+  versions: VersionGroup[];
+  shows?: number;
+  describedBy?: string;
+}) {
   const [stored] = useGame();
   const { show } = useGameSheet();
-  return <GameTrigger value={knownGame(stored, versions)} versions={versions} shows={shows} describedBy={describedBy} onClick={show} />;
+  return (
+    <GameTrigger
+      value={knownGame(stored, versions)}
+      versions={versions}
+      shows={shows}
+      describedBy={describedBy}
+      onClick={show}
+    />
+  );
 }
 
 /** The sheet of the screen's `GamePicker`s, while the URL asks for it. */
@@ -163,7 +199,15 @@ export function SharedGameSheet({ latestNote }: { latestNote?: string }) {
   const { open, hide } = useGameSheet();
   const { data: versions } = useLoad(loadVersions, 'versions');
   if (!open || !versions) return null;
-  return <GameSheet value={knownGame(stored, versions)} versions={versions} latestNote={latestNote} onPick={(choice) => choice !== 'any' && setGame(choice)} onClose={hide} />;
+  return (
+    <GameSheet
+      value={knownGame(stored, versions)}
+      versions={versions}
+      latestNote={latestNote}
+      onPick={(choice) => choice !== 'any' && setGame(choice)}
+      onClose={hide}
+    />
+  );
 }
 
 /** Goes after a `GamePicker` whose game has nothing for `name`; `id` is that picker's `describedBy`. */

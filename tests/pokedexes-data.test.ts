@@ -31,8 +31,14 @@ describe('regional Pokédex data', () => {
   });
 
   test('Sword / Shield and Scarlet / Violet include their expansion dexes', () => {
-    assert.deepEqual(dexesOf('Sword / Shield').map((d) => d.name), ['Galar', 'Isle of Armor', 'Crown Tundra']);
-    assert.deepEqual(dexesOf('Scarlet / Violet').map((d) => d.name), ['Paldea', 'Kitakami', 'Blueberry']);
+    assert.deepEqual(
+      dexesOf('Sword / Shield').map((d) => d.name),
+      ['Galar', 'Isle of Armor', 'Crown Tundra'],
+    );
+    assert.deepEqual(
+      dexesOf('Scarlet / Violet').map((d) => d.name),
+      ['Paldea', 'Kitakami', 'Blueberry'],
+    );
   });
 
   test('Unova numbers from 0 (Victini)', () => {
@@ -44,7 +50,10 @@ describe('regional Pokédex data', () => {
   test('species ids are national dex ids, each once per dex', () => {
     for (const d of data.dexes) {
       assert.equal(new Set(d.species).size, d.species.length, d.name);
-      assert.ok(d.species.every((id) => id >= 1 && id <= 1025), d.name);
+      assert.ok(
+        d.species.every((id) => id >= 1 && id <= 1025),
+        d.name,
+      );
     }
   });
 });

@@ -19,8 +19,12 @@ export function formatMultiplier(m: number): string {
 const STAT_SHORT = { hp: 'HP', atk: 'Atk', def: 'Def', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' } as const;
 
 /** { atk: 2, spe: 1 } → [{ stat: 'atk', text: "2 Atk" }, { stat: 'spe', text: "1 Speed" }], in stat order; {} → []. */
-export function evYieldParts(ev: Partial<Record<keyof typeof STAT_SHORT, number>>): { stat: keyof typeof STAT_SHORT; text: string }[] {
-  return (Object.keys(STAT_SHORT) as (keyof typeof STAT_SHORT)[]).filter((k) => ev[k]).map((k) => ({ stat: k, text: `${ev[k]} ${STAT_SHORT[k]}` }));
+export function evYieldParts(
+  ev: Partial<Record<keyof typeof STAT_SHORT, number>>,
+): { stat: keyof typeof STAT_SHORT; text: string }[] {
+  return (Object.keys(STAT_SHORT) as (keyof typeof STAT_SHORT)[])
+    .filter((k) => ev[k])
+    .map((k) => ({ stat: k, text: `${ev[k]} ${STAT_SHORT[k]}` }));
 }
 
 /** Catch rate (3–255) → the chance with a Poké Ball at full HP and no status, about rate / 3 / 255: 45 → "5.9%", 255 → "33.3%". */
@@ -39,7 +43,8 @@ export function genderText(rate: number): string {
 export const formatPrice = (cost: number) => (cost > 0 ? `₽${cost.toLocaleString('en-US')}` : '—');
 
 /** A base stat bar's colour: high from 90, mid from 60, else low. */
-export const statColor = (v: number) => (v >= 90 ? 'var(--stat-high)' : v >= 60 ? 'var(--stat-mid)' : 'var(--stat-low)');
+export const statColor = (v: number) =>
+  v >= 90 ? 'var(--stat-high)' : v >= 60 ? 'var(--stat-mid)' : 'var(--stat-low)';
 
 /** Base stat keys with their labels, in game order. */
 export const STAT_ROWS: [keyof StatBlock, string][] = [

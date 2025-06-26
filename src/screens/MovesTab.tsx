@@ -71,8 +71,12 @@ export function MovesTab({ mon, formKey }: { mon: SpeciesDetail; formKey: string
       {shown && (
         <MoveGroup title={`${shown.title} · ${set[shown.key].length}`} level={shown.key === 'level'}>
           {shown.key === 'level'
-            ? set.level.map(([move, level]) => <MoveRow key={`${move}-${level}`} move={move} moves={moves} level={level} onPeek={peek} />)
-            : [...set[shown.key]].sort(byName).map((move) => <MoveRow key={move} move={move} moves={moves} onPeek={peek} />)}
+            ? set.level.map(([move, level]) => (
+                <MoveRow key={`${move}-${level}`} move={move} moves={moves} level={level} onPeek={peek} />
+              ))
+            : [...set[shown.key]]
+                .sort(byName)
+                .map((move) => <MoveRow key={move} move={move} moves={moves} onPeek={peek} />)}
         </MoveGroup>
       )}
     </div>
@@ -97,7 +101,17 @@ function MoveGroup({ title, level, children }: { title: string; level: boolean; 
   );
 }
 
-function MoveRow({ move, moves, level, onPeek }: { move: number; moves: MoveTable; level?: number; onPeek: (peek: Peek) => void }) {
+function MoveRow({
+  move,
+  moves,
+  level,
+  onPeek,
+}: {
+  move: number;
+  moves: MoveTable;
+  level?: number;
+  onPeek: (peek: Peek) => void;
+}) {
   const m = moves[move];
   return (
     <li>

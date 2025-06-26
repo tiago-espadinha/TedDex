@@ -10,12 +10,27 @@ test('hand-picked categories have every member', () => {
   assert.equal(names('starter').length, 27);
   assert.equal(names('fossil').length, 25);
   assert.equal(names('paradox').length, 20);
-  assert.deepEqual(names('eeveelution'), ['Eevee', 'Vaporeon', 'Jolteon', 'Flareon', 'Espeon', 'Umbreon', 'Leafeon', 'Glaceon', 'Sylveon']);
+  assert.deepEqual(names('eeveelution'), [
+    'Eevee',
+    'Vaporeon',
+    'Jolteon',
+    'Flareon',
+    'Espeon',
+    'Umbreon',
+    'Leafeon',
+    'Glaceon',
+    'Sylveon',
+  ]);
 });
 
 test('flag, form and evolution categories pick the right species', () => {
   for (const [category, name] of [
-    ['legendary', 'Mewtwo'], ['mythical', 'Mew'], ['baby', 'Pichu'], ['mega', 'Charizard'], ['regional', 'Vulpix'], ['stone', 'Vaporeon'],
+    ['legendary', 'Mewtwo'],
+    ['mythical', 'Mew'],
+    ['baby', 'Pichu'],
+    ['mega', 'Charizard'],
+    ['regional', 'Vulpix'],
+    ['stone', 'Vaporeon'],
   ] as const) {
     assert.ok(names(category).includes(name), `${name} is ${category}`);
   }

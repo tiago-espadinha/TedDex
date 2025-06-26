@@ -56,7 +56,12 @@ export function DetailScreen() {
   const favourite = useIsFavourite(id, formKey);
   // A sideways swipe on the hero steps through the Dex rows; the panel below pages through the tabs.
   const touch = useRef<Point | null>(null);
-  const { ref: panelRef, target: selected, turn: showTab, handlers: swipe } = usePager<HTMLDivElement>(TABS.indexOf(tab), TABS.length, (i) => setTab(TABS[i]));
+  const {
+    ref: panelRef,
+    target: selected,
+    turn: showTab,
+    handlers: swipe,
+  } = usePager<HTMLDivElement>(TABS.indexOf(tab), TABS.length, (i) => setTab(TABS[i]));
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -115,11 +120,19 @@ export function DetailScreen() {
         }}
       >
         <div className="bar">
-          <button className="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? navigate(-1) : navigate('/'))}>
+          <button
+            className="icon-btn"
+            aria-label="Back"
+            onClick={() => (history.length > 1 ? navigate(-1) : navigate('/'))}
+          >
             <Icon name="back" />
           </button>
           <div>
-            <button className={playing ? 'icon-btn playing' : 'icon-btn'} aria-label={playing ? 'Playing cry' : 'Play cry'} onClick={playCry}>
+            <button
+              className={playing ? 'icon-btn playing' : 'icon-btn'}
+              aria-label={playing ? 'Playing cry' : 'Play cry'}
+              onClick={playCry}
+            >
               <Icon name="sound" />
             </button>
             <Link className="icon-btn" aria-label="Comparator" to={compareFrom({ id: mon.id, form: form?.key })}>
@@ -169,13 +182,26 @@ export function DetailScreen() {
         </div>
         <div className="art-row">
           <StepLink to={prev} label="Previous" icon="back" />
-          <MonImg id={mediaId} speciesId={mon.id} onArtworkFail={() => setNoArtworkFor(mediaId)} alt={view.name} width={184} height={184} />
+          <MonImg
+            id={mediaId}
+            speciesId={mon.id}
+            onArtworkFail={() => setNoArtworkFor(mediaId)}
+            alt={view.name}
+            width={184}
+            height={184}
+          />
           <StepLink to={next} label="Next" icon="next" />
         </div>
         {noArtworkFor === mediaId && <p className="art-note">Artwork isn't saved offline yet</p>}
       </section>
 
-      <div className="tabs" role="tablist" aria-label="Sections" onKeyDown={onTabKey} style={{ '--tab': selected } as CSSProperties}>
+      <div
+        className="tabs"
+        role="tablist"
+        aria-label="Sections"
+        onKeyDown={onTabKey}
+        style={{ '--tab': selected } as CSSProperties}
+      >
         <span className="tab-ink" aria-hidden="true" />
         {TABS.map((t, i) => (
           <button
@@ -306,7 +332,15 @@ function Appearance({ mon, mediaId }: { mon: SpeciesDetail; mediaId: number }) {
           <figcaption>Normal</figcaption>
         </figure>
         <figure className="look shiny">
-          <MonImg id={mediaId} speciesId={mon.id} shiny alt={`Shiny ${mon.name}`} loading="lazy" width={128} height={128} />
+          <MonImg
+            id={mediaId}
+            speciesId={mon.id}
+            shiny
+            alt={`Shiny ${mon.name}`}
+            loading="lazy"
+            width={128}
+            height={128}
+          />
           <figcaption>
             <Icon name="star" size={16} />
             Shiny
@@ -349,7 +383,9 @@ function About({ mon, formKey, mediaId }: { mon: SpeciesDetail; formKey: string;
         <h2>Breeding</h2>
         <div className="facts">
           <Fact k="Egg groups">
-            <Chips items={mon.eggGroups.map((g) => [g, EGG_GROUP_COLOR[g], `/reference/egg-groups/${eggGroupSlug(g)}`])} />
+            <Chips
+              items={mon.eggGroups.map((g) => [g, EGG_GROUP_COLOR[g], `/reference/egg-groups/${eggGroupSlug(g)}`])}
+            />
           </Fact>
           <Fact k="Gender ratio">
             <GenderRatio rate={mon.genderRate} />
@@ -382,7 +418,10 @@ function Stats({ mon, typeData }: { mon: SpeciesDetail; typeData?: TypeData }) {
               <span className="label">{label}</span>
               <span className="val">{v}</span>
               <span className="track">
-                <span className="fill" style={{ display: 'block', width: `${Math.min(100, (v / 180) * 100)}%`, background: statColor(v) }} />
+                <span
+                  className="fill"
+                  style={{ display: 'block', width: `${Math.min(100, (v / 180) * 100)}%`, background: statColor(v) }}
+                />
               </span>
             </div>
           );

@@ -34,7 +34,8 @@ describe('megaStoneFor', () => {
 });
 
 describe('mega triggers in the data', () => {
-  const trigger = (id: number, key: string) => dataEntry<SpeciesDetail>('species', id).forms?.find((f) => f.key === key)?.trigger;
+  const trigger = (id: number, key: string) =>
+    dataEntry<SpeciesDetail>('species', id).forms?.find((f) => f.key === key)?.trigger;
 
   test('every Mega and Primal has a trigger, and no other form does', () => {
     for (const row of readData<IndexEntry[]>('index.json')) {

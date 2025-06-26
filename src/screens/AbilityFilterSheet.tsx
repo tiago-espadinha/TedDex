@@ -28,7 +28,14 @@ export function AbilityFilterSheet({
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="ability-filter-title">
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ability-filter-title"
+      >
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="ability-filter-title">Filter abilities</h2>
