@@ -73,7 +73,11 @@ test('exempts only the exact tokens file, not others with the same name', () => 
 
 test('exempts allowed files, including paths with spaces and a leading ./', () => {
   const header = 'Tokens file: src/styles.css\nAllowed color files: ./src/my palette.ts , src/b.ts';
-  const files = { ...clean, 'src/my palette.ts': 'export const p = "#abcdef";\n', 'src/b.ts': 'const b = "rgb(1, 2, 3)";\n' };
+  const files = {
+    ...clean,
+    'src/my palette.ts': 'export const p = "#abcdef";\n',
+    'src/b.ts': 'const b = "rgb(1, 2, 3)";\n',
+  };
   const root = repo(header, files);
   for (const r of [run(root), run(root, root, ['./src'])]) {
     assert.equal(r.code, 0);

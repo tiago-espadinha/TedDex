@@ -2,13 +2,37 @@
 import type { ItemCategory } from './itemCategories';
 
 export type TypeName =
-  | 'normal' | 'fighting' | 'flying' | 'poison' | 'ground' | 'rock'
-  | 'bug' | 'ghost' | 'steel' | 'fire' | 'water' | 'grass'
-  | 'electric' | 'psychic' | 'ice' | 'dragon' | 'dark' | 'fairy';
+  | 'normal'
+  | 'fighting'
+  | 'flying'
+  | 'poison'
+  | 'ground'
+  | 'rock'
+  | 'bug'
+  | 'ghost'
+  | 'steel'
+  | 'fire'
+  | 'water'
+  | 'grass'
+  | 'electric'
+  | 'psychic'
+  | 'ice'
+  | 'dragon'
+  | 'dark'
+  | 'fairy';
 
 /** Quick categories in the Dex filter sheet. */
 export type Category =
-  | 'starter' | 'mega' | 'fossil' | 'eeveelution' | 'legendary' | 'mythical' | 'regional' | 'baby' | 'paradox' | 'stone';
+  | 'starter'
+  | 'mega'
+  | 'fossil'
+  | 'eeveelution'
+  | 'legendary'
+  | 'mythical'
+  | 'regional'
+  | 'baby'
+  | 'paradox'
+  | 'stone';
 
 export interface IndexEntry {
   id: number;
@@ -71,7 +95,10 @@ export interface SpeciesDetail extends Omit<IndexEntry, 'forms'> {
 }
 
 /** One form of a species: what changes in battle, plus the Pokémon id its media is stored under. */
-export type FormVariant = Pick<SpeciesDetail, 'name' | 'types' | 'stats' | 'total' | 'abilities' | 'heightM' | 'weightKg' | 'evYield'> & {
+export type FormVariant = Pick<
+  SpeciesDetail,
+  'name' | 'types' | 'stats' | 'total' | 'abilities' | 'heightM' | 'weightKg' | 'evYield'
+> & {
   pokemonId: number;
   /** Unique within the species, used in `?form=`; '' for the default form. */
   key: string;
@@ -179,7 +206,10 @@ export interface MoveReference {
  * reference/abilities.json: ability id → name, short effect, full details (paragraphs split by a blank line; may
  * be empty), the generation that introduced it and the species that have it (any form).
  */
-export type AbilityTable = Record<number, { name: string; effect: string; details: string; gen: number; species: number[] }>;
+export type AbilityTable = Record<
+  number,
+  { name: string; effect: string; details: string; gen: number; species: number[] }
+>;
 
 /**
  * reference/items.json: item id → name, category, the generation that introduced it, price (0 when it can't be
@@ -232,7 +262,15 @@ export interface Game {
  * A text row (`min` 0, `method` 0, `npm run availability`) has only `area`, Bulbapedia's text ("Evolve from Charmeleon"), and the form columns.
  */
 export type EncounterRow = [
-  area: number, method: number, min: number, max: number, rate: number, upTo: 0 | 1, note: number, form: number, formKey?: number,
+  area: number,
+  method: number,
+  min: number,
+  max: number,
+  rate: number,
+  upTo: 0 | 1,
+  note: number,
+  form: number,
+  formKey?: number,
 ];
 
 /** One species' encounters, unpacked from locations/c<n>.json by chunks.ts: encounters and text rows per game id (only games the species appears in). */

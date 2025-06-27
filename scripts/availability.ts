@@ -19,18 +19,64 @@ export type Availability = Record<number, AvailabilityLine[]>;
 
 /** Bulbapedia's game names → our version ids. DLC names fold into their base games. */
 const GAMES: Record<string, number[]> = {
-  Red: [1], Blue: [2], Yellow: [3], Gold: [4], Silver: [5], Crystal: [6], Ruby: [7], Sapphire: [8], Emerald: [9], FireRed: [10], LeafGreen: [11],
-  Diamond: [12], Pearl: [13], Platinum: [14], HeartGold: [15], SoulSilver: [16], Black: [17], White: [18], 'Black 2': [21], 'White 2': [22],
-  X: [23], Y: [24], 'Omega Ruby': [25], 'Alpha Sapphire': [26], Sun: [27], Moon: [28], 'Ultra Sun': [29], 'Ultra Moon': [30],
-  "Let's Go Pikachu": [31], "Let's Go Eevee": [32], Sword: [33], Shield: [34],
-  'Expansion Pass': [33, 34], 'Sword Expansion Pass': [33], 'Shield Expansion Pass': [34],
-  'Brilliant Diamond': [37], 'Shining Pearl': [38], 'Legends: Arceus': [39], Scarlet: [40], Violet: [41],
-  'The Hidden Treasure of Area Zero': [40, 41], 'The Hidden Treasure of Area Zero (Scarlet)': [40], 'The Hidden Treasure of Area Zero (Violet)': [41],
-  'The Teal Mask': [40, 41], 'The Indigo Disk': [40, 41],
+  Red: [1],
+  Blue: [2],
+  Yellow: [3],
+  Gold: [4],
+  Silver: [5],
+  Crystal: [6],
+  Ruby: [7],
+  Sapphire: [8],
+  Emerald: [9],
+  FireRed: [10],
+  LeafGreen: [11],
+  Diamond: [12],
+  Pearl: [13],
+  Platinum: [14],
+  HeartGold: [15],
+  SoulSilver: [16],
+  Black: [17],
+  White: [18],
+  'Black 2': [21],
+  'White 2': [22],
+  X: [23],
+  Y: [24],
+  'Omega Ruby': [25],
+  'Alpha Sapphire': [26],
+  Sun: [27],
+  Moon: [28],
+  'Ultra Sun': [29],
+  'Ultra Moon': [30],
+  "Let's Go Pikachu": [31],
+  "Let's Go Eevee": [32],
+  Sword: [33],
+  Shield: [34],
+  'Expansion Pass': [33, 34],
+  'Sword Expansion Pass': [33],
+  'Shield Expansion Pass': [34],
+  'Brilliant Diamond': [37],
+  'Shining Pearl': [38],
+  'Legends: Arceus': [39],
+  Scarlet: [40],
+  Violet: [41],
+  'The Hidden Treasure of Area Zero': [40, 41],
+  'The Hidden Treasure of Area Zero (Scarlet)': [40],
+  'The Hidden Treasure of Area Zero (Violet)': [41],
+  'The Teal Mask': [40, 41],
+  'The Indigo Disk': [40, 41],
 };
 
 /** Side games, facilities and games the app doesn't list. */
-const LEFT_OUT = new Set(['Green', 'Colosseum', 'XD', 'Pal Park', 'Pokéwalker', 'Dream World', 'Legends: Z-A', 'Mega Dimension']);
+const LEFT_OUT = new Set([
+  'Green',
+  'Colosseum',
+  'XD',
+  'Pal Park',
+  'Pokéwalker',
+  'Dream World',
+  'Legends: Z-A',
+  'Mega Dimension',
+]);
 
 /** Games PokeAPI has no encounters for, which only this table adds to games.json. */
 export const ADDED_GAMES = [
@@ -60,7 +106,8 @@ function templates(wiki: string): Template[] {
   while (at < wiki.length) {
     const open = wiki.indexOf('{{', at);
     const between = wiki.slice(at, open < 0 ? undefined : open);
-    if (between.replace(/\|\}/g, '').trim()) throw new Error(`Unexpected text in the table: ${between.trim().slice(0, 80)}`);
+    if (between.replace(/\|\}/g, '').trim())
+      throw new Error(`Unexpected text in the table: ${between.trim().slice(0, 80)}`);
     if (open < 0) break;
     const end = closingBraces(wiki, open);
     out.push(template(wiki.slice(open + 2, end)));
@@ -145,7 +192,10 @@ function line(text: string): AvailabilityLine {
   const tags = [...text.matchAll(FORM_TAG)];
   const breeds = tags.flatMap((tag) => tag[2]?.match(/Combat|Blaze|Aqua/g) ?? []);
   return {
-    text: text.replace(FORM_TAG, '').replace(/\bEvolve (?!from\b)/g, 'Evolve from ').trim(),
+    text: text
+      .replace(FORM_TAG, '')
+      .replace(/\bEvolve (?!from\b)/g, 'Evolve from ')
+      .trim(),
     forms: tags.flatMap((tag) => tag[1].split('/')),
     ...(breeds.length && { breeds }),
   };
@@ -265,6 +315,7 @@ export function withAvailability(
     if (rows.length) games[id] = [...(games[id] ?? []), ...rows];
   }
   // A line on both a game and its DLC, or two forms under one label (Toxtricity's Gigantamax), would read twice.
-  for (const [game, rows] of Object.entries(games)) games[Number(game)] = [...new Map(rows.map((row) => [row.join(), row])).values()];
+  for (const [game, rows] of Object.entries(games))
+    games[Number(game)] = [...new Map(rows.map((row) => [row.join(), row])).values()];
   return { strings, games };
 }

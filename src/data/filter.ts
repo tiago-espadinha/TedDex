@@ -46,28 +46,44 @@ export function sortValue(m: DexRow, sort: SortKey): number | undefined {
 }
 
 /** A favourite's key in the set `applyFilters` takes: the species id, then the form key for a form ("6:mega-x"). */
-export const favouriteKey = (speciesId: number, formKey?: string) => (formKey ? `${speciesId}:${formKey}` : String(speciesId));
+export const favouriteKey = (speciesId: number, formKey?: string) =>
+  formKey ? `${speciesId}:${formKey}` : String(speciesId);
 
 /** The words a search takes for each Category of the filter sheet. */
 const CATEGORY_WORDS: Record<string, DexCategory> = {
-  mega: 'mega', megas: 'mega',
-  starter: 'starter', starters: 'starter',
-  fossil: 'fossil', fossils: 'fossil',
-  legendary: 'legendary', legendaries: 'legendary',
-  mythical: 'mythical', mythicals: 'mythical',
+  mega: 'mega',
+  megas: 'mega',
+  starter: 'starter',
+  starters: 'starter',
+  fossil: 'fossil',
+  fossils: 'fossil',
+  legendary: 'legendary',
+  legendaries: 'legendary',
+  mythical: 'mythical',
+  mythicals: 'mythical',
   paradox: 'paradox',
-  baby: 'baby', babies: 'baby',
-  regional: 'regional', regionals: 'regional',
-  eeveelution: 'eeveelution', eeveelutions: 'eeveelution',
-  stone: 'stone', stones: 'stone',
-  favourite: 'favourite', favourites: 'favourite',
+  baby: 'baby',
+  babies: 'baby',
+  regional: 'regional',
+  regionals: 'regional',
+  eeveelution: 'eeveelution',
+  eeveelutions: 'eeveelution',
+  stone: 'stone',
+  stones: 'stone',
+  favourite: 'favourite',
+  favourites: 'favourite',
 };
 
 const inCategory = (m: DexRow, category: DexCategory, favourites?: ReadonlySet<string>) =>
   category === 'favourite' ? !!favourites?.has(favouriteKey(m.id, m.form?.key)) : !!m.tags?.includes(category);
 
 /** One search term's test: a number, a type, a Category, a generation, else a name. "!megas" drops the Mega rows, not Charizard. */
-function dexTerm<T extends DexRow>(term: string, negated: boolean, fuse: Fuse<T> | null, favourites?: ReadonlySet<string>): (m: T) => boolean {
+function dexTerm<T extends DexRow>(
+  term: string,
+  negated: boolean,
+  fuse: Fuse<T> | null,
+  favourites?: ReadonlySet<string>,
+): (m: T) => boolean {
   const asNumber = term.replace(/^#/, '');
   if (/^\d+$/.test(asNumber)) return (m) => String(m.id).startsWith(String(Number(asNumber)));
   if (isTypeName(term)) return (m) => m.types.includes(term);
@@ -87,7 +103,12 @@ function dexTerm<T extends DexRow>(term: string, negated: boolean, fuse: Fuse<T>
  * Search + category/generation/type filters + sort, in that order. Types match any of the chosen ones. The Favourites
  * category keeps the rows whose species and form are in `favourites` (favouriteKey). Pure, so it's easy to test.
  */
-export function applyFilters<T extends DexRow>(all: T[], fuse: Fuse<T> | null, f: DexFilters, favourites?: ReadonlySet<string>): T[] {
+export function applyFilters<T extends DexRow>(
+  all: T[],
+  fuse: Fuse<T> | null,
+  f: DexFilters,
+  favourites?: ReadonlySet<string>,
+): T[] {
   let list = all;
   const query = parseQuery(f.query);
   if (query) list = list.filter(compileQuery<T>(query, (term, negated) => dexTerm(term, negated, fuse, favourites)));

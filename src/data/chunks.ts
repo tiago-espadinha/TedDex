@@ -48,7 +48,8 @@ export function packLearnsets(learnsets: Learnsets, forms: Record<string, Learns
   };
   const pack = (sets: Learnsets) => {
     const games: PackedLearnsets['games'] = {};
-    for (const [game, l] of Object.entries(sets)) games[Number(game)] = [ref(l.level), ref(l.machine), ref(l.tutor), ref(l.egg)];
+    for (const [game, l] of Object.entries(sets))
+      games[Number(game)] = [ref(l.level), ref(l.machine), ref(l.tutor), ref(l.egg)];
     return games;
   };
   const games = pack(learnsets);

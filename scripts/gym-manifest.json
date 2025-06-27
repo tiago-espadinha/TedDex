@@ -1,1824 +1,1785 @@
 {
- "games": [
-  {
-   "id": "red-blue",
-   "label": "Red / Blue",
-   "region": "Kanto",
-   "versionGroups": [
-    1
-   ],
-   "trainers": [
+  "games": [
     {
-     "name": "Brock",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Boulder Badge",
-     "page": "Brock",
-     "game": "RGB"
+      "id": "red-blue",
+      "label": "Red / Blue",
+      "region": "Kanto",
+      "versionGroups": [1],
+      "trainers": [
+        {
+          "name": "Brock",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Boulder Badge",
+          "page": "Brock",
+          "game": "RGB"
+        },
+        {
+          "name": "Misty",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Cascade Badge",
+          "page": "Misty",
+          "game": "RGB"
+        },
+        {
+          "name": "Lt. Surge",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Thunder Badge",
+          "page": "Lt. Surge",
+          "game": "RGB"
+        },
+        {
+          "name": "Erika",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Rainbow Badge",
+          "page": "Erika",
+          "game": "RGB"
+        },
+        {
+          "name": "Koga",
+          "role": "Gym Leader",
+          "type": "poison",
+          "badge": "Soul Badge",
+          "page": "Koga",
+          "game": "RGB"
+        },
+        {
+          "name": "Sabrina",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Marsh Badge",
+          "page": "Sabrina",
+          "game": "RGB"
+        },
+        {
+          "name": "Blaine",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Volcano Badge",
+          "page": "Blaine",
+          "game": "RGB"
+        },
+        {
+          "name": "Giovanni",
+          "role": "Gym Leader",
+          "type": "ground",
+          "badge": "Earth Badge",
+          "page": "Giovanni",
+          "game": "RGB",
+          "heading": "Gym battle"
+        }
+      ]
     },
     {
-     "name": "Misty",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Cascade Badge",
-     "page": "Misty",
-     "game": "RGB"
+      "id": "yellow",
+      "label": "Yellow",
+      "region": "Kanto",
+      "versionGroups": [2],
+      "trainers": [
+        {
+          "name": "Brock",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Boulder Badge",
+          "page": "Brock",
+          "game": "Y"
+        },
+        {
+          "name": "Misty",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Cascade Badge",
+          "page": "Misty",
+          "game": "Y"
+        },
+        {
+          "name": "Lt. Surge",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Thunder Badge",
+          "page": "Lt. Surge",
+          "game": "Y"
+        },
+        {
+          "name": "Erika",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Rainbow Badge",
+          "page": "Erika",
+          "game": "Y"
+        },
+        {
+          "name": "Koga",
+          "role": "Gym Leader",
+          "type": "poison",
+          "badge": "Soul Badge",
+          "page": "Koga",
+          "game": "Y"
+        },
+        {
+          "name": "Sabrina",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Marsh Badge",
+          "page": "Sabrina",
+          "game": "Y"
+        },
+        {
+          "name": "Blaine",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Volcano Badge",
+          "page": "Blaine",
+          "game": "Y"
+        },
+        {
+          "name": "Giovanni",
+          "role": "Gym Leader",
+          "type": "ground",
+          "badge": "Earth Badge",
+          "page": "Giovanni",
+          "game": "Y",
+          "heading": "Gym battle"
+        }
+      ]
     },
     {
-     "name": "Lt. Surge",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Thunder Badge",
-     "page": "Lt. Surge",
-     "game": "RGB"
+      "id": "gold-silver-crystal",
+      "label": "Gold / Silver / Crystal",
+      "region": "Johto",
+      "versionGroups": [3, 4],
+      "note": "After the Elite Four, the eight Kanto Gyms open as well.",
+      "trainers": [
+        {
+          "name": "Falkner",
+          "role": "Gym Leader",
+          "type": "flying",
+          "badge": "Zephyr Badge",
+          "page": "Falkner",
+          "game": "GSC"
+        },
+        {
+          "name": "Bugsy",
+          "role": "Gym Leader",
+          "type": "bug",
+          "badge": "Hive Badge",
+          "page": "Bugsy",
+          "game": "GSC"
+        },
+        {
+          "name": "Whitney",
+          "role": "Gym Leader",
+          "type": "normal",
+          "badge": "Plain Badge",
+          "page": "Whitney",
+          "game": "GSC"
+        },
+        {
+          "name": "Morty",
+          "role": "Gym Leader",
+          "type": "ghost",
+          "badge": "Fog Badge",
+          "page": "Morty",
+          "game": "GSC"
+        },
+        {
+          "name": "Chuck",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Storm Badge",
+          "page": "Chuck",
+          "game": "GSC"
+        },
+        {
+          "name": "Jasmine",
+          "role": "Gym Leader",
+          "type": "steel",
+          "badge": "Mineral Badge",
+          "page": "Jasmine",
+          "game": "GSC"
+        },
+        {
+          "name": "Pryce",
+          "role": "Gym Leader",
+          "type": "ice",
+          "badge": "Glacier Badge",
+          "page": "Pryce",
+          "game": "GSC"
+        },
+        {
+          "name": "Clair",
+          "role": "Gym Leader",
+          "type": "dragon",
+          "badge": "Rising Badge",
+          "page": "Clair",
+          "game": "GSC"
+        },
+        {
+          "name": "Brock",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Boulder Badge",
+          "page": "Brock",
+          "game": "GSC"
+        },
+        {
+          "name": "Misty",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Cascade Badge",
+          "page": "Misty",
+          "game": "GSC"
+        },
+        {
+          "name": "Lt. Surge",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Thunder Badge",
+          "page": "Lt. Surge",
+          "game": "GSC"
+        },
+        {
+          "name": "Erika",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Rainbow Badge",
+          "page": "Erika",
+          "game": "GSC"
+        },
+        {
+          "name": "Janine",
+          "role": "Gym Leader",
+          "type": "poison",
+          "badge": "Soul Badge",
+          "page": "Janine",
+          "game": "GSC"
+        },
+        {
+          "name": "Sabrina",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Marsh Badge",
+          "page": "Sabrina",
+          "game": "GSC"
+        },
+        {
+          "name": "Blaine",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Volcano Badge",
+          "page": "Blaine",
+          "game": "GSC"
+        },
+        {
+          "name": "Blue",
+          "role": "Gym Leader",
+          "badge": "Earth Badge",
+          "page": "Blue (game)",
+          "game": "GSC"
+        }
+      ]
     },
     {
-     "name": "Erika",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Rainbow Badge",
-     "page": "Erika",
-     "game": "RGB"
+      "id": "ruby-sapphire",
+      "label": "Ruby / Sapphire",
+      "region": "Hoenn",
+      "versionGroups": [5],
+      "trainers": [
+        {
+          "name": "Roxanne",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Stone Badge",
+          "page": "Roxanne",
+          "game": "RS"
+        },
+        {
+          "name": "Brawly",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Knuckle Badge",
+          "page": "Brawly",
+          "game": "RS"
+        },
+        {
+          "name": "Wattson",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Dynamo Badge",
+          "page": "Wattson",
+          "game": "RS"
+        },
+        {
+          "name": "Flannery",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Heat Badge",
+          "page": "Flannery",
+          "game": "RS"
+        },
+        {
+          "name": "Norman",
+          "role": "Gym Leader",
+          "type": "normal",
+          "badge": "Balance Badge",
+          "page": "Norman",
+          "game": "RS",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Winona",
+          "role": "Gym Leader",
+          "type": "flying",
+          "badge": "Feather Badge",
+          "page": "Winona",
+          "game": "RS"
+        },
+        {
+          "name": "Tate and Liza",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Mind Badge",
+          "page": "Tate and Liza",
+          "game": "RS"
+        },
+        {
+          "name": "Wallace",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Rain Badge",
+          "page": "Wallace",
+          "game": "RS"
+        }
+      ]
     },
     {
-     "name": "Koga",
-     "role": "Gym Leader",
-     "type": "poison",
-     "badge": "Soul Badge",
-     "page": "Koga",
-     "game": "RGB"
+      "id": "emerald",
+      "label": "Emerald",
+      "region": "Hoenn",
+      "versionGroups": [6],
+      "trainers": [
+        {
+          "name": "Roxanne",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Stone Badge",
+          "page": "Roxanne",
+          "game": "E",
+          "heading": "Gym battle",
+          "rematch": [
+            {
+              "heading": "First rematch",
+              "label": "1st"
+            },
+            {
+              "heading": "Second rematch",
+              "label": "2nd"
+            },
+            {
+              "heading": "Third rematch",
+              "label": "3rd"
+            },
+            {
+              "heading": "Fourth rematch onwards",
+              "label": "4th+"
+            }
+          ]
+        },
+        {
+          "name": "Brawly",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Knuckle Badge",
+          "page": "Brawly",
+          "game": "E",
+          "heading": "Gym battle",
+          "rematch": [
+            {
+              "heading": "First rematch",
+              "label": "1st"
+            },
+            {
+              "heading": "Second rematch",
+              "label": "2nd"
+            },
+            {
+              "heading": "Third rematch",
+              "label": "3rd"
+            },
+            {
+              "heading": "Fourth rematch onwards",
+              "label": "4th+"
+            }
+          ]
+        },
+        {
+          "name": "Wattson",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Dynamo Badge",
+          "page": "Wattson",
+          "game": "E",
+          "heading": "Gym battle",
+          "rematch": [
+            {
+              "heading": "First rematch",
+              "label": "1st"
+            },
+            {
+              "heading": "Second rematch",
+              "label": "2nd"
+            },
+            {
+              "heading": "Third rematch",
+              "label": "3rd"
+            },
+            {
+              "heading": "Fourth rematch onwards",
+              "label": "4th+"
+            }
+          ]
+        },
+        {
+          "name": "Flannery",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Heat Badge",
+          "page": "Flannery",
+          "game": "E",
+          "heading": "Gym battle",
+          "rematch": [
+            {
+              "heading": "First rematch",
+              "label": "1st"
+            },
+            {
+              "heading": "Second rematch",
+              "label": "2nd"
+            },
+            {
+              "heading": "Third rematch",
+              "label": "3rd"
+            },
+            {
+              "heading": "Fourth rematch onwards",
+              "label": "4th+"
+            }
+          ]
+        },
+        {
+          "name": "Norman",
+          "role": "Gym Leader",
+          "type": "normal",
+          "badge": "Balance Badge",
+          "page": "Norman",
+          "game": "E",
+          "heading": "Gym battle",
+          "rematch": [
+            {
+              "heading": "First rematch",
+              "label": "1st"
+            },
+            {
+              "heading": "Second rematch",
+              "label": "2nd"
+            },
+            {
+              "heading": "Third rematch",
+              "label": "3rd"
+            },
+            {
+              "heading": "Fourth rematch onwards",
+              "label": "4th+"
+            }
+          ]
+        },
+        {
+          "name": "Winona",
+          "role": "Gym Leader",
+          "type": "flying",
+          "badge": "Feather Badge",
+          "page": "Winona",
+          "game": "E",
+          "heading": "Gym battle",
+          "rematch": [
+            {
+              "heading": "First rematch",
+              "label": "1st"
+            },
+            {
+              "heading": "Second rematch",
+              "label": "2nd"
+            },
+            {
+              "heading": "Third rematch",
+              "label": "3rd"
+            },
+            {
+              "heading": "Fourth rematch onwards",
+              "label": "4th+"
+            }
+          ]
+        },
+        {
+          "name": "Tate and Liza",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Mind Badge",
+          "page": "Tate and Liza",
+          "game": "E",
+          "heading": "Gym battle",
+          "rematch": [
+            {
+              "heading": "First rematch",
+              "label": "1st"
+            },
+            {
+              "heading": "Second rematch",
+              "label": "2nd"
+            },
+            {
+              "heading": "Third rematch",
+              "label": "3rd"
+            },
+            {
+              "heading": "Fourth rematch onwards",
+              "label": "4th+"
+            }
+          ]
+        },
+        {
+          "name": "Juan",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Rain Badge",
+          "page": "Juan",
+          "game": "E",
+          "heading": "Gym battle",
+          "rematch": [
+            {
+              "heading": "First rematch",
+              "label": "1st"
+            },
+            {
+              "heading": "Second rematch",
+              "label": "2nd"
+            },
+            {
+              "heading": "Third rematch",
+              "label": "3rd"
+            },
+            {
+              "heading": "Fourth rematch onwards",
+              "label": "4th+"
+            }
+          ]
+        }
+      ]
     },
     {
-     "name": "Sabrina",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Marsh Badge",
-     "page": "Sabrina",
-     "game": "RGB"
+      "id": "firered-leafgreen",
+      "label": "FireRed / LeafGreen",
+      "region": "Kanto",
+      "versionGroups": [7],
+      "trainers": [
+        {
+          "name": "Brock",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Boulder Badge",
+          "page": "Brock",
+          "game": "FRLG"
+        },
+        {
+          "name": "Misty",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Cascade Badge",
+          "page": "Misty",
+          "game": "FRLG"
+        },
+        {
+          "name": "Lt. Surge",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Thunder Badge",
+          "page": "Lt. Surge",
+          "game": "FRLG"
+        },
+        {
+          "name": "Erika",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Rainbow Badge",
+          "page": "Erika",
+          "game": "FRLG"
+        },
+        {
+          "name": "Koga",
+          "role": "Gym Leader",
+          "type": "poison",
+          "badge": "Soul Badge",
+          "page": "Koga",
+          "game": "FRLG"
+        },
+        {
+          "name": "Sabrina",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Marsh Badge",
+          "page": "Sabrina",
+          "game": "FRLG"
+        },
+        {
+          "name": "Blaine",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Volcano Badge",
+          "page": "Blaine",
+          "game": "FRLG"
+        },
+        {
+          "name": "Giovanni",
+          "role": "Gym Leader",
+          "type": "ground",
+          "badge": "Earth Badge",
+          "page": "Giovanni",
+          "game": "FRLG",
+          "heading": "Gym battle"
+        }
+      ]
     },
     {
-     "name": "Blaine",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Volcano Badge",
-     "page": "Blaine",
-     "game": "RGB"
+      "id": "diamond-pearl",
+      "label": "Diamond / Pearl",
+      "region": "Sinnoh",
+      "versionGroups": [8],
+      "trainers": [
+        {
+          "name": "Roark",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Coal Badge",
+          "page": "Roark",
+          "game": "DP"
+        },
+        {
+          "name": "Gardenia",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Forest Badge",
+          "page": "Gardenia",
+          "game": "DP"
+        },
+        {
+          "name": "Maylene",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Cobble Badge",
+          "page": "Maylene",
+          "game": "DP"
+        },
+        {
+          "name": "Crasher Wake",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Fen Badge",
+          "page": "Crasher Wake",
+          "game": "DP"
+        },
+        {
+          "name": "Fantina",
+          "role": "Gym Leader",
+          "type": "ghost",
+          "badge": "Relic Badge",
+          "page": "Fantina",
+          "game": "DP"
+        },
+        {
+          "name": "Byron",
+          "role": "Gym Leader",
+          "type": "steel",
+          "badge": "Mine Badge",
+          "page": "Byron",
+          "game": "DP"
+        },
+        {
+          "name": "Candice",
+          "role": "Gym Leader",
+          "type": "ice",
+          "badge": "Icicle Badge",
+          "page": "Candice",
+          "game": "DP"
+        },
+        {
+          "name": "Volkner",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Beacon Badge",
+          "page": "Volkner",
+          "game": "DP"
+        }
+      ]
     },
     {
-     "name": "Giovanni",
-     "role": "Gym Leader",
-     "type": "ground",
-     "badge": "Earth Badge",
-     "page": "Giovanni",
-     "game": "RGB",
-     "heading": "Gym battle"
+      "id": "platinum",
+      "label": "Platinum",
+      "region": "Sinnoh",
+      "versionGroups": [9],
+      "trainers": [
+        {
+          "name": "Roark",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Coal Badge",
+          "page": "Roark",
+          "game": "Pt",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Gardenia",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Forest Badge",
+          "page": "Gardenia",
+          "game": "Pt",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Fantina",
+          "role": "Gym Leader",
+          "type": "ghost",
+          "badge": "Relic Badge",
+          "page": "Fantina",
+          "game": "Pt",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Maylene",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Cobble Badge",
+          "page": "Maylene",
+          "game": "Pt",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Crasher Wake",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Fen Badge",
+          "page": "Crasher Wake",
+          "game": "Pt",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Byron",
+          "role": "Gym Leader",
+          "type": "steel",
+          "badge": "Mine Badge",
+          "page": "Byron",
+          "game": "Pt",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Candice",
+          "role": "Gym Leader",
+          "type": "ice",
+          "badge": "Icicle Badge",
+          "page": "Candice",
+          "game": "Pt",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Volkner",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Beacon Badge",
+          "page": "Volkner",
+          "game": "Pt",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        }
+      ]
+    },
+    {
+      "id": "heartgold-soulsilver",
+      "label": "HeartGold / SoulSilver",
+      "region": "Johto",
+      "versionGroups": [10],
+      "note": "After the Elite Four, the eight Kanto Gyms open as well.",
+      "trainers": [
+        {
+          "name": "Falkner",
+          "role": "Gym Leader",
+          "type": "flying",
+          "badge": "Zephyr Badge",
+          "page": "Falkner",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Bugsy",
+          "role": "Gym Leader",
+          "type": "bug",
+          "badge": "Hive Badge",
+          "page": "Bugsy",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Whitney",
+          "role": "Gym Leader",
+          "type": "normal",
+          "badge": "Plain Badge",
+          "page": "Whitney",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Morty",
+          "role": "Gym Leader",
+          "type": "ghost",
+          "badge": "Fog Badge",
+          "page": "Morty",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Chuck",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Storm Badge",
+          "page": "Chuck",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Jasmine",
+          "role": "Gym Leader",
+          "type": "steel",
+          "badge": "Mineral Badge",
+          "page": "Jasmine",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Pryce",
+          "role": "Gym Leader",
+          "type": "ice",
+          "badge": "Glacier Badge",
+          "page": "Pryce",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Clair",
+          "role": "Gym Leader",
+          "type": "dragon",
+          "badge": "Rising Badge",
+          "page": "Clair",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Brock",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Boulder Badge",
+          "page": "Brock",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Misty",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Cascade Badge",
+          "page": "Misty",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Lt. Surge",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Thunder Badge",
+          "page": "Lt. Surge",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Erika",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Rainbow Badge",
+          "page": "Erika",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Janine",
+          "role": "Gym Leader",
+          "type": "poison",
+          "badge": "Soul Badge",
+          "page": "Janine",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Sabrina",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Marsh Badge",
+          "page": "Sabrina",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Blaine",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Volcano Badge",
+          "page": "Blaine",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Blue",
+          "role": "Gym Leader",
+          "badge": "Earth Badge",
+          "page": "Blue (game)",
+          "game": "HGSS",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        }
+      ]
+    },
+    {
+      "id": "black-white",
+      "label": "Black / White",
+      "region": "Unova",
+      "versionGroups": [11],
+      "trainers": [
+        {
+          "name": "Chili",
+          "role": "Gym Leader · if you chose Snivy",
+          "type": "fire",
+          "badge": "Trio Badge",
+          "page": "Chili",
+          "game": "BW"
+        },
+        {
+          "name": "Cress",
+          "role": "Gym Leader · if you chose Tepig",
+          "type": "water",
+          "badge": "Trio Badge",
+          "page": "Cress",
+          "game": "BW"
+        },
+        {
+          "name": "Cilan",
+          "role": "Gym Leader · if you chose Oshawott",
+          "type": "grass",
+          "badge": "Trio Badge",
+          "page": "Cilan",
+          "game": "BW"
+        },
+        {
+          "name": "Lenora",
+          "role": "Gym Leader",
+          "type": "normal",
+          "badge": "Basic Badge",
+          "page": "Lenora",
+          "game": "BW"
+        },
+        {
+          "name": "Burgh",
+          "role": "Gym Leader",
+          "type": "bug",
+          "badge": "Insect Badge",
+          "page": "Burgh",
+          "game": "BW"
+        },
+        {
+          "name": "Elesa",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Bolt Badge",
+          "page": "Elesa",
+          "game": "BW"
+        },
+        {
+          "name": "Clay",
+          "role": "Gym Leader",
+          "type": "ground",
+          "badge": "Quake Badge",
+          "page": "Clay",
+          "game": "BW"
+        },
+        {
+          "name": "Skyla",
+          "role": "Gym Leader",
+          "type": "flying",
+          "badge": "Jet Badge",
+          "page": "Skyla",
+          "game": "BW"
+        },
+        {
+          "name": "Brycen",
+          "role": "Gym Leader",
+          "type": "ice",
+          "badge": "Freeze Badge",
+          "page": "Brycen",
+          "game": "BW"
+        },
+        {
+          "name": "Drayden",
+          "role": "Gym Leader · Black",
+          "type": "dragon",
+          "badge": "Legend Badge",
+          "page": "Drayden",
+          "game": "Bl"
+        },
+        {
+          "name": "Iris",
+          "role": "Gym Leader · White",
+          "type": "dragon",
+          "badge": "Legend Badge",
+          "page": "Iris",
+          "game": "W"
+        }
+      ]
+    },
+    {
+      "id": "black2-white2",
+      "label": "Black 2 / White 2",
+      "region": "Unova",
+      "versionGroups": [14],
+      "trainers": [
+        {
+          "name": "Cheren",
+          "role": "Gym Leader",
+          "type": "normal",
+          "badge": "Basic Badge",
+          "page": "Cheren",
+          "game": "B2W2",
+          "heading": "Easy Mode/Normal Mode"
+        },
+        {
+          "name": "Roxie",
+          "role": "Gym Leader",
+          "type": "poison",
+          "badge": "Toxic Badge",
+          "page": "Roxie",
+          "game": "B2W2",
+          "heading": "Easy Mode/Normal Mode"
+        },
+        {
+          "name": "Burgh",
+          "role": "Gym Leader",
+          "type": "bug",
+          "badge": "Insect Badge",
+          "page": "Burgh",
+          "game": "B2W2",
+          "heading": "Easy Mode/Normal Mode"
+        },
+        {
+          "name": "Elesa",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Bolt Badge",
+          "page": "Elesa",
+          "game": "B2W2",
+          "heading": "Easy Mode/Normal Mode"
+        },
+        {
+          "name": "Clay",
+          "role": "Gym Leader",
+          "type": "ground",
+          "badge": "Quake Badge",
+          "page": "Clay",
+          "game": "B2W2",
+          "heading": "Easy Mode/Normal Mode"
+        },
+        {
+          "name": "Skyla",
+          "role": "Gym Leader",
+          "type": "flying",
+          "badge": "Jet Badge",
+          "page": "Skyla",
+          "game": "B2W2",
+          "heading": "Easy Mode/Normal Mode"
+        },
+        {
+          "name": "Drayden",
+          "role": "Gym Leader",
+          "type": "dragon",
+          "badge": "Legend Badge",
+          "page": "Drayden",
+          "game": "B2W2",
+          "heading": "Easy Mode/Normal Mode"
+        },
+        {
+          "name": "Marlon",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Wave Badge",
+          "page": "Marlon",
+          "game": "B2W2",
+          "heading": "Easy Mode/Normal Mode"
+        }
+      ]
+    },
+    {
+      "id": "x-y",
+      "label": "X / Y",
+      "region": "Kalos",
+      "versionGroups": [15],
+      "trainers": [
+        {
+          "name": "Viola",
+          "role": "Gym Leader",
+          "type": "bug",
+          "badge": "Bug Badge",
+          "page": "Viola",
+          "game": "XY",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Grant",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Cliff Badge",
+          "page": "Grant",
+          "game": "XY",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Korrina",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Rumble Badge",
+          "page": "Korrina",
+          "game": "XY",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Ramos",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Plant Badge",
+          "page": "Ramos",
+          "game": "XY",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Clemont",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Voltage Badge",
+          "page": "Clemont",
+          "game": "XY",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Valerie",
+          "role": "Gym Leader",
+          "type": "fairy",
+          "badge": "Fairy Badge",
+          "page": "Valerie",
+          "game": "XY",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Olympia",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Psychic Badge",
+          "page": "Olympia",
+          "game": "XY",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Wulfric",
+          "role": "Gym Leader",
+          "type": "ice",
+          "badge": "Iceberg Badge",
+          "page": "Wulfric",
+          "game": "XY",
+          "heading": "Gym battle"
+        }
+      ]
+    },
+    {
+      "id": "omega-ruby-alpha-sapphire",
+      "label": "Omega Ruby / Alpha Sapphire",
+      "region": "Hoenn",
+      "versionGroups": [16],
+      "trainers": [
+        {
+          "name": "Roxanne",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Stone Badge",
+          "page": "Roxanne",
+          "game": "ORAS"
+        },
+        {
+          "name": "Brawly",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Knuckle Badge",
+          "page": "Brawly",
+          "game": "ORAS"
+        },
+        {
+          "name": "Wattson",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Dynamo Badge",
+          "page": "Wattson",
+          "game": "ORAS"
+        },
+        {
+          "name": "Flannery",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Heat Badge",
+          "page": "Flannery",
+          "game": "ORAS"
+        },
+        {
+          "name": "Norman",
+          "role": "Gym Leader",
+          "type": "normal",
+          "badge": "Balance Badge",
+          "page": "Norman",
+          "game": "ORAS",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Winona",
+          "role": "Gym Leader",
+          "type": "flying",
+          "badge": "Feather Badge",
+          "page": "Winona",
+          "game": "ORAS"
+        },
+        {
+          "name": "Tate and Liza",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Mind Badge",
+          "page": "Tate and Liza",
+          "game": "ORAS"
+        },
+        {
+          "name": "Wallace",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Rain Badge",
+          "page": "Wallace",
+          "game": "ORAS",
+          "heading": "Gym battle"
+        }
+      ]
+    },
+    {
+      "id": "sun-moon",
+      "label": "Sun / Moon",
+      "region": "Alola",
+      "versionGroups": [17],
+      "note": "Alola has island trials instead of Gyms: Ilima's battle before his trial and each island's grand trial against its Kahuna.",
+      "trainers": [
+        {
+          "name": "Ilima",
+          "role": "Trial Captain",
+          "type": "normal",
+          "badge": "Normalium Z",
+          "page": "Ilima",
+          "game": "SM",
+          "heading": "First battle"
+        },
+        {
+          "name": "Hala",
+          "role": "Kahuna",
+          "type": "fighting",
+          "badge": "Fightinium Z",
+          "page": "Hala",
+          "game": "SM",
+          "heading": "Grand trial battle"
+        },
+        {
+          "name": "Olivia",
+          "role": "Kahuna",
+          "type": "rock",
+          "badge": "Rockium Z",
+          "page": "Olivia",
+          "game": "SM",
+          "heading": "Grand trial battle"
+        },
+        {
+          "name": "Nanu",
+          "role": "Kahuna",
+          "type": "dark",
+          "badge": "Darkinium Z",
+          "page": "Nanu",
+          "game": "SM",
+          "heading": "Grand trial battle"
+        },
+        {
+          "name": "Hapu",
+          "role": "Kahuna",
+          "type": "ground",
+          "badge": "Groundium Z",
+          "page": "Hapu",
+          "game": "SM",
+          "heading": "Grand trial battle"
+        }
+      ]
+    },
+    {
+      "id": "ultra-sun-ultra-moon",
+      "label": "Ultra Sun / Ultra Moon",
+      "region": "Alola",
+      "versionGroups": [18],
+      "note": "Alola has island trials instead of Gyms: Ilima's battle before his trial and each island's grand trial against its Kahuna.",
+      "levelTag": "Ultra Sun",
+      "trainers": [
+        {
+          "name": "Ilima",
+          "role": "Trial Captain",
+          "type": "normal",
+          "badge": "Normalium Z",
+          "page": "Ilima",
+          "game": "USUM",
+          "heading": "First battle"
+        },
+        {
+          "name": "Hala",
+          "role": "Kahuna",
+          "type": "fighting",
+          "badge": "Fightinium Z",
+          "page": "Hala",
+          "game": "USUM",
+          "heading": "Grand trial battle"
+        },
+        {
+          "name": "Olivia",
+          "role": "Kahuna",
+          "type": "rock",
+          "badge": "Rockium Z",
+          "page": "Olivia",
+          "game": "USUM",
+          "heading": "Grand trial battle"
+        },
+        {
+          "name": "Nanu",
+          "role": "Kahuna",
+          "type": "dark",
+          "badge": "Darkinium Z",
+          "page": "Nanu",
+          "game": "USUM",
+          "heading": "Grand trial battle"
+        },
+        {
+          "name": "Hapu",
+          "role": "Kahuna",
+          "type": "ground",
+          "badge": "Groundium Z",
+          "page": "Hapu",
+          "game": "USUM",
+          "heading": "Grand trial battle"
+        }
+      ]
+    },
+    {
+      "id": "lets-go",
+      "label": "Let’s Go, Pikachu! / Let’s Go, Eevee!",
+      "region": "Kanto",
+      "versionGroups": [19],
+      "trainers": [
+        {
+          "name": "Brock",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Boulder Badge",
+          "page": "Brock",
+          "game": "PE",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Misty",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Cascade Badge",
+          "page": "Misty",
+          "game": "PE",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Lt. Surge",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Thunder Badge",
+          "page": "Lt. Surge",
+          "game": "PE",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Erika",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Rainbow Badge",
+          "page": "Erika",
+          "game": "PE",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Koga",
+          "role": "Gym Leader",
+          "type": "poison",
+          "badge": "Soul Badge",
+          "page": "Koga",
+          "game": "PE",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Sabrina",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Marsh Badge",
+          "page": "Sabrina",
+          "game": "PE",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Blaine",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Volcano Badge",
+          "page": "Blaine",
+          "game": "PE",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Giovanni",
+          "role": "Gym Leader",
+          "type": "ground",
+          "badge": "Earth Badge",
+          "page": "Giovanni",
+          "game": "PE",
+          "heading": "Gym battle"
+        }
+      ]
+    },
+    {
+      "id": "sword-shield",
+      "label": "Sword / Shield",
+      "region": "Galar",
+      "versionGroups": [20],
+      "trainers": [
+        {
+          "name": "Milo",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Grass Badge",
+          "page": "Milo",
+          "game": "SwSh",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Nessa",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Water Badge",
+          "page": "Nessa",
+          "game": "SwSh",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Kabu",
+          "role": "Gym Leader",
+          "type": "fire",
+          "badge": "Fire Badge",
+          "page": "Kabu",
+          "game": "SwSh",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Bea",
+          "role": "Gym Leader · Sword",
+          "type": "fighting",
+          "badge": "Fighting Badge",
+          "page": "Bea",
+          "game": "Sw",
+          "heading": "Stow-on-Side Stadium"
+        },
+        {
+          "name": "Allister",
+          "role": "Gym Leader · Shield",
+          "type": "ghost",
+          "badge": "Ghost Badge",
+          "page": "Allister",
+          "game": "Sh",
+          "heading": "Stow-on-Side Stadium"
+        },
+        {
+          "name": "Opal",
+          "role": "Gym Leader",
+          "type": "fairy",
+          "badge": "Fairy Badge",
+          "page": "Opal",
+          "game": "SwSh",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Gordie",
+          "role": "Gym Leader · Sword",
+          "type": "rock",
+          "badge": "Rock Badge",
+          "page": "Gordie",
+          "game": "Sw",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Melony",
+          "role": "Gym Leader · Shield",
+          "type": "ice",
+          "badge": "Ice Badge",
+          "page": "Melony",
+          "game": "Sh",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Piers",
+          "role": "Gym Leader",
+          "type": "dark",
+          "badge": "Dark Badge",
+          "page": "Piers",
+          "game": "SwSh",
+          "heading": "Gym battle"
+        },
+        {
+          "name": "Raihan",
+          "role": "Gym Leader",
+          "type": "dragon",
+          "badge": "Dragon Badge",
+          "page": "Raihan",
+          "game": "SwSh",
+          "heading": "Gym battle"
+        }
+      ]
+    },
+    {
+      "id": "brilliant-diamond-shining-pearl",
+      "label": "Brilliant Diamond / Shining Pearl",
+      "region": "Sinnoh",
+      "versionGroups": [23],
+      "trainers": [
+        {
+          "name": "Roark",
+          "role": "Gym Leader",
+          "type": "rock",
+          "badge": "Coal Badge",
+          "page": "Roark",
+          "game": "BDSP",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Gardenia",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Forest Badge",
+          "page": "Gardenia",
+          "game": "BDSP",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Maylene",
+          "role": "Gym Leader",
+          "type": "fighting",
+          "badge": "Cobble Badge",
+          "page": "Maylene",
+          "game": "BDSP",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Crasher Wake",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Fen Badge",
+          "page": "Crasher Wake",
+          "game": "BDSP",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Fantina",
+          "role": "Gym Leader",
+          "type": "ghost",
+          "badge": "Relic Badge",
+          "page": "Fantina",
+          "game": "BDSP",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Byron",
+          "role": "Gym Leader",
+          "type": "steel",
+          "badge": "Mine Badge",
+          "page": "Byron",
+          "game": "BDSP",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Candice",
+          "role": "Gym Leader",
+          "type": "ice",
+          "badge": "Icicle Badge",
+          "page": "Candice",
+          "game": "BDSP",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Volkner",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Beacon Badge",
+          "page": "Volkner",
+          "game": "BDSP",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        }
+      ]
+    },
+    {
+      "id": "scarlet-violet",
+      "label": "Scarlet / Violet",
+      "region": "Paldea",
+      "versionGroups": [25],
+      "note": "Paldea's Gyms can be taken in any order; this is the order of their recommended levels.",
+      "trainers": [
+        {
+          "name": "Katy",
+          "role": "Gym Leader",
+          "type": "bug",
+          "badge": "Bug Badge",
+          "page": "Katy",
+          "game": "SV",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Brassius",
+          "role": "Gym Leader",
+          "type": "grass",
+          "badge": "Grass Badge",
+          "page": "Brassius",
+          "game": "SV",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Iono",
+          "role": "Gym Leader",
+          "type": "electric",
+          "badge": "Electric Badge",
+          "page": "Iono",
+          "game": "SV",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Kofu",
+          "role": "Gym Leader",
+          "type": "water",
+          "badge": "Water Badge",
+          "page": "Kofu",
+          "game": "SV",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Larry",
+          "role": "Gym Leader",
+          "type": "normal",
+          "badge": "Normal Badge",
+          "page": "Larry",
+          "game": "SV",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Ryme",
+          "role": "Gym Leader",
+          "type": "ghost",
+          "badge": "Ghost Badge",
+          "page": "Ryme",
+          "game": "SV",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Tulip",
+          "role": "Gym Leader",
+          "type": "psychic",
+          "badge": "Psychic Badge",
+          "page": "Tulip",
+          "game": "SV",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        },
+        {
+          "name": "Grusha",
+          "role": "Gym Leader",
+          "type": "ice",
+          "badge": "Ice Badge",
+          "page": "Grusha",
+          "game": "SV",
+          "heading": "Gym battle",
+          "rematch": "Rematch"
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "yellow",
-   "label": "Yellow",
-   "region": "Kanto",
-   "versionGroups": [
-    2
-   ],
-   "trainers": [
-    {
-     "name": "Brock",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Boulder Badge",
-     "page": "Brock",
-     "game": "Y"
-    },
-    {
-     "name": "Misty",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Cascade Badge",
-     "page": "Misty",
-     "game": "Y"
-    },
-    {
-     "name": "Lt. Surge",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Thunder Badge",
-     "page": "Lt. Surge",
-     "game": "Y"
-    },
-    {
-     "name": "Erika",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Rainbow Badge",
-     "page": "Erika",
-     "game": "Y"
-    },
-    {
-     "name": "Koga",
-     "role": "Gym Leader",
-     "type": "poison",
-     "badge": "Soul Badge",
-     "page": "Koga",
-     "game": "Y"
-    },
-    {
-     "name": "Sabrina",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Marsh Badge",
-     "page": "Sabrina",
-     "game": "Y"
-    },
-    {
-     "name": "Blaine",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Volcano Badge",
-     "page": "Blaine",
-     "game": "Y"
-    },
-    {
-     "name": "Giovanni",
-     "role": "Gym Leader",
-     "type": "ground",
-     "badge": "Earth Badge",
-     "page": "Giovanni",
-     "game": "Y",
-     "heading": "Gym battle"
-    }
-   ]
-  },
-  {
-   "id": "gold-silver-crystal",
-   "label": "Gold / Silver / Crystal",
-   "region": "Johto",
-   "versionGroups": [
-    3,
-    4
-   ],
-   "note": "After the Elite Four, the eight Kanto Gyms open as well.",
-   "trainers": [
-    {
-     "name": "Falkner",
-     "role": "Gym Leader",
-     "type": "flying",
-     "badge": "Zephyr Badge",
-     "page": "Falkner",
-     "game": "GSC"
-    },
-    {
-     "name": "Bugsy",
-     "role": "Gym Leader",
-     "type": "bug",
-     "badge": "Hive Badge",
-     "page": "Bugsy",
-     "game": "GSC"
-    },
-    {
-     "name": "Whitney",
-     "role": "Gym Leader",
-     "type": "normal",
-     "badge": "Plain Badge",
-     "page": "Whitney",
-     "game": "GSC"
-    },
-    {
-     "name": "Morty",
-     "role": "Gym Leader",
-     "type": "ghost",
-     "badge": "Fog Badge",
-     "page": "Morty",
-     "game": "GSC"
-    },
-    {
-     "name": "Chuck",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Storm Badge",
-     "page": "Chuck",
-     "game": "GSC"
-    },
-    {
-     "name": "Jasmine",
-     "role": "Gym Leader",
-     "type": "steel",
-     "badge": "Mineral Badge",
-     "page": "Jasmine",
-     "game": "GSC"
-    },
-    {
-     "name": "Pryce",
-     "role": "Gym Leader",
-     "type": "ice",
-     "badge": "Glacier Badge",
-     "page": "Pryce",
-     "game": "GSC"
-    },
-    {
-     "name": "Clair",
-     "role": "Gym Leader",
-     "type": "dragon",
-     "badge": "Rising Badge",
-     "page": "Clair",
-     "game": "GSC"
-    },
-    {
-     "name": "Brock",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Boulder Badge",
-     "page": "Brock",
-     "game": "GSC"
-    },
-    {
-     "name": "Misty",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Cascade Badge",
-     "page": "Misty",
-     "game": "GSC"
-    },
-    {
-     "name": "Lt. Surge",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Thunder Badge",
-     "page": "Lt. Surge",
-     "game": "GSC"
-    },
-    {
-     "name": "Erika",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Rainbow Badge",
-     "page": "Erika",
-     "game": "GSC"
-    },
-    {
-     "name": "Janine",
-     "role": "Gym Leader",
-     "type": "poison",
-     "badge": "Soul Badge",
-     "page": "Janine",
-     "game": "GSC"
-    },
-    {
-     "name": "Sabrina",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Marsh Badge",
-     "page": "Sabrina",
-     "game": "GSC"
-    },
-    {
-     "name": "Blaine",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Volcano Badge",
-     "page": "Blaine",
-     "game": "GSC"
-    },
-    {
-     "name": "Blue",
-     "role": "Gym Leader",
-     "badge": "Earth Badge",
-     "page": "Blue (game)",
-     "game": "GSC"
-    }
-   ]
-  },
-  {
-   "id": "ruby-sapphire",
-   "label": "Ruby / Sapphire",
-   "region": "Hoenn",
-   "versionGroups": [
-    5
-   ],
-   "trainers": [
-    {
-     "name": "Roxanne",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Stone Badge",
-     "page": "Roxanne",
-     "game": "RS"
-    },
-    {
-     "name": "Brawly",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Knuckle Badge",
-     "page": "Brawly",
-     "game": "RS"
-    },
-    {
-     "name": "Wattson",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Dynamo Badge",
-     "page": "Wattson",
-     "game": "RS"
-    },
-    {
-     "name": "Flannery",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Heat Badge",
-     "page": "Flannery",
-     "game": "RS"
-    },
-    {
-     "name": "Norman",
-     "role": "Gym Leader",
-     "type": "normal",
-     "badge": "Balance Badge",
-     "page": "Norman",
-     "game": "RS",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Winona",
-     "role": "Gym Leader",
-     "type": "flying",
-     "badge": "Feather Badge",
-     "page": "Winona",
-     "game": "RS"
-    },
-    {
-     "name": "Tate and Liza",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Mind Badge",
-     "page": "Tate and Liza",
-     "game": "RS"
-    },
-    {
-     "name": "Wallace",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Rain Badge",
-     "page": "Wallace",
-     "game": "RS"
-    }
-   ]
-  },
-  {
-   "id": "emerald",
-   "label": "Emerald",
-   "region": "Hoenn",
-   "versionGroups": [
-    6
-   ],
-   "trainers": [
-    {
-     "name": "Roxanne",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Stone Badge",
-     "page": "Roxanne",
-     "game": "E",
-     "heading": "Gym battle",
-     "rematch": [
-      {
-       "heading": "First rematch",
-       "label": "1st"
-      },
-      {
-       "heading": "Second rematch",
-       "label": "2nd"
-      },
-      {
-       "heading": "Third rematch",
-       "label": "3rd"
-      },
-      {
-       "heading": "Fourth rematch onwards",
-       "label": "4th+"
-      }
-     ]
-    },
-    {
-     "name": "Brawly",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Knuckle Badge",
-     "page": "Brawly",
-     "game": "E",
-     "heading": "Gym battle",
-     "rematch": [
-      {
-       "heading": "First rematch",
-       "label": "1st"
-      },
-      {
-       "heading": "Second rematch",
-       "label": "2nd"
-      },
-      {
-       "heading": "Third rematch",
-       "label": "3rd"
-      },
-      {
-       "heading": "Fourth rematch onwards",
-       "label": "4th+"
-      }
-     ]
-    },
-    {
-     "name": "Wattson",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Dynamo Badge",
-     "page": "Wattson",
-     "game": "E",
-     "heading": "Gym battle",
-     "rematch": [
-      {
-       "heading": "First rematch",
-       "label": "1st"
-      },
-      {
-       "heading": "Second rematch",
-       "label": "2nd"
-      },
-      {
-       "heading": "Third rematch",
-       "label": "3rd"
-      },
-      {
-       "heading": "Fourth rematch onwards",
-       "label": "4th+"
-      }
-     ]
-    },
-    {
-     "name": "Flannery",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Heat Badge",
-     "page": "Flannery",
-     "game": "E",
-     "heading": "Gym battle",
-     "rematch": [
-      {
-       "heading": "First rematch",
-       "label": "1st"
-      },
-      {
-       "heading": "Second rematch",
-       "label": "2nd"
-      },
-      {
-       "heading": "Third rematch",
-       "label": "3rd"
-      },
-      {
-       "heading": "Fourth rematch onwards",
-       "label": "4th+"
-      }
-     ]
-    },
-    {
-     "name": "Norman",
-     "role": "Gym Leader",
-     "type": "normal",
-     "badge": "Balance Badge",
-     "page": "Norman",
-     "game": "E",
-     "heading": "Gym battle",
-     "rematch": [
-      {
-       "heading": "First rematch",
-       "label": "1st"
-      },
-      {
-       "heading": "Second rematch",
-       "label": "2nd"
-      },
-      {
-       "heading": "Third rematch",
-       "label": "3rd"
-      },
-      {
-       "heading": "Fourth rematch onwards",
-       "label": "4th+"
-      }
-     ]
-    },
-    {
-     "name": "Winona",
-     "role": "Gym Leader",
-     "type": "flying",
-     "badge": "Feather Badge",
-     "page": "Winona",
-     "game": "E",
-     "heading": "Gym battle",
-     "rematch": [
-      {
-       "heading": "First rematch",
-       "label": "1st"
-      },
-      {
-       "heading": "Second rematch",
-       "label": "2nd"
-      },
-      {
-       "heading": "Third rematch",
-       "label": "3rd"
-      },
-      {
-       "heading": "Fourth rematch onwards",
-       "label": "4th+"
-      }
-     ]
-    },
-    {
-     "name": "Tate and Liza",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Mind Badge",
-     "page": "Tate and Liza",
-     "game": "E",
-     "heading": "Gym battle",
-     "rematch": [
-      {
-       "heading": "First rematch",
-       "label": "1st"
-      },
-      {
-       "heading": "Second rematch",
-       "label": "2nd"
-      },
-      {
-       "heading": "Third rematch",
-       "label": "3rd"
-      },
-      {
-       "heading": "Fourth rematch onwards",
-       "label": "4th+"
-      }
-     ]
-    },
-    {
-     "name": "Juan",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Rain Badge",
-     "page": "Juan",
-     "game": "E",
-     "heading": "Gym battle",
-     "rematch": [
-      {
-       "heading": "First rematch",
-       "label": "1st"
-      },
-      {
-       "heading": "Second rematch",
-       "label": "2nd"
-      },
-      {
-       "heading": "Third rematch",
-       "label": "3rd"
-      },
-      {
-       "heading": "Fourth rematch onwards",
-       "label": "4th+"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "firered-leafgreen",
-   "label": "FireRed / LeafGreen",
-   "region": "Kanto",
-   "versionGroups": [
-    7
-   ],
-   "trainers": [
-    {
-     "name": "Brock",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Boulder Badge",
-     "page": "Brock",
-     "game": "FRLG"
-    },
-    {
-     "name": "Misty",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Cascade Badge",
-     "page": "Misty",
-     "game": "FRLG"
-    },
-    {
-     "name": "Lt. Surge",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Thunder Badge",
-     "page": "Lt. Surge",
-     "game": "FRLG"
-    },
-    {
-     "name": "Erika",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Rainbow Badge",
-     "page": "Erika",
-     "game": "FRLG"
-    },
-    {
-     "name": "Koga",
-     "role": "Gym Leader",
-     "type": "poison",
-     "badge": "Soul Badge",
-     "page": "Koga",
-     "game": "FRLG"
-    },
-    {
-     "name": "Sabrina",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Marsh Badge",
-     "page": "Sabrina",
-     "game": "FRLG"
-    },
-    {
-     "name": "Blaine",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Volcano Badge",
-     "page": "Blaine",
-     "game": "FRLG"
-    },
-    {
-     "name": "Giovanni",
-     "role": "Gym Leader",
-     "type": "ground",
-     "badge": "Earth Badge",
-     "page": "Giovanni",
-     "game": "FRLG",
-     "heading": "Gym battle"
-    }
-   ]
-  },
-  {
-   "id": "diamond-pearl",
-   "label": "Diamond / Pearl",
-   "region": "Sinnoh",
-   "versionGroups": [
-    8
-   ],
-   "trainers": [
-    {
-     "name": "Roark",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Coal Badge",
-     "page": "Roark",
-     "game": "DP"
-    },
-    {
-     "name": "Gardenia",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Forest Badge",
-     "page": "Gardenia",
-     "game": "DP"
-    },
-    {
-     "name": "Maylene",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Cobble Badge",
-     "page": "Maylene",
-     "game": "DP"
-    },
-    {
-     "name": "Crasher Wake",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Fen Badge",
-     "page": "Crasher Wake",
-     "game": "DP"
-    },
-    {
-     "name": "Fantina",
-     "role": "Gym Leader",
-     "type": "ghost",
-     "badge": "Relic Badge",
-     "page": "Fantina",
-     "game": "DP"
-    },
-    {
-     "name": "Byron",
-     "role": "Gym Leader",
-     "type": "steel",
-     "badge": "Mine Badge",
-     "page": "Byron",
-     "game": "DP"
-    },
-    {
-     "name": "Candice",
-     "role": "Gym Leader",
-     "type": "ice",
-     "badge": "Icicle Badge",
-     "page": "Candice",
-     "game": "DP"
-    },
-    {
-     "name": "Volkner",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Beacon Badge",
-     "page": "Volkner",
-     "game": "DP"
-    }
-   ]
-  },
-  {
-   "id": "platinum",
-   "label": "Platinum",
-   "region": "Sinnoh",
-   "versionGroups": [
-    9
-   ],
-   "trainers": [
-    {
-     "name": "Roark",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Coal Badge",
-     "page": "Roark",
-     "game": "Pt",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Gardenia",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Forest Badge",
-     "page": "Gardenia",
-     "game": "Pt",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Fantina",
-     "role": "Gym Leader",
-     "type": "ghost",
-     "badge": "Relic Badge",
-     "page": "Fantina",
-     "game": "Pt",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Maylene",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Cobble Badge",
-     "page": "Maylene",
-     "game": "Pt",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Crasher Wake",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Fen Badge",
-     "page": "Crasher Wake",
-     "game": "Pt",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Byron",
-     "role": "Gym Leader",
-     "type": "steel",
-     "badge": "Mine Badge",
-     "page": "Byron",
-     "game": "Pt",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Candice",
-     "role": "Gym Leader",
-     "type": "ice",
-     "badge": "Icicle Badge",
-     "page": "Candice",
-     "game": "Pt",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Volkner",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Beacon Badge",
-     "page": "Volkner",
-     "game": "Pt",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    }
-   ]
-  },
-  {
-   "id": "heartgold-soulsilver",
-   "label": "HeartGold / SoulSilver",
-   "region": "Johto",
-   "versionGroups": [
-    10
-   ],
-   "note": "After the Elite Four, the eight Kanto Gyms open as well.",
-   "trainers": [
-    {
-     "name": "Falkner",
-     "role": "Gym Leader",
-     "type": "flying",
-     "badge": "Zephyr Badge",
-     "page": "Falkner",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Bugsy",
-     "role": "Gym Leader",
-     "type": "bug",
-     "badge": "Hive Badge",
-     "page": "Bugsy",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Whitney",
-     "role": "Gym Leader",
-     "type": "normal",
-     "badge": "Plain Badge",
-     "page": "Whitney",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Morty",
-     "role": "Gym Leader",
-     "type": "ghost",
-     "badge": "Fog Badge",
-     "page": "Morty",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Chuck",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Storm Badge",
-     "page": "Chuck",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Jasmine",
-     "role": "Gym Leader",
-     "type": "steel",
-     "badge": "Mineral Badge",
-     "page": "Jasmine",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Pryce",
-     "role": "Gym Leader",
-     "type": "ice",
-     "badge": "Glacier Badge",
-     "page": "Pryce",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Clair",
-     "role": "Gym Leader",
-     "type": "dragon",
-     "badge": "Rising Badge",
-     "page": "Clair",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Brock",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Boulder Badge",
-     "page": "Brock",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Misty",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Cascade Badge",
-     "page": "Misty",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Lt. Surge",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Thunder Badge",
-     "page": "Lt. Surge",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Erika",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Rainbow Badge",
-     "page": "Erika",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Janine",
-     "role": "Gym Leader",
-     "type": "poison",
-     "badge": "Soul Badge",
-     "page": "Janine",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Sabrina",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Marsh Badge",
-     "page": "Sabrina",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Blaine",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Volcano Badge",
-     "page": "Blaine",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Blue",
-     "role": "Gym Leader",
-     "badge": "Earth Badge",
-     "page": "Blue (game)",
-     "game": "HGSS",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    }
-   ]
-  },
-  {
-   "id": "black-white",
-   "label": "Black / White",
-   "region": "Unova",
-   "versionGroups": [
-    11
-   ],
-   "trainers": [
-    {
-     "name": "Chili",
-     "role": "Gym Leader · if you chose Snivy",
-     "type": "fire",
-     "badge": "Trio Badge",
-     "page": "Chili",
-     "game": "BW"
-    },
-    {
-     "name": "Cress",
-     "role": "Gym Leader · if you chose Tepig",
-     "type": "water",
-     "badge": "Trio Badge",
-     "page": "Cress",
-     "game": "BW"
-    },
-    {
-     "name": "Cilan",
-     "role": "Gym Leader · if you chose Oshawott",
-     "type": "grass",
-     "badge": "Trio Badge",
-     "page": "Cilan",
-     "game": "BW"
-    },
-    {
-     "name": "Lenora",
-     "role": "Gym Leader",
-     "type": "normal",
-     "badge": "Basic Badge",
-     "page": "Lenora",
-     "game": "BW"
-    },
-    {
-     "name": "Burgh",
-     "role": "Gym Leader",
-     "type": "bug",
-     "badge": "Insect Badge",
-     "page": "Burgh",
-     "game": "BW"
-    },
-    {
-     "name": "Elesa",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Bolt Badge",
-     "page": "Elesa",
-     "game": "BW"
-    },
-    {
-     "name": "Clay",
-     "role": "Gym Leader",
-     "type": "ground",
-     "badge": "Quake Badge",
-     "page": "Clay",
-     "game": "BW"
-    },
-    {
-     "name": "Skyla",
-     "role": "Gym Leader",
-     "type": "flying",
-     "badge": "Jet Badge",
-     "page": "Skyla",
-     "game": "BW"
-    },
-    {
-     "name": "Brycen",
-     "role": "Gym Leader",
-     "type": "ice",
-     "badge": "Freeze Badge",
-     "page": "Brycen",
-     "game": "BW"
-    },
-    {
-     "name": "Drayden",
-     "role": "Gym Leader · Black",
-     "type": "dragon",
-     "badge": "Legend Badge",
-     "page": "Drayden",
-     "game": "Bl"
-    },
-    {
-     "name": "Iris",
-     "role": "Gym Leader · White",
-     "type": "dragon",
-     "badge": "Legend Badge",
-     "page": "Iris",
-     "game": "W"
-    }
-   ]
-  },
-  {
-   "id": "black2-white2",
-   "label": "Black 2 / White 2",
-   "region": "Unova",
-   "versionGroups": [
-    14
-   ],
-   "trainers": [
-    {
-     "name": "Cheren",
-     "role": "Gym Leader",
-     "type": "normal",
-     "badge": "Basic Badge",
-     "page": "Cheren",
-     "game": "B2W2",
-     "heading": "Easy Mode/Normal Mode"
-    },
-    {
-     "name": "Roxie",
-     "role": "Gym Leader",
-     "type": "poison",
-     "badge": "Toxic Badge",
-     "page": "Roxie",
-     "game": "B2W2",
-     "heading": "Easy Mode/Normal Mode"
-    },
-    {
-     "name": "Burgh",
-     "role": "Gym Leader",
-     "type": "bug",
-     "badge": "Insect Badge",
-     "page": "Burgh",
-     "game": "B2W2",
-     "heading": "Easy Mode/Normal Mode"
-    },
-    {
-     "name": "Elesa",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Bolt Badge",
-     "page": "Elesa",
-     "game": "B2W2",
-     "heading": "Easy Mode/Normal Mode"
-    },
-    {
-     "name": "Clay",
-     "role": "Gym Leader",
-     "type": "ground",
-     "badge": "Quake Badge",
-     "page": "Clay",
-     "game": "B2W2",
-     "heading": "Easy Mode/Normal Mode"
-    },
-    {
-     "name": "Skyla",
-     "role": "Gym Leader",
-     "type": "flying",
-     "badge": "Jet Badge",
-     "page": "Skyla",
-     "game": "B2W2",
-     "heading": "Easy Mode/Normal Mode"
-    },
-    {
-     "name": "Drayden",
-     "role": "Gym Leader",
-     "type": "dragon",
-     "badge": "Legend Badge",
-     "page": "Drayden",
-     "game": "B2W2",
-     "heading": "Easy Mode/Normal Mode"
-    },
-    {
-     "name": "Marlon",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Wave Badge",
-     "page": "Marlon",
-     "game": "B2W2",
-     "heading": "Easy Mode/Normal Mode"
-    }
-   ]
-  },
-  {
-   "id": "x-y",
-   "label": "X / Y",
-   "region": "Kalos",
-   "versionGroups": [
-    15
-   ],
-   "trainers": [
-    {
-     "name": "Viola",
-     "role": "Gym Leader",
-     "type": "bug",
-     "badge": "Bug Badge",
-     "page": "Viola",
-     "game": "XY",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Grant",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Cliff Badge",
-     "page": "Grant",
-     "game": "XY",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Korrina",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Rumble Badge",
-     "page": "Korrina",
-     "game": "XY",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Ramos",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Plant Badge",
-     "page": "Ramos",
-     "game": "XY",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Clemont",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Voltage Badge",
-     "page": "Clemont",
-     "game": "XY",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Valerie",
-     "role": "Gym Leader",
-     "type": "fairy",
-     "badge": "Fairy Badge",
-     "page": "Valerie",
-     "game": "XY",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Olympia",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Psychic Badge",
-     "page": "Olympia",
-     "game": "XY",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Wulfric",
-     "role": "Gym Leader",
-     "type": "ice",
-     "badge": "Iceberg Badge",
-     "page": "Wulfric",
-     "game": "XY",
-     "heading": "Gym battle"
-    }
-   ]
-  },
-  {
-   "id": "omega-ruby-alpha-sapphire",
-   "label": "Omega Ruby / Alpha Sapphire",
-   "region": "Hoenn",
-   "versionGroups": [
-    16
-   ],
-   "trainers": [
-    {
-     "name": "Roxanne",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Stone Badge",
-     "page": "Roxanne",
-     "game": "ORAS"
-    },
-    {
-     "name": "Brawly",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Knuckle Badge",
-     "page": "Brawly",
-     "game": "ORAS"
-    },
-    {
-     "name": "Wattson",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Dynamo Badge",
-     "page": "Wattson",
-     "game": "ORAS"
-    },
-    {
-     "name": "Flannery",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Heat Badge",
-     "page": "Flannery",
-     "game": "ORAS"
-    },
-    {
-     "name": "Norman",
-     "role": "Gym Leader",
-     "type": "normal",
-     "badge": "Balance Badge",
-     "page": "Norman",
-     "game": "ORAS",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Winona",
-     "role": "Gym Leader",
-     "type": "flying",
-     "badge": "Feather Badge",
-     "page": "Winona",
-     "game": "ORAS"
-    },
-    {
-     "name": "Tate and Liza",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Mind Badge",
-     "page": "Tate and Liza",
-     "game": "ORAS"
-    },
-    {
-     "name": "Wallace",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Rain Badge",
-     "page": "Wallace",
-     "game": "ORAS",
-     "heading": "Gym battle"
-    }
-   ]
-  },
-  {
-   "id": "sun-moon",
-   "label": "Sun / Moon",
-   "region": "Alola",
-   "versionGroups": [
-    17
-   ],
-   "note": "Alola has island trials instead of Gyms: Ilima's battle before his trial and each island's grand trial against its Kahuna.",
-   "trainers": [
-    {
-     "name": "Ilima",
-     "role": "Trial Captain",
-     "type": "normal",
-     "badge": "Normalium Z",
-     "page": "Ilima",
-     "game": "SM",
-     "heading": "First battle"
-    },
-    {
-     "name": "Hala",
-     "role": "Kahuna",
-     "type": "fighting",
-     "badge": "Fightinium Z",
-     "page": "Hala",
-     "game": "SM",
-     "heading": "Grand trial battle"
-    },
-    {
-     "name": "Olivia",
-     "role": "Kahuna",
-     "type": "rock",
-     "badge": "Rockium Z",
-     "page": "Olivia",
-     "game": "SM",
-     "heading": "Grand trial battle"
-    },
-    {
-     "name": "Nanu",
-     "role": "Kahuna",
-     "type": "dark",
-     "badge": "Darkinium Z",
-     "page": "Nanu",
-     "game": "SM",
-     "heading": "Grand trial battle"
-    },
-    {
-     "name": "Hapu",
-     "role": "Kahuna",
-     "type": "ground",
-     "badge": "Groundium Z",
-     "page": "Hapu",
-     "game": "SM",
-     "heading": "Grand trial battle"
-    }
-   ]
-  },
-  {
-   "id": "ultra-sun-ultra-moon",
-   "label": "Ultra Sun / Ultra Moon",
-   "region": "Alola",
-   "versionGroups": [
-    18
-   ],
-   "note": "Alola has island trials instead of Gyms: Ilima's battle before his trial and each island's grand trial against its Kahuna.",
-   "levelTag": "Ultra Sun",
-   "trainers": [
-    {
-     "name": "Ilima",
-     "role": "Trial Captain",
-     "type": "normal",
-     "badge": "Normalium Z",
-     "page": "Ilima",
-     "game": "USUM",
-     "heading": "First battle"
-    },
-    {
-     "name": "Hala",
-     "role": "Kahuna",
-     "type": "fighting",
-     "badge": "Fightinium Z",
-     "page": "Hala",
-     "game": "USUM",
-     "heading": "Grand trial battle"
-    },
-    {
-     "name": "Olivia",
-     "role": "Kahuna",
-     "type": "rock",
-     "badge": "Rockium Z",
-     "page": "Olivia",
-     "game": "USUM",
-     "heading": "Grand trial battle"
-    },
-    {
-     "name": "Nanu",
-     "role": "Kahuna",
-     "type": "dark",
-     "badge": "Darkinium Z",
-     "page": "Nanu",
-     "game": "USUM",
-     "heading": "Grand trial battle"
-    },
-    {
-     "name": "Hapu",
-     "role": "Kahuna",
-     "type": "ground",
-     "badge": "Groundium Z",
-     "page": "Hapu",
-     "game": "USUM",
-     "heading": "Grand trial battle"
-    }
-   ]
-  },
-  {
-   "id": "lets-go",
-   "label": "Let’s Go, Pikachu! / Let’s Go, Eevee!",
-   "region": "Kanto",
-   "versionGroups": [
-    19
-   ],
-   "trainers": [
-    {
-     "name": "Brock",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Boulder Badge",
-     "page": "Brock",
-     "game": "PE",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Misty",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Cascade Badge",
-     "page": "Misty",
-     "game": "PE",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Lt. Surge",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Thunder Badge",
-     "page": "Lt. Surge",
-     "game": "PE",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Erika",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Rainbow Badge",
-     "page": "Erika",
-     "game": "PE",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Koga",
-     "role": "Gym Leader",
-     "type": "poison",
-     "badge": "Soul Badge",
-     "page": "Koga",
-     "game": "PE",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Sabrina",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Marsh Badge",
-     "page": "Sabrina",
-     "game": "PE",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Blaine",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Volcano Badge",
-     "page": "Blaine",
-     "game": "PE",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Giovanni",
-     "role": "Gym Leader",
-     "type": "ground",
-     "badge": "Earth Badge",
-     "page": "Giovanni",
-     "game": "PE",
-     "heading": "Gym battle"
-    }
-   ]
-  },
-  {
-   "id": "sword-shield",
-   "label": "Sword / Shield",
-   "region": "Galar",
-   "versionGroups": [
-    20
-   ],
-   "trainers": [
-    {
-     "name": "Milo",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Grass Badge",
-     "page": "Milo",
-     "game": "SwSh",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Nessa",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Water Badge",
-     "page": "Nessa",
-     "game": "SwSh",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Kabu",
-     "role": "Gym Leader",
-     "type": "fire",
-     "badge": "Fire Badge",
-     "page": "Kabu",
-     "game": "SwSh",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Bea",
-     "role": "Gym Leader · Sword",
-     "type": "fighting",
-     "badge": "Fighting Badge",
-     "page": "Bea",
-     "game": "Sw",
-     "heading": "Stow-on-Side Stadium"
-    },
-    {
-     "name": "Allister",
-     "role": "Gym Leader · Shield",
-     "type": "ghost",
-     "badge": "Ghost Badge",
-     "page": "Allister",
-     "game": "Sh",
-     "heading": "Stow-on-Side Stadium"
-    },
-    {
-     "name": "Opal",
-     "role": "Gym Leader",
-     "type": "fairy",
-     "badge": "Fairy Badge",
-     "page": "Opal",
-     "game": "SwSh",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Gordie",
-     "role": "Gym Leader · Sword",
-     "type": "rock",
-     "badge": "Rock Badge",
-     "page": "Gordie",
-     "game": "Sw",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Melony",
-     "role": "Gym Leader · Shield",
-     "type": "ice",
-     "badge": "Ice Badge",
-     "page": "Melony",
-     "game": "Sh",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Piers",
-     "role": "Gym Leader",
-     "type": "dark",
-     "badge": "Dark Badge",
-     "page": "Piers",
-     "game": "SwSh",
-     "heading": "Gym battle"
-    },
-    {
-     "name": "Raihan",
-     "role": "Gym Leader",
-     "type": "dragon",
-     "badge": "Dragon Badge",
-     "page": "Raihan",
-     "game": "SwSh",
-     "heading": "Gym battle"
-    }
-   ]
-  },
-  {
-   "id": "brilliant-diamond-shining-pearl",
-   "label": "Brilliant Diamond / Shining Pearl",
-   "region": "Sinnoh",
-   "versionGroups": [
-    23
-   ],
-   "trainers": [
-    {
-     "name": "Roark",
-     "role": "Gym Leader",
-     "type": "rock",
-     "badge": "Coal Badge",
-     "page": "Roark",
-     "game": "BDSP",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Gardenia",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Forest Badge",
-     "page": "Gardenia",
-     "game": "BDSP",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Maylene",
-     "role": "Gym Leader",
-     "type": "fighting",
-     "badge": "Cobble Badge",
-     "page": "Maylene",
-     "game": "BDSP",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Crasher Wake",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Fen Badge",
-     "page": "Crasher Wake",
-     "game": "BDSP",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Fantina",
-     "role": "Gym Leader",
-     "type": "ghost",
-     "badge": "Relic Badge",
-     "page": "Fantina",
-     "game": "BDSP",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Byron",
-     "role": "Gym Leader",
-     "type": "steel",
-     "badge": "Mine Badge",
-     "page": "Byron",
-     "game": "BDSP",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Candice",
-     "role": "Gym Leader",
-     "type": "ice",
-     "badge": "Icicle Badge",
-     "page": "Candice",
-     "game": "BDSP",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Volkner",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Beacon Badge",
-     "page": "Volkner",
-     "game": "BDSP",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    }
-   ]
-  },
-  {
-   "id": "scarlet-violet",
-   "label": "Scarlet / Violet",
-   "region": "Paldea",
-   "versionGroups": [
-    25
-   ],
-   "note": "Paldea's Gyms can be taken in any order; this is the order of their recommended levels.",
-   "trainers": [
-    {
-     "name": "Katy",
-     "role": "Gym Leader",
-     "type": "bug",
-     "badge": "Bug Badge",
-     "page": "Katy",
-     "game": "SV",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Brassius",
-     "role": "Gym Leader",
-     "type": "grass",
-     "badge": "Grass Badge",
-     "page": "Brassius",
-     "game": "SV",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Iono",
-     "role": "Gym Leader",
-     "type": "electric",
-     "badge": "Electric Badge",
-     "page": "Iono",
-     "game": "SV",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Kofu",
-     "role": "Gym Leader",
-     "type": "water",
-     "badge": "Water Badge",
-     "page": "Kofu",
-     "game": "SV",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Larry",
-     "role": "Gym Leader",
-     "type": "normal",
-     "badge": "Normal Badge",
-     "page": "Larry",
-     "game": "SV",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Ryme",
-     "role": "Gym Leader",
-     "type": "ghost",
-     "badge": "Ghost Badge",
-     "page": "Ryme",
-     "game": "SV",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Tulip",
-     "role": "Gym Leader",
-     "type": "psychic",
-     "badge": "Psychic Badge",
-     "page": "Tulip",
-     "game": "SV",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    },
-    {
-     "name": "Grusha",
-     "role": "Gym Leader",
-     "type": "ice",
-     "badge": "Ice Badge",
-     "page": "Grusha",
-     "game": "SV",
-     "heading": "Gym battle",
-     "rematch": "Rematch"
-    }
-   ]
-  }
- ]
+  ]
 }

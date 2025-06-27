@@ -19,8 +19,19 @@ import { execFile } from 'node:child_process';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import type {
-  AbilityTable, IndexEntry, ItemReferenceTable, LeagueGame, LeagueMember, LeagueRematch, LeagueTeam, LeagueTrainer, MoveTable,
-  SpeciesDetail, TypeData, TypeName, VersionGroup,
+  AbilityTable,
+  IndexEntry,
+  ItemReferenceTable,
+  LeagueGame,
+  LeagueMember,
+  LeagueRematch,
+  LeagueTeam,
+  LeagueTrainer,
+  MoveTable,
+  SpeciesDetail,
+  TypeData,
+  TypeName,
+  VersionGroup,
 } from '../src/data/types';
 import { chunkOf } from '../src/data/chunks';
 import { fetchPage, USER_AGENT, WIKI } from './bulbapedia';
@@ -124,7 +135,9 @@ const formKeys = new Map<number, Promise<string[]>>();
 function speciesForms(id: number): Promise<string[]> {
   let keys = formKeys.get(id);
   if (!keys) {
-    keys = readJson<Record<number, SpeciesDetail>>(join(DATA, 'species', `c${chunkOf(id)}.json`)).then((c) => (c[id].forms ?? []).map((f) => f.key));
+    keys = readJson<Record<number, SpeciesDetail>>(join(DATA, 'species', `c${chunkOf(id)}.json`)).then((c) =>
+      (c[id].forms ?? []).map((f) => f.key),
+    );
     formKeys.set(id, keys);
   }
   return keys;
@@ -186,7 +199,11 @@ async function member(raw: RawMember, ids: Lookups, levelTag: RegExp | undefined
 }
 
 /** "Spr B2W2 Shauntal.png" → "spr-b2w2-shauntal": the sprite's file name under media/trainers/. */
-const spriteKey = (file: string) => file.replace(/\.png$/i, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+const spriteKey = (file: string) =>
+  file
+    .replace(/\.png$/i, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-');
 
 /** Sprite files to download, keyed by `spriteKey`. */
 const sprites = new Map<string, string>();
@@ -210,14 +227,20 @@ async function trainer(t: ManifestTrainer, game: ManifestGame, ids: Lookups): Pr
     return teams;
   };
   const first = t.heading ? under(t.heading) : all;
-  const out: LeagueTrainer = { name: t.name, role: t.role, source: pageUrl(t.page), teams: await teamsOf(first, t.heading ?? '') };
+  const out: LeagueTrainer = {
+    name: t.name,
+    role: t.role,
+    source: pageUrl(t.page),
+    teams: await teamsOf(first, t.heading ?? ''),
+  };
   if (t.type) out.type = typeName(ids, t.type, who);
   if (t.badge) out.badge = t.badge;
   const file = first[0].sprite;
   if (file) {
     out.sprite = spriteKey(file);
     const known = sprites.get(out.sprite);
-    if (known && known !== file) throw new Error(`${who}: sprites "${known}" and "${file}" share the name ${out.sprite}`);
+    if (known && known !== file)
+      throw new Error(`${who}: sprites "${known}" and "${file}" share the name ${out.sprite}`);
     sprites.set(out.sprite, file);
   }
   const rematches: LeagueRematch[] = [];
@@ -247,12 +270,42 @@ async function fetchSprite(file: string) {
 /** Writes a cached sprite's first frame as WebP: pixel sprites doubled, VS art fitted in 192 px. */
 async function writeSprite(key: string, file: string) {
   const src = spriteSource(file);
-  const { stdout } = await run('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width', '-of', 'csv=p=0', src]);
-  const options = Number(stdout) <= 128
-    ? ['-vf', 'scale=iw*2:ih*2:flags=neighbor', '-c:v', 'libwebp', '-lossless', '1']
-    : ['-vf', 'scale=192:192:force_original_aspect_ratio=decrease:flags=lanczos', '-c:v', 'libwebp', '-quality', '85'];
+  const { stdout } = await run('ffprobe', [
+    '-v',
+    'error',
+    '-select_streams',
+    'v:0',
+    '-show_entries',
+    'stream=width',
+    '-of',
+    'csv=p=0',
+    src,
+  ]);
+  const options =
+    Number(stdout) <= 128
+      ? ['-vf', 'scale=iw*2:ih*2:flags=neighbor', '-c:v', 'libwebp', '-lossless', '1']
+      : [
+          '-vf',
+          'scale=192:192:force_original_aspect_ratio=decrease:flags=lanczos',
+          '-c:v',
+          'libwebp',
+          '-quality',
+          '85',
+        ];
   // Read as a still PNG: ffmpeg cannot demux some APNGs, and the still image is the first frame.
-  await run('ffmpeg', ['-v', 'error', '-y', '-f', 'png_pipe', '-i', src, '-frames:v', '1', ...options, join(SPRITES, `${key}.webp`)]);
+  await run('ffmpeg', [
+    '-v',
+    'error',
+    '-y',
+    '-f',
+    'png_pipe',
+    '-i',
+    src,
+    '-frames:v',
+    '1',
+    ...options,
+    join(SPRITES, `${key}.webp`),
+  ]);
 }
 
 async function buildGame(g: ManifestGame, ids: Lookups): Promise<LeagueGame> {

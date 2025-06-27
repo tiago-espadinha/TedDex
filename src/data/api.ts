@@ -1,9 +1,32 @@
 import { useEffect, useState } from 'react';
 import type {
-  AbilityNameTable, AbilityTable, EggGroupTable, EvolutionMember, Game, IndexEntry, ItemPlaces, ItemReferenceTable, ItemTable, LeagueGame, LeagueSummary,
-  MoveReference, MoveTable, Pokedexes, SpeciesDetail, TypeData, TypeName, VersionGroup,
+  AbilityNameTable,
+  AbilityTable,
+  EggGroupTable,
+  EvolutionMember,
+  Game,
+  IndexEntry,
+  ItemPlaces,
+  ItemReferenceTable,
+  ItemTable,
+  LeagueGame,
+  LeagueSummary,
+  MoveReference,
+  MoveTable,
+  Pokedexes,
+  SpeciesDetail,
+  TypeData,
+  TypeName,
+  VersionGroup,
 } from './types';
-import { chunkPath, unpackLearnsets, unpackLocations, type ChunkKind, type PackedLearnsets, type PackedLocations } from './chunks';
+import {
+  chunkPath,
+  unpackLearnsets,
+  unpackLocations,
+  type ChunkKind,
+  type PackedLearnsets,
+  type PackedLocations,
+} from './chunks';
 
 /**
  * Data access. Everything is static JSON under /data (precached by the
@@ -19,7 +42,10 @@ function getJson<T>(path: string): Promise<T> {
       if (!r.ok) throw new Error(`Failed to load ${path} (${r.status})`);
       return r.json() as Promise<T>;
     });
-    p.then((json) => loaded.set(path, json), () => memo.delete(path));
+    p.then(
+      (json) => loaded.set(path, json),
+      () => memo.delete(path),
+    );
     memo.set(path, p);
   }
   return p;
@@ -48,7 +74,8 @@ export const loadVersions = () => getJson<VersionGroup[]>('/data/versions.json')
 export const loadPokedexes = () => getJson<Pokedexes>('/data/pokedexes.json');
 export const loadItems = () => getJson<ItemTable>('/data/items.json');
 export const loadEvolution = (chainId: number) => plainEntry<EvolutionMember[]>('evolution', chainId);
-export const loadLocations = (id: number) => getEntry('locations', id, (file: PackedLocations) => unpackLocations(file, id));
+export const loadLocations = (id: number) =>
+  getEntry('locations', id, (file: PackedLocations) => unpackLocations(file, id));
 export const loadGames = () => getJson<Game[]>('/data/games.json');
 export const loadMoveReference = (id: number) => plainEntry<MoveReference>('reference/moves', id);
 export const loadAbilityNames = () => getJson<AbilityNameTable>('/data/abilities.json');
@@ -62,7 +89,11 @@ export const loadTrainerGames = (kind: TrainerKind) => getJson<LeagueSummary[]>(
 export const loadTrainerGame = (kind: TrainerKind, id: string) => getJson<LeagueGame>(`/data/${kind}/${id}.json`);
 
 /** Small hook: resolves a promise-returning loader, re-running when `key` changes. `initial` is data already in hand for the first render. */
-export function useLoad<T>(loader: () => Promise<T>, key: unknown, initial?: () => T | undefined): { data?: T; error?: Error } {
+export function useLoad<T>(
+  loader: () => Promise<T>,
+  key: unknown,
+  initial?: () => T | undefined,
+): { data?: T; error?: Error } {
   const [state, setState] = useState<{ data?: T; error?: Error; key?: unknown }>(() => ({ data: initial?.(), key }));
   useEffect(() => {
     let alive = true;
@@ -89,9 +120,26 @@ export const shinyArtworkUrl = (id: number) => `/media/artwork/shiny/${id}.webp`
  * The images to try for a Pokémon, best first. Artwork never viewed isn't cached offline, so each artwork falls back
  * to its sprite; a form without a file falls back to its species, and shiny falls back to plain.
  */
-export function monImageChain({ id, speciesId, art, shiny }: { id: number; speciesId: number; art: boolean; shiny?: boolean }) {
+export function monImageChain({
+  id,
+  speciesId,
+  art,
+  shiny,
+}: {
+  id: number;
+  speciesId: number;
+  art: boolean;
+  shiny?: boolean;
+}) {
   const shinyOf = (of: number) => [...(art ? [shinyArtworkUrl(of)] : []), shinySpriteUrl(of)];
-  return [...new Set([...(shiny ? [...shinyOf(id), ...shinyOf(speciesId)] : []), ...(art ? [artworkUrl(id)] : []), spriteUrl(id), spriteUrl(speciesId)])];
+  return [
+    ...new Set([
+      ...(shiny ? [...shinyOf(id), ...shinyOf(speciesId)] : []),
+      ...(art ? [artworkUrl(id)] : []),
+      spriteUrl(id),
+      spriteUrl(speciesId),
+    ]),
+  ];
 }
 export const cryUrl = (id: number) => `/media/cries/${id}.m4a`;
 export const itemSpriteUrl = (id: number | string) => `/media/items/${id}.webp`;
@@ -107,7 +155,6 @@ export function defensiveMultipliers(defTypes: TypeName[], data: TypeData): Reco
   return out;
 }
 
-
 /**
  * Best factor any of `attackTypes` gets against each single defending type (0 when there are none).
  * Plain type chart: no special cases like Freeze-Dry.
@@ -122,5 +169,12 @@ export function offensiveMultipliers(attackTypes: TypeName[], data: TypeData): R
 
 /** Types of a member's damaging moves; status moves don't count. */
 export function attackingTypes(moveIds: number[] | undefined, moves: MoveTable): TypeName[] {
-  return [...new Set((moveIds ?? []).map((id) => moves[id]).filter((m) => m && m.category !== 'status').map((m) => m.type))];
+  return [
+    ...new Set(
+      (moveIds ?? [])
+        .map((id) => moves[id])
+        .filter((m) => m && m.category !== 'status')
+        .map((m) => m.type),
+    ),
+  ];
 }

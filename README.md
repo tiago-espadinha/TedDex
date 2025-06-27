@@ -16,15 +16,16 @@ then **Share › Add to Home Screen**. The service worker (offline mode) only ru
 
 ## Scripts
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Dev server with hot reload |
-| `npm run build` | Typecheck + production build into `dist/` (includes the service worker) |
-| `npm run preview` | Serve the production build |
-| `npm run data` | Rebuild `public/data/` from PokeAPI's CSV dump (cached in `.cache/`; `-- --fresh` to re-download) |
-| `npm run media` | Rebuild `public/media/` (WebP sprites/artwork, M4A cries) from PokeAPI's repos; needs `ffmpeg` |
-| `npm run lint` | oxlint |
-| `python3 scripts/make-icons.py public/icons` | Re-render the app icons and favicon from `public/teddex.svg` (needs Inkscape) |
+| Command                                      | What it does                                                                                      |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run dev`                                | Dev server with hot reload                                                                        |
+| `npm run build`                              | Typecheck + production build into `dist/` (includes the service worker)                           |
+| `npm run preview`                            | Serve the production build                                                                        |
+| `npm run data`                               | Rebuild `public/data/` from PokeAPI's CSV dump (cached in `.cache/`; `-- --fresh` to re-download) |
+| `npm run media`                              | Rebuild `public/media/` (WebP sprites/artwork, M4A cries) from PokeAPI's repos; needs `ffmpeg`    |
+| `npm run lint`                               | oxlint                                                                                            |
+| `npm run format`                             | Format the code with Oxfmt (`npm run format:check` only checks)                                   |
+| `python3 scripts/make-icons.py public/icons` | Re-render the app icons and favicon from `public/teddex.svg` (needs Inkscape)                     |
 
 ## Deploy
 

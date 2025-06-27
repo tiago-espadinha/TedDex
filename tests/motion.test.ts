@@ -5,8 +5,28 @@ import { test } from 'node:test';
 const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
 
 /** The one-shot and sliding animations of the micro-interactions: quick, and cheap to run on a phone. */
-const ONE_SHOT = ['pop-in', 'pop', 'bump', 'bolt-on', 'bolt-off', 'lid-open', 'sparkle', 'nav-bounce', 'seg-slide', 'rise-in', 'sink-out', 'dialog-in', 'dialog-out'];
+const ONE_SHOT = [
+  'pop-in',
+  'pop',
+  'bump',
+  'bolt-on',
+  'bolt-off',
+  'lid-open',
+  'sparkle',
+  'nav-bounce',
+  'seg-slide',
+  'rise-in',
+  'sink-out',
+  'dialog-in',
+  'dialog-out',
+];
 const COMPOSITED = new Set(['transform', 'translate', 'scale', 'rotate', 'opacity']);
+
+/** Every innermost CSS rule, comments dropped and whitespace collapsed, so the checks don't depend on the layout. */
+const rules = [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+  selector: m[1].trim().replace(/\s+/g, ' '),
+  body: m[2].trim().replace(/\s+/g, ' '),
+}));
 
 function keyframes(name: string): string {
   const start = css.indexOf(`@keyframes ${name} {`);
@@ -39,27 +59,32 @@ for (const name of ONE_SHOT) {
 test('playAnim keeps its attribute on longer than any one-shot runs', () => {
   const bits = readFileSync(new URL('../src/components/bits.tsx', import.meta.url), 'utf8');
   const kept = Number(bits.match(/const PLAY_MS = (\d+);/)?.[1]);
-  const rules = css.split('\n').filter((line) => line.startsWith('[data-play') || line.includes('[data-play='));
-  assert.ok(rules.length > 0);
-  for (const rule of rules) {
-    const ms = Number(rule.match(/animation: [a-z-]+ (\d+)ms/)?.[1]);
-    assert.ok(ms < kept, rule);
+  const played = rules.filter((rule) => rule.selector.includes('[data-play='));
+  assert.ok(played.length > 0);
+  for (const { selector, body } of played) {
+    const ms = Number(body.match(/animation: [a-z-]+ (\d+)ms/)?.[1]);
+    assert.ok(ms < kept, selector);
   }
 });
 
 test('the sliding nav pill and the view toggle stay under 250 ms', () => {
-  for (const selector of ['.nav-ink {', '.view-toggle :is(.inner, .bridge) {']) {
-    const rule = css.split('\n').find((line) => line.startsWith(selector)) ?? '';
-    const durations = [...rule.matchAll(/transition:[^;]*/g)].flatMap((m) => [...m[0].matchAll(/(\d+)ms/g)].map((d) => Number(d[1])));
+  for (const selector of ['.nav-ink', '.view-toggle :is(.inner, .bridge)']) {
+    const body = rules.find((rule) => rule.selector === selector)?.body ?? '';
+    const durations = [...body.matchAll(/transition:[^;]*/g)].flatMap((m) =>
+      [...m[0].matchAll(/(\d+)ms/g)].map((d) => Number(d[1])),
+    );
     assert.ok(durations.length > 0, selector);
     for (const ms of durations) assert.ok(ms <= 250, `${selector} ${ms} ms`);
   }
 });
 
 test('the nav and what moves with it slide by transform or translate, under 250 ms', () => {
-  for (const [selector, prop] of [['.bottom-nav {', 'transform'], [':is(.fab, .to-top, .toast) {', 'translate']]) {
-    const rule = css.split('\n').find((line) => line.startsWith(selector) && line.includes('transition:')) ?? '';
-    const match = rule.match(/transition: ([a-z-]+) (\d+)ms/);
+  for (const [selector, prop] of [
+    ['.bottom-nav', 'transform'],
+    [':is(.fab, .to-top, .toast)', 'translate'],
+  ]) {
+    const rule = rules.find((r) => r.selector === selector && r.body.includes('transition:'));
+    const match = rule?.body.match(/transition: ([a-z-]+) (\d+)ms/);
     assert.equal(match?.[1], prop, selector);
     assert.ok(Number(match?.[2]) <= 250, selector);
   }

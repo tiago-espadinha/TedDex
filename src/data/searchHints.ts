@@ -24,7 +24,19 @@ export const SEARCH_HINTS: Record<HintList, SearchHints> = {
       { label: 'Generation', words: ['gen 3'], note: '1 to 9' },
       {
         label: 'Category',
-        words: ['favourite', 'starter', 'mega', 'fossil', 'eeveelution', 'legendary', 'mythical', 'regional', 'baby', 'paradox', 'stone'],
+        words: [
+          'favourite',
+          'starter',
+          'mega',
+          'fossil',
+          'eeveelution',
+          'legendary',
+          'mythical',
+          'regional',
+          'baby',
+          'paradox',
+          'stone',
+        ],
       },
     ],
     examples: [
@@ -47,7 +59,26 @@ export const SEARCH_HINTS: Record<HintList, SearchHints> = {
     keywords: [
       {
         label: 'Category',
-        words: ['berry', 'balls', 'medicine', 'battle', 'held', 'mega stone', 'z-crystal', 'plate', 'memory', 'jewel', 'tera shard', 'evolution', 'tm', 'mail', 'key', 'treasure', 'ingredient', 'other'],
+        words: [
+          'berry',
+          'balls',
+          'medicine',
+          'battle',
+          'held',
+          'mega stone',
+          'z-crystal',
+          'plate',
+          'memory',
+          'jewel',
+          'tera shard',
+          'evolution',
+          'tm',
+          'mail',
+          'key',
+          'treasure',
+          'ingredient',
+          'other',
+        ],
       },
     ],
     examples: [

@@ -15,8 +15,14 @@ import { readData } from './data-files';
 // What the tips sheet promises, on the committed output of `npm run data`.
 const rows = dexRows(readData<IndexEntry[]>('index.json'), []);
 const fuse = new Fuse(rows, FUSE_OPTIONS);
-const moves = Object.values(readData<Record<string, MoveInfo>>('moves.json')).map((move) => ({ name: move.name, move }));
-const items = Object.values(readData<ItemReferenceTable>('reference/items.json')).map((item) => ({ name: item.name, item }));
+const moves = Object.values(readData<Record<string, MoveInfo>>('moves.json')).map((move) => ({
+  name: move.name,
+  move,
+}));
+const items = Object.values(readData<ItemReferenceTable>('reference/items.json')).map((item) => ({
+  name: item.name,
+  item,
+}));
 const moveFilters = (query: string): MoveFilters => ({ query, categories: [], gens: [], types: [], sort: 'name' });
 
 const SEARCH: Record<HintList, (query: string) => string[]> = {
@@ -62,7 +68,11 @@ describe('search tips', () => {
     assert.deepEqual([...shown].sort(), Object.keys(CATEGORY_LABELS).sort());
     for (const word of shown) {
       const byFilter = applyFilters(rows, fuse, { ...DEFAULT_FILTERS, category: word as DexCategory });
-      assert.deepEqual(SEARCH.dex(word), byFilter.map((m) => m.name), word);
+      assert.deepEqual(
+        SEARCH.dex(word),
+        byFilter.map((m) => m.name),
+        word,
+      );
     }
   });
 
@@ -79,8 +89,10 @@ describe('search tips', () => {
   test('the Moves words are keywords, not only names', () => {
     // With an operator a keyword is exact; alone it also lists the names holding the word.
     const exact = (word: string) => filterMoves(moves, moveFilters(`${word} & !zzz`));
-    for (const word of words('moves', 'Type')) assert.ok(exact(word).length > 0 && exact(word).every(({ move }) => move.type === word), word);
-    for (const word of words('moves', 'Category')) assert.ok(exact(word).length > 0 && exact(word).every(({ move }) => move.category === word), word);
+    for (const word of words('moves', 'Type'))
+      assert.ok(exact(word).length > 0 && exact(word).every(({ move }) => move.type === word), word);
+    for (const word of words('moves', 'Category'))
+      assert.ok(exact(word).length > 0 && exact(word).every(({ move }) => move.category === word), word);
   });
 
   test('the Items words reach every category, each with its own word', () => {

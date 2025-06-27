@@ -32,7 +32,8 @@ function fromLearnsets() {
       for (const formKey of [undefined, ...Object.keys(packed.forms ?? {})]) {
         for (const [game, set] of Object.entries(unpackLearnsets(packed, formKey))) {
           for (const [move] of set.level) add(move, 'level', game, Number(id));
-          for (const method of ['machine', 'tutor', 'egg'] as const) for (const move of set[method]) add(move, method, game, Number(id));
+          for (const method of ['machine', 'tutor', 'egg'] as const)
+            for (const move of set[method]) add(move, method, game, Number(id));
         }
       }
     }

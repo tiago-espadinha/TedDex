@@ -28,7 +28,14 @@ export function ItemFilterSheet({
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="item-filter-title">
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="item-filter-title"
+      >
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="item-filter-title">Filter items</h2>

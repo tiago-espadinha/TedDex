@@ -14,7 +14,14 @@ describe('index.json forms', () => {
     for (const m of index.filter((x) => x.forms)) {
       const detail = species(m.id).forms!.slice(1);
       assert.deepEqual(
-        m.forms!.map(({ key, label, pokemonId, name, types, total }) => ({ key, label, pokemonId, name, types, total })),
+        m.forms!.map(({ key, label, pokemonId, name, types, total }) => ({
+          key,
+          label,
+          pokemonId,
+          name,
+          types,
+          total,
+        })),
         detail.map(({ key, label, pokemonId, name, types, total }) => ({ key, label, pokemonId, name, types, total })),
         m.name,
       );

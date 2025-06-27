@@ -63,7 +63,15 @@ describe('summariseSlots', () => {
 
   test('counts each combination of swarm, time, radar and slot 2', () => {
     // Bidoof on Route 201 in Diamond: 50% in a normal day, 60% at night.
-    const slots = [slot(20, ['2']), slot(10, ['5']), slot(10, []), slot(5, []), slot(10, ['7']), slot(1, ['7']), slot(4, ['8'])];
+    const slots = [
+      slot(20, ['2']),
+      slot(10, ['5']),
+      slot(10, []),
+      slot(5, []),
+      slot(10, ['7']),
+      slot(1, ['7']),
+      slot(4, ['8']),
+    ];
     assert.deepEqual(summariseSlots(slots, VALUES, ALL), { min: 2, max: 2, rate: 60, upTo: true });
   });
 

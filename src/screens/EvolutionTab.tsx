@@ -1,7 +1,17 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { itemSpriteUrl, loadEvolution, loadIndex, loadSpecies, useLoad } from '../data/api';
-import { branches, currentForm, evolutionLine, megaForms, megaGroups, megaSpecies, shortCondition, targetsOf, type ChainStage } from '../data/evolution';
+import {
+  branches,
+  currentForm,
+  evolutionLine,
+  megaForms,
+  megaGroups,
+  megaSpecies,
+  shortCondition,
+  targetsOf,
+  type ChainStage,
+} from '../data/evolution';
 import type { FormVariant, IndexEntry, SpeciesDetail } from '../data/types';
 import { Loading, MonName } from '../components/bits';
 import { MonImg } from '../components/MonImg';
@@ -17,7 +27,12 @@ export function EvolutionTab({ mon, formKey }: { mon: SpeciesDetail; formKey: st
   const chainId = mon.evolutionChainId;
   const { data, error } = useLoad(() => loadAll(chainId, mon.id), mon.id);
 
-  if (error) return <Section title="Evolution"><p className="hint">Couldn't load the evolution chain. {error.message}</p></Section>;
+  if (error)
+    return (
+      <Section title="Evolution">
+        <p className="hint">Couldn't load the evolution chain. {error.message}</p>
+      </Section>
+    );
   if (!data) return <Loading minHeight={160} />;
   const { chain, index, megaOwners } = data;
   const species = new Map(index.map((s) => [s.id, s]));
@@ -56,7 +71,10 @@ function Line({ stages, species, current }: { stages: ChainStage[]; species: Spe
   return branches(stages) ? (
     <div className="evo-card evo-fan">{fan(stages, stages[0], mon)}</div>
   ) : (
-    <ol className="evo-card evo-row" style={{ gridTemplateColumns: `minmax(0, 1fr) repeat(${stages.length - 1}, fit-content(76px) minmax(0, 1fr))` }}>
+    <ol
+      className="evo-card evo-row"
+      style={{ gridTemplateColumns: `minmax(0, 1fr) repeat(${stages.length - 1}, fit-content(76px) minmax(0, 1fr))` }}
+    >
       {stages.map((s, i) => (
         <li key={s.id}>
           {i > 0 && <Step conditions={s.conditions} />}
@@ -128,7 +146,19 @@ function Mon({ stage, species, current }: { stage: ChainStage; species?: IndexEn
   );
 }
 
-function MonTile({ mediaId, speciesId, name, to, current }: { mediaId: number; speciesId: number; name: string; to: string; current: boolean }) {
+function MonTile({
+  mediaId,
+  speciesId,
+  name,
+  to,
+  current,
+}: {
+  mediaId: number;
+  speciesId: number;
+  name: string;
+  to: string;
+  current: boolean;
+}) {
   const content = (
     <>
       <MonImg id={mediaId} speciesId={speciesId} alt="" width={80} height={80} />
@@ -157,9 +187,17 @@ interface MegaGroupProps {
 
 /** The species ⇄ its Mega or Primal form on one row, or, with several, a fan of them under the species. */
 function MegaGroup({ mon, forms, shownForm }: MegaGroupProps) {
-  const species = <MonTile mediaId={mon.id} speciesId={mon.id} name={mon.name} to={`/pokemon/${mon.id}`} current={shownForm === ''} />;
+  const species = (
+    <MonTile mediaId={mon.id} speciesId={mon.id} name={mon.name} to={`/pokemon/${mon.id}`} current={shownForm === ''} />
+  );
   const tile = (form: FormVariant) => (
-    <MonTile mediaId={form.pokemonId} speciesId={mon.id} name={form.name} to={`/pokemon/${mon.id}?form=${form.key}`} current={shownForm === form.key} />
+    <MonTile
+      mediaId={form.pokemonId}
+      speciesId={mon.id}
+      name={form.name}
+      to={`/pokemon/${mon.id}?form=${form.key}`}
+      current={shownForm === form.key}
+    />
   );
   if (forms.length === 1) {
     return (
@@ -191,7 +229,9 @@ function MegaStep({ form, down = false }: { form: FormVariant; down?: boolean })
   return (
     <span className={down ? 'evo-step mega down' : 'evo-step mega'}>
       <b>
-        {trigger.kind === 'item' && <img src={itemSpriteUrl(trigger.id)} alt="" width={24} height={24} loading="lazy" />}
+        {trigger.kind === 'item' && (
+          <img src={itemSpriteUrl(trigger.id)} alt="" width={24} height={24} loading="lazy" />
+        )}
         {trigger.kind === 'item' ? 'Hold' : 'Know'} {trigger.name}
       </b>
       {down ? (

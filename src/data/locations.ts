@@ -67,7 +67,8 @@ export function encountersInGroup(data: Locations, games: Game[]): GroupEncounte
         at = i + 1;
       } else {
         // Past earlier games' rows this one lacks in the same area, or in areas it hasn't got at all.
-        const skip = (r: (typeof rows)[number]) => !keys.has(r.key) && (r.encounter.area === encounter.area || !areas.has(r.encounter.area));
+        const skip = (r: (typeof rows)[number]) =>
+          !keys.has(r.key) && (r.encounter.area === encounter.area || !areas.has(r.encounter.area));
         while (rows[at] && skip(rows[at])) at++;
         rows.splice(at++, 0, { key, encounter, versions: [game.label] });
       }

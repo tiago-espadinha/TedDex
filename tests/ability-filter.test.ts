@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { abilityFilterParams, activeAbilityFilters, filterAbilities, readAbilityFilters, type AbilityFilters } from '../src/data/abilityFilter';
+import {
+  abilityFilterParams,
+  activeAbilityFilters,
+  filterAbilities,
+  readAbilityFilters,
+  type AbilityFilters,
+} from '../src/data/abilityFilter';
 
 const ABILITIES = [
   { name: 'Intimidate', gen: 3 },

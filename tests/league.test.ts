@@ -54,7 +54,10 @@ describe('parseParties', () => {
   test('finds every party with the headings it sits under', () => {
     assert.equal(parties.length, 2);
     assert.deepEqual(parties[1].headings, [
-      'In the core series games', 'Pokémon', '{{g|Sword and Shield}}', 'Championship Match',
+      'In the core series games',
+      'Pokémon',
+      '{{g|Sword and Shield}}',
+      'Championship Match',
     ]);
     assert.equal(parties[1].game, 'SwSh');
     assert.equal(parties[1].caption, '{{PlayerChoice|0810|Grookey}}');
@@ -82,15 +85,20 @@ describe('parseParties', () => {
 });
 
 test('parseParties throws on a template closed inline instead of merging members', () => {
-  const page = '{{Party\n| game = RGB\n}}\n{{Pokémon\n| ndex = 0087\n| move4 = Rest}}\n{{Pokémon\n| ndex = 0091\n}}\n{{Party/end}}';
+  const page =
+    '{{Party\n| game = RGB\n}}\n{{Pokémon\n| ndex = 0087\n| move4 = Rest}}\n{{Pokémon\n| ndex = 0091\n}}\n{{Party/end}}';
   assert.throws(() => parseParties(page), /Unclosed template/);
 });
 
 test('parseParties reads templates opened mid-line', () => {
-  const page = 'Misty has three Full Restores.{{Party\n| game = HGSS\n}}{{Pokémon\n| ndex = 0055\n}}\n{{Pokémon\n| ndex = 0121\n}}{{Party/end}}';
+  const page =
+    'Misty has three Full Restores.{{Party\n| game = HGSS\n}}{{Pokémon\n| ndex = 0055\n}}\n{{Pokémon\n| ndex = 0121\n}}{{Party/end}}';
   const [party] = parseParties(page);
   assert.equal(party.game, 'HGSS');
-  assert.deepEqual(party.members.map((m) => m.ndex), [55, 121]);
+  assert.deepEqual(
+    party.members.map((m) => m.ndex),
+    [55, 121],
+  );
 });
 
 describe('parseLevel', () => {

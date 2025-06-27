@@ -2,7 +2,13 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { searchByName, searchKey } from '../src/data/reference';
 
-const MOVES = [{ name: 'Thunder' }, { name: 'U-turn' }, { name: 'Thunderbolt' }, { name: 'Bolt Strike' }, { name: 'Absorb' }];
+const MOVES = [
+  { name: 'Thunder' },
+  { name: 'U-turn' },
+  { name: 'Thunderbolt' },
+  { name: 'Bolt Strike' },
+  { name: 'Absorb' },
+];
 const names = (list: { name: string }[]) => list.map((m) => m.name);
 
 describe('searchByName', () => {

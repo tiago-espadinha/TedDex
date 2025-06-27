@@ -1,6 +1,13 @@
 import { useModalSheet } from '../components/bits';
 import { useLiveDraft } from '../components/useLiveDraft';
-import { CATEGORY_LABELS, DEFAULT_FILTERS, SORT_LABELS, type DexCategory, type DexFilters, type SortKey } from '../data/dexState';
+import {
+  CATEGORY_LABELS,
+  DEFAULT_FILTERS,
+  SORT_LABELS,
+  type DexCategory,
+  type DexFilters,
+  type SortKey,
+} from '../data/dexState';
 import { TYPE_NAMES, typeChip } from '../data/typeColors';
 import type { TypeName } from '../data/types';
 import { roman } from '../data/format';
@@ -31,7 +38,14 @@ export function FilterSheet({
   return (
     <>
       <div className="scrim" onClick={() => close()} />
-      <section ref={sheet} tabIndex={-1} className="sheet" role="dialog" aria-modal="true" aria-labelledby="filter-title">
+      <section
+        ref={sheet}
+        tabIndex={-1}
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="filter-title"
+      >
         <div className="handle" />
         <div className="sheet-head">
           <h2 id="filter-title">Filter &amp; sort</h2>
@@ -73,7 +87,11 @@ export function FilterSheet({
                 className="type-toggle"
                 aria-pressed={on}
                 onClick={() => setDraft((d) => ({ ...d, types: toggle(d.types, t) }))}
-                style={{ borderColor: c, backgroundColor: on ? c : undefined, color: on ? 'var(--on-type)' : 'var(--ink)' }}
+                style={{
+                  borderColor: c,
+                  backgroundColor: on ? c : undefined,
+                  color: on ? 'var(--on-type)' : 'var(--ink)',
+                }}
               >
                 {t}
               </button>
@@ -98,7 +116,13 @@ export function FilterSheet({
         <h3>Sort by</h3>
         <div className="sort-grid" role="radiogroup" aria-label="Sort by">
           {SORTS.map(([key, label]) => (
-            <button key={key} className="gen-btn" role="radio" aria-checked={draft.sort === key} onClick={() => setDraft((d) => ({ ...d, sort: key }))}>
+            <button
+              key={key}
+              className="gen-btn"
+              role="radio"
+              aria-checked={draft.sort === key}
+              onClick={() => setDraft((d) => ({ ...d, sort: key }))}
+            >
               {label}
             </button>
           ))}
@@ -115,7 +139,15 @@ export function FilterSheet({
 }
 
 /** A section heading that selects every option, or clears them when all are selected. */
-export function ToggleAllHeading({ title, all, onToggle }: { title: string; all: boolean; onToggle: (all: boolean) => void }) {
+export function ToggleAllHeading({
+  title,
+  all,
+  onToggle,
+}: {
+  title: string;
+  all: boolean;
+  onToggle: (all: boolean) => void;
+}) {
   return (
     <h3>
       <button className="head-toggle" aria-pressed={all} onClick={() => onToggle(all)}>

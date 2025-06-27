@@ -5,7 +5,16 @@ import { loadAbilities, loadItems, loadLearnsets, loadMoves, loadSpecies, loadVe
 import { MOVE_SLOTS, cleanNickname, db, memberTitle, updateMember, type TeamMember } from '../data/db';
 import { detailPath } from '../data/dexState';
 import { applyForm } from '../data/forms';
-import { NO_MOVE_FILTERS, activeMoveChoiceFilters, memberAbility, moveChoices, moveFilterGame, otherAbilities, withMove, type MoveChoiceFilters } from '../data/memberOptions';
+import {
+  NO_MOVE_FILTERS,
+  activeMoveChoiceFilters,
+  memberAbility,
+  moveChoices,
+  moveFilterGame,
+  otherAbilities,
+  withMove,
+  type MoveChoiceFilters,
+} from '../data/memberOptions';
 import { NATURES, natureLabel } from '../data/natures';
 import { parsePeek, type Peek } from '../data/peek';
 import { useGame, useGodMode } from '../data/settings';
@@ -26,9 +35,13 @@ const loadAll = (id: number, formKey?: string) =>
   Promise.all([loadSpecies(id), loadLearnsets(id, formKey), loadMoves(), loadItems(), loadVersions()]);
 
 const godModeText = (on: boolean) =>
-  on ? 'God mode on: any move and ability enabled' : "God mode off: only legal moves and abilities";
+  on ? 'God mode on: any move and ability enabled' : 'God mode off: only legal moves and abilities';
 
-type Picking = { kind: 'nickname' } | { kind: 'item' } | { kind: 'ability' } | { kind: 'move' | 'move-filter'; slot: number };
+type Picking =
+  | { kind: 'nickname' }
+  | { kind: 'item' }
+  | { kind: 'ability' }
+  | { kind: 'move' | 'move-filter'; slot: number };
 
 export function MemberEditor() {
   const params = useParams();
@@ -43,7 +56,10 @@ export function MemberEditor() {
   const [godMode, setGodMode] = useGodMode();
   const toast = useToast();
   // Every ability is only needed for god mode's picker.
-  const { data: abilities, error: abilitiesError } = useLoad(() => (godMode ? loadAbilities() : Promise.resolve(undefined)), godMode);
+  const { data: abilities, error: abilitiesError } = useLoad(
+    () => (godMode ? loadAbilities() : Promise.resolve(undefined)),
+    godMode,
+  );
   const [picking, setPicking] = useState<Picking>();
   // Kept while the editor is open, so reopening the move picker keeps them.
   const [moveFilters, setMoveFilters] = useState(NO_MOVE_FILTERS);
@@ -79,8 +95,12 @@ export function MemberEditor() {
   const sharedGame = knownGame(storedGame, versions);
   const newestGame = speciesGames.at(-1)?.id;
   const filterGame = moveFilterGame(sharedGame, anyGame, newestGame);
-  const moveOptions = (f: MoveChoiceFilters) => moveChoices(learnsets, moves, godMode, { ...f, game: filterGame }).filter((m) => !chosen.includes(m));
-  const notInGame = filterGame !== undefined && !learnsets[filterGame] && `${mon.name} isn't in ${versions.find((v) => v.id === filterGame)?.label}.`;
+  const moveOptions = (f: MoveChoiceFilters) =>
+    moveChoices(learnsets, moves, godMode, { ...f, game: filterGame }).filter((m) => !chosen.includes(m));
+  const notInGame =
+    filterGame !== undefined &&
+    !learnsets[filterGame] &&
+    `${mon.name} isn't in ${versions.find((v) => v.id === filterGame)?.label}.`;
   const save = (patch: Partial<TeamMember>) => updateMember(teamId, index, (m) => ({ ...m, ...patch }));
   const setMove = (slot: number, move?: number) =>
     updateMember(teamId, index, (m) => ({ ...m, moves: withMove(m.moves ?? [], moves, slot, move) }));
@@ -115,7 +135,10 @@ export function MemberEditor() {
         </Link>
         <div className="grow">
           <h1 className="team-name">
-            <button aria-label={`Set nickname, ${memberTitle(mon.name, member.nickname)}`} onClick={() => setPicking({ kind: 'nickname' })}>
+            <button
+              aria-label={`Set nickname, ${memberTitle(mon.name, member.nickname)}`}
+              onClick={() => setPicking({ kind: 'nickname' })}
+            >
               <span>{memberTitle(mon.name, member.nickname)}</span>
             </button>
           </h1>
@@ -153,10 +176,18 @@ export function MemberEditor() {
       </header>
 
       <div className="list">
-        <Link to={detailPath(mon.id, form?.key)} className="slot member-hero" style={{ backgroundColor: typeTint(mon.types[0]) }}>
+        <Link
+          to={detailPath(mon.id, form?.key)}
+          className="slot member-hero"
+          style={{ backgroundColor: typeTint(mon.types[0]) }}
+        >
           <MonImg id={mediaId} speciesId={member.speciesId} shiny={member.shiny} alt="" width={64} height={64} />
           <div style={{ minWidth: 0 }}>
-            <div className="chips">{mon.types.map((t) => <TypeChip key={t} type={t} />)}</div>
+            <div className="chips">
+              {mon.types.map((t) => (
+                <TypeChip key={t} type={t} />
+              ))}
+            </div>
             <div className="meta">View in Dex</div>
           </div>
           <Icon name="next" size={20} />
@@ -166,7 +197,9 @@ export function MemberEditor() {
       <Field
         title="Ability"
         action={
-          abilityId !== undefined && <InfoButton name={member.ability!} onClick={() => peek({ kind: 'ability', id: abilityId })} />
+          abilityId !== undefined && (
+            <InfoButton name={member.ability!} onClick={() => peek({ kind: 'ability', id: abilityId })} />
+          )
         }
       >
         <div className="ability-row" role="radiogroup" aria-label="Ability">
@@ -190,7 +223,11 @@ export function MemberEditor() {
           )}
         </div>
         {godMode && (
-          <button className="add-slot ability-any" onClick={() => setPicking({ kind: 'ability' })} disabled={!abilities}>
+          <button
+            className="add-slot ability-any"
+            onClick={() => setPicking({ kind: 'ability' })}
+            disabled={!abilities}
+          >
             <Icon name="plus" size={18} /> Any ability
           </button>
         )}
@@ -200,7 +237,11 @@ export function MemberEditor() {
       <Field title="Nature">
         <label className="game-select">
           <span className="sr-only">Nature</span>
-          <select className={member.nature ? undefined : 'none'} value={member.nature ?? ''} onChange={(e) => save({ nature: e.target.value || undefined })}>
+          <select
+            className={member.nature ? undefined : 'none'}
+            value={member.nature ?? ''}
+            onChange={(e) => save({ nature: e.target.value || undefined })}
+          >
             <option value="">None</option>
             {NATURES.map((n) => (
               <option key={n.name} value={n.name}>
@@ -218,7 +259,9 @@ export function MemberEditor() {
           aria-label={member.item ? `About ${items[member.item]?.name ?? 'held item'}` : 'Choose a held item'}
           onClick={() => (member.item ? peek({ kind: 'item', id: member.item }) : setPicking({ kind: 'item' }))}
         >
-          <span className={member.item ? 'v' : 'v none'}>{member.item ? (items[member.item]?.name ?? 'Unknown item') : 'None'}</span>
+          <span className={member.item ? 'v' : 'v none'}>
+            {member.item ? (items[member.item]?.name ?? 'Unknown item') : 'None'}
+          </span>
           {!member.item && <Icon name="next" size={18} />}
         </button>
       </Field>
@@ -248,7 +291,11 @@ export function MemberEditor() {
         <PickerSheet
           title="Held item"
           options={itemOptions}
-          render={(o) => <span className="body"><span className="name">{o.name}</span></span>}
+          render={(o) => (
+            <span className="body">
+              <span className="name">{o.name}</span>
+            </span>
+          )}
           onPick={(item) => save({ item })}
           onClose={() => setPicking(undefined)}
         />
@@ -428,10 +475,20 @@ function PickerSheet({
           <label className="search">
             <Icon name="search" size={20} />
             <span className="sr-only">Search</span>
-            <input type="search" data-autofocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
+            <input
+              type="search"
+              data-autofocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search"
+            />
           </label>
           {onFilter && (
-            <button className="icon-btn filter-btn" aria-label={filters ? `Filter, ${filters} active` : 'Filter'} onClick={() => close(onFilter)}>
+            <button
+              className="icon-btn filter-btn"
+              aria-label={filters ? `Filter, ${filters} active` : 'Filter'}
+              onClick={() => close(onFilter)}
+            >
               <Icon name="filter" size={22} />
               <CountBadge count={filters} />
             </button>
@@ -453,7 +510,11 @@ function PickerSheet({
             </li>
           ))}
         </ul>
-        {!shown.length && <p className="empty">{emptyNote ?? (q || !onFilter ? `Nothing matches “${query}”.` : 'Nothing matches the filters.')}</p>}
+        {!shown.length && (
+          <p className="empty">
+            {emptyNote ?? (q || !onFilter ? `Nothing matches “${query}”.` : 'Nothing matches the filters.')}
+          </p>
+        )}
       </section>
     </>
   );

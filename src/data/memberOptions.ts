@@ -1,4 +1,12 @@
-import type { AbilityNameTable, LearnMethod, Learnsets, MoveCategory, MoveTable, SpeciesDetail, TypeName } from './types';
+import type {
+  AbilityNameTable,
+  LearnMethod,
+  Learnsets,
+  MoveCategory,
+  MoveTable,
+  SpeciesDetail,
+  TypeName,
+} from './types';
 import { MOVE_SLOTS } from './db';
 import type { GamePref } from './game';
 
@@ -14,7 +22,9 @@ export function learnable(learnsets: Learnsets, game?: number, methods: LearnMet
   const ids = new Set<number>();
   for (const set of sets) {
     if (by('level')) set.level.forEach(([m]) => ids.add(m));
-    [...(by('machine') ? set.machine : []), ...(by('tutor') ? set.tutor : []), ...(by('egg') ? set.egg : [])].forEach((m) => ids.add(m));
+    [...(by('machine') ? set.machine : []), ...(by('tutor') ? set.tutor : []), ...(by('egg') ? set.egg : [])].forEach(
+      (m) => ids.add(m),
+    );
   }
   return ids;
 }
@@ -33,10 +43,12 @@ export const NO_MOVE_FILTERS: MoveChoiceFilters = { methods: [], types: [], cate
  * The game the move filter narrows to: none for Any game, the species' newest for Latest, else the shared game, kept
  * even when the species isn't in it so it offers nothing rather than falling through to every game.
  */
-export const moveFilterGame = (shared: GamePref, anyGame: boolean, newest?: number) => (anyGame ? undefined : shared === 'latest' ? newest : shared);
+export const moveFilterGame = (shared: GamePref, anyGame: boolean, newest?: number) =>
+  anyGame ? undefined : shared === 'latest' ? newest : shared;
 
 /** How many filters are on, for the filter button's badge; the game counts only when `gameChanged` from what the picker opens on. */
-export const activeMoveChoiceFilters = (f: MoveChoiceFilters, gameChanged = false) => (gameChanged ? 1 : 0) + f.methods.length + f.types.length + f.categories.length;
+export const activeMoveChoiceFilters = (f: MoveChoiceFilters, gameChanged = false) =>
+  (gameChanged ? 1 : 0) + f.methods.length + f.types.length + f.categories.length;
 
 /**
  * The moves the member editor offers, sorted by name: what the species learns (see `learnable`), or in god mode every
@@ -46,7 +58,12 @@ export function moveChoices(learnsets: Learnsets, moves: MoveTable, godMode = fa
   const every = godMode && f.game === undefined && !f.methods.length;
   const ids = every ? Object.keys(moves).map(Number) : [...learnable(learnsets, f.game, f.methods)];
   return ids
-    .filter((id) => moves[id] && (!f.types.length || f.types.includes(moves[id].type)) && (!f.categories.length || f.categories.includes(moves[id].category)))
+    .filter(
+      (id) =>
+        moves[id] &&
+        (!f.types.length || f.types.includes(moves[id].type)) &&
+        (!f.categories.length || f.categories.includes(moves[id].category)),
+    )
     .sort(byName(moves));
 }
 

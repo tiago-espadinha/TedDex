@@ -14,57 +14,116 @@ export interface GameCode {
 /** Codes per template suffix (`gameabbrev3`, `gameabbrevss`…), in release order; combined codes split into these. */
 const CODES: Record<string, Record<string, Omit<GameCode, 'order'>>> = {
   1: {
-    RGBY: { label: 'Red / Green / Blue / Yellow', groups: [1, 2] }, RBY: { label: 'Red / Blue / Yellow', groups: [1, 2] }, RB: { label: 'Red / Blue', groups: [1] }, R: { label: 'Red', groups: [1] },
-    G: { label: 'Green' }, B: { label: 'Blue', groups: [1] }, Y: { label: 'Yellow', groups: [2] },
+    RGBY: { label: 'Red / Green / Blue / Yellow', groups: [1, 2] },
+    RBY: { label: 'Red / Blue / Yellow', groups: [1, 2] },
+    RB: { label: 'Red / Blue', groups: [1] },
+    R: { label: 'Red', groups: [1] },
+    G: { label: 'Green' },
+    B: { label: 'Blue', groups: [1] },
+    Y: { label: 'Yellow', groups: [2] },
   },
   2: {
-    GSC: { label: 'Gold / Silver / Crystal', groups: [3, 4] }, GS: { label: 'Gold / Silver', groups: [3] }, G: { label: 'Gold', groups: [3] },
-    S: { label: 'Silver', groups: [3] }, C: { label: 'Crystal', groups: [4] },
+    GSC: { label: 'Gold / Silver / Crystal', groups: [3, 4] },
+    GS: { label: 'Gold / Silver', groups: [3] },
+    G: { label: 'Gold', groups: [3] },
+    S: { label: 'Silver', groups: [3] },
+    C: { label: 'Crystal', groups: [4] },
   },
   3: {
-    RSE: { label: 'Ruby / Sapphire / Emerald', groups: [5, 6] }, RS: { label: 'Ruby / Sapphire', groups: [5] }, R: { label: 'Ruby', groups: [5] },
-    S: { label: 'Sapphire', groups: [5] }, E: { label: 'Emerald', groups: [6] }, FRLG: { label: 'FireRed / LeafGreen', groups: [7] },
-    FR: { label: 'FireRed', groups: [7] }, LG: { label: 'LeafGreen', groups: [7] },
+    RSE: { label: 'Ruby / Sapphire / Emerald', groups: [5, 6] },
+    RS: { label: 'Ruby / Sapphire', groups: [5] },
+    R: { label: 'Ruby', groups: [5] },
+    S: { label: 'Sapphire', groups: [5] },
+    E: { label: 'Emerald', groups: [6] },
+    FRLG: { label: 'FireRed / LeafGreen', groups: [7] },
+    FR: { label: 'FireRed', groups: [7] },
+    LG: { label: 'LeafGreen', groups: [7] },
   },
   4: {
-    DPPt: { label: 'Diamond / Pearl / Platinum', groups: [8, 9] }, DP: { label: 'Diamond / Pearl', groups: [8] }, D: { label: 'Diamond', groups: [8] },
-    P: { label: 'Pearl', groups: [8] }, Pt: { label: 'Platinum', groups: [9] }, HGSS: { label: 'HeartGold / SoulSilver', groups: [10] },
-    HG: { label: 'HeartGold', groups: [10] }, SS: { label: 'SoulSilver', groups: [10] },
+    DPPt: { label: 'Diamond / Pearl / Platinum', groups: [8, 9] },
+    DP: { label: 'Diamond / Pearl', groups: [8] },
+    D: { label: 'Diamond', groups: [8] },
+    P: { label: 'Pearl', groups: [8] },
+    Pt: { label: 'Platinum', groups: [9] },
+    HGSS: { label: 'HeartGold / SoulSilver', groups: [10] },
+    HG: { label: 'HeartGold', groups: [10] },
+    SS: { label: 'SoulSilver', groups: [10] },
   },
   5: {
-    BW: { label: 'Black / White', groups: [11] }, B2W2: { label: 'Black 2 / White 2', groups: [14] }, B: { label: 'Black', groups: [11] },
-    W: { label: 'White', groups: [11] }, B2: { label: 'Black 2', groups: [14] }, W2: { label: 'White 2', groups: [14] },
+    BW: { label: 'Black / White', groups: [11] },
+    B2W2: { label: 'Black 2 / White 2', groups: [14] },
+    B: { label: 'Black', groups: [11] },
+    W: { label: 'White', groups: [11] },
+    B2: { label: 'Black 2', groups: [14] },
+    W2: { label: 'White 2', groups: [14] },
   },
   6: {
-    XY: { label: 'X / Y', groups: [15] }, X: { label: 'X', groups: [15] }, Y: { label: 'Y', groups: [15] },
-    ORAS: { label: 'Omega Ruby / Alpha Sapphire', groups: [16] }, OR: { label: 'Omega Ruby', groups: [16] }, AS: { label: 'Alpha Sapphire', groups: [16] },
+    XY: { label: 'X / Y', groups: [15] },
+    X: { label: 'X', groups: [15] },
+    Y: { label: 'Y', groups: [15] },
+    ORAS: { label: 'Omega Ruby / Alpha Sapphire', groups: [16] },
+    OR: { label: 'Omega Ruby', groups: [16] },
+    AS: { label: 'Alpha Sapphire', groups: [16] },
   },
   7: {
-    SM: { label: 'Sun / Moon', groups: [17] }, S: { label: 'Sun', groups: [17] }, M: { label: 'Moon', groups: [17] },
-    USUM: { label: 'Ultra Sun / Ultra Moon', groups: [18] }, US: { label: 'Ultra Sun', groups: [18] },
-    UM: { label: 'Ultra Moon', groups: [18] }, PE: { label: "Let's Go, Pikachu! / Let's Go, Eevee!", groups: [19] },
+    SM: { label: 'Sun / Moon', groups: [17] },
+    S: { label: 'Sun', groups: [17] },
+    M: { label: 'Moon', groups: [17] },
+    USUM: { label: 'Ultra Sun / Ultra Moon', groups: [18] },
+    US: { label: 'Ultra Sun', groups: [18] },
+    UM: { label: 'Ultra Moon', groups: [18] },
+    PE: { label: "Let's Go, Pikachu! / Let's Go, Eevee!", groups: [19] },
   },
   8: {
-    SwSh: { label: 'Sword / Shield', groups: [20] }, Sw: { label: 'Sword', groups: [20] }, Sh: { label: 'Shield', groups: [20] },
-    IA: { label: 'The Isle of Armor', groups: [20] }, CT: { label: 'The Crown Tundra', groups: [20] },
-    BDSP: { label: 'Brilliant Diamond / Shining Pearl', groups: [23] }, BD: { label: 'Brilliant Diamond', groups: [23] },
-    SP: { label: 'Shining Pearl', groups: [23] }, LA: { label: 'Legends: Arceus', groups: [24] },
+    SwSh: { label: 'Sword / Shield', groups: [20] },
+    Sw: { label: 'Sword', groups: [20] },
+    Sh: { label: 'Shield', groups: [20] },
+    IA: { label: 'The Isle of Armor', groups: [20] },
+    CT: { label: 'The Crown Tundra', groups: [20] },
+    BDSP: { label: 'Brilliant Diamond / Shining Pearl', groups: [23] },
+    BD: { label: 'Brilliant Diamond', groups: [23] },
+    SP: { label: 'Shining Pearl', groups: [23] },
+    LA: { label: 'Legends: Arceus', groups: [24] },
   },
   9: {
-    SV: { label: 'Scarlet / Violet', groups: [25] }, S: { label: 'Scarlet', groups: [25] }, V: { label: 'Violet', groups: [25] },
-    TM: { label: 'The Teal Mask', groups: [25] }, ID: { label: 'The Indigo Disk', groups: [25] },
-    ZA: { label: 'Legends: Z-A' }, MD: { label: 'Mega Dimension' },
+    SV: { label: 'Scarlet / Violet', groups: [25] },
+    S: { label: 'Scarlet', groups: [25] },
+    V: { label: 'Violet', groups: [25] },
+    TM: { label: 'The Teal Mask', groups: [25] },
+    ID: { label: 'The Indigo Disk', groups: [25] },
+    ZA: { label: 'Legends: Z-A' },
+    MD: { label: 'Mega Dimension' },
   },
   ss: {
-    Stad: { label: 'Stadium' }, Colo: { label: 'Colosseum', groups: [12] }, XD: { label: 'XD: Gale of Darkness', groups: [13] },
-    PW: { label: 'Pokéwalker' }, PBR: { label: 'Battle Revolution' }, Ranch: { label: 'My Pokémon Ranch' }, DW: { label: 'Dream World' },
-    PDR: { label: 'Dream Radar' }, PMC: { label: 'Pokémon Mystery Club' }, Champs: { label: 'Champions' }, Champ: { label: 'Champions' },
+    Stad: { label: 'Stadium' },
+    Colo: { label: 'Colosseum', groups: [12] },
+    XD: { label: 'XD: Gale of Darkness', groups: [13] },
+    PW: { label: 'Pokéwalker' },
+    PBR: { label: 'Battle Revolution' },
+    Ranch: { label: 'My Pokémon Ranch' },
+    DW: { label: 'Dream World' },
+    PDR: { label: 'Dream Radar' },
+    PMC: { label: 'Pokémon Mystery Club' },
+    Champs: { label: 'Champions' },
+    Champ: { label: 'Champions' },
   },
 };
 
 /** Chronological order across all codes: by generation, spin-offs placed after their era's main games. */
 const ORDER: Record<string, number> = { 1: 10, 2: 20, 3: 30, ss: 0, 4: 40, 5: 50, 6: 60, 7: 70, 8: 80, 9: 90 };
-const SPIN_OFF_ORDER: Record<string, number> = { Stad: 15, Colo: 35, XD: 36, PW: 45, PBR: 46, Ranch: 47, DW: 55, PDR: 56, PMC: 85, Champs: 99, Champ: 99 };
+const SPIN_OFF_ORDER: Record<string, number> = {
+  Stad: 15,
+  Colo: 35,
+  XD: 36,
+  PW: 45,
+  PBR: 46,
+  Ranch: 47,
+  DW: 55,
+  PDR: 56,
+  PMC: 85,
+  Champs: 99,
+  Champ: 99,
+};
 
 /** The game codes in one `{{gameabbrevN|…}}` value, longest first: "SMUSUMPE" → SM, USUM, PE. */
 export function gameCodes(suffix: string, value: string): GameCode[] {
@@ -72,7 +131,7 @@ export function gameCodes(suffix: string, value: string): GameCode[] {
   if (!table) throw new Error(`Unknown game template gameabbrev${suffix}`);
   const known = Object.keys(table).sort((a, b) => b.length - a.length);
   const out: GameCode[] = [];
-  for (let rest = value; rest; ) {
+  for (let rest = value; rest;) {
     const code = known.find((c) => rest.startsWith(c));
     if (!code) throw new Error(`Unknown game code "${value}" in gameabbrev${suffix}`);
     const order = (SPIN_OFF_ORDER[code] ?? ORDER[suffix]) + Object.keys(table).indexOf(code) / 100;
@@ -101,21 +160,51 @@ const NOTES: Record<string, Record<string, string>> = {
 function supLabel(suffix: string, value: string): string {
   if (NOTES[suffix]) return NOTES[suffix][value] ?? value;
   try {
-    return gameCodes(suffix, value).map((g) => g.label).join(', ');
+    return gameCodes(suffix, value)
+      .map((g) => g.label)
+      .join(', ');
   } catch {
     return value;
   }
 }
 
-const DAYS: Record<string, string> = { mo: 'Monday', tu: 'Tuesday', we: 'Wednesday', th: 'Thursday', fr: 'Friday', sa: 'Saturday', su: 'Sunday' };
+const DAYS: Record<string, string> = {
+  mo: 'Monday',
+  tu: 'Tuesday',
+  we: 'Wednesday',
+  th: 'Thursday',
+  fr: 'Friday',
+  sa: 'Saturday',
+  su: 'Sunday',
+};
 const first = (a: string[]) => a[0];
 const display = (a: string[]) => a[1] ?? a[0];
 
 /** How each template a table cell uses reads as text (MediaWiki ignores the case of the first letter). */
 const TEMPLATES: Record<string, (args: string[]) => string> = {
-  p: first, ga: first, tc: first, type: first, v2: first, gdis: first, tt: first,
-  a: display, i: display, m: display, t: display, cat: display, si: display, ka: display, kal: display, ho: display,
-  jo: display, al: display, un: display, pal: display, gal: display, pw: display, dwa: display,
+  p: first,
+  ga: first,
+  tc: first,
+  type: first,
+  v2: first,
+  gdis: first,
+  tt: first,
+  a: display,
+  i: display,
+  m: display,
+  t: display,
+  cat: display,
+  si: display,
+  ka: display,
+  kal: display,
+  ho: display,
+  jo: display,
+  al: display,
+  un: display,
+  pal: display,
+  gal: display,
+  pw: display,
+  dwa: display,
   pkmn: (a) => a[1] ?? `Pokémon ${a[0]}`,
   pkmn2: (a) => a[1] ?? `${a[0]} Pokémon`,
   b: (a) => `${a[0]} Berry`,
@@ -158,7 +247,10 @@ function template(body: string): string {
   const sup = name.match(/^[Ss]up\/(\w+)$/);
   if (sup) return ` (${supLabel(sup[1], args[0] ?? '')})`;
   const game = name.match(/^[Gg]ameabbrev(\w+)$/);
-  if (game) return gameCodes(game[1], args[0] ?? '').map((g) => g.label).join(', ');
+  if (game)
+    return gameCodes(game[1], args[0] ?? '')
+      .map((g) => g.label)
+      .join(', ');
   const render = TEMPLATES[name] ?? TEMPLATES[name[0].toLowerCase() + name.slice(1)];
   if (!render) throw new Error(`Unknown template {{${name}}}`);
   return render(args);
@@ -177,17 +269,23 @@ export function cellLines(wiki: string): string[] {
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/?(?:small|span|b|i)\b[^>]*>/g, '')
     .replace(/&nbsp;/g, ' ');
-  for (let prev = ''; prev !== text; ) {
+  for (let prev = ''; prev !== text;) {
     prev = text;
     text = text
       .replace(/\[\[(?:[^[\]{}|]*\|)?([^[\]{}|]*)\]\]/g, '$1')
       .replace(/\{\{([^{}]*)\}\}/g, (_, body: string) => template(body));
   }
   text = text.replace(/'''?/g, '');
-  if (/[{}[\]|]|<\/?(?:sup|sub|span|small|br|ref|div|b|i|u|s|nowiki|abbr)\b/.test(text)) throw new Error(`Unreadable markup: ${text.trim().slice(0, 80)}`);
+  if (/[{}[\]|]|<\/?(?:sup|sub|span|small|br|ref|div|b|i|u|s|nowiki|abbr)\b/.test(text))
+    throw new Error(`Unreadable markup: ${text.trim().slice(0, 80)}`);
   return text
     .split('\n')
-    .map((l) => l.replace(/\s+/g, ' ').replace(/\s+([,.)])/g, '$1').trim())
+    .map((l) =>
+      l
+        .replace(/\s+/g, ' ')
+        .replace(/\s+([,.)])/g, '$1')
+        .trim(),
+    )
     .filter(Boolean);
 }
 
@@ -243,7 +341,9 @@ export function parseAcquisition(wikitext: string): AcquisitionRow[] | null {
   return rows(section.slice(head.index! + head[0].length)).map((cells) => {
     while (cells.length > columns && !cells[cells.length - 1].trim()) cells.pop();
     if (cells.length > columns) throw new Error(`Row with ${cells.length} cells: ${cells.join(' | ').slice(0, 80)}`);
-    const games = [...cells[0].matchAll(/\{\{[Gg]ameabbrev(\w+)\|([^}|]+)/g)].flatMap(([, suffix, value]) => gameCodes(suffix, value));
+    const games = [...cells[0].matchAll(/\{\{[Gg]ameabbrev(\w+)\|([^}|]+)/g)].flatMap(([, suffix, value]) =>
+      gameCodes(suffix, value),
+    );
     return { games, once: cellLines(cells[1] ?? ''), repeat: columns === 3 ? cellLines(cells[2] ?? '') : [] };
   });
 }

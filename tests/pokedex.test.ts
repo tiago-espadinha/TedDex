@@ -45,7 +45,10 @@ describe('customView', () => {
 
 describe('nextState', () => {
   test('cycles not seen, seen, caught, shiny and back', () => {
-    assert.deepEqual([0, 1, 2, 3].map((s) => nextState(s as 0 | 1 | 2 | 3)), [1, 2, 3, 0]);
+    assert.deepEqual(
+      [0, 1, 2, 3].map((s) => nextState(s as 0 | 1 | 2 | 3)),
+      [1, 2, 3, 0],
+    );
   });
 });
 
@@ -69,7 +72,10 @@ describe('gameDexes', () => {
   };
 
   test("lists a game's dexes in its order", () => {
-    assert.deepEqual(gameDexes(data, 15).map((d) => d.name), ['Central Kalos', 'Coastal Kalos']);
+    assert.deepEqual(
+      gameDexes(data, 15).map((d) => d.name),
+      ['Central Kalos', 'Coastal Kalos'],
+    );
   });
 
   test('a game the data lacks has none', () => {
@@ -95,14 +101,28 @@ describe('dexViews', () => {
   test('numbers each regional dex from its first, then lists National', () => {
     assert.deepEqual(
       views.map((v) => [v.key, v.label]),
-      [['4', 'Hoenn'], ['8', 'Unova'], ['national', 'National']],
+      [
+        ['4', 'Hoenn'],
+        ['8', 'Unova'],
+        ['national', 'National'],
+      ],
     );
-    assert.deepEqual(views[0].cells, [{ id: 252, no: 1 }, { id: 253, no: 2 }]);
-    assert.deepEqual(views[1].cells, [{ id: 494, no: 0 }, { id: 495, no: 1 }]);
+    assert.deepEqual(views[0].cells, [
+      { id: 252, no: 1 },
+      { id: 253, no: 2 },
+    ]);
+    assert.deepEqual(views[1].cells, [
+      { id: 494, no: 0 },
+      { id: 495, no: 1 },
+    ]);
   });
 
   test('National lists species 1 to last', () => {
-    assert.deepEqual(views[2].cells, [{ id: 1, no: 1 }, { id: 2, no: 2 }, { id: 3, no: 3 }]);
+    assert.deepEqual(views[2].cells, [
+      { id: 1, no: 1 },
+      { id: 2, no: 2 },
+      { id: 3, no: 3 },
+    ]);
   });
 });
 
@@ -115,7 +135,8 @@ describe('filterDexCells', () => {
   ]);
   const cells = [252, 255, 258, 259].map((id, i) => ({ id, no: i + 1 }));
   const states = { 252: 2, 258: 2, 259: 1 } as const;
-  const run = (f: Partial<DexFilters>) => filterDexCells(cells, states, species, { query: '', states: [], types: [], ...f }).map((c) => c.id);
+  const run = (f: Partial<DexFilters>) =>
+    filterDexCells(cells, states, species, { query: '', states: [], types: [], ...f }).map((c) => c.id);
 
   test('no filters keep every cell', () => {
     assert.deepEqual(run({}), [252, 255, 258, 259]);
@@ -150,7 +171,11 @@ describe('dex filter params', () => {
   });
 
   test('unknown states and types are dropped', () => {
-    assert.deepEqual(readDexFilters(new URLSearchParams('state=,2,7,x,2&type=water,fake')), { query: '', states: [2], types: ['water'] });
+    assert.deepEqual(readDexFilters(new URLSearchParams('state=,2,7,x,2&type=water,fake')), {
+      query: '',
+      states: [2],
+      types: ['water'],
+    });
   });
 
   test('the badge counts states and types', () => {

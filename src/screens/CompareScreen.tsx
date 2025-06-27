@@ -1,7 +1,14 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loadSpecies, loadTypes, useLoad } from '../data/api';
-import { SLOTS, comparePickPath, parseCompare, rememberCompare, type CompareState, type SlotName } from '../data/compare';
+import {
+  SLOTS,
+  comparePickPath,
+  parseCompare,
+  rememberCompare,
+  type CompareState,
+  type SlotName,
+} from '../data/compare';
 import { matchupGroups, type MatchupGroup } from '../data/coverage';
 import { applyForm } from '../data/forms';
 import { formatMultiplier, formatNo, statColor } from '../data/format';
@@ -50,7 +57,11 @@ export function CompareScreen() {
   return (
     <>
       <header className="topbar">
-        <button className="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? navigate(-1) : navigate('/'))}>
+        <button
+          className="icon-btn"
+          aria-label="Back"
+          onClick={() => (history.length > 1 ? navigate(-1) : navigate('/'))}
+        >
           <Icon name="back" />
         </button>
         <div className="grow">
@@ -96,7 +107,12 @@ function SlotCard({ side, label, pick }: { side: SlotView; label: string; pick: 
       </button>
     );
   return (
-    <button className="cmp-slot" style={{ backgroundColor: typeTint(mon.types[0]) }} onClick={change} aria-label={`Change ${mon.name}`}>
+    <button
+      className="cmp-slot"
+      style={{ backgroundColor: typeTint(mon.types[0]) }}
+      onClick={change}
+      aria-label={`Change ${mon.name}`}
+    >
       <MonImg id={mediaId} speciesId={species.id} alt="" width={96} height={96} />
       <span className="no">{formatNo(species.id)}</span>
       <span className="name">

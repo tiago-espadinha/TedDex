@@ -30,9 +30,14 @@ export function trainerData(folder: string) {
   /** Registers the shared tests: index ↔ files, team shape, sources, forms and sprites. */
   const sharedTests = () => {
     test('index lists every game file, oldest generation first', () => {
-      const files = readdirSync(dir).filter((f) => f !== 'index.json').map((f) => f.replace('.json', ''));
+      const files = readdirSync(dir)
+        .filter((f) => f !== 'index.json')
+        .map((f) => f.replace('.json', ''));
       assert.deepEqual([...files].sort(), index.map((g) => g.id).sort());
-      assert.deepEqual(index.map((g) => g.gen), [...index.map((g) => g.gen)].sort((a, b) => a - b));
+      assert.deepEqual(
+        index.map((g) => g.gen),
+        [...index.map((g) => g.gen)].sort((a, b) => a - b),
+      );
     });
 
     test('full teams with known species and moves, and a Bulbapedia source', () => {
@@ -48,13 +53,14 @@ export function trainerData(folder: string) {
       }
     });
 
-    test('every form a member uses is one of its species\' forms', () => {
+    test("every form a member uses is one of its species' forms", () => {
       for (const { id } of index) {
         for (const t of game(id).trainers) {
           for (const team of [...t.teams, ...(t.rematches ?? []).flatMap((r) => r.teams)]) {
             for (const m of team.members) {
               const forms = (dataEntry<SpeciesDetail>('species', m.id).forms ?? []).map((f) => f.key);
-              for (const key of [m.form, m.battleForm]) if (key) assert.ok(forms.includes(key), `${id} / ${t.name}: ${m.id} form ${key}`);
+              for (const key of [m.form, m.battleForm])
+                if (key) assert.ok(forms.includes(key), `${id} / ${t.name}: ${m.id} form ${key}`);
             }
           }
         }
@@ -64,13 +70,21 @@ export function trainerData(folder: string) {
     test('every trainer has a sprite file', () => {
       for (const { id } of index) {
         for (const t of game(id).trainers) {
-          assert.ok(t.sprite && existsSync(new URL(`${t.sprite}.webp`, sprites)), `${id} / ${t.name}: sprite ${t.sprite}`);
+          assert.ok(
+            t.sprite && existsSync(new URL(`${t.sprite}.webp`, sprites)),
+            `${id} / ${t.name}: sprite ${t.sprite}`,
+          );
         }
       }
     });
   };
 
   const withRematches = () => index.map((g) => g.id).filter((id) => game(id).trainers.some((t) => t.rematches));
-  const rematchLabels = () => index.flatMap((g) => game(g.id).trainers.flatMap((t) => t.rematches ?? []).map((r) => r.label));
+  const rematchLabels = () =>
+    index.flatMap((g) =>
+      game(g.id)
+        .trainers.flatMap((t) => t.rematches ?? [])
+        .map((r) => r.label),
+    );
   return { index, game, sharedTests, withRematches, rematchLabels };
 }

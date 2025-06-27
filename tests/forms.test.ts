@@ -85,7 +85,16 @@ describe('applyForm', () => {
 });
 
 describe('memberView', () => {
-  const grid: IndexEntry = { id: 6, name: 'Charizard', types: ['fire', 'flying'], gen: 1, total: 534, stats: stats(89), heightM: 1.7, weightKg: 90.5 };
+  const grid: IndexEntry = {
+    id: 6,
+    name: 'Charizard',
+    types: ['fire', 'flying'],
+    gen: 1,
+    total: 534,
+    stats: stats(89),
+    heightM: 1.7,
+    weightKg: 90.5,
+  };
 
   test("uses the form's name, types, media id and abilities when the member has a form", () => {
     assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-x' }, grid, charizard), {
@@ -106,7 +115,14 @@ describe('memberView', () => {
   });
 
   test('uses the grid row for the default form, or while the species file is not loaded', () => {
-    const plain = { name: 'Charizard', types: ['fire', 'flying'], stats: stats(89), total: 534, mediaId: 6, speciesId: 6 };
+    const plain = {
+      name: 'Charizard',
+      types: ['fire', 'flying'],
+      stats: stats(89),
+      total: 534,
+      mediaId: 6,
+      speciesId: 6,
+    };
     assert.deepEqual(memberView({ speciesId: 6 }, grid, charizard), plain);
     assert.deepEqual(memberView({ speciesId: 6, formKey: 'mega-x' }, grid), plain);
   });

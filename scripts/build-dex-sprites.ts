@@ -71,7 +71,22 @@ async function main() {
   await mkdir(OUT, { recursive: true });
   for (const v of versions) {
     const vf = 'scale=160:160:force_original_aspect_ratio=decrease:flags=lanczos';
-    await run('ffmpeg', ['-v', 'error', '-y', '-i', cached(ART[v.id]), '-frames:v', '1', '-vf', vf, '-c:v', 'libwebp', '-quality', '85', join(OUT, `${v.id}.webp`)]);
+    await run('ffmpeg', [
+      '-v',
+      'error',
+      '-y',
+      '-i',
+      cached(ART[v.id]),
+      '-frames:v',
+      '1',
+      '-vf',
+      vf,
+      '-c:v',
+      'libwebp',
+      '-quality',
+      '85',
+      join(OUT, `${v.id}.webp`),
+    ]);
   }
   console.log(`${versions.length} Pokédex images → public/media/dexes/`);
 }

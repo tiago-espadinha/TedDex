@@ -19,7 +19,9 @@ export function readItemFilters(params: URLSearchParams): ItemFilters {
   return {
     query: params.get('q') ?? '',
     categories: ITEM_CATEGORIES.filter((c) => cats.includes(slug(c))),
-    gens: list(params.get('gen')).map(Number).filter((g) => g >= 1 && g <= 9),
+    gens: list(params.get('gen'))
+      .map(Number)
+      .filter((g) => g >= 1 && g <= 9),
   };
 }
 
@@ -77,6 +79,9 @@ function itemKeyword(term: string): ((entry: { item: ItemInfo }) => boolean) | u
 /** Search (operators and keywords, query.ts), then category and generation (introduced) filters, each a union. */
 export function filterItems<T extends { name: string; item: ItemInfo }>(entries: T[], f: ItemFilters): T[] {
   return searchEntries(entries, f.query, itemKeyword)
-    .filter(({ item }) => (!f.categories.length || f.categories.includes(item.category)) && (!f.gens.length || f.gens.includes(item.gen)))
+    .filter(
+      ({ item }) =>
+        (!f.categories.length || f.categories.includes(item.category)) && (!f.gens.length || f.gens.includes(item.gen)),
+    )
     .sort((a, b) => symbolFirst(a.name) - symbolFirst(b.name));
 }

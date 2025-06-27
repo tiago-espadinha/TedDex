@@ -15,13 +15,27 @@ const DATA: Locations = {
 describe('encountersIn', () => {
   test('looks up the strings and formats levels and chance', () => {
     assert.deepEqual(encountersIn(DATA, 15), [
-      { area: 'Route 29', method: 'Grass or cave', levels: 'Lv. 2–4', chance: 'Up to 30%', note: 'In the morning, During the day', form: '' },
+      {
+        area: 'Route 29',
+        method: 'Grass or cave',
+        levels: 'Lv. 2–4',
+        chance: 'Up to 30%',
+        note: 'In the morning, During the day',
+        form: '',
+      },
     ]);
   });
 
   test('shows a single level and the form name', () => {
     assert.deepEqual(encountersIn(DATA, 27), [
-      { area: 'Route 1 (East)', method: 'Grass or cave', levels: 'Lv. 3', chance: '30%', note: '', form: 'Alolan Form' },
+      {
+        area: 'Route 1 (East)',
+        method: 'Grass or cave',
+        levels: 'Lv. 3',
+        chance: '30%',
+        note: '',
+        form: 'Alolan Form',
+      },
     ]);
   });
 
@@ -39,8 +53,19 @@ describe('encountersIn', () => {
 const HOENN: Locations = {
   strings: ['', 'Route 101', 'Grass or cave', 'Route 102', 'Route 103', 'Route 104', 'Surfing', 'Petalburg Woods'],
   games: {
-    7: [[1, 2, 2, 3, 20, 0, 0, 0], [3, 2, 3, 4, 20, 0, 0, 0], [4, 2, 5, 5, 10, 0, 0, 0], [5, 2, 4, 5, 10, 0, 0, 0], [7, 2, 5, 6, 5, 0, 0, 0]],
-    8: [[1, 2, 2, 3, 20, 0, 0, 0], [3, 2, 3, 4, 10, 0, 0, 0], [4, 6, 5, 5, 10, 0, 0, 0], [5, 2, 4, 5, 10, 0, 0, 0]],
+    7: [
+      [1, 2, 2, 3, 20, 0, 0, 0],
+      [3, 2, 3, 4, 20, 0, 0, 0],
+      [4, 2, 5, 5, 10, 0, 0, 0],
+      [5, 2, 4, 5, 10, 0, 0, 0],
+      [7, 2, 5, 6, 5, 0, 0, 0],
+    ],
+    8: [
+      [1, 2, 2, 3, 20, 0, 0, 0],
+      [3, 2, 3, 4, 10, 0, 0, 0],
+      [4, 6, 5, 5, 10, 0, 0, 0],
+      [5, 2, 4, 5, 10, 0, 0, 0],
+    ],
   },
 };
 const RUBY: Game = { id: 7, label: 'Ruby', gen: 3, group: 5 };
@@ -50,7 +75,15 @@ describe('encountersInGroup', () => {
   const rows = encountersInGroup(HOENN, [RUBY, SAPPHIRE]);
 
   test('a row in every game of the group names no version', () => {
-    assert.deepEqual(rows[0], { area: 'Route 101', method: 'Grass or cave', levels: 'Lv. 2–3', chance: '20%', note: '', form: '', versions: [] });
+    assert.deepEqual(rows[0], {
+      area: 'Route 101',
+      method: 'Grass or cave',
+      levels: 'Lv. 2–3',
+      chance: '20%',
+      note: '',
+      form: '',
+      versions: [],
+    });
   });
 
   test('a version-exclusive row is labelled with its version', () => {
@@ -87,7 +120,10 @@ describe('encountersInGroup', () => {
     // Ruby: 101, 103, 104; Sapphire: 101, Petalburg Woods, 104.
     const data: Locations = {
       strings: HOENN.strings,
-      games: { 7: [HOENN.games[7][0], HOENN.games[7][2], HOENN.games[7][3]], 8: [HOENN.games[8][0], [7, 2, 5, 6, 5, 0, 0, 0], HOENN.games[8][3]] },
+      games: {
+        7: [HOENN.games[7][0], HOENN.games[7][2], HOENN.games[7][3]],
+        8: [HOENN.games[8][0], [7, 2, 5, 6, 5, 0, 0, 0], HOENN.games[8][3]],
+      },
     };
     assert.deepEqual(
       encountersInGroup(data, [RUBY, SAPPHIRE]).map((r) => r.area),

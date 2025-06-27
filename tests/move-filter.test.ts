@@ -49,7 +49,9 @@ describe('move filter URL params', () => {
 
   test('unknown values are dropped', () => {
     assert.deepEqual(readMoveFilters(new URLSearchParams('cat=magic,status&gen=0,3,12&type=wood&sort=speed')), {
-      ...DEFAULT, categories: ['status'], gens: [3],
+      ...DEFAULT,
+      categories: ['status'],
+      gens: [3],
     });
   });
 });

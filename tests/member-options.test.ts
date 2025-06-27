@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { NO_MOVE_FILTERS, abilityIdByName, activeMoveChoiceFilters, learnable, memberAbility, moveChoices, moveFilterGame, otherAbilities, withMove, type MoveChoiceFilters } from '../src/data/memberOptions';
+import {
+  NO_MOVE_FILTERS,
+  abilityIdByName,
+  activeMoveChoiceFilters,
+  learnable,
+  memberAbility,
+  moveChoices,
+  moveFilterGame,
+  otherAbilities,
+  withMove,
+  type MoveChoiceFilters,
+} from '../src/data/memberOptions';
 import type { AbilityTable, Learnsets, MoveTable, SpeciesDetail } from '../src/data/types';
 import { dataEntry, readData } from './data-files';
 
@@ -27,7 +38,10 @@ describe('moveChoices', () => {
     assert.equal(all.length, Object.keys(moves).length);
     assert.ok(all.includes(SPORE));
     const names = all.map((id) => moves[id].name);
-    assert.deepEqual(names, [...names].sort((a, b) => a.localeCompare(b)));
+    assert.deepEqual(
+      names,
+      [...names].sort((a, b) => a.localeCompare(b)),
+    );
   });
 });
 
@@ -46,7 +60,9 @@ describe('moveChoices with filters', () => {
 
   test('Type = Electric narrows the Red / Blue list to its Electric moves', () => {
     const offered = moveChoices(learnsets, moves, false, filters({ game: RED_BLUE, types: ['electric'] }));
-    const expected = moveChoices(learnsets, moves, false, filters({ game: RED_BLUE })).filter((id) => moves[id].type === 'electric');
+    const expected = moveChoices(learnsets, moves, false, filters({ game: RED_BLUE })).filter(
+      (id) => moves[id].type === 'electric',
+    );
     assert.deepEqual(offered, expected);
     assert.ok(offered.includes(THUNDERBOLT));
     assert.ok(offered.length > 1);
@@ -65,7 +81,10 @@ describe('moveChoices with filters', () => {
 
   test('god mode offers every move until a game or method is picked; types still apply', () => {
     assert.equal(moveChoices(learnsets, moves, true, filters({ types: [] })).length, Object.keys(moves).length);
-    assert.deepEqual(moveChoices(learnsets, moves, true, filters({ game: RED_BLUE })), moveChoices(learnsets, moves, false, filters({ game: RED_BLUE })));
+    assert.deepEqual(
+      moveChoices(learnsets, moves, true, filters({ game: RED_BLUE })),
+      moveChoices(learnsets, moves, false, filters({ game: RED_BLUE })),
+    );
     const grass = moveChoices(learnsets, moves, true, filters({ types: ['grass'] }));
     assert.ok(grass.includes(SPORE) && grass.every((id) => moves[id].type === 'grass'));
   });

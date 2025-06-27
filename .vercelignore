@@ -1,9 +1,15 @@
-.claude/
-.cache/
-design/
-docs/
-dist/
-node_modules/
-.env
-.env.*
-CLAUDE.local.md
+# Upload only what the build needs (tsc -b also checks tests/ and the scripts they import).
+/*
+!/src
+!/public
+!/tests
+!/scripts
+/scripts/*
+!/scripts/*.ts
+!/scripts/*.json
+!/index.html
+!/package.json
+!/package-lock.json
+!/tsconfig*.json
+!/vite.config.ts
+!/vercel.json

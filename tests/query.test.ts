@@ -26,7 +26,10 @@ describe('parseQuery', () => {
 
   test('a parenthesis inside a term is part of its name', () => {
     assert.deepEqual(parseQuery("Parcel (Let's Go)"), term("parcel (let's go)"));
-    assert.deepEqual(parseQuery('Paldean Tauros (Combat Breed) & fire'), and(term('paldean tauros (combat breed)'), term('fire')));
+    assert.deepEqual(
+      parseQuery('Paldean Tauros (Combat Breed) & fire'),
+      and(term('paldean tauros (combat breed)'), term('fire')),
+    );
   });
 
   test('empty operands are ignored', () => {
@@ -42,7 +45,8 @@ describe('parseQuery', () => {
   });
 
   test('nothing to search for is null, not an error', () => {
-    for (const q of ['', '   ', '&', '|', '!', '!!', '(', ')', '()', '((', '))', '& | !', '!&|()', '#', '.', '!★']) assert.equal(parseQuery(q), null, q);
+    for (const q of ['', '   ', '&', '|', '!', '!!', '(', ')', '()', '((', '))', '& | !', '!&|()', '#', '.', '!★'])
+      assert.equal(parseQuery(q), null, q);
   });
 
   test('an operator inside a word never makes an unusable term', () => {
@@ -52,7 +56,8 @@ describe('parseQuery', () => {
   });
 
   test('survives a very long query from the URL', () => {
-    for (const q of ['('.repeat(100_000), '!'.repeat(100_000), 'a&'.repeat(100_000)]) assert.doesNotThrow(() => parseQuery(q));
+    for (const q of ['('.repeat(100_000), '!'.repeat(100_000), 'a&'.repeat(100_000)])
+      assert.doesNotThrow(() => parseQuery(q));
   });
 });
 

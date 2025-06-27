@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { BackupError, exportBackup, importBackup } from '../data/db';
 import { ART_STYLE_EXAMPLE, FORM_KIND_EXAMPLES, FORM_KIND_LABELS } from '../data/dexState';
-import { applyDesign, applyTheme, useDesign, useDexForms, useSpriteStyle, useTheme, type SpriteStyle, type Theme } from '../data/settings';
+import {
+  applyDesign,
+  applyTheme,
+  useDesign,
+  useDexForms,
+  useSpriteStyle,
+  useTheme,
+  type SpriteStyle,
+  type Theme,
+} from '../data/settings';
 import type { FormKind } from '../data/types';
 import { Icon } from '../components/Icon';
 import { MonImg } from '../components/MonImg';
@@ -29,7 +38,15 @@ function ArtStyleTiles() {
       {ART_STYLES.map(([style, label]) => {
         const on = style === chosen;
         return (
-          <button key={style} type="button" className="form-tile" role="radio" aria-checked={on} tabIndex={on ? 0 : -1} onClick={() => setChosen(style)}>
+          <button
+            key={style}
+            type="button"
+            className="form-tile"
+            role="radio"
+            aria-checked={on}
+            tabIndex={on ? 0 : -1}
+            onClick={() => setChosen(style)}
+          >
             <span className="tick" aria-hidden="true">
               {on && <Icon name="check" size={14} />}
             </span>
@@ -73,7 +90,11 @@ export function MoreScreen() {
     try {
       const { teams, pokedexes, favourites } = await importBackup(await file.text());
       const plural = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`;
-      const parts = [plural(teams, 'team'), ...(pokedexes ? [plural(pokedexes, 'Pokédex')] : []), ...(favourites ? [plural(favourites, 'favourite')] : [])];
+      const parts = [
+        plural(teams, 'team'),
+        ...(pokedexes ? [plural(pokedexes, 'Pokédex')] : []),
+        ...(favourites ? [plural(favourites, 'favourite')] : []),
+      ];
       toast({ text: `Imported ${parts.slice(0, -1).join(', ')}${parts.length > 1 ? ' and ' : ''}${parts.at(-1)}` });
     } catch (err) {
       toast({ text: err instanceof BackupError ? err.message : "Couldn't import that file" });
@@ -103,7 +124,13 @@ export function MoreScreen() {
         )}
         <Segmented aria-label="Theme" aria-describedby={design === 'b' ? 'theme-hint' : undefined}>
           {(['system', 'light', 'dark'] as Theme[]).map((t) => (
-            <button key={t} role="radio" aria-checked={theme === t} disabled={design === 'b'} onClick={() => setTheme(t)}>
+            <button
+              key={t}
+              role="radio"
+              aria-checked={theme === t}
+              disabled={design === 'b'}
+              onClick={() => setTheme(t)}
+            >
               {t[0].toUpperCase() + t.slice(1)}
             </button>
           ))}
@@ -144,7 +171,8 @@ export function MoreScreen() {
 
         <h2 style={{ marginTop: 22 }}>Backup</h2>
         <p className="hint" style={{ marginBottom: 10 }}>
-          Teams, Pokédexes and favourites are stored only on this device. Export a backup, or move them to another device.
+          Teams, Pokédexes and favourites are stored only on this device. Export a backup, or move them to another
+          device.
         </p>
         <div className="add-grid">
           <button className="add-slot" style={{ borderStyle: 'solid' }} onClick={doExport}>
@@ -168,8 +196,9 @@ export function MoreScreen() {
 
         <h2 style={{ marginTop: 22 }}>About</h2>
         <p className="hint" style={{ fontSize: 'var(--fs-sm)', lineHeight: 1.5 }}>
-          TedDex is an unofficial, non-commercial fan project. Pokémon names, images and sounds are © Nintendo, Game Freak and
-          The Pokémon Company. Data from PokeAPI; Elite Four, Champion and Gym Leader teams, where to find items and other ways to get a Pokémon from{' '}
+          TedDex is an unofficial, non-commercial fan project. Pokémon names, images and sounds are © Nintendo, Game
+          Freak and The Pokémon Company. Data from PokeAPI; Elite Four, Champion and Gym Leader teams, where to find
+          items and other ways to get a Pokémon from{' '}
           <a href="https://bulbapedia.bulbagarden.net/" target="_blank" rel="noreferrer">
             Bulbapedia<span className="sr-only"> (opens in a new tab)</span>
           </a>{' '}

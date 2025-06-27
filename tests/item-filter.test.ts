@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { activeItemFilters, filterItems, itemFilterParams, readItemFilters, type ItemFilters } from '../src/data/itemFilter';
+import {
+  activeItemFilters,
+  filterItems,
+  itemFilterParams,
+  readItemFilters,
+  type ItemFilters,
+} from '../src/data/itemFilter';
 import type { ItemInfo } from '../src/data/types';
 
 const item = (name: string, over: Partial<ItemInfo>): { name: string; item: ItemInfo } => ({
@@ -46,7 +52,11 @@ describe('item filters in the URL', () => {
     const params = itemFilterParams(f);
     assert.deepEqual(params, { q: 'orb', cat: 'pokeballs,tmstrs', gen: '1,6' });
     assert.deepEqual(readItemFilters(new URLSearchParams(params)), f);
-    assert.deepEqual(readItemFilters(new URLSearchParams('cat=nope,berries&gen=0,3,12')), { query: '', categories: ['Berries'], gens: [3] });
+    assert.deepEqual(readItemFilters(new URLSearchParams('cat=nope,berries&gen=0,3,12')), {
+      query: '',
+      categories: ['Berries'],
+      gens: [3],
+    });
   });
 
   test('empty filters leave no params and count zero', () => {

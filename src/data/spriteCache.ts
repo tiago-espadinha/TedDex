@@ -41,7 +41,10 @@ export async function warmSprites() {
   for (const name of staleSpriteCaches(await caches.keys(), list.version)) await caches.delete(name);
   const cache = await caches.open(`sprites-${list.version}`);
   // Reversed so pop() takes Pokémon sprites, the Dex's first screen, first.
-  const queue = missingSprites(list, (await cache.keys()).map((r) => r.url)).reverse();
+  const queue = missingSprites(
+    list,
+    (await cache.keys()).map((r) => r.url),
+  ).reverse();
   const worker = async () => {
     for (let url = queue.pop(); url; url = queue.pop()) await fetch(url).catch(() => {}); // a miss is retried next launch
   };
