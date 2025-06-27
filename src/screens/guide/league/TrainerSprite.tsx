@@ -1,5 +1,6 @@
 import { trainerSpriteUrl } from '../../../data/api';
 import { Icon } from '../../../components/Icon/Icon';
+import './TrainerSprite.css';
 
 export function TrainerSprite({ sprite }: { sprite?: string }) {
   return sprite ? (

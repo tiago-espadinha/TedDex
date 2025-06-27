@@ -6,6 +6,7 @@ import { useGame } from '../../data/settings';
 import type { SpeciesDetail } from '../../data/types';
 import { GamePicker, NotInGame } from '../../components/GamePicker/GamePicker';
 import { Loading } from '../../components/Loading/Loading';
+import './LocationsTab.css';
 
 const loadAll = (id: number) => Promise.all([loadLocations(id), loadGames(), loadVersions()]);
 

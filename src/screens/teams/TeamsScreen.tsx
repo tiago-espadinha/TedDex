@@ -8,6 +8,7 @@ import { SearchField } from '../../components/SearchField/SearchField';
 import { MonImg } from '../../components/MonImg/MonImg';
 import { useMemberViews } from './useMemberViews';
 import { TeamTabs } from './TeamTabs';
+import './TeamsScreen.css';
 
 export function TeamsScreen() {
   const teams = useLiveQuery(() => db.teams.orderBy('updatedAt').reverse().toArray(), []);

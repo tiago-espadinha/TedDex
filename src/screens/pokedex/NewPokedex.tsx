@@ -7,6 +7,7 @@ import { gameDexes, lastSpecies } from '../../data/pokedex';
 import { Icon } from '../../components/Icon/Icon';
 import { Loading } from '../../components/Loading/Loading';
 import { DexArt } from './DexArt';
+import './NewPokedex.css';
 
 /**
  * The national dex, custom, then every game with its regional dex sizes; a pick creates the Pokédex and opens it.

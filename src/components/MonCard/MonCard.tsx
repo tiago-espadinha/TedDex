@@ -6,6 +6,7 @@ import type { MoveTable, TypeName } from '../../data/types';
 import { CategoryIcon } from '../CategoryIcon/CategoryIcon';
 import { MonName } from '../MonName/MonName';
 import { TypeChip } from '../TypeChip/TypeChip';
+import './MonCard.css';
 
 /**
  * The parts of a Pokémon card in a team: league and Gym teams, and saved teams. The caller puts

@@ -8,6 +8,7 @@ import { MonImg } from '../../components/MonImg/MonImg';
 import { Segmented } from '../../components/Segmented/Segmented';
 import { useToast } from '../../hooks/useToast';
 import { ArtStyleTiles } from './ArtStyleTiles';
+import './SettingsScreen.css';
 
 export function SettingsScreen() {
   const [design, setDesign] = useDesign();

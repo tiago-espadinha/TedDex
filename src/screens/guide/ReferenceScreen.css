@@ -1,0 +1,35 @@
+@layer screens {
+  /* Guide landing: the rows share the screen height (min 72 px, so short screens scroll), each on one type tint. */
+  .app:has(> .ref-menu) {
+    display: flex;
+    flex-direction: column;
+  }
+  .ref-kind svg {
+    flex: none;
+    margin-left: auto;
+    color: var(--muted);
+  }
+  .ref-menu {
+    flex: 1;
+  }
+  .ref-menu .ref-kind {
+    flex: 1 1 0;
+    min-height: 72px;
+    border-color: transparent;
+    color: var(--on-tint);
+  }
+  .ref-menu .ref-kind :is(.meta, svg) {
+    color: var(--on-tint-muted);
+  }
+  .ref-menu .ref-kind .meta {
+    text-wrap: pretty;
+  }
+  /* Pixel art at its own size (60–64 px, already doubled), so the pixels stay whole. */
+  .ref-art {
+    flex: none;
+    width: 64px;
+    height: 64px;
+    object-fit: none;
+    image-rendering: pixelated;
+  }
+}

@@ -1,0 +1,92 @@
+@layer screens {
+  /* Pokédex list and new-Pokédex games: 100 px rows, the device art at 80 px, the name over the game, caught on the right. */
+  .dex-row {
+    height: 100px;
+    padding: 0 16px 0 10px;
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .dex-row:focus-visible {
+    outline-offset: -2px;
+  }
+  .dex-row .head {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .dex-row :is(.name, .meta) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  :is(.dex-row, .dex-top) .caught {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--fs-md);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  :is(.dex-row, .dex-top) .caught b {
+    color: var(--ink);
+    font-weight: 800;
+  }
+  .dex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 0 16px 88px;
+    list-style: none;
+  }
+  .dex-cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 108px;
+    padding: 6px 4px 8px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--muted);
+    transition: transform 120ms;
+  }
+  .dex-cell:active {
+    transform: scale(0.95);
+  }
+  .dex-cell img {
+    width: 72px;
+    height: 72px;
+    image-rendering: pixelated;
+  }
+  .dex-cell .no {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+  }
+  .dex-cell .badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+  }
+  .dex-cell.s1 {
+    color: var(--ink-2);
+  }
+  .dex-cell.s2 {
+    border-color: var(--primary);
+    box-shadow: inset 0 0 0 1px var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary-soft-ink);
+  }
+}

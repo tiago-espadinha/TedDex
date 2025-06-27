@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Spinner } from '../Spinner/Spinner';
+import './Loading.css';
 
 /** Screen reader status straight away; the spinner only if loading takes a moment. */
 export function Loading({ minHeight }: { minHeight?: CSSProperties['minHeight'] }) {

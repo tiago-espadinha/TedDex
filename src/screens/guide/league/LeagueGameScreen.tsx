@@ -7,6 +7,7 @@ import { useRestoreScroll } from './useRestoreScroll';
 import { BackButton } from './BackButton';
 import { Missing } from './Missing';
 import { TrainerRow } from './TrainerRow';
+import './LeagueGameScreen.css';
 
 export function LeagueGameScreen({ kind }: { kind: TrainerKind }) {
   const id = useParams().game ?? '';

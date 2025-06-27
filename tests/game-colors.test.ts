@@ -4,8 +4,8 @@ import { test } from 'node:test';
 import { GAME_SLUGS, gameBand, gameColors, gameSlug } from '../src/data/gameColors';
 import type { Game, ItemPlaces, VersionGroup } from '../src/data/types';
 import { readData } from './data-files';
+import { css } from './helpers/css';
 
-const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
 const blockAfter = (selector: string) => {
   const start = css.indexOf(selector);
   assert.ok(start >= 0, selector);

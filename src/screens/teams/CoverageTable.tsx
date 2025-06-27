@@ -4,6 +4,7 @@ import { formatMultiplier } from '../../data/format';
 import type { MemberView } from '../../data/forms';
 import { TypeChip } from '../../components/TypeChip/TypeChip';
 import { MonImg } from '../../components/MonImg/MonImg';
+import './CoverageTable.css';
 
 export function CoverageTable<R extends CoverageRow>({
   mons,

@@ -8,6 +8,7 @@ import { Loading } from '../../components/Loading/Loading';
 import { useModalSheet } from '../../hooks/useModalSheet';
 import { ItemFacts } from './ItemFacts';
 import { MoveFacts } from './MoveFacts';
+import './QuickView.css';
 
 /** A button the opening screen adds to the sheet; the sheet closes as it runs. */
 export interface PeekAction {

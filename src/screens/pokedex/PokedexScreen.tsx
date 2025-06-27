@@ -25,6 +25,7 @@ import { DeleteSheet } from '../teams/DeleteSheet';
 import { RenameSheet } from '../teams/RenameSheet';
 import { dexScope } from './dexScope';
 import { DexGrid } from './DexGrid';
+import './PokedexScreen.css';
 
 export function PokedexScreen() {
   const id = Number(useParams().id);

@@ -12,6 +12,7 @@ import { Loading } from '../../components/Loading/Loading';
 import { Segmented } from '../../components/Segmented/Segmented';
 import { TypeChip } from '../../components/TypeChip/TypeChip';
 import { usePeek } from '../../hooks/usePeek';
+import './MovesTab.css';
 
 type Method = keyof Learnset;
 const METHODS: { key: Method; title: string }[] = [

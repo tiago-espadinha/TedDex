@@ -1,0 +1,51 @@
+@layer screens {
+  .place-game {
+    margin-top: 16px;
+  }
+  .place-game.game-band {
+    padding-left: 14px;
+  }
+  .place-game.game-band::before {
+    border-radius: 3px;
+  }
+  .place-game h3 {
+    margin: 0 2px 8px;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+  .place-game .flavor {
+    margin: 0 2px 6px;
+  }
+  .place-row .name {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .held-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .held-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    padding: 0 12px 0 4px;
+    border-radius: 22px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .held-chip:active {
+    background: var(--line);
+  }
+  .held-chip .pct {
+    font-weight: 600;
+    color: var(--muted);
+  }
+}

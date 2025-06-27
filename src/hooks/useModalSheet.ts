@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-/** Length of the `.sheet.closing` and `.sheet.dialog.closing` animations in styles.css. */
+/** Length of the `.sheet.closing` and `.sheet.dialog.closing` animations in styles/primitives.css. */
 const SHEET_CLOSE_MS = 180;
 
 /** How far a sheet must be dragged down to close. */

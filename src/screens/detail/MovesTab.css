@@ -1,0 +1,54 @@
+@layer screens {
+  .move-row .lv {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+    font-weight: 800;
+  }
+  :is(.move-table, .move-head).with-lv {
+    --move-cols: 32px minmax(0, 1fr) var(--type-col) 26px var(--num-col) var(--num-col) var(--num-col);
+  }
+  .move-table .num {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .move-table .prio {
+    display: block;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .move-table .lv {
+    width: 32px;
+    height: 32px;
+  }
+  .move-group .move-head {
+    margin-top: 4px;
+  }
+  .move-head:has(+ .ref-list) {
+    margin: 12px 16px 0;
+  }
+  .move-head + .ref-list {
+    margin-top: 0;
+  }
+}
+@layer design-b {
+  /* Level badge: a circle ringed in the move's type colour (the ring colour is set inline). */
+  [data-design='b'] .move-row .lv {
+    border-radius: 50%;
+    border-width: 2px;
+    border-style: solid;
+    background: var(--bg);
+    color: var(--ink);
+    font-weight: 500;
+  }
+}

@@ -6,6 +6,7 @@ import type { IndexEntry } from '../../data/types';
 import { MonName } from '../../components/MonName/MonName';
 import { TypeChip } from '../../components/TypeChip/TypeChip';
 import { MonImg } from '../../components/MonImg/MonImg';
+import './SpeciesList.css';
 
 export function SpeciesList({
   title,

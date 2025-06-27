@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { NAME_LENGTH, NICKNAME_LENGTH } from '../../data/db';
 import { cap } from '../../data/format';
 import { useModalSheet } from '../../hooks/useModalSheet';
+import './RenameSheet.css';
 
 /**
  * A centred dialog that renames a team or Pokédex (up to NAME_LENGTH characters, counted as code points), or sets a member's

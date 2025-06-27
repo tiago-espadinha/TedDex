@@ -3,6 +3,7 @@ import { formatPrice } from '../../data/format';
 import { TypeChip } from '../../components/TypeChip/TypeChip';
 import { MoveCells } from '../detail/MovesTab';
 import type { Entry } from './guideEntries';
+import './EntryBody.css';
 
 export function EntryBody({ entry: e }: { entry: Entry }) {
   if (e.move) return <MoveCells move={e.move} />;

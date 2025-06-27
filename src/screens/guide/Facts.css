@@ -1,0 +1,32 @@
+@layer screens {
+  /* Facts in a tinted entry header (move pages): a 3-column grid of label over value. */
+  /* Up to three columns, each wide enough for the longest 12 px label (Introduced in Poppins): beside an item's sprite it drops to two. */
+  .head-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(max(92px, calc((100% - 26px) / 3)), 1fr));
+    gap: 10px 12px;
+    margin: 14px 0 0;
+  }
+  .head-facts div {
+    min-width: 0;
+  }
+  .head-facts dt {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--on-tint-muted);
+  }
+  .head-facts dd {
+    margin: 2px 0 0;
+    font-size: var(--fs-body);
+    font-weight: 800;
+    color: var(--on-tint);
+  }
+  .topbar:not(.tinted) .head-facts dt {
+    color: var(--muted);
+  }
+  .topbar:not(.tinted) .head-facts dd {
+    color: var(--ink);
+  }
+}

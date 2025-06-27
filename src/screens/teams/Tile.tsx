@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import './Tile.css';
 
 export function Tile({ label, tone, children }: { label: string; tone: 'weak' | 'resist'; children: ReactNode }) {
   return (

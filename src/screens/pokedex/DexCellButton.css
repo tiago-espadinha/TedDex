@@ -1,0 +1,11 @@
+@layer screens {
+  .dex-cell.s0 img {
+    filter: var(--silhouette);
+  }
+  .dex-cell.s3 {
+    border-color: var(--shiny-ink);
+    box-shadow: inset 0 0 0 1px var(--shiny-ink);
+    background: var(--shiny-bg);
+    color: var(--shiny-ink);
+  }
+}

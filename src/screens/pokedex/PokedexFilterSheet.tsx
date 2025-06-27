@@ -4,6 +4,7 @@ import { Icon, type IconName } from '../../components/Icon/Icon';
 import { DEX_STATE_LABELS, type DexFilters, type DexState } from '../../data/pokedex';
 import { TYPE_NAMES, typeChip } from '../../data/typeColors';
 import { ToggleAllHeading } from '../dex/FilterSheet';
+import './PokedexFilterSheet.css';
 
 const STATES: DexState[] = [0, 1, 2, 3];
 const STATE_ICONS: IconName[] = ['close', 'eye', 'ball', 'star'];

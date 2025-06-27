@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import { Segmented } from '../../../components/Segmented/Segmented';
+import './Picker.css';
 
 /** "If you chose Bulbasaur", "If you chose Squirtle" → prefix "If you chose", options "Bulbasaur", "Squirtle". */
 function splitLabels(labels: string[]): { prefix: string; options: string[] } {

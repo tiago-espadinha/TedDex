@@ -4,6 +4,7 @@ import { bandStyle } from '../../../data/gameColors';
 import { Icon } from '../../../components/Icon/Icon';
 import { Loading } from '../../../components/Loading/Loading';
 import { TITLES } from './leagueTables';
+import './LeagueList.css';
 
 export function LeagueList({ kind }: { kind: TrainerKind }) {
   const { data, error } = useLoad(() => loadTrainerGames(kind), kind);

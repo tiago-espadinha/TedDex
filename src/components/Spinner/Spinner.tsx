@@ -1,3 +1,4 @@
+import './Spinner.css';
 /** A spinning Poké Ball in the theme's colours; still under reduced motion. index.html repeats the markup for the boot screen. */
 export function Spinner() {
   return (

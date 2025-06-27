@@ -19,6 +19,7 @@ import { Loading } from '../../components/Loading/Loading';
 import { MonName } from '../../components/MonName/MonName';
 import { TypeChip } from '../../components/TypeChip/TypeChip';
 import { MonImg } from '../../components/MonImg/MonImg';
+import './CompareScreen.css';
 
 const STAT_ROWS: [keyof StatBlock, string][] = [
   ['hp', 'HP'],

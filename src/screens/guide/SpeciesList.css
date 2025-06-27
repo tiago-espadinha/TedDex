@@ -1,0 +1,36 @@
+@layer screens {
+  .evo-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .evo-list {
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .evo-list li + li > .evo-member {
+    border-top: 1px solid var(--line);
+  }
+  .evo-member .body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .evo-member .name {
+    font-size: var(--fs-body);
+    font-weight: 700;
+  }
+  .evo-member .no {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .evo-member .types {
+    display: flex;
+    gap: 4px;
+  }
+}

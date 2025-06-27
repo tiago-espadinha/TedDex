@@ -5,6 +5,7 @@ import { typeChip } from '../../data/typeColors';
 import type { TypeName } from '../../data/types';
 import { Loading } from '../../components/Loading/Loading';
 import { TableHead } from './TableHead';
+import './TypeMatrix.css';
 
 /** Short column labels so 18 columns fit a phone with a little sideways scrolling. */
 const TYPE_ABBR = (t: TypeName) => t.slice(0, 3).toUpperCase();

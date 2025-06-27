@@ -1,0 +1,5 @@
+@layer design-b {
+  [data-design='b'] .ref-list .name {
+    font-weight: 500;
+  }
+}

@@ -31,6 +31,7 @@ import { MonImg } from '../../components/MonImg/MonImg';
 import { FilterSheet } from './FilterSheet';
 import { useDexForms, useDexView, useSpriteStyle } from '../../data/settings';
 import { useFavourites } from '../../data/favourites';
+import './DexScreen.css';
 
 const ROW_H = 118; // card 108 + gap 10
 const LIST_ROW_H = 108; // row 100 + gap 8

@@ -14,6 +14,7 @@ import { NatureChip } from './NatureChip';
 import { MemberDetails } from './MemberDetails';
 import { RenameSheet } from './RenameSheet';
 import { DeleteSheet } from './DeleteSheet';
+import './TeamEditor.css';
 
 export function TeamEditor() {
   const id = Number(useParams().id);

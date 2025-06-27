@@ -4,6 +4,7 @@ import { Icon } from '../Icon/Icon';
 import { usePinnedSearch } from '../../hooks/usePinnedSearch';
 import { useBlurOnDrag } from '../../hooks/useBlurOnDrag';
 import { SearchHintSheet } from './SearchHintSheet';
+import './SearchField.css';
 
 /**
  * Search field that sits in a screen's header row, next to its title. `trailing` goes inside the

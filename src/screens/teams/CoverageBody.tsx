@@ -7,6 +7,7 @@ import { Segmented } from '../../components/Segmented/Segmented';
 import { DefensiveView } from './DefensiveView';
 import { OffensiveView } from './OffensiveView';
 import { StatsView } from './StatsView';
+import './CoverageBody.css';
 
 type Mode = 'defensive' | 'offensive' | 'stats';
 

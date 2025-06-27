@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import { useModalSheet } from '../../hooks/useModalSheet';
+import './DeleteSheet.css';
 
 /** Asks before deleting `name`; `lost` says what goes with it. Cancel takes focus, so Enter alone can't delete. */
 export function DeleteSheet({

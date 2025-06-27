@@ -3,8 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { ART_STYLE_EXAMPLE, FORM_KIND_EXAMPLES, FORM_KIND_LABELS } from '../src/data/dexState';
 import type { IndexEntry } from '../src/data/types';
-
-const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
+import { css } from './helpers/css';
 
 function luminance(hex: string) {
   const [r, g, b] = [1, 3, 5].map((i) => {

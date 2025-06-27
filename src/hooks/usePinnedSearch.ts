@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
-/** Length of the field's morph between its header slot and the pinned bar; matches `.search-bar`'s fade in styles.css. */
+/** Length of the field's morph between its header slot and the pinned bar; matches `.search-bar`'s fade in SearchField.css. */
 const PIN_MORPH_MS = 200;
 
 /**

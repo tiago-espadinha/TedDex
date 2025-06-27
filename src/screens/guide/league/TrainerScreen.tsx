@@ -11,6 +11,7 @@ import { TITLES, tintOf } from './leagueTables';
 import { TrainerSprite } from './TrainerSprite';
 import { Picker } from './Picker';
 import { TrainerMon } from './TrainerMon';
+import './TrainerScreen.css';
 
 export function TrainerScreen({ kind }: { kind: TrainerKind }) {
   const { game, tables, trainer: t, pick, shown, setPick, gamePath, search, missing } = useTrainer(kind);

@@ -49,7 +49,7 @@ Any other static host with HTTPS works with the same build, fallback and headers
 scripts/build-data.ts   PokeAPI CSV → public/data/*.json
 public/data/            generated data (committed, so the app runs without the build step)
 src/main.tsx            router + app shell (bottom nav, toasts, scroll restoration)
-src/styles.css          Design A tokens (light + dark) and all component styles
+src/styles/             layer order, tokens (the only literal colours), base, shared rules, motion
 src/data/               data loading, IndexedDB (Dexie) teams, filters, settings, type colours
 src/components/<Name>/  one folder per shared component (icons, type chips, bottom nav, search field, toast)
 src/hooks/              shared hooks (modal sheet, nav hiding, pager, keyboard inset)

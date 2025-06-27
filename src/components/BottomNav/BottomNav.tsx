@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Icon, type IconName } from '../Icon/Icon';
 import { showNav } from '../../hooks/useNavHiding';
 import { playAnim } from '../playAnim';
+import './BottomNav.css';
 
 const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/', label: 'Dex', icon: 'dex', end: true },

@@ -1,10 +1,10 @@
-/** How long `data-play` stays on: longer than any one-shot animation in styles.css. */
+/** How long `data-play` stays on: longer than any one-shot animation in styles/motion.css. */
 const PLAY_MS = 300;
 
 const playing = new WeakMap<HTMLElement, number>();
 
 /**
- * Plays a one-shot animation: the `[data-play='<name>']` rules in styles.css, restarted if it is
+ * Plays a one-shot animation: the `[data-play='<name>']` rules in styles/motion.css, restarted if it is
  * already running. Nothing at all under reduced motion. The attribute comes off afterwards, so
  * the element coming back from `display: none` doesn't play it again.
  */

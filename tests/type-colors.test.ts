@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { FLAVORS } from '../src/data/natures';
 import { TYPE_NAMES } from '../src/data/typeColors';
+import { css } from './helpers/css';
 
-const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
 const rootBlock = css.slice(css.indexOf(':root {'), css.indexOf('}', css.indexOf(':root {')));
 
 function luminance(hex: string) {

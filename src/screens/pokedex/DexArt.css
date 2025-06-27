@@ -1,0 +1,23 @@
+@layer screens {
+  .dex-art {
+    flex: none;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dex-art img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+  }
+  .dex-art svg {
+    width: 64px;
+    height: 64px;
+    padding: 12px;
+    border-radius: 16px;
+    background: var(--primary-soft);
+    color: var(--primary-soft-ink);
+  }
+}

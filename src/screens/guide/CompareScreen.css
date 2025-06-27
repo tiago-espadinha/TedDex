@@ -1,0 +1,153 @@
+@layer screens {
+  .cmp-slots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 4px 24px 8px;
+  }
+  .cmp-slot {
+    min-width: 0;
+    border: 0;
+    border-radius: var(--radius-card);
+    padding: 8px 10px 12px;
+    color: var(--on-tint);
+    font: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+    transition: transform 120ms ease;
+  }
+  button.cmp-slot:active {
+    transform: scale(0.97);
+  }
+  .cmp-slot img {
+    display: block;
+    width: 96px;
+    height: 96px;
+    image-rendering: pixelated;
+  }
+  .cmp-slot.empty-slot {
+    min-height: 196px;
+    justify-content: center;
+    gap: 6px;
+    border: 1.5px dashed var(--outline);
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: var(--fs-md);
+    font-weight: 700;
+  }
+  .cmp-slot .no {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--on-tint-muted);
+  }
+  .cmp-slot .name {
+    max-width: 100%;
+    font-size: var(--fs-lg);
+    line-height: 20px;
+    font-weight: 800;
+    text-wrap: balance;
+  }
+  .cmp-slot .types {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .cmp-error {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .cmp-sides {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: start;
+  }
+  .cmp-none {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--muted);
+    line-height: 24px;
+  }
+  .cmp-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    min-height: 28px;
+  }
+  .cmp-row.total {
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+    margin-top: 4px;
+  }
+  .cmp-names {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .cmp-names > :last-child {
+    text-align: right;
+  }
+  .cmp-label {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+  }
+  .cmp-row.total .cmp-label {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .cmp-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .cmp-row > .cmp-cell:last-child {
+    flex-direction: row-reverse;
+  }
+  .cmp-cell .val {
+    flex: none;
+    min-width: 28px;
+    font-size: var(--fs-md);
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .cmp-row > .cmp-cell:last-child .val {
+    text-align: right;
+  }
+  .cmp-cell .val.more {
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .cmp-cell .track {
+    flex: 1;
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .cmp-row > .cmp-cell:first-child .track {
+    justify-content: flex-end;
+  }
+  .cmp-cell .fill {
+    height: 8px;
+    border-radius: 4px;
+    animation: grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .cmp-row > .cmp-cell:first-child .fill {
+    transform-origin: right;
+  }
+  .cmp-row > .cmp-cell:last-child .fill {
+    transform-origin: left;
+  }
+}

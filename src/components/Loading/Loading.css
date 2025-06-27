@@ -1,0 +1,23 @@
+@layer components {
+  /* A whole-screen load (Loading straight in <main>) fills what the header leaves above the nav, so the ball sits in the middle. */
+  .app:has(> .loading) {
+    display: flex;
+    flex-direction: column;
+  }
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+  }
+  .app > .loading {
+    flex: 1;
+  }
+  /* still empty: no room to keep above the filter button */
+  /* Before React mounts (index.html): the whole screen, under the safe area. */
+  .loading.boot {
+    box-sizing: border-box;
+    min-height: 100dvh;
+    padding: var(--safe-top) 24px var(--safe-bottom);
+  }
+}

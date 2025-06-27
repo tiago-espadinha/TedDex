@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-
-const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
+import { css } from './helpers/css';
 
 /** The one-shot and sliding animations of the micro-interactions: quick, and cheap to run on a phone. */
 const ONE_SHOT = [

@@ -1,0 +1,27 @@
+@layer screens {
+  .confirm-title {
+    overflow-wrap: anywhere;
+  }
+  .confirm-text {
+    margin: 10px 2px 0;
+    font-size: var(--fs-md);
+    color: var(--muted);
+  }
+  .confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 24px;
+  }
+}
+@layer overrides {
+  /* In the overrides layer: Cancel and Delete keep their colours over Design B's primary button. */
+  .confirm-actions .primary-btn.cancel {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .confirm-actions .primary-btn.danger {
+    background: var(--danger);
+    color: var(--on-danger);
+  }
+}

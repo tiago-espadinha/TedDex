@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { defensiveMultipliers, offensiveMultipliers } from '../../data/api';
 import type { TypeData, TypeName } from '../../data/types';
 import { TypeChip } from '../../components/TypeChip/TypeChip';
+import './TypeChart.css';
 
 const ATTACK_GROUPS = [
   { label: 'Super effective against', test: (m: number) => m > 1 },

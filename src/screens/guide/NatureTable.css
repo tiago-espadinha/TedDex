@@ -1,0 +1,102 @@
+@layer screens {
+  .ref-table {
+    margin: 12px 16px 24px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    overflow-x: auto;
+  }
+  .ref-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+  .ref-table th,
+  .ref-table td {
+    padding: 10px 8px;
+    text-align: left;
+    border-top: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .ref-table thead th {
+    border-top: 0;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .ref-table tbody th {
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .ref-table td {
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  /* Natures: larger type, raised/liked headers green and lowered/disliked red, stats and flavours as chips. */
+  .ref-table.natures table {
+    font-size: var(--fs-body);
+  }
+  .ref-table.natures :is(th, td) {
+    padding: 10px 6px;
+  }
+  .ref-table.natures :is(th, td):first-child {
+    padding-left: 12px;
+  }
+  .ref-table.natures thead th {
+    font-size: var(--fs-sm);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .ref-table.natures thead th.up {
+    color: var(--resist-ink);
+  }
+  .ref-table.natures thead th.down {
+    color: var(--weak-ink);
+  }
+  .ref-table.natures td {
+    color: var(--muted);
+  }
+  .ref-table.natures .fact-chip {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: var(--fs-md);
+  }
+  @media (max-width: 599px) {
+    /* Under 600 px the table runs edge to edge and square, so the five columns fit a phone. */
+    .ref-table.natures {
+      margin-inline: 0;
+      border-inline: 0;
+      border-radius: 0;
+    }
+    .ref-table.natures :is(th, td) {
+      padding-inline: 3px;
+    }
+    .ref-table.natures :is(th, td):first-child {
+      padding-left: var(--table-gutter);
+    }
+    .ref-table.natures :is(th, td):last-child {
+      padding-right: var(--table-gutter);
+    }
+    .ref-table.natures .fact-chip {
+      padding-inline: 6px;
+    }
+  }
+}
+@layer design-b {
+  /* Poppins runs wider and taller: a size down and B's lighter weights (names too: at 800 they overflow) keep the natures table's five columns on a phone. */
+  [data-design='b'] .ref-table.natures table {
+    font-size: var(--fs-md);
+  }
+  [data-design='b'] .ref-table.natures thead th {
+    font-size: var(--fs-xs);
+  }
+  [data-design='b'] .ref-table.natures :is(th, .fact-chip) {
+    font-weight: 500;
+  }
+  [data-design='b'] .ref-table.natures .fact-chip {
+    padding-inline: 6px;
+    font-size: var(--fs-sm);
+  }
+}

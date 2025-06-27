@@ -11,6 +11,7 @@ import {
 import { TYPE_NAMES, typeChip } from '../../data/typeColors';
 import type { TypeName } from '../../data/types';
 import { roman } from '../../data/format';
+import './FilterSheet.css';
 
 const GENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const SORTS = Object.entries(SORT_LABELS) as [SortKey, string][];

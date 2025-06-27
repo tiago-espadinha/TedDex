@@ -6,6 +6,7 @@ import type { IndexEntry } from '../../data/types';
 import { MonName } from '../../components/MonName/MonName';
 import { TypeChip } from '../../components/TypeChip/TypeChip';
 import { MonImg } from '../../components/MonImg/MonImg';
+import './LearnerTable.css';
 
 /** Species linking to their detail pages, in dex order; sprites load as they scroll into view. */
 /** Species that learn a move as aligned columns: number, sprite, name, types. */

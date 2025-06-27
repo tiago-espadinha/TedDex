@@ -1,5 +1,6 @@
 import { dexSpriteUrl } from '../../data/api';
 import { Icon } from '../../components/Icon/Icon';
+import './DexArt.css';
 
 /** A game's Pokédex art; the national dex gets the Pokédex icon. */
 export function DexArt({ game }: { game?: number }) {

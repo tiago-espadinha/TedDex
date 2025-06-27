@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { bandStyle } from '../../data/gameColors';
 import type { IndexEntry, ItemPlaceGame } from '../../data/types';
 import { MonImg } from '../../components/MonImg/MonImg';
+import './PlaceGame.css';
 
 export function PlaceGame({ place, byId }: { place: ItemPlaceGame; byId: Map<number, IndexEntry> }) {
   const ways: [string, string][] = [

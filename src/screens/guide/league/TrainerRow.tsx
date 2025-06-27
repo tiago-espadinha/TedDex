@@ -5,6 +5,7 @@ import { TypeChip } from '../../../components/TypeChip/TypeChip';
 import { teamSummary } from '../../../data/trainers';
 import { tintOf, type Tables } from './leagueTables';
 import { TrainerSprite } from './TrainerSprite';
+import './TrainerRow.css';
 
 /** A trainer in the game's list: "Badge · Name", role and type, and the first battle team's size and top level. */
 export function TrainerRow({ to, trainer: t, tables }: { to: string; trainer: LeagueTrainer; tables: Tables }) {

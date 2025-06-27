@@ -1,7 +1,7 @@
 /** Inline stroke icons (no icon font, so they work offline from first launch). */
 const paths = {
   /* The Dex view toggle: two rows of two squares. For the list shape the squares' inner sides fade and two edges
-     grow across the gap, so a row reads as one bar, drawn with transforms only (.view-toggle in styles.css). */
+     grow across the gap, so a row reads as one bar, drawn with transforms only (.view-toggle in DexScreen.css). */
   view: [0, 11].map((y) => (
     <g key={y} transform={`translate(0 ${y})`}>
       <path d="M8 3H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3M16 3h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3" />

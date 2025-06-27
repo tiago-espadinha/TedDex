@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import './Facts.css';
 
 /** Label-over-value facts in an entry header (moves, items). */
 export function Facts({ facts }: { facts: [string, ReactNode][] }) {

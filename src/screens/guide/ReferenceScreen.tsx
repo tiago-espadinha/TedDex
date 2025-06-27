@@ -4,6 +4,7 @@ import { typeTint } from '../../data/typeColors';
 import type { TypeName } from '../../data/types';
 import { Icon } from '../../components/Icon/Icon';
 import { KINDS, type Kind } from './guideEntries';
+import './ReferenceScreen.css';
 
 /** Menu look per kind: pixel-art sprites (a TM, Ability Capsule, Pomeg Berry, a Mint, Ultra Ball, Master Ball, Dowsing Machine, Rusted Sword over Shield). */
 const MENU_LOOK: Record<Kind, { sprite: string; tint: TypeName }> = {

@@ -24,6 +24,7 @@ import { EvolutionTab } from './EvolutionTab';
 import { LocationsTab } from './LocationsTab';
 import { MovesTab } from './MovesTab';
 import { SharedGameSheet } from '../../components/GamePicker/GamePicker';
+import './DetailScreen.css';
 
 const TABS = ['About', 'Stats', 'Moves'] as const;
 type Tab = (typeof TABS)[number];

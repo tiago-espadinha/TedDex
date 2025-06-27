@@ -20,6 +20,7 @@ import { ItemFilterSheet } from './ItemFilterSheet';
 import { MoveFilterSheet } from './MoveFilterSheet';
 import { kindOf, type ListKind, type Entry, type MoveEntry, type ItemEntry } from './guideEntries';
 import { EntryBody } from './EntryBody';
+import './SearchList.css';
 
 async function loadEntries(kind: ListKind): Promise<Entry[]> {
   switch (kind) {

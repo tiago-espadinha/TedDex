@@ -1,0 +1,23 @@
+@layer screens {
+  .ref-list .one-line {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ref-list .item-sprite {
+    flex: none;
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: var(--surface-2);
+    object-fit: contain;
+  }
+  .ref-list .price {
+    flex: none;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+}

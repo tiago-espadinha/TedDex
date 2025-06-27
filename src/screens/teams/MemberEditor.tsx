@@ -35,6 +35,7 @@ import { knownGame } from '../../data/game';
 import { MoveCells, MoveHead } from '../detail/MovesTab';
 import { QuickView, type PeekAction } from '../guide/QuickView';
 import { RenameSheet } from './RenameSheet';
+import './MemberEditor.css';
 
 const loadAll = (id: number, formKey?: string) =>
   Promise.all([loadSpecies(id), loadLearnsets(id, formKey), loadMoves(), loadItems(), loadVersions()]);

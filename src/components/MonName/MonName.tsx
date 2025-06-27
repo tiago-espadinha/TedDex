@@ -1,4 +1,5 @@
 import { Icon } from '../Icon/Icon';
+import './MonName.css';
 
 const SIGN_ICON = { '♂': 'male', '♀': 'female' } as const;
 

@@ -1,0 +1,52 @@
+@layer screens {
+  /* Teams list: 100 px rows, the name over the tops of 80 px sprites that overlap when six don't fit side by side. */
+  .team-list-row {
+    position: relative;
+    display: block;
+    height: 100px;
+    padding: 0;
+    overflow: hidden;
+  }
+  .team-list-row:focus-visible {
+    outline-offset: -2px;
+  }
+  .team-list-row .head {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 8px 14px 0;
+  }
+  .team-list-row .head svg {
+    flex: none;
+    color: var(--muted);
+  }
+  .team-list-row .name {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .team-list-row .minis {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 0;
+    display: flex;
+  }
+  .team-list-row .minis > span {
+    flex: 0 1 80px;
+    min-width: 0;
+  }
+  .team-list-row .minis > span:last-child {
+    flex-shrink: 0;
+  }
+  .team-list-row .minis img {
+    display: block;
+    width: 80px;
+    height: 80px;
+    image-rendering: pixelated;
+  }
+}

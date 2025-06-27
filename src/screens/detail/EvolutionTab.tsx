@@ -16,6 +16,7 @@ import type { FormVariant, IndexEntry, SpeciesDetail } from '../../data/types';
 import { Loading } from '../../components/Loading/Loading';
 import { MonName } from '../../components/MonName/MonName';
 import { MonImg } from '../../components/MonImg/MonImg';
+import './EvolutionTab.css';
 
 async function loadAll(chainId: number | null, id: number) {
   const [chain, index] = await Promise.all([chainId ? loadEvolution(chainId) : Promise.resolve([]), loadIndex()]);

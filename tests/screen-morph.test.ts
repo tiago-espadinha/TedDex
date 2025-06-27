@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { screenDirection } from '../src/data/screenMorph';
+import { css } from './helpers/css';
 
 const at = (pathname: string, picking = false) => ({ pathname, picking });
 
@@ -41,7 +41,6 @@ test('pick mode is a pushed screen, not the Dex tab', () => {
 });
 
 test('morphs stay within the screen-change limit and off under reduced motion', () => {
-  const css = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
   const rules = [...css.matchAll(/^::view-transition-[a-z]+\(morph-[a-z]+\)[^{]*\{[^}]*\}/gm)].map((m) => m[0]);
   assert.ok(rules.length > 0);
   for (const rule of rules) {

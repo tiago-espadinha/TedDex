@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { NATURES, STAT_ABBR, dislikedFlavor, flavorChip, likedFlavor, type Flavor } from '../../data/natures';
 import { STAT_COLOR, typeChip } from '../../data/typeColors';
 import { TableHead } from './TableHead';
+import './NatureTable.css';
 
 const STAT_NAMES = { atk: 'Attack', def: 'Defense', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed' };
 

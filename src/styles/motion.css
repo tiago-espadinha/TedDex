@@ -1,0 +1,253 @@
+@layer primitives {
+  [data-play='seg']::before {
+    animation: seg-slide 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes seg-slide {
+    from {
+      transform: translateX(var(--seg-x)) scaleX(var(--seg-w));
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes rise {
+    from {
+      transform: translateY(40%);
+      opacity: 0.4;
+    }
+  }
+  @keyframes sink {
+    to {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+  }
+  @keyframes dialog-out {
+    to {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes pulse {
+    to {
+      opacity: 0.25;
+    }
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+  /* Screen changes (View Transitions API, started by the router in main.tsx): the old screen fades out, the new one rises in. */
+  ::view-transition-old(root) {
+    animation: fade-out 120ms ease both;
+  }
+  ::view-transition-new(root) {
+    animation: rise-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+  /* Going back plays that in reverse; tabs are siblings, so they only cross-fade (direction classes from main.tsx). */
+  @keyframes sink-out {
+    to {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+  .vt-back::view-transition-old(root) {
+    animation: sink-out 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .vt-back::view-transition-new(root) {
+    animation: fade 120ms ease both;
+  }
+  .vt-tab::view-transition-old(root) {
+    animation: fade-out 120ms ease both;
+  }
+  .vt-tab::view-transition-new(root) {
+    animation: fade 120ms ease both;
+  }
+  /* Shared elements (src/data/screenMorph.ts): the browser moves and resizes each group while its images cross-fade. */
+  ::view-transition-group(morph-card),
+  ::view-transition-group(morph-title),
+  ::view-transition-group(morph-sub),
+  ::view-transition-group(morph-art) {
+    animation-duration: 240ms;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  ::view-transition-new(morph-card),
+  ::view-transition-old(morph-art),
+  ::view-transition-new(morph-art) {
+    animation-duration: 240ms;
+  }
+  /* The old card goes as fast as the old screen, so a sheet's text doesn't sit over the new page's. */
+  ::view-transition-old(morph-card) {
+    animation-duration: 120ms;
+  }
+  /* The new screen waits for the old one to go, so moving text never crosses a page body at full strength. */
+  .vt-morph::view-transition-new(root) {
+    animation: rise-in 160ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+  }
+  .vt-morph.vt-back::view-transition-old(root) {
+    animation: fade-out 120ms ease both;
+  }
+  .vt-morph.vt-back::view-transition-new(root) {
+    animation: fade 160ms ease 80ms both;
+  }
+  /* Text scales with its height from the left, whatever width its row or header gives it, so it never stretches. */
+  ::view-transition-old(morph-title),
+  ::view-transition-new(morph-title),
+  ::view-transition-old(morph-sub),
+  ::view-transition-new(morph-sub) {
+    animation-duration: 240ms;
+    width: auto;
+    height: 100%;
+  }
+  /* These stay put across a screen change, live, so their pills can slide: no old snapshot to cross-fade with. */
+  ::view-transition-old(bottom-nav),
+  ::view-transition-old(team-tabs) {
+    animation: none;
+    opacity: 0;
+  }
+  ::view-transition-new(bottom-nav),
+  ::view-transition-new(team-tabs) {
+    animation: none;
+  }
+  /* Only on one side of the change (the Team tab's switch, the nav hidden for a keyboard), they fade like the screen. */
+  ::view-transition-old(bottom-nav):only-child,
+  ::view-transition-old(team-tabs):only-child {
+    animation: fade-out 120ms ease both;
+    opacity: 1;
+  }
+  ::view-transition-new(bottom-nav):only-child,
+  ::view-transition-new(team-tabs):only-child {
+    animation: fade 220ms ease both;
+  }
+  /* One-shot feedback, played by playAnim.ts. Each is transform and opacity, under 250 ms. */
+  @keyframes nav-bounce {
+    40% {
+      transform: translateY(-3px) scale(1.12);
+    }
+  }
+  [data-play='nav-bounce'] .pill svg {
+    animation: nav-bounce 220ms ease-out;
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+  }
+  @keyframes pop {
+    50% {
+      transform: scale(1.25);
+    }
+  }
+  @keyframes bump {
+    40% {
+      transform: scale(1.35);
+    }
+  }
+  @keyframes bolt-on {
+    0% {
+      opacity: 0.3;
+      transform: scale(0.6);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.25);
+    }
+  }
+  @keyframes bolt-off {
+    50% {
+      opacity: 0.2;
+      transform: scale(0.8);
+    }
+  }
+  @keyframes lid-open {
+    50% {
+      transform: translateY(-1px) rotate(-22deg);
+    }
+  }
+  @keyframes sparkle {
+    0% {
+      opacity: 0;
+      transform: rotate(-120deg) scale(0.3);
+    }
+    60% {
+      opacity: 1;
+      transform: rotate(20deg) scale(1.4);
+    }
+  }
+  [data-play='heart'] svg {
+    animation: pop 220ms ease-out;
+  }
+  [data-play='bolt-on'] svg {
+    animation: bolt-on 220ms ease-out;
+  }
+  [data-play='bolt-off'] svg {
+    animation: bolt-off 200ms ease-out;
+  }
+  [data-play='star-on'] svg {
+    animation: sparkle 240ms ease-out;
+  }
+  [data-play='star-off'] svg {
+    animation: bolt-off 200ms ease-out;
+  }
+  [data-play='bin'] .lid {
+    transform-box: fill-box;
+    transform-origin: left bottom;
+    animation: lid-open 220ms ease-out;
+  }
+  [data-play='bump'] {
+    animation: bump 200ms ease-out;
+  }
+  [data-play='cell'] img {
+    animation: pop 200ms ease-out;
+  }
+  .dex-cell.s2[data-play='cell'] .badge {
+    animation: pop 200ms ease-out;
+  }
+  .dex-cell.s3[data-play='cell'] .badge {
+    animation: sparkle 240ms ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      transition-duration: 1ms !important;
+    }
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
+    .icon-btn.playing svg path + path {
+      animation: none !important;
+    }
+    .spinner {
+      animation: none !important;
+    }
+  }
+}

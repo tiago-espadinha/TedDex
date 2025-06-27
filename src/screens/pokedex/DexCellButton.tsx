@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon/Icon';
 import { MonName } from '../../components/MonName/MonName';
 import { playAnim } from '../../components/playAnim';
 import { MonImg } from '../../components/MonImg/MonImg';
+import './DexCellButton.css';
 
 /** Not-seen cells show the number in the view, the others the name; shiny cells show the shiny image. */
 export const DexCellButton = memo(function DexCellButton({

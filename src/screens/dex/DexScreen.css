@@ -1,0 +1,169 @@
+@layer screens {
+  .grid-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 0 16px;
+  }
+  @media (min-width: 600px) {
+    .grid-row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .list-row {
+    padding: 0 16px;
+  }
+  .mon-card {
+    position: relative;
+    display: block;
+    height: 108px;
+    border-radius: var(--radius-card);
+    padding: 12px 12px 12px 14px;
+    color: var(--on-tint);
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform 120ms ease;
+  }
+  .mon-card:active {
+    transform: scale(0.97);
+  }
+  /* Fixed line heights: two stacked type chips fit above the 12 px bottom padding in both designs' fonts. */
+  .mon-card .no {
+    font-size: var(--fs-xs);
+    line-height: 16px;
+    font-weight: 700;
+    color: var(--on-tint-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mon-card .no,
+  .mon-card .name,
+  .mon-card .types {
+    position: relative;
+    z-index: 1;
+  }
+  .mon-card .sort-val {
+    font-weight: 800;
+    color: var(--on-tint);
+  }
+  .mon-card .sort-val svg {
+    vertical-align: -2px;
+    margin-right: 2px;
+  }
+  .mon-card .name {
+    font-size: var(--fs-body);
+    line-height: 20px;
+    font-weight: 800;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Long names cross the sprite: a stroke in the card's colour, painted behind the fill, keeps them readable. */
+  .mon-card:not(.row) .name {
+    -webkit-text-stroke: 3px var(--name-outline, var(--card-tint));
+    paint-order: stroke fill;
+  }
+  .mon-card .types {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .mon-card .type-chip {
+    line-height: 14px;
+  }
+  .mon-card img {
+    position: absolute;
+    z-index: 0;
+    right: 2px;
+    bottom: 0;
+    width: 80px;
+    height: 80px;
+    image-rendering: pixelated;
+  }
+  /* List view: sprite on the left, number over name, type chips stacked on the right. */
+  .mon-card.row {
+    height: 100px;
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr) auto;
+    grid-template-rows: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding: 8px 14px 8px 8px;
+    border-radius: 16px;
+  }
+  /* Sprite files are 96 px with transparent edges: draw them at full size and let the edges overlap the padding. */
+  .mon-card.row img {
+    position: static;
+    grid-area: 1 / 1 / 3 / 2;
+    align-self: center;
+    width: 96px;
+    height: 96px;
+    margin: -8px;
+  }
+  /* Artwork fills its frame: keep it inside the row. */
+  .mon-card.row.sprite-art img {
+    width: 80px;
+    height: 80px;
+    margin: 0;
+  }
+  .mon-card.row .no {
+    grid-area: 1 / 2;
+    align-self: end;
+  }
+  .mon-card.row .name {
+    grid-area: 2 / 2;
+    align-self: start;
+    margin: 0;
+    font-size: var(--fs-lg);
+  }
+  .mon-card.row .types {
+    grid-area: 1 / 3 / 3 / 4;
+    align-self: center;
+    align-items: stretch;
+    margin: 0;
+    text-align: center;
+  }
+  .app > .loading ~ .dex-list {
+    margin-bottom: 0;
+  }
+  /* Room under the last grid row so it can scroll clear of the FAB (56 px + 16 px offset + 16 px; the row gap adds 10 px). */
+  .dex-list {
+    margin-bottom: 88px;
+  }
+  /* The Dex view toggle shows the view it switches to: the grid while the list is on. */
+  .view-toggle :is(.inner, .bridge) {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      transform 200ms ease,
+      opacity 200ms ease;
+  }
+  .view-toggle[aria-pressed='true'] .bridge {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  .view-toggle[aria-pressed='false'] .inner {
+    opacity: 0;
+  }
+}
+@layer design-b {
+  [data-design='b'] .grid-row {
+    gap: 6px;
+    padding: 0 6px;
+  }
+  [data-design='b'] .list-row {
+    padding: 0 6px;
+  }
+  [data-design='b'] .mon-card.row {
+    background-image: linear-gradient(90deg, transparent 20%, var(--surface) 70%);
+  }
+  /* The outline matches the gradient at the name's height, 44 % of the way to --surface. */
+  [data-design='b'] .mon-card {
+    background-image: linear-gradient(180deg, transparent 0%, var(--surface) 85%);
+    --name-outline: color-mix(in srgb, var(--card-tint) 56%, var(--surface));
+  }
+}

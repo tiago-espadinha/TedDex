@@ -7,6 +7,7 @@ import { useGame } from '../../data/settings';
 import type { VersionGroup } from '../../data/types';
 import { Icon } from '../Icon/Icon';
 import { useModalSheet } from '../../hooks/useModalSheet';
+import './GamePicker.css';
 
 /** What a picker can hold: the shared game, or the member filter's own Any game. */
 export type GameChoice = GamePref | 'any';

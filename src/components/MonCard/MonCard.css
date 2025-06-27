@@ -1,0 +1,153 @@
+@layer components {
+  .league-moves li > * {
+    gap: 6px;
+  }
+  .team-mon .league-facts dt {
+    color: var(--on-tint-muted);
+  }
+  .league-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0 12px 12px;
+    font-size: var(--fs-sm);
+  }
+  .league-facts div {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .league-facts dt {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .league-facts dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+  .league-facts a {
+    color: var(--primary);
+  }
+  @media (max-width: 599px) {
+    /* Beside its label a chip is too narrow for the longer names, which then break mid-word. */
+    .league-facts div {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+    .league-facts dd,
+    .league-facts .league-chip {
+      align-self: stretch;
+    }
+  }
+  .league-moves {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0 12px;
+    padding: 0;
+    list-style: none;
+  }
+  .league-moves li > * {
+    display: flex;
+  }
+  .league-facts .league-chip {
+    display: inline-flex;
+    gap: 6px;
+    padding-right: 12px;
+    color: var(--ink);
+  }
+  .league-moves :is(a, button):focus-visible {
+    outline-offset: -2px;
+  }
+  @media (min-width: 600px) {
+    .league-moves {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .team-mon {
+    position: relative;
+    padding-bottom: 10px;
+    border-radius: var(--radius-card);
+    color: var(--on-tint);
+  }
+  /* The head links to the member editor and its hit area covers the card; the chips and ✕ sit above it. */
+  .team-mon > a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+  }
+  .team-mon > a:active {
+    background: none;
+  }
+  .team-mon > a:active::after {
+    background-color: var(--tint-press);
+  }
+  .team-mon > a:focus-visible {
+    outline: none;
+  }
+  .team-mon > a:focus-visible::after {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+  }
+  .team-mon :is(button.league-chip, .league-moves button) {
+    position: relative;
+    z-index: 1;
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    text-align: left;
+  }
+  .team-mon .league-moves button {
+    width: 100%;
+  }
+  .team-mon :is(button.league-chip, .league-moves button):active {
+    background: var(--tint-press);
+  }
+  .team-mon .evo-member {
+    color: inherit;
+  }
+  /* Saved-team heads end before the remove ✕ (44 px at 4 px from the edge), so the nature chip never sits under it. */
+  .team-mon:not(.trainer-mon) .evo-member {
+    padding-right: 52px;
+  }
+  /* The card already carries the tint, so the sprite drops the tile MonHead paints inline. */
+  .team-mon .evo-member img {
+    background: transparent !important;
+  }
+  .team-mon > .icon-btn {
+    position: absolute;
+    z-index: 1;
+    top: 6px;
+    right: 4px;
+    color: var(--on-tint-2);
+  }
+  .team-mon :is(.league-chip, .league-moves li > *) {
+    background: var(--tint-glass);
+    color: var(--on-tint);
+    width: 100%;
+  }
+  .team-mon .league-facts dd {
+    color: var(--on-tint);
+    width: 100%;
+  }
+  /* Ability in the left column and held item in the right, so an item without an ability keeps its side; the nature chip ends the types row. */
+  .team-mon .league-facts .item {
+    grid-column: 2;
+  }
+  .team-mon .evo-member .types {
+    align-items: center;
+  }
+  .team-mon .nature {
+    margin-left: auto;
+  }
+  .team-mon .nature:not([style]) {
+    background: var(--tint-glass);
+    color: var(--on-tint);
+  }
+  .team-mon .league-moves li > * {
+    height: 100%;
+  }
+}

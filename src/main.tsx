@@ -1,3 +1,4 @@
+import './styles/index.css';
 import { StrictMode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -37,7 +38,6 @@ import { EditPokedexSpecies, NewCustomPokedex } from './screens/pokedex/SpeciesP
 import { CoverageScreen } from './screens/teams/CoverageScreen';
 import { TeamEditor } from './screens/teams/TeamEditor';
 import { TeamsScreen } from './screens/teams/TeamsScreen';
-import './styles.css';
 
 try {
   applyTheme((localStorage.getItem('theme') as Theme) ?? 'system');

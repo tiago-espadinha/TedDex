@@ -6,6 +6,7 @@ import { Fact, MonFacts, MonHead, MonMoves } from '../../../components/MonCard/M
 import { usePeek } from '../../../hooks/usePeek';
 import { typeTint } from '../../../data/typeColors';
 import { monOf, type Tables } from './leagueTables';
+import './TrainerMon.css';
 
 const battleFormLabel = (key: string) => (key === 'gmax' ? 'Gigantamaxes' : 'Mega Evolves');
 
