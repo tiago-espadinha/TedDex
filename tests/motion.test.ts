@@ -57,7 +57,7 @@ for (const name of ONE_SHOT) {
 }
 
 test('playAnim keeps its attribute on longer than any one-shot runs', () => {
-  const bits = readFileSync(new URL('../src/components/bits.tsx', import.meta.url), 'utf8');
+  const bits = readFileSync(new URL('../src/components/playAnim.ts', import.meta.url), 'utf8');
   const kept = Number(bits.match(/const PLAY_MS = (\d+);/)?.[1]);
   const played = rules.filter((rule) => rule.selector.includes('[data-play='));
   assert.ok(played.length > 0);

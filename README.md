@@ -51,8 +51,9 @@ public/data/            generated data (committed, so the app runs without the b
 src/main.tsx            router + app shell (bottom nav, toasts, scroll restoration)
 src/styles.css          Design A tokens (light + dark) and all component styles
 src/data/               data loading, IndexedDB (Dexie) teams, filters, settings, type colours
-src/components/         icons, type chips, bottom nav, toast
-src/screens/            Dex grid, filter sheet, detail, teams, coverage, reference, more
+src/components/<Name>/  one folder per shared component (icons, type chips, bottom nav, search field, toast)
+src/hooks/              shared hooks (modal sheet, nav hiding, pager, keyboard inset)
+src/screens/<feature>/  dex, detail, teams, pokedex, guide and settings screens
 ```
 
 ## Status

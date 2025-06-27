@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const bits = readFileSync(new URL('../src/components/bits.tsx', import.meta.url), 'utf8');
+const bits = readFileSync(new URL('../src/components/Spinner/Spinner.tsx', import.meta.url), 'utf8');
 
 /** The spinner's SVG, attributes in JSX spelling, whitespace collapsed. */
 const svg = (source: string) =>

@@ -8,22 +8,35 @@ import {
   useLocation,
   type Location,
 } from 'react-router-dom';
-import { BottomNav, ToastProvider, useKeyboardInset, useNavHiding } from './components/bits';
+import { BottomNav } from './components/BottomNav/BottomNav';
+import { ToastProvider } from './components/Toast/ToastProvider';
+import { useKeyboardInset } from './hooks/useKeyboardInset';
+import { useNavHiding } from './hooks/useNavHiding';
 import { isPicking } from './data/dexState';
 import { clearNames, prepareMorph, screenDirection } from './data/screenMorph';
 import { applyDesign, applyTheme, type Design, type Theme } from './data/settings';
 import { warmSprites } from './data/spriteCache';
-import { CompareScreen } from './screens/CompareScreen';
-import { DetailScreen } from './screens/DetailScreen';
-import { DexScreen } from './screens/DexScreen';
-import { LeagueGameScreen, LeagueList, TrainerCoverageScreen, TrainerScreen } from './screens/LeagueScreens';
-import { MoreScreen } from './screens/OtherScreens';
-import { EggGroupEntry, ReferenceEntry, ReferenceList, ReferenceScreen } from './screens/ReferenceScreens';
-import { MemberEditor } from './screens/MemberEditor';
-import { NewPokedex, PokedexList, PokedexScreen } from './screens/PokedexScreens';
-import { QuickView } from './screens/QuickView';
-import { EditPokedexSpecies, NewCustomPokedex } from './screens/SpeciesPicker';
-import { CoverageScreen, TeamEditor, TeamsScreen } from './screens/TeamScreens';
+import { CompareScreen } from './screens/guide/CompareScreen';
+import { DetailScreen } from './screens/detail/DetailScreen';
+import { DexScreen } from './screens/dex/DexScreen';
+import { LeagueGameScreen } from './screens/guide/league/LeagueGameScreen';
+import { LeagueList } from './screens/guide/league/LeagueList';
+import { TrainerCoverageScreen } from './screens/guide/league/TrainerCoverageScreen';
+import { TrainerScreen } from './screens/guide/league/TrainerScreen';
+import { SettingsScreen } from './screens/settings/SettingsScreen';
+import { EggGroupEntry } from './screens/guide/EggGroupEntry';
+import { ReferenceEntry } from './screens/guide/ReferenceEntry';
+import { ReferenceList } from './screens/guide/ReferenceList';
+import { ReferenceScreen } from './screens/guide/ReferenceScreen';
+import { MemberEditor } from './screens/teams/MemberEditor';
+import { NewPokedex } from './screens/pokedex/NewPokedex';
+import { PokedexList } from './screens/pokedex/PokedexList';
+import { PokedexScreen } from './screens/pokedex/PokedexScreen';
+import { QuickView } from './screens/guide/QuickView';
+import { EditPokedexSpecies, NewCustomPokedex } from './screens/pokedex/SpeciesPicker';
+import { CoverageScreen } from './screens/teams/CoverageScreen';
+import { TeamEditor } from './screens/teams/TeamEditor';
+import { TeamsScreen } from './screens/teams/TeamsScreen';
 import './styles.css';
 
 try {
@@ -94,7 +107,7 @@ const router = createBrowserRouter([
       { path: '/reference/egg-groups/:group', element: <EggGroupEntry /> },
       { path: '/reference/:kind', element: <ReferenceList /> },
       { path: '/reference/:kind/:id', element: <ReferenceEntry /> },
-      { path: '/more', element: <MoreScreen /> },
+      { path: '/more', element: <SettingsScreen /> },
       { path: '*', element: <p className="empty">Page not found.</p> },
     ],
   },

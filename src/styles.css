@@ -1181,7 +1181,7 @@ main:focus,
   color: var(--primary-soft-ink);
   font-weight: 800;
 }
-/* The selected background sits under every label, so it can slide across them (useSegmentSlide in bits.tsx). */
+/* The selected background sits under every label, so it can slide across them (useSegmentSlide). */
 .segmented :is(button[aria-checked='true'], a[aria-current='page'])::before {
   content: '';
   position: absolute;
@@ -1282,7 +1282,7 @@ main:focus,
     transform: rotate(1turn);
   }
 }
-/* Closing a sheet: it sinks, or a dialog fades, and the scrim fades (SHEET_CLOSE_MS in bits.tsx). */
+/* Closing a sheet: it sinks, or a dialog fades, and the scrim fades (SHEET_CLOSE_MS in useModalSheet.ts). */
 .sheet.closing {
   animation: sink 180ms ease-in forwards;
 }
@@ -1528,7 +1528,7 @@ main:focus,
 .icon-btn.playing svg path + path {
   animation: pulse 500ms ease-in-out infinite alternate;
 }
-/* One-shot feedback, played by playAnim in bits.tsx. Each is transform and opacity, under 250 ms. */
+/* One-shot feedback, played by playAnim.ts. Each is transform and opacity, under 250 ms. */
 @keyframes nav-bounce {
   40% {
     transform: translateY(-3px) scale(1.12);
