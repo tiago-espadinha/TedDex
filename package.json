@@ -1,7 +1,15 @@
 {
-  "name": "material-dex-web",
-  "version": "0.0.0",
+  "name": "teddex",
+  "version": "1.0.0",
   "private": true,
+  "description": "Offline-first, installable PWA Pokédex and team builder, built mobile-first for iPhone.",
+  "homepage": "https://teddex.vercel.app",
+  "license": "MIT",
+  "author": "Tiago Espadinha",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tiago-espadinha/TedDex.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
