@@ -1,61 +1,67 @@
 # TedDex
 
-An offline-first, installable web app (PWA) dex and team builder, built mobile-first for iPhone.
-Unofficial, non-commercial fan project. Data from [PokeAPI](https://pokeapi.co).
+An offline-first Pokédex and team builder you can install on mobile. It's a static web app with no server: 1,025 species, their moves, evolutions and locations all work in airplane mode after the first visit.
 
-## Quick start
+**Live: <https://teddex.vercel.app/>**
+
+| Dex                                                              | Species page                                                    | Team                                                                     | Team analysis                                                                    |
+| ---------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| ![Dex grid of species cards tinted by type](docs/images/dex.png) | ![Charizard's page with its base stats](docs/images/detail.png) | ![A team of six as cards with abilities and moves](docs/images/team.png) | ![Type coverage table for a team with a score per type](docs/images/analyse.png) |
+
+| Pokédex tracker                                                               | Guide                                                    | Dark theme                                                  | Design B                                                            |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------- |
+| ![A Kanto Pokédex with seen, caught and shiny cells](docs/images/pokedex.png) | ![Guide menu from Moves to Types](docs/images/guide.png) | ![Charizard's page in the dark theme](docs/images/dark.png) | ![The Dex in the alternative dark design](docs/images/design-b.png) |
+
+## Features
+
+- **Dex:** a virtualised grid or list, with fuzzy search, `&`, `|` and `!` operators, and filters for generation, type and category. Megas, regional and other forms can appear as their own rows.
+- **Species pages:** stats, type matchups, abilities, evolution lines, per-game learnsets and locations, cries, and shiny art. Forms have their own types and stats, and regional forms their own moves and evolution lines.
+- **Teams:** ability, nature, held item, moves, nickname and shiny for each member, with defensive, offensive and stat analysis.
+- **Pokédex tracker:** seen, caught and shiny for National, regional and custom dexes.
+- **Guide:** moves, abilities, items and where to find them, natures, the type chart, a comparator, and Gym Leader and Elite Four teams for 19 games.
+- **Backup:** export everything to JSON, and import it with strict validation.
+- **Designs:** a Material 3 design with light and dark themes, and an alternative dark design, all from one set of tokens.
+
+## Stack
+
+TypeScript, React 19, React Router 7 and Vite 8, with Dexie (IndexedDB), Fuse.js, TanStack Virtual and vite-plugin-pwa (Workbox). The styling is plain CSS in cascade layers, without a UI kit. Oxlint, Oxfmt and Node's test runner handle quality checks.
+
+## Engineering highlights
+
+- **Build-time data:** scripts turn PokeAPI's CSV dump and Bulbapedia's wikitext into static JSON, and fail on anything they can't map rather than guess.
+- **Offline by design:** per-id data ships in 64-id chunks, which keeps the service worker's precache to about 180 files. Thousands of sprites go to a separate versioned cache in the background.
+- **Testable logic:** filtering, search parsing, coverage maths and evolution lines are pure functions, covered by more than 500 tests that also validate the built data.
+- **Design rules in tests:** contrast ratios, the type scale, motion durations and CSS structure are all checked automatically.
+
+## Run it
+
+Requires Node 22.12 or later, and npm.
 
 ```bash
 npm install
 npm run dev          # http://localhost:5173
 ```
 
-To try it on an iPhone, run `npm run dev -- --host`, open the shown network URL in Safari on the same Wi-Fi,
-then **Share › Add to Home Screen**. The service worker (offline mode) only runs in a production build
-(`npm run build && npm run preview -- --host`) and only over HTTPS or localhost, so deploy to test offline on the phone.
+| Command                                | What it does                                 |
+| -------------------------------------- | -------------------------------------------- |
+| `npm run build`                        | Typecheck and production build, into `dist/` |
+| `npm run preview`                      | Serve the production build                   |
+| `npm test`                             | All tests                                    |
+| `npm run test:logic`                   | Pure logic tests only, in about a second     |
+| `npm run test:coverage`                | Tests with a coverage report on `src/data/`  |
+| `npm run lint`, `npm run format:check` | Oxlint and Oxfmt                             |
 
-## Scripts
+The generated data and media are committed, so none of this needs the data builds. To try it on a phone, deploy it: the service worker needs a production build over HTTPS.
 
-| Command                                      | What it does                                                                                      |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `npm run dev`                                | Dev server with hot reload                                                                        |
-| `npm run build`                              | Typecheck + production build into `dist/` (includes the service worker)                           |
-| `npm run preview`                            | Serve the production build                                                                        |
-| `npm run data`                               | Rebuild `public/data/` from PokeAPI's CSV dump (cached in `.cache/`; `-- --fresh` to re-download) |
-| `npm run media`                              | Rebuild `public/media/` (WebP sprites/artwork, M4A cries) from PokeAPI's repos; needs `ffmpeg`    |
-| `npm run lint`                               | oxlint                                                                                            |
-| `npm run format`                             | Format the code with Oxfmt (`npm run format:check` only checks)                                   |
-| `python3 scripts/make-icons.py public/icons` | Re-render the app icons and favicon from `public/teddex.svg` (needs Inkscape)                     |
+## Documentation
 
-## Deploy
+- [Architecture](docs/ARCHITECTURE.md): routes, state, caching and migrations
+- [Data pipeline](docs/DATA_PIPELINE.md): the build scripts and what they produce
+- [Deployment](docs/DEPLOYMENT.md): hosting and release checks
+- [Tests](tests/README.md): what each test folder covers
 
-Hosted on Vercel's free tier. `vercel.json` sets the build (`npm run build` → `dist`), the single-page-app
-fallback to `/index.html` (except `/assets`, `/data`, `/media`, `/icons`, so a missing file stays a 404) and
-a long immutable cache on the hashed `/assets`. Everything else keeps Vercel's default `max-age=0,
-must-revalidate`, so `sw.js` and `index.html` are always checked and installed apps pick up updates.
-`.vercelignore` keeps local-only folders out of the upload.
+## Licence and credits
 
-1. `npx vercel login`, then `npx vercel` in the project root: link a new project, accept the detected settings.
-2. `npx vercel --prod` and note the `*.vercel.app` URL. (Or import the Git repo in the Vercel dashboard.)
-3. Check the URL: `/` and a deep link such as `/pokemon/25` load; reload a deep link; at 375, 768 and 1280 px.
-4. On the iPhone: open the URL in Safari, **Share › Add to Home Screen**, open it once online, browse a few
-   Pokémon, then switch on airplane mode and reopen it: the Dex, a detail page and teams still work.
+The source code is under the [MIT licence](LICENSE). That doesn't cover the data and media in `public/`, which keep their own terms: see [third-party notices](THIRD_PARTY_NOTICES.md).
 
-Any other static host with HTTPS works with the same build, fallback and headers.
-
-## Project layout
-
-```
-scripts/build-data.ts   PokeAPI CSV → public/data/*.json
-public/data/            generated data (committed, so the app runs without the build step)
-src/main.tsx            router + app shell (bottom nav, toasts, scroll restoration)
-src/styles/             layer order, tokens (the only literal colours), base, shared rules, motion
-src/data/               data loading, IndexedDB (Dexie) teams, filters, settings, type colours
-src/components/<Name>/  one folder per shared component (icons, type chips, bottom nav, search field, toast)
-src/hooks/              shared hooks (modal sheet, nav hiding, pager, keyboard inset)
-src/screens/<feature>/  dex, detail, teams, pokedex, guide and settings screens
-```
-
-## Status
-
-See `CLAUDE.md` for what's done, what's next and the conventions to follow.
+TedDex is an unofficial, free, non-commercial fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company, who own Pokémon names, images and sounds. Its feature set is modelled on the Android app Goldex, with its own name, icon and palette. Data comes from [PokeAPI](https://pokeapi.co) and [Bulbapedia](https://bulbapedia.bulbagarden.net/) (CC BY-NC-SA 2.5), and trainer sprites and Pokédex art from [Bulbagarden Archives](https://archives.bulbagarden.net/).

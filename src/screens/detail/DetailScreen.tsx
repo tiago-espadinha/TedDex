@@ -77,7 +77,7 @@ export function DetailScreen() {
   useEffect(() => {
     if (monId) fetch(cryUrl(monId)).catch(() => {});
   }, [monId]);
-  // Offline, artwork that was never viewed isn't cached: show the precached sprite and say so.
+  // Offline, artwork that was never viewed isn't cached: show the offline sprite and say so.
   const [noArtworkFor, setNoArtworkFor] = useState<number>();
 
   const go = (target?: string) => target && navigate(target, { replace: true });

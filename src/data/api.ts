@@ -110,7 +110,7 @@ export function useLoad<T>(
 }
 
 // ---- media (mirrored into /media by `npm run media`) ----
-// Sprites (Pokémon and items) are precached; artwork and cries are cached the first time they are seen.
+// Sprites (Pokémon and items) are warmed into the sprite cache (spriteCache.ts); artwork and cries are cached the first time they are seen.
 export const spriteUrl = (id: number) => `/media/sprites/${id}.webp`;
 export const shinySpriteUrl = (id: number) => `/media/sprites/shiny/${id}.webp`;
 export const artworkUrl = (id: number) => `/media/artwork/${id}.webp`;
