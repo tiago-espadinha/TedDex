@@ -28,4 +28,4 @@ Shared readers, not tests: `css.ts` reads the stylesheets, `data-files.ts` the b
 
 ## What is not automated
 
-The UI. No test renders a component or drives a browser, so screens, gestures, view transitions and the iPhone behaviour are checked by hand at 390×844.
+The UI. No test renders a component or drives a browser, so screens, gestures, view transitions and the mobile behaviour are checked by hand at 390×844.

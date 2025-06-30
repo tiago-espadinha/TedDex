@@ -10,13 +10,13 @@
  * reference/items.json (with their PokeAPI names from the CSV cache), so run `npm run data` first.
  *
  * Output (all under public/media/; forms use their Pokémon id, e.g. 10034 for Mega Charizard X):
- *   sprites/<id>.webp   96 px front sprite, lossless WebP (precached by the service worker); species and forms
+ *   sprites/<id>.webp   96 px front sprite, lossless WebP (kept offline by the sprite cache); species and forms
  *   sprites/shiny/<id>.webp  the same, shiny; species and forms
  *   artwork/<id>.webp   368 px official artwork (2× the 184 px hero), WebP q65 (cached on first view); species and forms
  *   artwork/shiny/<id>.webp  the same, shiny; species and forms
  *   cries/<id>.m4a      latest cry, AAC 40 kbps mono (iOS Safari can't reliably play OGG); species only
- *   items/<id>.webp     item sprite, 48–64 px WebP (precached); every item in reference/items.json
- *   guide/<name>.webp   pixel-art sprites for the Guide menu rows, doubled, lossless (precached)
+ *   items/<id>.webp     item sprite, 48–64 px WebP (kept offline by the sprite cache); every item in reference/items.json
+ *   guide/<name>.webp   pixel-art sprites for the Guide menu rows, doubled, lossless (kept offline by the sprite cache)
  */
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -117,7 +117,7 @@ const PIXEL_OPTIONS = ['-vf', 'scale=iw*2:ih*2:flags=neighbor', '-c:v', 'libwebp
 /**
  * Older item sprites are 24–32 px pixel art, newer ones 160 px renders. Pixel art is doubled with nearest-neighbour
  * and kept lossless; renders shrink to 64 px, lossy. Both then display sharp at the same size without
- * `image-rendering`, and 2,000 renders stay small enough to precache.
+ * `image-rendering`, and 2,000 renders stay small enough to keep offline.
  */
 async function itemSpriteOptions(src: string): Promise<string[]> {
   const width = (await readFile(src)).readUInt32BE(16); // PNG IHDR width

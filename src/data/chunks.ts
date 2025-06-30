@@ -2,7 +2,7 @@ import type { EncounterRow, Learnset, Learnsets, Locations } from './types';
 
 /**
  * Per-id data (species, learnsets, locations, evolution, move and item-place pages) ships in chunks of
- * CHUNK_SIZE ids, so the service worker precaches about a hundred files instead of thousands.
+ * CHUNK_SIZE ids, so the service worker precaches about 180 files instead of thousands.
  * A chunk file is `<kind>/c<n>.json` holding id → entry; learnsets and locations are packed further below.
  */
 export const CHUNK_SIZE = 64;

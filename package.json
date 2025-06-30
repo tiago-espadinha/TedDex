@@ -2,7 +2,7 @@
   "name": "teddex",
   "version": "1.0.0",
   "private": true,
-  "description": "Offline-first, installable PWA Pokédex and team builder, built mobile-first for iPhone.",
+  "description": "Offline-first, installable PWA Pokédex and team builder, built mobile-first.",
   "homepage": "https://teddex.vercel.app",
   "license": "MIT",
   "author": "Tiago Espadinha",
