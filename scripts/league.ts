@@ -1,6 +1,6 @@
 /**
  * Pure helpers for `scripts/build-league.ts`: read Bulbapedia's {{Party}} / {{Pokémon}} templates out of a
- * trainer page's raw wikitext. No I/O here, so the parsing is covered by tests/league.test.ts.
+ * trainer page's raw wikitext. No I/O here, so the parsing is covered by tests/pipeline/league.test.ts.
  */
 
 /** One {{Pokémon}} template inside a party, as written on the page. */
