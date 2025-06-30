@@ -1,0 +1,14 @@
+@layer screens {
+  .topbar .head-title {
+    flex: none;
+    max-width: 45%;
+    margin-right: 8px;
+  }
+  /* Room under the last row to scroll clear of the FAB. */
+  .ref-list.with-fab {
+    margin-bottom: 88px;
+  }
+  a.move-row.tinted {
+    color: var(--on-tint);
+  }
+}

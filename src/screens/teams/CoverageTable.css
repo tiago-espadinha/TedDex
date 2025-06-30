@@ -1,0 +1,49 @@
+@layer screens {
+  .cov {
+    padding: 10px 10px 24px;
+    overflow-x: auto;
+  }
+  .cov table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 2px;
+  }
+  .cov th {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--ink-2);
+    text-align: center;
+    padding-bottom: 4px;
+  }
+  .cov th:first-child {
+    text-align: left;
+    color: var(--muted);
+  }
+  .cov td {
+    height: 25px;
+    border-radius: 7px;
+    text-align: center;
+    font-size: var(--fs-xs);
+    font-weight: 800;
+  }
+  .cov td.lead {
+    text-align: left;
+    background: none;
+  }
+  /* Narrower type chips so the 12 px labels keep the grid inside a 375 px screen. */
+  .cov td.lead .type-chip {
+    padding-inline: 5px;
+  }
+  .cov td.count {
+    text-align: right;
+    background: none;
+    font-size: var(--fs-sm);
+  }
+  .cov img {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+    display: block;
+    margin: 0 auto;
+  }
+}

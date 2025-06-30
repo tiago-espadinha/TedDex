@@ -1,0 +1,12 @@
+/* The layer order, declared once: a later layer wins whatever the selectors' specificity. Every rule sits in one. */
+@layer tokens, base, primitives, components, screens, design-b, overrides;
+
+@import './tokens.css';
+@import './base.css';
+@import './primitives.css';
+@import './motion.css';
+@import './overrides.css';
+@import '../screens/guide/guide.css';
+@import '../screens/pokedex/pokedex.css';
+@import '../screens/settings/settings.css';
+@import '../screens/teams/teams.css';

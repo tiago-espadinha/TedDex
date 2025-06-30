@@ -41,7 +41,7 @@ export const NATURES: Nature[] = [
 const FLAVOR: Record<Stat, Flavor> = { atk: 'Spicy', def: 'Sour', spa: 'Dry', spd: 'Bitter', spe: 'Sweet' };
 export const FLAVORS = ['Spicy', 'Dry', 'Sweet', 'Bitter', 'Sour'] as const;
 export type Flavor = (typeof FLAVORS)[number];
-/** Flavour chip colour (`--flavor-<name>` in `src/styles.css`, white text), the games' Pokéblock colours. */
+/** Flavour chip colour (`--flavor-<name>` in `src/styles/tokens.css`, white text), the games' Pokéblock colours. */
 export const flavorChip = (f: Flavor) => `var(--flavor-${f.toLowerCase()})`;
 export const likedFlavor = (n: Nature) => (n.up && n.down ? FLAVOR[n.up] : undefined);
 export const dislikedFlavor = (n: Nature) => (n.up && n.down ? FLAVOR[n.down] : undefined);

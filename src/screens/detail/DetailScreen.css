@@ -1,0 +1,330 @@
+@layer screens {
+  /* Content settling in: tab panels fade, stat bars fill from the left. */
+  #tab-panel > * {
+    animation: fade 200ms ease;
+  }
+  /* The cry button while the cry plays: a pill behind it and pulsing sound waves. */
+  .icon-btn.playing {
+    background: var(--tint-press);
+  }
+  .icon-btn.playing svg path + path {
+    animation: pulse 500ms ease-in-out infinite alternate;
+  }
+  .detail-hero {
+    padding-top: 0;
+    border-radius: 0 0 32px 32px;
+    color: var(--on-tint);
+    touch-action: pan-y;
+  }
+  .detail-hero .bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+  }
+  .detail-hero .bar .icon-btn {
+    color: var(--on-tint);
+  }
+  .detail-hero .bar .icon-btn:active {
+    background: var(--tint-press);
+  }
+  /* The favourite heart fills instead of taking the pressed pill, which would sit badly on the type tint. */
+  .detail-hero .bar .icon-btn.fav[aria-pressed='true'] {
+    background: none;
+    color: var(--on-tint);
+  }
+  .detail-hero .bar .icon-btn.fav[aria-pressed='true'] svg {
+    fill: currentColor;
+  }
+  .detail-hero .bar .icon-btn.fav:active {
+    background: var(--tint-press);
+  }
+  /* Number, name and types on the left; category centred on the name, height and weight below it, on the right. */
+  .detail-hero .title {
+    display: grid;
+    grid-template-columns: fit-content(65%) minmax(min-content, 1fr);
+    grid-template-areas: 'no .' 'name genus' 'types size';
+    column-gap: 16px;
+    padding: 0 24px;
+  }
+  .detail-hero .title .no {
+    grid-area: no;
+  }
+  .detail-hero .title h1 {
+    grid-area: name;
+    align-self: center;
+  }
+  .detail-hero .title .types {
+    grid-area: types;
+    align-self: start;
+  }
+  .detail-hero .genus {
+    grid-area: genus;
+    align-self: center;
+    margin: 2px 0 8px;
+    text-align: right; /* the h1's margins, so both centre alike */
+    font-size: var(--fs-body);
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--on-tint-2);
+  }
+  .detail-hero .size {
+    grid-area: size;
+    display: grid;
+    justify-items: end;
+    align-content: start;
+    gap: 2px;
+    margin: 0;
+  }
+  .detail-hero .size > div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .detail-hero .size dt {
+    display: flex;
+    color: var(--on-tint-soft);
+  }
+  .detail-hero .size dd {
+    margin: 0;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--on-tint-2);
+  }
+  .detail-hero .no {
+    font-size: var(--fs-md);
+    font-weight: 700;
+    color: var(--on-tint-soft);
+  }
+  .detail-hero h1 {
+    margin: 2px 0 8px;
+    font-size: clamp(28px, 8vw, 32px);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .detail-hero .types {
+    display: flex;
+    gap: 6px;
+  }
+  .detail-hero .art-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 20px;
+  }
+  .detail-hero .art-row img {
+    width: 184px;
+    height: 184px;
+    object-fit: contain;
+  }
+  .detail-hero .art-note {
+    margin: -12px 0 0;
+    padding-bottom: 16px;
+    text-align: center;
+    font-size: var(--fs-xs);
+    color: var(--on-tint-muted);
+  }
+  .nav-round {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 22px;
+    background: var(--tint-glass);
+    color: var(--on-tint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+  .nav-round[aria-disabled='true'] {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  /* Three equal tabs; the selected one sits on a pill (.tab-ink) that slides to it, placed by --tab (its index). */
+  .tabs {
+    position: relative;
+    display: flex;
+    gap: 4px;
+    padding: 14px 16px 6px;
+  }
+  .tabs button {
+    flex: 1 1 0;
+    height: 36px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 18px;
+    background: transparent;
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: color 220ms ease;
+  }
+  .tabs button[aria-selected='true'] {
+    color: var(--bg);
+    font-weight: 700;
+  }
+  .tab-ink {
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    width: calc((100% - 32px - 8px) / 3);
+    height: 36px;
+    border-radius: 18px;
+    background: var(--ink);
+    transform: translateX(calc(var(--tab) * (100% + 4px)));
+    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  /* The tab panel pages sideways (usePager.ts): the browser keeps vertical scrolling, the clip hides the sliding panel. */
+  .pager {
+    overflow-x: clip;
+    touch-action: pan-y;
+  }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .fact {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .fact .k {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .fact .v {
+    font-size: var(--fs-body);
+    font-weight: 800;
+    margin-top: 2px;
+  }
+  .fact.wide {
+    grid-column: 1 / -1;
+  }
+  .looks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .look {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    padding: 8px 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+  }
+  .look img {
+    width: 128px;
+    height: 128px;
+    object-fit: contain;
+  }
+  .look figcaption {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .look.shiny {
+    border-color: var(--shiny-ink);
+    box-shadow: inset 0 0 0 1px var(--shiny-ink);
+    background: var(--shiny-bg);
+    color: var(--shiny-ink);
+  }
+  .fact-chips {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: space-evenly;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  /* Chips keep their size; their rows spread over the tile's height (tiles in a row match the tallest one). */
+  .fact .v:has(> .fact-chips) {
+    flex: 1;
+    display: flex;
+  }
+  /* Egg group chips open their page: the hit area grows to 44 px tall without moving the chip; wrapped rows sit 20 px apart so areas don't overlap. */
+  .fact-chips:has(> a.fact-chip) {
+    row-gap: 20px;
+  }
+  /* Catch rate and gender ratio bars: decorative, the values are in the text. */
+  .fact-bar {
+    display: flex;
+    gap: 2px;
+    height: 8px;
+    margin: 8px 0 6px;
+    border-radius: 4px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .fact-bar > span {
+    height: 100%;
+  }
+  .fill-male {
+    background: var(--gender-male);
+  }
+  .fill-female {
+    background: var(--gender-female);
+  }
+  .fill-genderless {
+    background: var(--muted);
+  }
+  /* Catch rate and its chance on one line, the chance set apart by a rule. */
+  .catch-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+  }
+  .fact-note {
+    padding-left: 10px;
+    border-left: 1px solid var(--line);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .gender-ratio {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+  }
+  .gender-ratio > span {
+    white-space: nowrap;
+  }
+  .gender {
+    display: inline-flex;
+    vertical-align: -4px;
+  }
+  .gender-male {
+    color: var(--gender-male);
+  }
+  .gender-female {
+    color: var(--gender-female);
+  }
+}
+@layer design-b {
+  [data-design='b'] .detail-hero h1 {
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  [data-design='b'] :is(.tabs button, .tab-ink) {
+    border-radius: 4px;
+  }
+  [data-design='b'] .tabs button[aria-selected='true'] {
+    color: var(--ink);
+  }
+  [data-design='b'] .tab-ink {
+    background: var(--bar);
+  }
+}

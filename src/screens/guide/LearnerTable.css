@@ -1,0 +1,72 @@
+@layer screens {
+  /* Learned by: number, sprite, name and types in columns; two types stack on phones. */
+  .learner-table,
+  .learner-head {
+    --types-col: 64px;
+    --learner-cols: 48px 40px minmax(0, 1fr) var(--types-col);
+  }
+  @media (min-width: 600px) {
+    .learner-table,
+    .learner-head {
+      --types-col: 156px;
+    }
+  }
+  .learner-head,
+  .learner-row {
+    display: grid;
+    grid-template-columns: var(--learner-cols);
+    column-gap: 10px;
+    align-items: center;
+  }
+  .learner-table {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .learner-table li + li {
+    border-top: 1px solid var(--line);
+  }
+  .learner-row {
+    min-height: 56px;
+    padding: 8px 12px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .learner-row:active {
+    background: var(--surface-2);
+  }
+  .learner-row:focus-visible {
+    outline-offset: -2px;
+  }
+  .learner-row .no {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .learner-row img {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    image-rendering: pixelated;
+  }
+  .learner-row .name {
+    font-size: var(--fs-body);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .learner-row .types {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  @media (min-width: 600px) {
+    .learner-row .types {
+      flex-direction: row;
+    }
+  }
+}

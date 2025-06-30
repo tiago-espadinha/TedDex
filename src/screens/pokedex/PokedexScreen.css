@@ -1,0 +1,30 @@
+@layer screens {
+  .dex-top .caught {
+    padding: 0 8px;
+  }
+  .dex-title {
+    position: relative;
+  }
+  .dex-title .team-name button {
+    position: static;
+  }
+  .dex-title .team-name button::after {
+    inset: -4px 0;
+  }
+  .dex-switch {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px 16px 0;
+  }
+  .dex-switch .segmented {
+    height: 44px;
+    --seg-r: 22px;
+    min-width: 100%;
+    width: max-content;
+    grid-auto-columns: minmax(max-content, 1fr);
+  }
+  .dex-switch .segmented button {
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+}

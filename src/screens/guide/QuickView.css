@@ -1,0 +1,67 @@
+@layer screens {
+  /* Quick view: a move, ability or item summary over the current screen. */
+  .peek-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: -8px;
+  }
+  .peek-head .grow {
+    flex: 1;
+    min-width: 0;
+  }
+  .peek-head h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+  .peek-head .sub {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .peek-head .item-art {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 6px;
+    border-radius: 14px;
+  }
+  .peek .head-facts {
+    margin: 12px 0 16px;
+  }
+  .peek .head-facts dt {
+    color: var(--muted);
+  }
+  .peek .head-facts dd {
+    color: var(--ink);
+  }
+  .peek .peek-head + .flavor {
+    margin-top: 12px;
+  }
+  .peek .primary-btn {
+    margin-top: 6px;
+  }
+  .peek-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .peek-actions + .primary-btn {
+    margin-top: 8px;
+  }
+}
+@layer overrides {
+  /* In the overrides layer: this colour stays over Design B's primary button. */
+  .peek .peek-actions .primary-btn {
+    margin-top: 0;
+    background: var(--surface-2);
+    color: var(--ink);
+    box-shadow: none;
+  }
+  .peek .peek-actions .primary-btn.danger {
+    color: var(--danger);
+  }
+}

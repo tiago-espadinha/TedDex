@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
 
 /**
- * Game colours are tokens in `src/styles.css` (`--game-<slug>`, in :root and Design B; Design A dark keeps the light
- * ones). Each carries white text (4.5:1, see tests/game-colors.test.ts). A label naming several games ("Red / Blue",
+ * Game colours are tokens in `src/styles/tokens.css` (`--game-<slug>`, in :root and Design B; Design A dark keeps the light
+ * ones). Each carries white text (4.5:1, see tests/design/game-colors.test.ts). A label naming several games ("Red / Blue",
  * item places' "Sword / Shield / The Crown Tundra") gets one colour per game, DLC left out.
  */
 export const GAME_SLUGS = [

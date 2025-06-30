@@ -1,0 +1,91 @@
+@layer screens {
+  /* 18×18 chart: scrolls sideways on phones, the attacking column stays put.
+   The pinned column holds the left gutter and covers the cell gaps around it, so nothing scrolls into view
+   beside it; the scroll bar is hidden because overlay bars would run under it (the chart fits from about 640 px). */
+  .type-matrix {
+    margin: 12px 0 24px;
+    padding-right: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .type-matrix::-webkit-scrollbar {
+    display: none;
+  }
+  .type-matrix table {
+    border-collapse: separate;
+    border-spacing: 2px;
+    margin: 0 auto;
+  }
+  .type-matrix th {
+    position: sticky;
+    z-index: 1;
+    background: var(--bg);
+    padding: 0;
+  }
+  .type-matrix th:first-child {
+    padding-left: var(--table-gutter);
+    box-shadow: 0 0 0 2px var(--bg);
+  }
+  .type-matrix tbody th a:focus-visible {
+    outline-offset: -2px;
+  }
+  .type-matrix thead th {
+    top: 0;
+  }
+  .type-matrix tbody th {
+    left: 0;
+    z-index: 2;
+    text-align: left;
+  }
+  .type-matrix thead th:first-child {
+    left: 0;
+    z-index: 3;
+  }
+  .type-matrix abbr,
+  .type-matrix tbody th a {
+    display: block;
+    color: var(--on-type);
+    text-decoration: none;
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    border-radius: 6px;
+  }
+  .type-matrix abbr {
+    width: 30px;
+    padding: 4px 0;
+    text-align: center;
+  }
+  .type-matrix tbody th a {
+    min-width: 70px;
+    padding: 7px 8px;
+  }
+  .type-matrix td {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    background: var(--neutral-cell);
+    text-align: center;
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .type-matrix td.super {
+    background: var(--resist-bg);
+    color: var(--resist-ink);
+  }
+  .type-matrix td.resisted {
+    background: var(--weak-bg);
+    color: var(--weak-ink);
+  }
+  .type-matrix td.immune {
+    background: var(--immune-bg);
+  }
+}
+@layer design-b {
+  [data-design='b'] .type-matrix abbr {
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+}

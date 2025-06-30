@@ -1,0 +1,25 @@
+@layer screens {
+  .loc-row .note {
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    color: var(--ink-2);
+  }
+  /* Version label on a Locations row only some games of the group have. */
+  .loc-row .ver {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 8px;
+    color: var(--on-type);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    vertical-align: 1px;
+    white-space: nowrap;
+  }
+  .loc-row .ver + .ver {
+    margin-left: 4px;
+  }
+  .game-fallback {
+    margin: 0 2px 10px;
+  }
+}

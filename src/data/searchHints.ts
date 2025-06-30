@@ -15,7 +15,7 @@ export const SEARCH_OPERATORS = [
 
 const ANY_TYPE = { label: 'Type', words: ['fire', 'ice'], note: 'or any other type' };
 
-/** Every word and example here is run against its list in tests/search-hints.test.ts. */
+/** Every word and example here is run against its list in tests/data/search-hints.test.ts. */
 export const SEARCH_HINTS: Record<HintList, SearchHints> = {
   dex: {
     keywords: [

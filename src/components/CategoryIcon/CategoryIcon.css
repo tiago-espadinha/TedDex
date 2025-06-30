@@ -1,0 +1,36 @@
+@layer components {
+  /* Move category badge: a white glyph on the category colour, 18 px in rows, chips and the filter sheet. */
+  .cat-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    color: var(--on-cat);
+  }
+  .cat-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.5;
+  }
+  .cat-physical {
+    background-color: var(--cat-physical);
+  }
+  .cat-special {
+    background-color: var(--cat-special);
+  }
+  .cat-status {
+    background-color: var(--cat-status);
+  }
+  .move-table .cat-icon {
+    justify-self: center;
+  }
+}
+@layer design-b {
+  /* Poppins runs wider and heavier than Manrope: lighter small text, muted plum actions. */
+  [data-design='b'] .cat-icon {
+    border-radius: 3px;
+  }
+}

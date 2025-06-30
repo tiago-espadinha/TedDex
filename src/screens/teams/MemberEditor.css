@@ -1,0 +1,141 @@
+@layer screens {
+  .icon-btn.shiny-toggle[aria-pressed='true'] {
+    background: var(--shiny-bg);
+    color: var(--shiny-ink);
+  }
+  .icon-btn.shiny-toggle[aria-pressed='true'] svg {
+    fill: currentColor;
+  }
+  .slot {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 6px 10px 12px;
+    border-radius: var(--radius-card);
+    color: var(--on-tint);
+  }
+  .slot a {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+  .slot img {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+    flex: none;
+  }
+  .slot .name {
+    font-size: var(--fs-body);
+    font-weight: 800;
+  }
+  .slot .meta {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--on-tint-2);
+    margin-top: 2px;
+  }
+  .slot .chips {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+  }
+  .slot .icon-btn {
+    color: var(--on-tint-2);
+  }
+  .member-hero {
+    text-decoration: none;
+    padding-right: 12px;
+  }
+  .member-hero > div {
+    flex: 1;
+  }
+  .game-select .sr-only + select {
+    padding-left: 0;
+  }
+  .field-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -6px -10px 0 0;
+  }
+  .field-head h2 {
+    margin-bottom: 4px;
+  }
+  .game-select .v.none,
+  .game-select select.none {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .move-slots {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .move-slots .move-row {
+    padding: 0;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .move-slots .add-slot {
+    width: 100%;
+  }
+  .ability-any {
+    width: 100%;
+    margin-top: 8px;
+  }
+  .ability-any:disabled {
+    opacity: 0.6;
+  }
+  /* The move picker's filter button sits beside its search. */
+  .picker-search {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 12px 0 10px;
+  }
+  .picker-search .search {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+  }
+  .filter-btn {
+    position: relative;
+  }
+  .filter-btn .badge {
+    top: 0;
+    right: 0;
+  }
+  .picker-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .picker-list li + li {
+    border-top: 1px solid var(--line);
+  }
+  .picker-list .move-row {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+  }
+  .picker-list .move-row:active {
+    background: var(--surface-2);
+  }
+  .picker-list .move-row:focus-visible {
+    outline-offset: -2px;
+  }
+}

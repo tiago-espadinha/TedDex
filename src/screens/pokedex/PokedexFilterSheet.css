@@ -1,0 +1,8 @@
+@layer screens {
+  .dex-states .gen-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+}

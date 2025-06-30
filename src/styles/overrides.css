@@ -1,0 +1,47 @@
+@layer overrides {
+  /* In the overrides layer: the band's room stays over the phone rows' padding. */
+  .ref-list .move-row.game-band {
+    padding-left: 18px;
+  }
+  /* Phones: every table and Guide list runs edge to edge, keeping its rounded box; text starts --table-gutter in. In the overrides layer: over the tables' own rules and Design B's. */
+  @media (max-width: 599px) {
+    .move-group > :is(.move-head, ul),
+    .ref-species :is(.learner-head, .learner-table, .evo-list) {
+      margin-inline: -24px;
+    }
+    .picker :is(.move-head, .move-table) {
+      margin-inline: -20px;
+    }
+    .move-head:has(+ .ref-list),
+    .ref-list,
+    .move-group.place-game > ul {
+      margin-inline: 0;
+    }
+    /* Where to find: the game band moves to the screen edge with its box. */
+    .place-game.game-band {
+      margin-inline: -24px;
+      padding-left: 0;
+    }
+    .place-game :is(h3, .flavor) {
+      margin-inline: var(--table-gutter);
+    }
+    :is(.move-group, .picker, .ref-list, .ref-species) :is(.move-row, .learner-row, .evo-member) {
+      padding-inline: calc(var(--table-gutter) - 1px);
+    }
+    /* Design B's lists have no border to make up the missing pixel. */
+    [data-design='b'] :is(.move-group, .ref-list, .ref-species) :is(.move-row, .evo-member) {
+      padding-inline: var(--table-gutter);
+    }
+    :is(.move-group, .picker, .ref-species) .learner-head,
+    .move-head:not(:has(+ .move-slots)) {
+      padding-inline: var(--table-gutter);
+    }
+    /* Locations sits in About beside the Training and Breeding cards, so it keeps the section's margins. */
+    .move-group.loc-group > ul {
+      margin-inline: 0;
+    }
+    .move-group.loc-group .move-row.loc-row {
+      padding-inline: 12px;
+    }
+  }
+}

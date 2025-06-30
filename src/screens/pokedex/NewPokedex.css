@@ -1,0 +1,9 @@
+@layer screens {
+  .dex-row.game-band {
+    padding-left: 16px;
+  }
+  .dex-games {
+    margin: 0;
+    list-style: none;
+  }
+}

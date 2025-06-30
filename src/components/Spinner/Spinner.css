@@ -1,0 +1,20 @@
+@layer components {
+  .spinner {
+    display: block;
+    animation: spin 0.9s linear infinite;
+  }
+  .spinner .ball-top {
+    fill: var(--primary);
+  }
+  .spinner .ball-bottom {
+    fill: var(--surface);
+  }
+  .spinner .ball-line {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+  .spinner .ball-button {
+    fill: var(--surface);
+  }
+}

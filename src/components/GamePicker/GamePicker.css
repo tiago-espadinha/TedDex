@@ -1,0 +1,78 @@
+@layer components {
+  .game-select .k {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .game-select.game-band {
+    padding-left: 20px;
+  }
+  .game-absent {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 12px;
+    margin: 0 2px 10px;
+  }
+  .game-absent .hint {
+    margin: 0;
+  }
+  .game-absent .text-btn {
+    min-height: 44px;
+  }
+  /* The game sheet's rows: --band on the left edge, the chosen one on --primary-soft with a check. */
+  .game-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .sheet > .game-rows {
+    margin-top: 12px;
+  }
+  .game-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 12px 6px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    text-align: left;
+    overflow: hidden;
+  }
+  .game-row:active {
+    background: var(--surface-2);
+  }
+  .game-row[aria-current='true'] {
+    border-color: transparent;
+    background: var(--primary-soft);
+    color: var(--primary-soft-ink);
+  }
+  .game-row .body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+  .game-row .name {
+    font-size: var(--fs-body);
+    font-weight: 700;
+  }
+  .game-row .meta {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .game-row[aria-current='true'] .meta {
+    color: inherit;
+  }
+  .game-select .k + .v {
+    margin-left: 10px;
+  }
+}

@@ -1,6 +1,6 @@
 /**
  * Pure helpers for `scripts/build-availability.ts`: read a species page's "Game locations" table and join its text to
- * PokeAPI's encounter rows. No I/O here, so tests/availability.test.ts covers it. Anything it cannot read throws.
+ * PokeAPI's encounter rows. No I/O here, so tests/pipeline/availability.test.ts covers it. Anything it cannot read throws.
  */
 import { REGIONAL_FORM, hasOwnFormData } from '../src/data/forms';
 import type { EncounterRow, EvolutionMember, Locations } from '../src/data/types';

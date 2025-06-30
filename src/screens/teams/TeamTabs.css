@@ -1,0 +1,17 @@
+@layer screens {
+  .team-tabs {
+    view-transition-name: team-tabs;
+  }
+  /* Teams | Pokédexes on the Team tab: links in the segmented look, 44 px tall. */
+  .team-tabs {
+    height: 44px;
+    margin: 4px 16px 0;
+    --seg-r: 22px;
+  }
+  .team-tabs a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+}

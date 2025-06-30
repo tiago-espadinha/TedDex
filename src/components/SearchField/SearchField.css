@@ -1,0 +1,143 @@
+@layer components {
+  /* In a header row, next to the title: fills the rest of the row; buttons inside sit at the right edge. */
+  /* The slot keeps the field's height in the header while the field is pinned. */
+  .search-slot {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+  }
+  .search.in-head {
+    margin: 0;
+    height: 44px;
+    padding: 0 4px 0 14px;
+    gap: 8px;
+  }
+  /* Scrolled away, the field pins at the top (JS sets `top`: the safe area or a sticky bar's bottom) a size smaller. */
+  .search.in-head.pinned {
+    position: fixed;
+    z-index: 14;
+    left: max(16px, calc((100vw - 720px) / 2 + 16px));
+    right: max(16px, calc((100vw - 720px) / 2 + 16px));
+    height: 40px;
+  }
+  /* Behind the pinned field: a bar on the page background across the content column, from the top of the screen
+   (under a sticky .dex-top) to 8 px below the field, with the tinted header's bottom corners; it fades with the morph. */
+  .search-bar {
+    position: fixed;
+    z-index: 9;
+    top: var(--vv-top, 0px);
+    left: max(0px, calc((100vw - 720px) / 2));
+    right: max(0px, calc((100vw - 720px) / 2));
+    height: calc(var(--pin-top) + 48px);
+    background: var(--bg);
+    border-radius: 0 0 32px 32px;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 200ms ease,
+      visibility 0s 200ms;
+  }
+  .search-bar.on {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 200ms ease;
+  }
+  .search-bar:not(.on) {
+    pointer-events: none;
+  }
+  /* Back to top: centred over the filter button's column, above it, whether or not the screen has one. */
+  .to-top {
+    position: fixed;
+    z-index: 15;
+    right: calc(max(16px, calc((100vw - 720px) / 2 + 16px)) + 6px);
+    bottom: calc(var(--nav-h) + var(--safe-bottom) + 84px);
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 22px;
+    background: var(--surface);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-fab);
+    cursor: pointer;
+    animation: pop-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .to-top:active {
+    background: var(--surface-2);
+  }
+  @media (max-width: 599px) {
+    /* A phone's header field is too narrow for the "?" beside a query: the clear button takes its place until the field is empty or pinned. */
+    :is(.dex-head, .topbar) .search.in-head:not(.pinned):has(input:not(:placeholder-shown)) .search-help {
+      display: none;
+    }
+  }
+  .hint-sheet code {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font-family: var(--font-code);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .hint-sheet dl {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .hint-sheet dd {
+    margin: 0;
+    font-size: var(--fs-md);
+    color: var(--ink-2);
+  }
+  .hint-sheet dl > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+  }
+  .hint-ops {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hint-ops code {
+    min-width: 44px;
+    text-align: center;
+  }
+  .hint-examples dd {
+    flex: 1 1 140px;
+  }
+  @media (max-width: 599px) {
+    .hint-sheet .hint-examples > div {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+    }
+    .hint-examples dd {
+      flex: none;
+    }
+  }
+  .hint-words dt {
+    flex: 0 0 84px;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .hint-words dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .hint-sheet .hint {
+    margin: 10px 0 0;
+  }
+}
+@layer design-b {
+  [data-design='b'] .search-bar {
+    border-radius: 0 0 4px 4px;
+  }
+}

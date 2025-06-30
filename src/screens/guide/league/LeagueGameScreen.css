@@ -1,0 +1,13 @@
+@layer screens {
+  .league-note {
+    margin: 4px 24px 0;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+  }
+  /* Each trainer is a card on its team's main type tint (`teamType`), --surface without one. */
+  .league-trainers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}

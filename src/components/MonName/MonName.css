@@ -1,0 +1,18 @@
+@layer components {
+  /* Nidoran's ♂/♀ in a name: a drawn sign the size of a capital, sitting on the baseline. */
+  .name-sign svg {
+    width: 0.75em;
+    height: 0.75em;
+    margin-left: 0.05em;
+  }
+  .name-sign g {
+    stroke-width: 3.25;
+  }
+  /* Each icon's ink ends at a different height in its box: the ♀ cross near the bottom, the ♂ ring above it. */
+  .name-sign-female svg {
+    vertical-align: -0.01em;
+  }
+  .name-sign-male svg {
+    vertical-align: -0.075em;
+  }
+}

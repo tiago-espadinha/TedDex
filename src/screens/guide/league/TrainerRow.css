@@ -1,0 +1,43 @@
+@layer screens {
+  /* A row in the game's list links to the trainer's page; the page opens with the same card as its hero. */
+  .league-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 12px;
+    min-height: 88px;
+    padding: 8px 12px 8px 8px;
+    border-radius: var(--radius-card);
+    color: var(--on-tint);
+    text-decoration: none;
+  }
+  .league-head:active {
+    background: var(--tint-press);
+  }
+  .league-head:focus-visible {
+    outline-offset: -2px;
+  }
+  .league-head > svg {
+    color: var(--on-tint-muted);
+  }
+  .league-head .trainer-name {
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .league-head .trainer-name .badge-name {
+    font-weight: 600;
+    color: var(--on-tint-2);
+  }
+  .league-head .trainer-name .name {
+    white-space: nowrap;
+  }
+  .league-head .tags {
+    margin-top: 4px;
+  }
+  .league-head .team-size {
+    margin-top: 4px;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--on-tint-2);
+  }
+}

@@ -1,0 +1,196 @@
+@layer screens {
+  /* Evolution section (About): stages as sprite-over-name tiles, the method over each arrow. */
+  .evo-card {
+    margin: 0;
+    padding: 12px 8px;
+    list-style: none;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .evo-row {
+    display: grid;
+    align-items: center;
+  }
+  .evo-row li {
+    display: contents;
+  }
+  .evo-mon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    justify-self: center;
+    width: 100%;
+    max-width: 160px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 2px;
+    border-radius: 16px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  a.evo-mon:active {
+    background: var(--surface-2);
+  }
+  .evo-mon.current {
+    background: var(--primary-soft);
+    color: var(--primary-soft-ink);
+  }
+  .evo-mon img {
+    width: 100%;
+    max-width: 80px;
+    height: auto;
+    aspect-ratio: 1;
+    image-rendering: pixelated;
+  }
+  /* Long names overflow both sides of a narrow tile instead of breaking mid-word; the arrows leave room beside them. */
+  .evo-mon span {
+    font-size: var(--fs-md);
+    font-weight: 700;
+    text-align: center;
+  }
+  .evo-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    padding-bottom: 22px;
+    color: var(--muted);
+  }
+  .evo-step b {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    text-wrap: balance;
+    color: var(--ink-2);
+  }
+  .evo-step svg {
+    width: 100%;
+    max-width: 40px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Room for a two-line label over the arrow, so a wrapped one doesn't push its tile below its row's. */
+  .evo-step.down {
+    justify-content: flex-end;
+    min-height: calc(2 * 1.25 * var(--fs-xs) + 28px);
+    padding: 4px 0 0;
+  }
+  .evo-step.down svg {
+    width: 14px;
+    height: 22px;
+  }
+  .evo-fan {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .evo-fan > .evo-mon:first-child {
+    width: 120px;
+  }
+  /* Several targets share a bracket under their stage, then a grid of columns. */
+  .evo-targets {
+    display: grid;
+    width: 100%;
+    margin: 10px 0 0;
+    padding: 14px 0 0;
+    list-style: none;
+    column-gap: 4px;
+    row-gap: 12px;
+    position: relative;
+  }
+  /* The arrows' stroke: the mask gives the bracket's feet their round caps, which a border can't have. */
+  .evo-targets::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 7%;
+    right: 7%;
+    height: 14px;
+    border: 2px solid var(--muted);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+    --cap: radial-gradient(circle 1px, var(--mask-opaque) 98%, transparent);
+    mask:
+      linear-gradient(var(--mask-opaque) 0 0) top / 100% calc(100% - 1px) no-repeat,
+      var(--cap) left bottom / 2px 2px no-repeat,
+      var(--cap) right bottom / 2px 2px no-repeat;
+  }
+  .evo-targets::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 2px;
+    height: 9px;
+    margin-left: -1px;
+    border-radius: 1px;
+    background: var(--muted);
+  }
+  .evo-targets.cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .evo-targets.cols-2::before {
+    left: calc(25% - 2px);
+    right: calc(25% - 2px);
+  }
+  .evo-targets.cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  /* Feet over the outer columns' arrows; the stub runs on through the bar as the middle column's foot. */
+  .evo-targets.cols-3::before {
+    left: calc(16.67% - 2px);
+    right: calc(16.67% - 2px);
+  }
+  .evo-targets.cols-3::after {
+    height: 22px;
+  }
+  .evo-targets > li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+  .evo-megas {
+    padding: 4px 8px;
+  }
+  .evo-megas > li {
+    padding: 8px 0;
+  }
+  .evo-megas > li:not(.evo-fan) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 132px minmax(0, 1fr);
+    align-items: center;
+  }
+  .evo-megas > li + li {
+    border-top: 1px solid var(--line);
+  }
+  .evo-step.mega {
+    gap: 4px;
+  }
+  .evo-step.mega b {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .evo-step.mega b img {
+    flex: none;
+    image-rendering: pixelated;
+  }
+  .evo-step.mega svg {
+    max-width: 96px;
+  }
+  /* As .evo-step.down, with the stone's sprite above the label, so a wrapped label keeps the tiles level. */
+  .evo-step.mega.down {
+    min-height: calc(2 * 1.25 * var(--fs-xs) + 56px);
+  }
+}

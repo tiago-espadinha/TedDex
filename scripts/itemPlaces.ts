@@ -1,7 +1,7 @@
 /**
  * Pure helpers for `scripts/build-item-places.ts`: read the core-series acquisition table out of a Bulbapedia
  * item page's raw wikitext and turn its cells into plain text. No I/O here, so the parsing is covered by
- * tests/item-places.test.ts. Anything it cannot read (an unknown template or game code, leftover markup) throws.
+ * tests/pipeline/item-places.test.ts. Anything it cannot read (an unknown template or game code, leftover markup) throws.
  */
 
 /** One game code of a `{{gameabbrevN|…}}` template: display label, chronological order, our version group ids. */

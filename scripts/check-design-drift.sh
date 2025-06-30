@@ -4,14 +4,14 @@
 # Runs from the repo root (the parent of scripts/) wherever it is called; a src_dir
 # argument is resolved against the caller's directory and should be inside the repo (paths
 # outside it are printed in full, so no exemption applies). Call it by its real path, not a symlink.
-# The tokens file comes from the "Tokens file:" line of docs/DESIGN_DIRECTION.md.
+# The tokens file comes from the "Tokens file:" line of scripts/design-drift.conf.
 # An optional "Allowed color files:" line (comma-separated paths from the repo root, or
 # "none") exempts other files, such as a fixed palette that cannot be a CSS variable.
 # Exit 0: clean or skipped. Exit 1: hardcoded colors found. Exit 2: the check could not run.
 set -u
 unset CDPATH  # a CDPATH hit makes cd print the directory, which would end up in ROOT
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)" || exit 2
-DOC="docs/DESIGN_DIRECTION.md"
+CONF="scripts/design-drift.conf"
 
 if [ $# -ge 1 ]; then
   [ -d "$1" ] || { echo "ERROR: source dir '$1' not found" >&2; exit 2; }
@@ -22,7 +22,7 @@ else
 fi
 SRC_ABS="$(cd -- "$SRC_ARG" && pwd -P)" || { echo "ERROR: cannot enter '$SRC_ARG'" >&2; exit 2; }
 cd -- "$ROOT" || exit 2
-# Root-relative, so grep prints paths in the same form as the DOC lines.
+# Root-relative, so grep prints paths in the same form as the CONF lines.
 case "$SRC_ABS" in
   "$ROOT") SRC="." ;;
   "$ROOT"/*) SRC="${SRC_ABS#"$ROOT"/}" ;;
@@ -32,9 +32,9 @@ esac
 # Trim surrounding spaces and a leading "./".
 trim() { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's|^\./||'; }
 
-TOKENS="$(sed -n 's/^Tokens file:[[:space:]]*//p' "$DOC" 2>/dev/null | head -n1 | trim)"
-case "$TOKENS" in ""|TBD|tbd) echo "SKIP: no tokens file recorded in $DOC yet"; exit 0 ;; esac
-ALLOWED="$(sed -n 's/^Allowed color files:[[:space:]]*//p' "$DOC" 2>/dev/null | head -n1)"
+TOKENS="$(sed -n 's/^Tokens file:[[:space:]]*//p' "$CONF" 2>/dev/null | head -n1 | trim)"
+case "$TOKENS" in ""|TBD|tbd) echo "SKIP: no tokens file recorded in $CONF yet"; exit 0 ;; esac
+ALLOWED="$(sed -n 's/^Allowed color files:[[:space:]]*//p' "$CONF" 2>/dev/null | head -n1)"
 case "$(printf '%s' "$ALLOWED" | trim)" in none|None|NONE|TBD|tbd) ALLOWED="" ;; esac
 
 # Exempt paths, one per line: the tokens file and each allowed file.
